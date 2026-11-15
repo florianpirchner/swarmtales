@@ -22,5 +22,8 @@
 		"@swarmtales/testkit": "workspace:*",
 		"yaml": "2.9.1",
 		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"chess.js": "1.4.0"
 	}
 }

@@ -27,3 +27,5 @@ export { experimentAnalyse, experimentRun, type ExperimentInput } from "./experi
 export { replayDiffers, replayRun, type ReplayRunInput } from "./replay.ts";
 export { scan } from "./scan.ts";
 export { handLine, watched, type HandCount } from "./watch.ts";
+export { ANALYSIS_FILES, analyseChess, depthOf, type ChessAnalysisInput } from "./chess.ts";
+export { analyseSync, DEFAULT_DEPTH, ENGINE, engineFile, GARBOCHESS } from "./chess-engine.ts";

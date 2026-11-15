@@ -6,7 +6,7 @@ optional and transitive ones included), `third_party/manifest.json` and the acti
 [`docs/LICENCE-POLICY.md`](docs/LICENCE-POLICY.md). Every package here is a development tool or a library of this
 repository. `A -> B` means: declared as A, used under B.
 
-476 entries.
+477 entries.
 
 | Package | Version | Licence | Source |
 |---|---|---|---|
@@ -447,6 +447,7 @@ repository. `A -> B` means: declared as A, used under B.
 | supports-color | 7.2.0 | MIT | https://github.com/chalk/supports-color#readme |
 | supports-color | 8.1.1 | MIT | https://github.com/chalk/supports-color#readme |
 | supports-preserve-symlinks-flag | 1.0.0 | MIT | https://github.com/inspect-js/node-supports-preserve-symlinks-flag#readme |
+| third_party/garbochess | 4ff0f9e49a0041545b645e25d3d2da7af3b36a90 | BSD-3-Clause | https://github.com/glinscott/Garbochess-JS |
 | tinybench | 2.9.0 | MIT | https://github.com/tinylibs/tinybench#readme |
 | tinyexec | 0.3.2 | MIT | https://github.com/tinylibs/tinyexec#readme |
 | tinyexec | 1.3.1 | MIT | https://github.com/tinylibs/tinyexec#readme |

@@ -36,7 +36,7 @@ describe("swt --help", () => {
 	it("prints every command of the table and exits with 0, with and without the flag", async () => {
 		const swt = cli(cwd);
 		const bare = await swt();
-		expect([bare.code, bare.err, names.length]).toEqual([0, "", 8]);
+		expect([bare.code, bare.err, names.length]).toEqual([0, "", 9]);
 		for (const name of names) expect(bare.out.join("\n")).toContain(`swt ${name} ${COMMANDS[name].argument}`);
 		expect([await swt("--help"), await swt("play", "x", "--help")]).toEqual([bare, bare]);
 		// No help without the flag: a command without its argument is still refused.

@@ -23,10 +23,63 @@ export const ACTOR_KEYS: {
 export function analyse(state: ExperimentState, facts: readonly RunFacts[], baseline?: NoiseFloor): ExperimentResults;
 
 // @public
+export function analyseGame(engine: ChessEngine, moves: readonly Pick<ChessMove, "ply" | "colour" | "by" | "san" | "forfeit">[], depth: number): ScoredPly[];
+
+// @public
+export function analyseRun(engine: ChessEngine, directory: string, depth: number): GameAnalysis[];
+
+// @public
+export interface Analysis {
+    readonly best: string;
+    readonly nodes: number;
+    readonly score: Score;
+}
+
+// @public
+export function analysisMarkdown(engine: ChessEngine, analyses: readonly GameAnalysis[], depth: number): string;
+
+// @public
 export const BOOTSTRAP_SEED = 20261114;
 
 // @public
+export function centipawns(score: Score, cap?: number): number;
+
+// @public
 export function checkMetrics(spec: ExperimentSpec, known: readonly string[], generic: boolean): void;
+
+// @public
+export interface ChessEngine {
+    readonly analyse: (fen: string, depth: number) => Analysis;
+    readonly licence: string;
+    readonly ruler: {
+        readonly engine: string;
+        readonly commit: string;
+        readonly sha256: string;
+    };
+    readonly title: string;
+}
+
+// @public
+export function chessGamesOf(lines: readonly ChessLine[]): {
+    readonly games: ReadonlyMap<number, {
+        readonly white: string;
+        readonly black: string;
+    }>;
+    readonly moves: ReadonlyMap<number, readonly ChessMove[]>;
+};
+
+// Warning: (ae-forgotten-export) The symbol "Line" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type ChessLine = Static<typeof Line>;
+
+// Warning: (ae-forgotten-export) The symbol "MovePlayed" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type ChessMove = Static<typeof MovePlayed>;
+
+// @public
+export function classOf(loss: number): MoveClass;
 
 // @public
 export function comparable(a: RunManifest, b: RunManifest): boolean;
@@ -290,6 +343,16 @@ export function factsOf(manifest: RunManifest, events: readonly Envelope[], metr
 export type FactValue = number | "absent";
 
 // @public
+export interface GameAnalysis {
+    readonly black: string;
+    readonly black_: SideSummary;
+    readonly game: number;
+    readonly plies: readonly ScoredPly[];
+    readonly white: string;
+    readonly white_: SideSummary;
+}
+
+// @public
 export class LabError extends SwtError {}
 
 // @public
@@ -297,6 +360,9 @@ export const LOOPHOLE_HEADING = "## Loophole candidates (unverified)";
 
 // @public
 export type MetricTable = Readonly<Record<string, readonly MetricDefinition[]>>;
+
+// @public
+export type MoveClass = "good" | "inaccuracy" | "mistake" | "blunder";
 
 // @public
 export const NO_LOOPHOLE_PART = "none written: this report has no model-written part";
@@ -429,6 +495,28 @@ export interface RunReportOptions {
 }
 
 // @public
+export type Score = {
+    readonly cp: number;
+} | {
+    readonly mate: number;
+};
+
+// @public
+export interface ScoredPly {
+    readonly after: number;
+    readonly before: number;
+    readonly best: string;
+    readonly by: string;
+    readonly class: MoveClass;
+    readonly colour: "white" | "black";
+    readonly forfeit: boolean;
+    readonly loss: number;
+    readonly missedMate: boolean;
+    readonly ply: number;
+    readonly san: string;
+}
+
+// @public
 export function share(hits: number, n: number): {
     readonly share: number;
     readonly interval95: readonly [number, number];
@@ -436,6 +524,16 @@ export function share(hits: number, n: number): {
 
 // @public
 export function shareWithinNoise(baseline: readonly number[], values: readonly number[], threshold: number): Tolerance;
+
+// @public
+export interface SideSummary {
+    readonly acpl: number;
+    readonly blunders: number;
+    readonly inaccuracies: number;
+    readonly missedMates: number;
+    readonly mistakes: number;
+    readonly moves: number;
+}
 
 // @public
 export function summarize(values: readonly number[], seed?: number): NoiseSummary;

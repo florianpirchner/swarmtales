@@ -2,6 +2,7 @@
 /** The commands of `swt`: the flags are read in `flags.ts`, and every `SwtError` becomes printed issues and exit code 1. */
 import { formatIssue, redactSecrets, redactValue, SwtError } from "@swarmtales/contracts";
 import type { MechanicDefinition } from "@swarmtales/sdk";
+import { analyseChess } from "./chess.ts";
 import { readEnv } from "./env.ts";
 import { badUsage } from "./errors.ts";
 import { experimentAnalyse, experimentRun } from "./experiment.ts";
@@ -50,6 +51,7 @@ const COMMANDS: Readonly<Record<CommandName, Command>> = {
 	report: (directory, values, io) => report({ directory, ...(values.game === undefined ? {} : { game: values.game }) }, io),
 	replay: (directory, values, io) => replayRun({ directory, json: values.json === true, ...(values.game === undefined ? {} : { game: values.game }) }, io),
 	scan: (directory, values, io) => scan(directory, values.json === true, io),
+	"analyse chess": (directory, values, io) => analyseChess({ directory, ...(values.depth === undefined ? {} : { depth: values.depth }) }, io),
 	"experiment run": (spec, values, io) => experimentRun({ spec, out: values.out, ...(values.ledger === undefined ? {} : { ledger: values.ledger }), plan: values.plan === true, env: io.env ?? readEnv() }, io),
 	"experiment analyse": (directory, _values, io) => experimentAnalyse(directory, io),
 };
@@ -80,7 +82,8 @@ async function command(args: readonly string[], io: CliIo): Promise<number> {
  * no end. `swt report`: 0 the report is written, 1 the run folder is unreadable, 4 a file of it holds a key value.
  * `swt replay`: 0 the replayed log is equal, 1 it differs (`SWT-C031`), the run is not replayable (`SWT-T005`,
  * `SWT-T004`) or its folder does not verify. `swt scan`: 0 no file holds a held key value, 1 a file does (`SWT-X030`) or
- * the folder is none, 3 nothing was scanned because no key is held.
+ * the folder is none, 3 nothing was scanned because no key is held. `swt analyse chess`: 0 the analysis is written, 1
+ * the folder does not verify, holds no chess game or the engine cannot measure, 4 a file holds a key value.
  * `swt experiment run`: 0 complete, 1 an `SwtError`, 4 a leak, 6 stopped at the experiment's cap or after three failed
  * runs. `swt experiment analyse`: 0 the pass rule is kept or there is none, 1 an `SwtError`, 3 not kept, 4 a leak,
  * 7 no verdict. An error before the run is printed in the five-line form, or with `--json` as `{ "issues": [...] }`.

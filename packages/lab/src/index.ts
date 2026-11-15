@@ -20,3 +20,5 @@ export { type ExperimentState, ExperimentStateSchema, readExperimentState, resol
 export { analyse } from "./experiment/analyse.ts";
 export { LOOPHOLE_HEADING, NO_LOOPHOLE_PART, renderRunReport, type RunReportOptions } from "./report/run-report.ts";
 export { renderSeriesReport } from "./report/series-report.ts";
+export { type Analysis, centipawns, type ChessEngine, type Score } from "./chess/engine.ts";
+export { analyseGame, analyseRun, analysisMarkdown, chessGamesOf, type ChessLine, type ChessMove, classOf, type GameAnalysis, type MoveClass, type ScoredPly, type SideSummary } from "./chess/analyse.ts";

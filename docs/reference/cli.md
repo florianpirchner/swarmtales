@@ -1,6 +1,7 @@
 # The command line `swt`
 
-`swt` plays a game into a run folder, resumes it, checks it, replays it, reports on it, and runs an experiment.
+`swt` plays a game into a run folder, resumes it, checks it, replays it, reports on it, analyses a chess run with the
+reference engine, and runs an experiment.
 `swt`, `swt --help` and `swt <command> --help` print what this page says about the commands, from the same table
 (`apps/cli/src/flags.ts`); a test holds the page and the table together.
 
@@ -118,6 +119,25 @@ It prints file names and counts, never a value. `--json` prints one JSON line.
 Exit code 3 is not "clean". The scan can only look for values it holds, so set the key variable of every provider
 whose runs are in the folder (`SWT_ANTHROPIC_API_KEY` or `ARENA_ANTHROPIC_API_KEY`, `SWT_OPENROUTER_API_KEY` or
 `OPENROUTER_API_KEY`) before you scan.
+
+### `swt analyse chess <run dir>`
+
+Scores every half-move of a chess run with the chess reference engine (Garbochess-JS, vendored under
+`third_party/garbochess/`, offline, no model) as centipawn loss against the engine's best move. It writes
+`analysis.json` (the engine, its commit and file hash, the depth, every half-move) and `ANALYSIS.md` (per game and
+side: average centipawn loss, inaccuracies 50+, mistakes 100+, blunders 300+, missed mates) into the run folder,
+prints the Markdown and scans the folder for a held key value. The log must verify (`SWT-E006`); an engine that
+cannot measure is `SWT-E008`. Numbers of this engine are never compared with numbers of another engine.
+
+| Flag | What |
+|---|---|
+| `--depth <plies>` | the search depth, a whole number from 1 to 64; 10 when left out (the calibrated baseline) |
+
+| Exit code | Meaning |
+|---|---|
+| 0 | `analysis.json` and `ANALYSIS.md` are written |
+| 1 | an error before the work: the folder does not verify or holds no chess game, a bad `--depth`, or the engine cannot measure |
+| 4 | a file of the folder holds a key value (`SWT-X030`) |
 
 ### `swt experiment run <spec file>`
 

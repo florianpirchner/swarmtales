@@ -40,6 +40,7 @@ export const FLAGS = {
 	snapshot: text("<file>", "the snapshot to resume from; the latest of the run folder when left out"),
 	ticks: text("<n>", "stop after this many finished ticks"),
 	previous: text("<run dir>", "the run folder this one was resumed from: the continuity is checked too"),
+	depth: text("<plies>", "the search depth of the chess reference engine, 1 to 64; 10 when left out"),
 };
 
 const LOOP = ["hand", "snapshot-at"] as const;
@@ -69,6 +70,7 @@ export const COMMANDS = {
 	replay: { argument: "<run dir>", what: "replay a run from its log and compare", flags: ["game", "json"], exits: { 0: "the replayed log is equal", 1: "it differs (`SWT-C031`), the run is not replayable (`SWT-T005`, `SWT-T004`), or the folder does not verify" } },
 	scan: { argument: "<folder>", what: "look through every file of a folder for the key values of the environment", flags: ["json"], exits: { 0: "no file holds a held key value", 1: "a file does (`SWT-X030`), or the folder is none", 3: "nothing was scanned: no key variable is set" } },
 	"experiment run": { argument: "<spec file>", what: "play the runs of an experiment that are still missing", flags: ["out", "ledger", "plan"], exits: { 0: "the plan is complete; with `--plan`, the plan is printed", 1: ERROR, 4: "a run wrote a key value into its folder", 6: "stopped at the experiment's cap, or after three failed runs" } },
+	"analyse chess": { argument: "<run dir>", what: "score every half-move of a chess run with the reference engine", flags: ["depth"], exits: { 0: "`analysis.json` and `ANALYSIS.md` are written", 1: ERROR, 4: "a file of the folder holds a key value (`SWT-X030`)" } },
 	"experiment analyse": { argument: "<experiment dir>", what: "analyse the runs of an experiment against its pass rule", flags: [], exits: { 0: "the pass rule is kept, or the spec has none", 1: ERROR, 3: "the pass rule is not kept", 4: "a file holds a key value", 7: "no verdict: too few runs" } },
 } as const satisfies Readonly<Record<string, CommandRow>>;
 

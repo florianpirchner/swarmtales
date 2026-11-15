@@ -710,6 +710,14 @@ The experiment stops, because three runs in a row were excluded or failed, or a 
 - **Fix:** Find the cause in the run folders that were kept before any further run.
 - **Named in:** `apps/cli`, `packages/lab`
 
+### SWT-E008
+
+The reference engine cannot measure: its file changed or is missing, or it refused a position or a depth.
+
+- **Why:** The engine is a measuring instrument: only the pinned file, a legal position and a depth from 1 to 64 give numbers that compare with the baseline.
+- **Fix:** Restore third_party/garbochess/garbochess.js from the repository, and analyse only the positions of a chess run at a depth from 1 to 64.
+- **Named in:** `apps/cli`
+
 ### SWT-E010
 
 A metric of the spec is exported by no loaded mechanic.

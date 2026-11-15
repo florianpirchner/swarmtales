@@ -5,4 +5,4 @@ A file copied from another project lives in `third_party/<name>/` together with 
 gate (`pnpm check:licences`) treats a row like a package: the licence must be on the allowlist, and a folder without
 a row fails the check. See [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 
-Nothing is vendored at milestone M0.
+Vendored today: `garbochess/` (Garbochess-JS, the chess reference engine of the lab).

@@ -1,1 +1,8 @@
-[]
+[
+	{
+		"name": "garbochess",
+		"source": "https://github.com/glinscott/Garbochess-JS",
+		"commit": "4ff0f9e49a0041545b645e25d3d2da7af3b36a90",
+		"licence": "BSD-3-Clause"
+	}
+]
