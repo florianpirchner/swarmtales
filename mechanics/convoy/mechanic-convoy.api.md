@@ -23,6 +23,7 @@ talkPosts: Type.TInteger;
 maxTalkLength: Type.TInteger;
 deadline: Type.TInteger;
 talkMinutes: Type.TInteger;
+quietEnds: Type.TOptional<Type.TBoolean>;
 }>, {
 convoy_game_started: Type.TObject<{
 game: Type.TInteger;
@@ -146,6 +147,7 @@ talkPosts: Type.TInteger;
 maxTalkLength: Type.TInteger;
 deadline: Type.TInteger;
 talkMinutes: Type.TInteger;
+quietEnds: Type.TOptional<Type.TBoolean>;
 }>, Type.TObject<{
 seats: Type.TArray<Type.TString>;
 game: Type.TInteger;

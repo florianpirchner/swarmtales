@@ -32,7 +32,7 @@ describe("the game family", () => {
 	it("is the default export of the game file, with the params and defaults of the old registry", () => {
 		expect(blindBid).toBe(blindBidFamily);
 		expect(isGameFamily(blindBid)).toBe(true);
-		expect(familyParams(blindBid).params).toEqual({ games: 3, lots: [...DEFAULT_LOTS], purse: 100, brain: true, maxWords: 150 });
+		expect(familyParams(blindBid).params).toEqual({ games: 3, lots: [...DEFAULT_LOTS], purse: 100, brain: true, maxWords: 150, quietEnds: false });
 	});
 
 	it("gives the pinned game hash for the default params", () => {

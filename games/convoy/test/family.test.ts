@@ -32,7 +32,7 @@ describe("the game family", () => {
 	it("is the default export of the game file, with the params and defaults of the old registry", () => {
 		expect(convoy).toBe(convoyFamily);
 		expect(isGameFamily(convoy)).toBe(true);
-		expect(familyParams(convoy).params).toEqual({ games: 3, crews: [2, 2, 3, 3, 3, 3, 4, 4], damageToLose: 3, cooldown: 3, brain: true, maxWords: 150 });
+		expect(familyParams(convoy).params).toEqual({ games: 3, crews: [2, 2, 3, 3, 3, 3, 4, 4], damageToLose: 3, cooldown: 3, brain: true, maxWords: 150, quietEnds: false });
 	});
 
 	it("gives the pinned game hash for the default params", () => {

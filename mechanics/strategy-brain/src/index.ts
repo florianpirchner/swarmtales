@@ -239,7 +239,7 @@ export const strategyBrain = defineMechanic(strategyBrainHead, {
 				ctx.state.brains.set(key, { version, text });
 				ctx.emit("brain_written", { team, game: window.game, version, author: ctx.resident, words, hash: hashText(text), text });
 				closeWindow(ctx, team, "written");
-				return reply(ctx.prompt("strategy-brain/written", { version, words }));
+				return reply(ctx.prompt("strategy-brain/written", { version, words }), { endsTurn: ctx.options.quietEnds === true });
 			},
 		},
 	},

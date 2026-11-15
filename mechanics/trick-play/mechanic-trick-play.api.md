@@ -28,6 +28,7 @@ bidSum: Type.TBoolean;
 calibration: Type.TBoolean;
 reference: Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"retro">, Type.TLiteral<"bid">]>;
 referenceSamples: Type.TInteger;
+quietEnds: Type.TOptional<Type.TBoolean>;
 }>, {
 readonly game_started: Type.TObject<{
 game: Type.TInteger;

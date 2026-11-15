@@ -32,7 +32,7 @@ describe("the game family", () => {
 	it("is the default export of the game file, with the params and defaults of the old registry", () => {
 		expect(liarsDice).toBe(liarsDiceFamily);
 		expect(isGameFamily(liarsDice)).toBe(true);
-		expect(familyParams(liarsDice).params).toEqual({ seats: 4, games: 3, dice: 4, brain: true, talk: true, maxWords: 150 });
+		expect(familyParams(liarsDice).params).toEqual({ seats: 4, games: 3, dice: 4, brain: true, talk: true, maxWords: 150, quietEnds: false });
 	});
 
 	it("gives the pinned game hash for the default params", () => {

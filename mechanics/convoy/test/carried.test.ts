@@ -53,7 +53,10 @@ describe("carried byte for byte", () => {
 			["audit", "convoy/tools/audit", ["resident"], '{"type":"object","required":["seat","stage"],"properties":{"seat":{"type":"string","minLength":1,"maxLength":8,"description":"A seat that was on the crew of that stage."},"stage":{"type":"integer","minimum":1,"description":"An earlier stage."}}}'],
 			["accuse", "convoy/tools/accuse", ["resident"], `{"type":"object","required":["seats"],"properties":{"seats":{"type":"array","items":${SEAT},"minItems":1,"maxItems":6,"description":"The seats you believe are the saboteurs."},${reason("A short reason, for the record.")}}}`],
 		]);
-		expect(sha256(JSON.stringify(convoy.options))).toBe("b1981ff7e1c45f14030f11c7c47e43a9b1759f38548cc41bc7d3ff2e3be13f95");
+		// `quietEnds` (M4-69, P477) is new on this platform and optional: without it the schema is the old one.
+		const { quietEnds: quiet, ...carried } = convoy.options.properties;
+		expect(quiet).toMatchObject({ type: "boolean" });
+		expect(sha256(JSON.stringify({ ...convoy.options, properties: carried }))).toBe("b1981ff7e1c45f14030f11c7c47e43a9b1759f38548cc41bc7d3ff2e3be13f95");
 		expect(sha256(JSON.stringify(convoy.events))).toBe("1303bb0d2c58ec77b8c07a973889fb5875a01bd926737ca04393bf984adc333d");
 		expect(JSON.stringify(convoy.head.audiences)).toBe('{"convoy_game_started":["human"],"convoy_card_played":["human"],"convoy_accused":["human"],"convoy_game_scored":["human"]}');
 		expect([convoy.id, convoy.head.summary]).toEqual(["convoy", "The hidden-role card game Convoy for solo seats: secret saboteurs, crews from a rotating lead, votes of confidence, sealed safe or damage cards revealed as a count, one audit per game."]);

@@ -47,10 +47,11 @@ describe("carried byte for byte", () => {
 
 	it("has the tool names, the options, the events and the audience of the old platform", () => {
 		expect(sha256(JSON.stringify(strategyBrain.head.tools.map((tool) => tool.name)))).toBe("e0d2088e974a24465a03d73edd1574d91dcf103a10951de63cd5e8e813db2e4f");
-		// `showResults` (M2-29, the cure of LH19) and `tooLongDetail` (M4-15, P446) are new on this platform and optional:
-		// without them the schema is the old one.
-		const { showResults: added, tooLongDetail: cut, ...carried } = strategyBrain.options.properties;
+		// `showResults` (M2-29, the cure of LH19), `tooLongDetail` (M4-15, P446) and `quietEnds` (M4-69, P474) are new on
+		// this platform and optional: without them the schema is the old one.
+		const { showResults: added, tooLongDetail: cut, quietEnds: quiet, ...carried } = strategyBrain.options.properties;
 		expect(added).toMatchObject({ type: "boolean" });
+		expect(quiet).toMatchObject({ type: "boolean" });
 		expect(cut).toMatchObject({ anyOf: [{ const: "plain" }, { const: "cut" }] });
 		expect(sha256(JSON.stringify({ ...strategyBrain.options, properties: carried }))).toBe("67f5452444cfd8be7f1066be7420098e3e66e7fde207f6808da2e02d3c9d0e90");
 		expect(sha256(JSON.stringify(strategyBrain.events))).toBe("dd7d64765444715bc7f19a4d6a6260eb8e9683e00a820ccd5d8716409ca5a6e4");

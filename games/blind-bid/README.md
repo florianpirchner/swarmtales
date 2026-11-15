@@ -40,6 +40,7 @@ The id is always `blind-bid`; a variant is a set of options of `blindBidGame`, n
 | `purse` | 100 | coins per seat and game | |
 | `brain` | true | false is the control arm: the same briefings without the brain paragraph, no brain, no retro | `-nobrain` |
 | `maxWords` | 150 | the size of a brain | |
+| `quietEnds` | false | a written brain ends the writer's turn (`endsTurn`), so the writer is not woken for the answer alone, with an empty input before the game (P474). Off, the seats are woken as on the old platform and the oracle files hold; the next series turns it on (`test/quiet-ends.test.ts`) | |
 | `seed` | 31 | the seed of the run | |
 | `ticks` | 48 | the length of the run: an upper bound from the lots; the match ends the run earlier | |
 

@@ -38,6 +38,7 @@ The id is always `ember-tricks`; a variant is a set of params of the family, not
 | `brain` | true | each seat keeps notes across games; false is the control arm (same briefings, no notes, no retro) | `-nobrain` |
 | `lever` | `none` | one bidding lever: `bidSum` (the bids so far against the round's tricks), `calibration` (the seat's bid-against-taken line in the record), `mcRetro` (that line with the Monte Carlo worth of its hands), `mcBid` (the line, and the hand's worth shown while bidding) | `-sum`, `-calib`, `-mcretro`, `-mcbid` |
 | `maxWords` | 200 | the size of the notes | |
+| `quietEnds` | false | a bid, trump, card or veto that leaves the seat off turn, and a written note, end the seat's turn (`endsTurn`), so the seat is not woken for the answer alone (P475: 40 % of the requests of `ember-tricks-001` were such turns, each reading "Not your turn"). Off, the seats are woken as on the old platform and the oracle files hold; the next series turns it on | |
 
 The seed (23 when absent) and the run length (`games * (rounds * 6 + 6) + 6` ticks; the match ends the run earlier)
 are options of `emberTricksGame`, not params. The old entry set no output cap, so the default of 4000 stands.
@@ -52,4 +53,5 @@ recording's (four turns of the recording differ; `oracles/ember-tricks/README.md
 The no-brain arm has no file (its first test failed on the old platform) and is proven by the carried tests only.
 
 The turn lines keep the old hook numbers: the brain's reset and retro lines, then trick play's record and table. No
-tool of trick play ends a turn, so no oracle test maps `call.endsTurn`.
+tool of trick play ends a turn, so no oracle test maps `call.endsTurn`. `test/quiet-ends.test.ts` shows the answer
+turns after a seat's own move with `quietEnds` off, and none with it on.

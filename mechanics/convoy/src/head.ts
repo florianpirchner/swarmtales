@@ -19,6 +19,7 @@ const options = Type.Object({
 	maxTalkLength: Type.Integer({ minimum: 20, default: 400, description: "The longest line a seat may speak, in characters." }),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes a proposal, vote, card or accusation stays open before the missing ones are filled in (crew in seat order, yes, safe, none) and marked missed." }),
 	talkMinutes: Type.Integer({ minimum: 1, default: 2, description: "Minutes the talk before a vote stays open at most; it closes at the end of a minute once every seat had a turn in it." }),
+	quietEnds: Type.Optional(Type.Boolean({ description: "true: a call after which the seat has nothing open (no move owed, no line to read and speak) ends its turn (`endsTurn`), so its answer alone wakes no turn with nothing to do (P477). Absent or false: the answer wakes the seat, as on the old platform." })),
 });
 
 // The three checks the old platform made when the run started.

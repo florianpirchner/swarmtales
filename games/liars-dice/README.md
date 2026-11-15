@@ -39,6 +39,7 @@ options in `test/support.ts` (`VARIANTS`), and `test/carried.test.ts` pins them 
 | `brain` | true | false is the control arm: the same briefings without the brain paragraph, no brain, no retro | `-nobrain` |
 | `talk` | true | false: no public remark with a bid or a call | `-quiet` |
 | `maxWords` | 150 | the size of a brain | |
+| `quietEnds` | false | a written brain ends the writer's turn (`endsTurn`), so the writer is not woken for the answer alone, with an empty input before the game (P474). Off, the seats are woken as on the old platform and the oracle files hold; the next series turns it on (`test/quiet-ends.test.ts`) | |
 | `seed` | 53 | the seed of the run | |
 | `ticks` | 192 | the length of the run: an upper bound from the dice; the match ends the run earlier | |
 

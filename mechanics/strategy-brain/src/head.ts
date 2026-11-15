@@ -30,6 +30,7 @@ const options = Type.Object({
 		}),
 	),
 	showResults: Type.Optional(Type.Boolean({ description: "false: the briefing of a later game leaves out the results of the earlier games, so a brain is the only thing a briefing carries from game to game (LH19). Shown when absent." })),
+	quietEnds: Type.Optional(Type.Boolean({ description: "true: a written brain ends the writer's turn (`endsTurn`), so its answer alone wakes no turn with nothing to do (P474). Absent or false: the answer wakes the writer, as on the old platform." })),
 });
 
 /**

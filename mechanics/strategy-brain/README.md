@@ -130,6 +130,7 @@ Audience: everyone
 | `solo` | boolean | `false` | Every team is one resident: the briefings name no team and no side, and a retro window has no team talk. |
 | `tooLongDetail` | "plain" or "cut" | unset | The detail of a BRAIN_TOO_LONG refusal: `plain` (also when absent) names the words and the limit, byte for byte as on the old platform; `cut` adds how many words to cut (P446). |
 | `showResults` | boolean | unset | false: the briefing of a later game leaves out the results of the earlier games, so a brain is the only thing a briefing carries from game to game (LH19). Shown when absent. |
+| `quietEnds` | boolean | unset | true: a written brain ends the writer's turn (`endsTurn`), so its answer alone wakes no turn with nothing to do (P474). Absent or false: the answer wakes the writer, as on the old platform. |
 
 <!-- /generated:options -->
 

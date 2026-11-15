@@ -45,6 +45,8 @@ export interface EmberTricksOptions {
 	readonly maxWords?: number;
 	/** One bidding lever under test; none when absent. */
 	readonly lever?: EmberLever;
+	/** A move that leaves the seat off turn, and a written note, end the seat's turn, so the answer wakes no turn that only reads "Not your turn" (P475); off, as on the old platform. */
+	readonly quietEnds?: boolean;
 }
 
 const SUITS = [
@@ -56,18 +58,19 @@ const SUITS = [
 ];
 const DEFAULT_ROUNDS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 /** The defaults of the old game. */
-const DEFAULTS = { games: 2, rounds: DEFAULT_ROUNDS, brain: true, seed: 23, maxWords: 200 } as const satisfies EmberTricksOptions;
+const DEFAULTS = { games: 2, rounds: DEFAULT_ROUNDS, brain: true, seed: 23, maxWords: 200, quietEnds: false } as const satisfies EmberTricksOptions;
 type Filled = EmberTricksOptions & Required<Omit<EmberTricksOptions, "ticks" | "lever">>;
 
 const REFERENCE = { mcRetro: "retro", mcBid: "bid" } as const;
 
 // The three mechanics with the options of the old game, in its order.
-function mechanicsOf({ games, rounds, brain, maxWords, lever }: Filled) {
+function mechanicsOf({ games, rounds, brain, maxWords, lever, quietEnds }: Filled) {
 	const reference = lever === "mcRetro" || lever === "mcBid" ? REFERENCE[lever] : "off";
+	const quiet = quietEnds ? { quietEnds } : {};
 	return [
 		cardTable({ suits: SUITS, seats: [...SEATS] }),
-		trickPlay({ games, rounds: [...rounds], trump: "lowestBidderNames", vetoTokens: 1, scoring: { hit: 10, perTrick: 3, miss: "square", missBase: 5 }, maxIdleMinutes: 3, maxConsecutiveForfeits: 24, briefEveryRound: true, bidSum: lever === "bidSum", calibration: lever === "calibration" || reference !== "off", reference }),
-		strategyBrain({ enabled: brain, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 1, retroMaxMinutes: 2, shared: false, brainAtStart: false, solo: true }),
+		trickPlay({ games, rounds: [...rounds], trump: "lowestBidderNames", vetoTokens: 1, scoring: { hit: 10, perTrick: 3, miss: "square", missBase: 5 }, maxIdleMinutes: 3, maxConsecutiveForfeits: 24, briefEveryRound: true, bidSum: lever === "bidSum", calibration: lever === "calibration" || reference !== "off", reference, ...quiet }),
+		strategyBrain({ enabled: brain, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 1, retroMaxMinutes: 2, shared: false, brainAtStart: false, solo: true, ...quiet }),
 	];
 }
 
@@ -116,6 +119,7 @@ const Params = Type.Object(
 		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps notes across games; false is the control arm." }),
 		lever: Type.Union([Type.Literal("none"), Type.Literal("bidSum"), Type.Literal("calibration"), Type.Literal("mcRetro"), Type.Literal("mcBid")], { default: "none", description: "One bidding lever under test: the bid sum on the table, the calibration line, that line with the hands' worth in the retro (mcRetro) or the worth shown while bidding (mcBid)." }),
 		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words the notes may have." }),
+		quietEnds: Type.Boolean({ default: DEFAULTS.quietEnds, description: "A move that leaves the seat off turn, and a written note, end the seat's turn, so the answer wakes no empty turn (P475); false, as on the old platform." }),
 	},
 	{ description: "The variants of Ember Tricks." },
 );
@@ -131,8 +135,8 @@ const Params = Type.Object(
  *
  * @public
  */
-export const emberTricksFamily = defineGameFamily(Params, ({ games, rounds, brain, lever, maxWords }) =>
-	emberTricksGame({ games, brain, maxWords, rounds: Array.from({ length: rounds }, (_, index) => index + 1), ...(lever === "none" ? {} : { lever }) }),
+export const emberTricksFamily = defineGameFamily(Params, ({ games, rounds, brain, lever, maxWords, quietEnds }) =>
+	emberTricksGame({ games, brain, maxWords, quietEnds, rounds: Array.from({ length: rounds }, (_, index) => index + 1), ...(lever === "none" ? {} : { lever }) }),
 );
 
 export default emberTricksFamily;

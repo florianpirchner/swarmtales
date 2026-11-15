@@ -317,6 +317,7 @@ Audience: everyone
 | `maxTalkLength` | integer ≥ 20 | `400` | The longest line a seat may speak, in characters. |
 | `deadline` | integer ≥ 1 | `2` | Minutes a proposal, vote, card or accusation stays open before the missing ones are filled in (crew in seat order, yes, safe, none) and marked missed. |
 | `talkMinutes` | integer ≥ 1 | `2` | Minutes the talk before a vote stays open at most; it closes at the end of a minute once every seat had a turn in it. |
+| `quietEnds` | boolean | unset | true: a call after which the seat has nothing open (no move owed, no line to read and speak) ends its turn (`endsTurn`), so its answer alone wakes no turn with nothing to do (P477). Absent or false: the answer wakes the seat, as on the old platform. |
 
 <!-- /generated:options -->
 

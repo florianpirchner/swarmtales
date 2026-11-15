@@ -42,6 +42,7 @@ options in `test/support.ts` (`VARIANTS`), and `test/carried.test.ts` pins them 
 | `cooldown` | 3 | a saboteur's damage card is allowed again this many stages after its last | `-c<n>` |
 | `brain` | true | false is the control arm: the same briefings without the brain paragraph, no brain, no retro | `-nobrain` |
 | `maxWords` | 150 | the size of a brain | |
+| `quietEnds` | false | a call after which the seat owes no move and has no line to read and speak, and a written brain, end the seat's turn (`endsTurn`), so the seat is not woken for the answer alone (P477: 72 of the 116 turns without a call of `convoy-001` were such answer turns). Off, the seats are woken as on the old platform and the oracle files hold; the next series turns it on (`test/quiet-ends.test.ts`) | |
 | `seed` | 53 | the seed of the run | |
 | `ticks` | 258 (90 for one game) | the length of the run: an upper bound from the stages; the match ends the run earlier (the old option `minutes`) | |
 

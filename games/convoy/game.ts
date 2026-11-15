@@ -40,10 +40,12 @@ export interface ConvoyOptions {
 	readonly seed?: number;
 	/** Run length in ticks; default is an upper bound from the stages (the match ends the run earlier). */
 	readonly ticks?: number;
+	/** A call after which the seat has nothing open, and a written brain, end the seat's turn, so the answer wakes no turn with nothing to do (P477); off, as on the old platform. */
+	readonly quietEnds?: boolean;
 }
 
 /** The defaults of the old game. */
-const DEFAULTS = { games: 3, crews: [2, 2, 3, 3, 3, 3, 4, 4], damageToLose: 3, cooldown: 3, brain: true, maxWords: 150, seed: 53 } as const satisfies ConvoyOptions;
+const DEFAULTS = { games: 3, crews: [2, 2, 3, 3, 3, 3, 4, 4], damageToLose: 3, cooldown: 3, brain: true, maxWords: 150, seed: 53, quietEnds: false } as const satisfies ConvoyOptions;
 const DEADLINE = 2;
 const TALK_TICKS = 2;
 const RETRO_TICKS = 2;
@@ -66,15 +68,16 @@ const ticksFor = (games: number, stages: number): number => games * (stages * (D
  * @public
  */
 export function convoyGame(options: ConvoyOptions = {}) {
-	const { games, crews, damageToLose, cooldown, brain, maxWords, seed } = { ...DEFAULTS, ...options };
+	const { games, crews, damageToLose, cooldown, brain, maxWords, seed, quietEnds } = { ...DEFAULTS, ...options };
+	const quiet = quietEnds ? { quietEnds } : {};
 	return defineGame({
 		id: "convoy",
 		title: "Convoy",
 		seed,
 		residents: [...SEATS],
 		mechanics: [
-			convoy({ games, crews: [...crews], damageToLose, cooldown, deadline: DEADLINE, talkMinutes: TALK_TICKS }),
-			strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true }),
+			convoy({ games, crews: [...crews], damageToLose, cooldown, deadline: DEADLINE, talkMinutes: TALK_TICKS, ...quiet }),
+			strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true, ...quiet }),
 		],
 		grants: { resident: ["viewConvoy", "proposeCrew", "speak", "voteConfidence", "playCrewCard", "audit", "accuse", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: ["proposeCrew", "speak", "voteConfidence", "playCrewCard", "audit", "accuse", ...(brain ? (["writeBrain"] as const) : [])],
@@ -101,6 +104,7 @@ const Params = Type.Object(
 		cooldown: Type.Integer({ minimum: 1, maximum: 8, default: DEFAULTS.cooldown, description: "Stages after a saboteur's damage card until it may play damage again." }),
 		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)." }),
 		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+		quietEnds: Type.Boolean({ default: DEFAULTS.quietEnds, description: "A call after which the seat has nothing open, and a written brain, end the seat's turn, so the answer wakes no empty turn (P477); false, as on the old platform." }),
 	},
 	{ description: "The variants of Convoy." },
 );

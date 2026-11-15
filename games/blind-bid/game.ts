@@ -35,6 +35,8 @@ export interface BlindBidOptions {
 	readonly seed?: number;
 	/** Run length in ticks; default is an upper bound from the lots (the match ends the run earlier). */
 	readonly ticks?: number;
+	/** A written brain ends the writer's turn, so its answer wakes no empty turn (P474); off, as on the old platform. */
+	readonly quietEnds?: boolean;
 }
 
 /**
@@ -45,7 +47,7 @@ export interface BlindBidOptions {
 export const DEFAULT_LOTS: readonly LotKind[] = ["first-price", "second-price", "common", "first-price", "common", "second-price"];
 
 /** The defaults of the old game. */
-const DEFAULTS = { games: 3, lots: DEFAULT_LOTS, purse: 100, brain: true, maxWords: 150, seed: 31 } as const satisfies BlindBidOptions;
+const DEFAULTS = { games: 3, lots: DEFAULT_LOTS, purse: 100, brain: true, maxWords: 150, seed: 31, quietEnds: false } as const satisfies BlindBidOptions;
 const DEADLINE = 2;
 const RETRO_TICKS = 2;
 
@@ -65,7 +67,7 @@ const ticksFor = (games: number, lots: number): number => games * lots * DEADLIN
  * @public
  */
 export function blindBidGame(options: BlindBidOptions = {}) {
-	const { games, lots, purse, brain, maxWords, seed } = { ...DEFAULTS, ...options };
+	const { games, lots, purse, brain, maxWords, seed, quietEnds } = { ...DEFAULTS, ...options };
 	return defineGame({
 		id: "blind-bid",
 		title: "Blind Bid",
@@ -73,7 +75,7 @@ export function blindBidGame(options: BlindBidOptions = {}) {
 		residents: [...SEATS],
 		mechanics: [
 			sealedAuction({ games, lots: [...lots], purse, deadline: DEADLINE }),
-			strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true }),
+			strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true, ...(quietEnds ? { quietEnds } : {}) }),
 		],
 		grants: { resident: ["viewAuction", "bid", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: ["bid", ...(brain ? (["writeBrain"] as const) : [])],
@@ -100,6 +102,7 @@ const Params = Type.Object(
 		purse: Type.Integer({ minimum: 1, default: DEFAULTS.purse, description: "Coins per seat and game." }),
 		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)." }),
 		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+		quietEnds: Type.Boolean({ default: DEFAULTS.quietEnds, description: "A written brain ends the writer's turn, so its answer wakes no empty turn (P474); false, as on the old platform." }),
 	},
 	{ description: "The variants of Blind Bid." },
 );

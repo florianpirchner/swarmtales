@@ -44,6 +44,15 @@ Both schedulers use the same wake rule, per actor: `always`, news (`hasNews`), a
 
 So "acts on its own" means: an open actor never waits for another actor; a closed actor waits for the next close.
 
+The `answer` wake is the rule of the old platform: a resident whose model ended its activation on a tool result it
+has not read is woken for that result alone, with no news and often no input line. Two marks of a mechanic stop it,
+and the scheduler has no option of its own for it: a free look (`free: true` on the tool), and a success that ends the
+activation (`reply(text, { endsTurn: true })`). A port keeps the marks of the old mechanic, so its empty answer turns
+stay (P474, P475, P477 of `docs/LESSONS-LEARNED.md`). The option `quietEnds` of `strategy-brain`, `trick-play` and
+`convoy` (and the param `quietEnds` of liar's dice, Blind Bid, Ember Tricks and Convoy) sets `endsTurn` on a call
+after which the seat has nothing open; it is off by default, so the oracle files and the game hashes hold, and the
+runtime revision does not change (`games/*/test/quiet-ends.test.ts`).
+
 ## What is not supported under `parallel`
 
 | What | Why | Shown by |

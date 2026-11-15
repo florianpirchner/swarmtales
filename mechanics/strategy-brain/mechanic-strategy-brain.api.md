@@ -23,6 +23,7 @@ retroFocus: Type.TString;
 solo: Type.TBoolean;
 tooLongDetail: Type.TOptional<Type.TUnion<[Type.TLiteral<"plain">, Type.TLiteral<"cut">]>>;
 showResults: Type.TOptional<Type.TBoolean>;
+quietEnds: Type.TOptional<Type.TBoolean>;
 }>, {
 brain_written: Type.TObject<{
 team: Type.TString;

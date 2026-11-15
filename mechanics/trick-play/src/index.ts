@@ -45,10 +45,12 @@ type View = TrickPlayView;
 // The place of the old status line among the lines of kind `status` (the old `STATUS_ORDER.minute`).
 const STATUS_ORDER = 100;
 
-// An accepted action of a seat ends a row of timer actions.
-const own = (ctx: TrickPlayCtx, run: () => ToolSuccess): ToolSuccess => {
+// An accepted action of a seat ends a row of timer actions. With `quietEnds` an action that leaves the seat off turn
+// ends its turn, so its answer alone wakes no turn that could only read "Not your turn" (P475).
+const own = (ctx: TrickPlayCtx, seat: string, run: () => ToolSuccess): ToolSuccess => {
 	ctx.state.forfeits = 0;
-	return run();
+	const done = run();
+	return ctx.options.quietEnds === true && ctx.state.actor !== seat ? reply(done.reply, { endsTurn: true }) : done;
 };
 
 // The seat on turn in `phase`, for the samples of the fake driver.
@@ -76,7 +78,7 @@ export const trickPlay = defineMechanic(trickPlayHead, {
 				const refusal = bidProblem(ctx, ctx.resident, params.tricks);
 				if (refusal !== undefined || ctx.resident === undefined) return refusal ?? refuse("NOT_YOUR_TURN");
 				const seat = ctx.resident;
-				return own(ctx, () => applyBid(ctx, seat, params.tricks, false));
+				return own(ctx, seat, () => applyBid(ctx, seat, params.tricks, false));
 			},
 			sample: (ctx, random) => (onTurn(ctx, "bid") === undefined ? undefined : { tricks: random.int(0, cardsOf(ctx)) }),
 		},
@@ -85,7 +87,7 @@ export const trickPlay = defineMechanic(trickPlayHead, {
 				const checked = trumpProblem(ctx, ctx.resident, params.suit);
 				if ("refusal" in checked || ctx.resident === undefined) return "refusal" in checked ? checked.refusal : refuse("NOT_YOUR_TURN");
 				const seat = ctx.resident;
-				return own(ctx, () => applyTrump(ctx, seat, checked.suit, false));
+				return own(ctx, seat, () => applyTrump(ctx, seat, checked.suit, false));
 			},
 			sample: (ctx, random) => (onTurn(ctx, "trump") === undefined ? undefined : { suit: random.pick(suitNames(ctx)) }),
 		},
@@ -94,7 +96,7 @@ export const trickPlay = defineMechanic(trickPlayHead, {
 				const checked = playProblem(ctx, ctx.resident, params.card);
 				if ("refusal" in checked || ctx.resident === undefined) return "refusal" in checked ? checked.refusal : refuse("NOT_YOUR_TURN");
 				const seat = ctx.resident;
-				return own(ctx, () => applyPlay(ctx, seat, checked.card, false));
+				return own(ctx, seat, () => applyPlay(ctx, seat, checked.card, false));
 			},
 			// A legal card; one time in two it leaves the turn to the veto when the seat may veto.
 			sample: (ctx, random) => {
@@ -108,7 +110,7 @@ export const trickPlay = defineMechanic(trickPlayHead, {
 				const refusal = vetoProblem(ctx, ctx.resident);
 				if (refusal !== undefined || ctx.resident === undefined) return refusal ?? refuse("NOT_YOUR_TURN");
 				const seat = ctx.resident;
-				return own(ctx, () => applyVeto(ctx, seat));
+				return own(ctx, seat, () => applyVeto(ctx, seat));
 			},
 			sample: (ctx) => (vetoProblem(ctx, ctx.resident) === undefined ? {} : undefined),
 		},

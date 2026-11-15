@@ -34,7 +34,7 @@ describe("the game family", () => {
 	it("is the default export of the game file, with the params and defaults of the old registry", () => {
 		expect(emberTricks).toBe(emberTricksFamily);
 		expect(isGameFamily(emberTricks)).toBe(true);
-		expect(familyParams(emberTricks).params).toEqual({ games: 2, rounds: 8, brain: true, lever: "none", maxWords: 200 });
+		expect(familyParams(emberTricks).params).toEqual({ games: 2, rounds: 8, brain: true, lever: "none", maxWords: 200, quietEnds: false });
 	});
 
 	it("gives the pinned game hash for the default params", () => {

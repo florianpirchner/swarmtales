@@ -38,7 +38,10 @@ describe("carried byte for byte", () => {
 			["playCard", "trick-play/tools/playCard", ["resident"], false, '{"type":"object","required":["card"],"properties":{"card":{"type":"string","description":"The card, suit and rank, for example \\"Ember 7\\"."}}}'],
 			["vetoLead", "trick-play/tools/vetoLead", ["resident"], false, '{"type":"object","properties":{}}'],
 		]);
-		expect(sha256(JSON.stringify(trickPlay.options))).toBe("02f9ee9aba834146d1ce1b3992a0e078b917867de630fb3369f194f8a4ce7c9d");
+		// `quietEnds` (M4-69, P475) is new on this platform and optional: without it the schema is the old one.
+		const { quietEnds: quiet, ...carried } = trickPlay.options.properties;
+		expect(quiet).toMatchObject({ type: "boolean" });
+		expect(sha256(JSON.stringify({ ...trickPlay.options, properties: carried }))).toBe("02f9ee9aba834146d1ce1b3992a0e078b917867de630fb3369f194f8a4ce7c9d");
 		expect(sha256(JSON.stringify(trickPlay.events))).toBe("a40554012776723a90130dfb26a85a62ee82b3667851b8690330406958a3e789");
 		expect(JSON.stringify(trickPlay.head.audiences)).toBe("{}");
 		expect([trickPlay.id, trickPlay.head.summary]).toEqual(["trick-play", "A trick-taking game with exact bids, a trump named by the lowest bidder, follow-suit tricks, a lead veto and hit-or-miss scoring."]);

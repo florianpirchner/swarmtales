@@ -279,6 +279,7 @@ Audience: everyone
 | `calibration` | boolean | `false` | The end-of-game record tells each seat its own calibration: tricks bid against tricks taken, hits, zero bids. |
 | `reference` | "off" or "retro" or "bid" | `"off"` | A Monte Carlo worth of each hand at bidding time (random unseen cards and trump, a simple play policy): retro adds the seat's own total to the calibration line, bid shows the seat its hand's worth while it bids. |
 | `referenceSamples` | integer ≥ 1 | `200` | Random deals per hand for the reference worth. |
+| `quietEnds` | boolean | unset | true: a bid, trump, card or veto that leaves the seat off turn ends its turn (`endsTurn`), so its answer alone wakes no turn with nothing to do (P475). Absent or false: the answer wakes the seat, as on the old platform. |
 
 <!-- /generated:options -->
 

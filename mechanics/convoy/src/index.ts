@@ -20,16 +20,24 @@
  * @packageDocumentation
  */
 import { Type } from "typebox";
+import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { defineMechanic, reply } from "@swarmtales/sdk";
 import { accuseNow, auditNow, auditProblem, playNow, playProblem, sampleAudit, sampleCard, sampleSuspects, sampleView } from "./cards.ts";
 import { closeLate, refreshLocks, startNext } from "./flow.ts";
-import { convoyHead, type ConvoyView } from "./head.ts";
+import { convoyHead, type ConvoyCtx, type ConvoyView } from "./head.ts";
 import { crewProblem, phaseProblem, proposeNow, sampleCrew, sampleLine, sampleVote, speakNow, voteNow, voteProblem } from "./moves.ts";
 import { closeLateCards } from "./stage.ts";
 import { hasNews, inputLines, tableText } from "./texts.ts";
 
 export { convoyHead, type ConvoyCtx, type ConvoyView } from "./head.ts";
 export { ConvoySlice, type ConvoyState } from "./model.ts";
+
+// With `quietEnds` a call after which the seat has nothing open (no news: no move owed, no line to read and speak)
+// ends its turn, so its answer alone wakes no turn that could only wait (P477).
+function quiet(ctx: ConvoyCtx, resident: string | undefined, outcome: ToolSuccess | Refusal): ToolSuccess | Refusal {
+	if (!outcome.ok || ctx.options.quietEnds !== true || resident === undefined || hasNews(ctx, resident)) return outcome;
+	return reply(outcome.reply, { endsTurn: true });
+}
 
 /**
  * Convoy: secret seeded roles, crews from a rotating lead, votes of confidence, sealed cards revealed as a count.
@@ -44,35 +52,35 @@ export { ConvoySlice, type ConvoyState } from "./model.ts";
  */
 export const convoy = defineMechanic(convoyHead, {
 	tools: {
-		viewConvoy: { run: (_params, ctx) => reply(tableText(ctx, ctx.resident)), sample: (ctx, random) => sampleView(ctx, ctx.resident, random) },
+		viewConvoy: { run: (_params, ctx) => quiet(ctx, ctx.resident, reply(tableText(ctx, ctx.resident))), sample: (ctx, random) => sampleView(ctx, ctx.resident, random) },
 		proposeCrew: {
 			check: (params, ctx) => phaseProblem(ctx, ctx.resident, "propose", "propose") ?? crewProblem(ctx, params.crew),
-			run: (params, ctx) => proposeNow(ctx, ctx.resident, params.crew),
+			run: (params, ctx) => quiet(ctx, ctx.resident, proposeNow(ctx, ctx.resident, params.crew)),
 			sample: (ctx, random) => sampleCrew(ctx, ctx.resident, random),
 		},
 		speak: {
 			check: (_params, ctx) => phaseProblem(ctx, ctx.resident, "talk", "talk about"),
-			run: (params, ctx) => speakNow(ctx, ctx.resident, params.text),
+			run: (params, ctx) => quiet(ctx, ctx.resident, speakNow(ctx, ctx.resident, params.text)),
 			sample: (ctx, random) => sampleLine(ctx, ctx.resident, random),
 		},
 		voteConfidence: {
 			check: (_params, ctx) => voteProblem(ctx, ctx.resident),
-			run: (params, ctx) => voteNow(ctx, ctx.resident, params.vote),
+			run: (params, ctx) => quiet(ctx, ctx.resident, voteNow(ctx, ctx.resident, params.vote)),
 			sample: (ctx, random) => sampleVote(ctx, ctx.resident, random),
 		},
 		playCrewCard: {
 			check: (params, ctx) => playProblem(ctx, ctx.resident, params.card),
-			run: (params, ctx) => playNow(ctx, ctx.resident, params.card),
+			run: (params, ctx) => quiet(ctx, ctx.resident, playNow(ctx, ctx.resident, params.card)),
 			sample: (ctx, random) => sampleCard(ctx, ctx.resident, random),
 		},
 		audit: {
 			check: (params, ctx) => auditProblem(ctx, ctx.resident, params.seat, params.stage),
-			run: (params, ctx) => auditNow(ctx, ctx.resident, params.seat, params.stage),
+			run: (params, ctx) => quiet(ctx, ctx.resident, auditNow(ctx, ctx.resident, params.seat, params.stage)),
 			sample: (ctx, random) => sampleAudit(ctx, ctx.resident, random),
 		},
 		accuse: {
 			check: (_params, ctx) => phaseProblem(ctx, ctx.resident, "accuse", "accuse"),
-			run: (params, ctx) => accuseNow(ctx, ctx.resident, params.seats),
+			run: (params, ctx) => quiet(ctx, ctx.resident, accuseNow(ctx, ctx.resident, params.seats)),
 			sample: (ctx, random) => sampleSuspects(ctx, ctx.resident, random),
 		},
 	},
