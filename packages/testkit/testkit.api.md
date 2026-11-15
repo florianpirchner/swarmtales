@@ -184,6 +184,11 @@ export interface OracleMismatch {
 }
 
 // @public
+export interface OracleOptions extends Pick<PlayOptions, "installed" | "prompts" | "records" | "schedulers"> {
+    readonly dials?: (effective: unknown) => Readonly<Record<string, unknown>>;
+}
+
+// @public
 export const OracleSchema: Type.TObject<{
     format: Type.TLiteral<"swarmtales.oracle">;
     version: Type.TLiteral<1>;
@@ -328,7 +333,7 @@ export interface PlayOptions {
 }
 
 // @public
-export function playOracle(oracle: Oracle, game: Game | GameData, options?: Pick<PlayOptions, "installed" | "prompts">): Promise<Played>;
+export function playOracle(oracle: Oracle, game: Game | GameData, options?: OracleOptions): Promise<Played>;
 
 // @public
 export function projectCalls(timeline: readonly OracleEntry[], tools: readonly string[], rewrite?: (text: string) => string): readonly ProjectedEvent[];
@@ -402,7 +407,7 @@ export interface ReplayResult {
 }
 
 // @public
-export function runOracle(oracle: Oracle, game: Game | GameData, level?: OracleLevel, options?: Pick<PlayOptions, "installed" | "prompts">): Promise<readonly OracleMismatch[]>;
+export function runOracle(oracle: Oracle, game: Game | GameData, level?: OracleLevel, options?: OracleOptions): Promise<readonly OracleMismatch[]>;
 
 // @public
 export function sampleBoundaries(ticks: number, every?: number): readonly number[];
