@@ -59,6 +59,7 @@ export const channel = defineMechanic(channelHead, {
 export interface BrainGameOptions {
 	readonly brain?: boolean;
 	readonly maxRules?: number;
+	readonly tooLongDetail?: "plain" | "cut";
 	readonly games?: number;
 	readonly ticks?: number;
 	/** The teams of the brain; the two teams of the game when absent. */
@@ -75,7 +76,7 @@ export function brainGame(options: BrainGameOptions = {}): Game {
 		mechanics: [
 			gridGame({ games, teams: TEAMS }),
 			channel(),
-			strategyBrain({ enabled: brain, maxWords: 300, maxRules, teams: options.brainTeams ?? TEAMS, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true }),
+			strategyBrain({ enabled: brain, maxWords: 300, maxRules, teams: options.brainTeams ?? TEAMS, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true, ...(options.tooLongDetail === undefined ? {} : { tooLongDetail: options.tooLongDetail }) }),
 		],
 		grants: { resident: ["viewBoard", "postTeam", "playMove", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: brain ? ["playMove", "writeBrain"] : ["playMove"],

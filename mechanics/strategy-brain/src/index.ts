@@ -109,11 +109,17 @@ function closeWindow(ctx: Ctx, team: string, reason: "written" | "max_posts" | "
 	if (ctx.state.windows.size === 0) releaseGame(ctx);
 }
 
+// The detail of `BRAIN_TOO_LONG`: the old text, and with `tooLongDetail: "cut"` how many words to cut (P446).
+function tooLongDetail(ctx: Ctx, words: number): string {
+	const detail = `The brain has ${String(words)} words; the limit is ${String(ctx.options.maxWords)}.`;
+	return ctx.options.tooLongDetail === "cut" ? `${detail} Cut at least ${String(words - ctx.options.maxWords)} words.` : detail;
+}
+
 // Why `text` may not become a brain, or undefined: empty, too long, too many rules, or the replay of a game.
 function textProblem(ctx: Ctx, text: string): Refusal | undefined {
 	const words = wordCount(text);
 	if (words === 0) return refuse("BRAIN_EMPTY", "The brain may not be empty.");
-	if (words > ctx.options.maxWords) return refuse("BRAIN_TOO_LONG", `The brain has ${String(words)} words; the limit is ${String(ctx.options.maxWords)}.`);
+	if (words > ctx.options.maxWords) return refuse("BRAIN_TOO_LONG", tooLongDetail(ctx, words));
 	if (ctx.options.maxRules > 0) {
 		const rules = text.split("\n").filter((row) => row.trim() !== "").length;
 		if (rules > ctx.options.maxRules) return refuse("BRAIN_TOO_MANY_RULES", `The brain has ${String(rules)} lines; at most ${String(ctx.options.maxRules)} rules, one per line. Replace an old rule instead of adding one.`);

@@ -24,6 +24,11 @@ const options = Type.Object({
 	postTool: Type.String({ default: "postTeam", description: "The team-chat tool whose successful calls count as retro posts." }),
 	retroFocus: Type.String({ default: "", description: "A story's own words added to every retro line: what the brain should hold (Lanterns: the team's conventions, not caution, P195). Empty: none." }),
 	solo: Type.Boolean({ default: false, description: "Every team is one resident: the briefings name no team and no side, and a retro window has no team talk." }),
+	tooLongDetail: Type.Optional(
+		Type.Union([Type.Literal("plain"), Type.Literal("cut")], {
+			description: "The detail of a BRAIN_TOO_LONG refusal: `plain` (also when absent) names the words and the limit, byte for byte as on the old platform; `cut` adds how many words to cut (P446).",
+		}),
+	),
 	showResults: Type.Optional(Type.Boolean({ description: "false: the briefing of a later game leaves out the results of the earlier games, so a brain is the only thing a briefing carries from game to game (LH19). Shown when absent." })),
 });
 

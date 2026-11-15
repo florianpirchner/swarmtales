@@ -76,6 +76,20 @@ describe("writeBrain", () => {
 	});
 });
 
+describe("the option tooLongDetail", () => {
+	const tooLong = Array(305).fill("w").join(" ");
+
+	it("left out, keeps the old detail of BRAIN_TOO_LONG byte for byte", async () => {
+		const test = testKernel(brainGame());
+		expect(await test.call("A01", "writeBrain", { text: tooLong })).toMatchObject({ ok: false, code: "BRAIN_TOO_LONG", detail: "The brain has 305 words; the limit is 300." });
+	});
+
+	it("cut, adds how many words to cut (P446)", async () => {
+		const test = testKernel(brainGame({ tooLongDetail: "cut" }));
+		expect(await test.call("A01", "writeBrain", { text: tooLong })).toMatchObject({ ok: false, code: "BRAIN_TOO_LONG", detail: "The brain has 305 words; the limit is 300. Cut at least 5 words." });
+	});
+});
+
 describe("a brain of at most maxRules rules", () => {
 	it("refuses more lines than rules and names the limit in the retro", async () => {
 		const test = testKernel(brainGame({ maxRules: 3 }));
