@@ -9,8 +9,7 @@
  * is no resident.
  */
 import { join } from "node:path";
-import type { ActorId, GameData, RandomLabel, SchedulerPort } from "@swarmtales/contracts";
-import { turns } from "@swarmtales/engine";
+import type { ActorId, GameData } from "@swarmtales/contracts";
 import { rngFor } from "@swarmtales/kernel";
 import { defineEvents, defineHead, defineMechanic, refuse, reply, type MechanicDefinition } from "@swarmtales/sdk";
 import { Type, type TSchema } from "typebox";
@@ -85,20 +84,6 @@ function standIn(id: string): MechanicDefinition {
 	});
 }
 
-// The old order of a pass (legacy `legacyTurnOrder` of `mechanics/shared/src/order.ts`): the roster shuffled with
-// the labels `order`, minute + 1, pass. `turns` draws `turns`, tick[, pass], another order; until it can draw the old
-// one, the stand-in plays `turns` with the old draw.
-const oldTurns: typeof turns = {
-	...turns,
-	// Its events are those of `turns`, under its source.
-	create(options) {
-		const inner = turns.create(options);
-		const draw = (port: SchedulerPort) => (...labels: readonly RandomLabel[]) => (labels[0] === "turns" ? port.rng("order", Number(labels[1]) + 1, labels[2] ?? 1) : port.rng(...labels));
-		const handler: ProxyHandler<SchedulerPort> = { get: (port, key): unknown => (key === "rng" ? draw(port) : Reflect.get(port, key, port)) };
-		return { run: (port, drivers, until) => inner.run(new Proxy(port, handler), drivers, until) };
-	},
-};
-
 const installed = Object.fromEntries(ids.map((id) => [id, standIn(id)]));
 const game: GameData = {
 	schema: 1,
@@ -107,12 +92,13 @@ const game: GameData = {
 	mechanics: ids.map((use) => ({ use })),
 	grants: { resident: whispers.setup.residentTools },
 	locked: whispers.setup.locked,
-	scheduler: { id: "old-turns", options: { passes: 1, blockSize: 1, activation: "always", order: "seeded" } },
+	// The old arena's draw (legacy `legacyTurnOrder` of `mechanics/shared/src/order.ts`), decision A67.
+	scheduler: { id: "turns", options: { passes: 1, blockSize: 1, activation: "always", order: "arena" } },
 	end: { ticks: whispers.setup.minutes },
 };
 const found = async (oracle: Oracle): Promise<readonly string[]> => {
 	next = 0;
-	return (await runOracle(oracle, game, 1, { installed, schedulers: { "old-turns": oldTurns } })).map((mismatch) => `${String(mismatch.level)} ${mismatch.at} ${String(mismatch.index)}`);
+	return (await runOracle(oracle, game, 1, { installed })).map((mismatch) => `${String(mismatch.level)} ${mismatch.at} ${String(mismatch.index)}`);
 };
 
 describe("the oracle harness for the story games", () => {

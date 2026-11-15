@@ -81,7 +81,7 @@ export const TurnsOptions: Type.TObject<{
     passes: Type.TInteger;
     blockSize: Type.TInteger;
     activation: Type.TUnion<[Type.TLiteral<"always">, Type.TLiteral<"onNews">, Type.TLiteral<"toAct">]>;
-    order: Type.TUnion<[Type.TLiteral<"seeded">, Type.TLiteral<"roster">]>;
+    order: Type.TUnion<[Type.TLiteral<"seeded">, Type.TLiteral<"roster">, Type.TLiteral<"arena">]>;
     kinds: Type.TArray<Type.TString>;
     inputs: Type.TArray<Type.TUnion<[Type.TObject<{
         kind: Type.TString;

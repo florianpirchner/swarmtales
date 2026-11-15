@@ -140,8 +140,11 @@ async function playSlot(turns: Turns, slot: "start" | "afterBlock", passNumber: 
 
 async function playPass(turns: Turns, passNumber: number): Promise<void> {
 	const { port, options } = turns;
-	const may = port.actors.ids.filter((id) => options.kinds.includes(kindOf(id)) && port.actors.mayAct(id));
-	const order = options.order === "roster" ? may : port.rng("turns", port.tick, ...(passNumber === 1 ? [] : [passNumber])).shuffle(may);
+	const roster = port.actors.ids.filter((id) => options.kinds.includes(kindOf(id)));
+	const may = roster.filter((id) => port.actors.mayAct(id));
+	// `arena`: the old arena's draw (legacy `legacyTurnOrder`), the whole roster shuffled, then who may not act left out.
+	const arena = (): ActorId[] => port.rng("order", port.tick + 1, passNumber).shuffle(roster).filter((id) => may.includes(id));
+	const order = options.order === "roster" ? may : options.order === "arena" ? arena() : port.rng("turns", port.tick, ...(passNumber === 1 ? [] : [passNumber])).shuffle(may);
 	if (order.length !== may.length || new Set(order).size !== order.length || !order.every((id) => may.includes(id))) {
 		throw issue("SWT-R010", `the order of pass ${String(passNumber)} is not a permutation of the actors who may act`, "A pass activates every actor who may act at most once.", "Fix the order of the scheduler.");
 	}
@@ -175,7 +178,7 @@ async function play(turns: Turns, until: { readonly ticks: number } | undefined)
 }
 
 /**
- * The turn scheduler: passes per tick, a seeded or roster order, blocks, and the activations `always`, `onNews`
+ * The turn scheduler: passes per tick, a seeded, roster or arena order, blocks, and the activations `always`, `onNews`
  * and `toAct`. Its state is the set of actors whose driver awaits an answer.
  *
  * @example

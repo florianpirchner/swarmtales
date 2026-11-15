@@ -40,7 +40,7 @@ export const TurnsOptions = Type.Object(
 		passes: Type.Integer({ minimum: 1, default: 1, description: "Passes per tick; every actor gets at most one activation per pass." }),
 		blockSize: Type.Integer({ minimum: 1, default: 1, description: "Actors per block: their inputs are built together and their drivers run at once." }),
 		activation: Type.Union([Type.Literal("always"), Type.Literal("onNews"), Type.Literal("toAct")], { default: "always", description: "Who is woken in a pass: everyone who may act, those with news or a pending answer, or those a plugin names." }),
-		order: Type.Union([Type.Literal("seeded"), Type.Literal("roster")], { default: "seeded", description: "The order of a pass: a seeded shuffle, or the definition's order." }),
+		order: Type.Union([Type.Literal("seeded"), Type.Literal("roster"), Type.Literal("arena")], { default: "seeded", description: "The order of a pass: a seeded shuffle, the definition's order, or the old arena's draw (every actor of the kinds shuffled with the labels order, tick + 1, pass, then who may not act left out)." }),
 		kinds: Type.Array(Type.String({ description: "An actor kind." }), { default: ["resident"], description: "The actor kinds this scheduler activates." }),
 		inputs: Type.Array(InputEntrySchema, { default: [], description: "The order in which an activation's input lines are shown." }),
 		afterBlocks: Type.Optional(Type.Array(Type.String({ description: "An actor kind." }), { description: "Actor kinds that get an activation after tick start and after every block, when they have news" })),
