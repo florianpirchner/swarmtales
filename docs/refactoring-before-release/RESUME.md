@@ -1,5 +1,22 @@
 # Resume note of the rewrite (kept by the integrator)
 
+## State on 2026-11-15, 07:40 UTC (read this part first)
+
+- The integrator session changed on 2026-11-15 (the first one reached its weekly usage limit); builder work that
+  was not merged then lived only in that session's container and was rebuilt from the specification.
+- **M4 merged on `rewrite/develop`:** 00, 01, 02, 04, 05, 06, 07, 08, 11, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+  26, 27, 28, 29, 31, 37, 38, 39, 41, 42, 44 (inside 45), 45, 47, 48, 64, 65 (decision A43). Games that play:
+  liar's dice, Harbor Lights, Lanterns, chess (default, fresh, compact), hold'em (without the aid and mixed tables).
+- **Open in M4:** 03, 09, 10, 12, 13, 14, 15, 30, 32 to 36, 40, 43, 46, 49 to 63, and a follow-up of 65 for the
+  key order on resume of `holdem`, `chess`, `salt-market` and `strategy-brain` (the open pin in tic-tac-toe teams).
+- **The check on this container:** 4 cores. `pnpm check` runs about 710 s on a quiet machine (typecheck 140 s,
+  lint 260 s, tests 185 s, build and API 125 s), so the time budget of 600 s stops it at the build gate. The
+  integrator runs the check, and then `pnpm build` and `pnpm api` on their own, and records that every gate
+  passed; the budget overrun is an erratum of M4 for the gate issue (E16 of the integrator's list).
+- The errata found while building M4 are collected for `11-m4-spec-errata.md` (written by issue 63).
+
+## Older state (2026-11-14)
+
 Last update: 2026-11-14, about 20:35 UTC, by the gate issue of M3 (M3-31). Read this first when the work is picked up again.
 
 ## Where things are
