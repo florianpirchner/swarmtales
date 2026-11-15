@@ -11,10 +11,10 @@ import { afterEach, describe, expect, it } from "vitest";
 /**
  * The gate of the kernel. M1-38 set 1420; M5-02 raised it to 1490, the cap of A51, so that the merges of M5-01,
  * M5-02 and M5-04 stayed green; M5-05 set it to the count measured after them: 1402 + 7 (`runEnded`, M5-01) + 37
- * (staged calls, M5-02) + 26 (the stage `review`, M5-04, A66). A pull request that adds a kernel line raises it,
+ * (staged calls, M5-02) + 26 (the stage `review`, M5-04, A66) + 1 (the calls staged in `runEnded`, M5-63). A pull request that adds a kernel line raises it,
  * with an issue that names the missing extension point (`docs/ISSUE-RECORD.md`, "The kernel gate of M5").
  */
-const GATE = 1472;
+const GATE = 1473;
 const SRC = join(import.meta.dirname, "../src");
 
 // The lines that hold code: not blank, not only a comment. The files of the kernel open no comment behind code.

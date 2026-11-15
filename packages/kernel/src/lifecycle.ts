@@ -173,13 +173,15 @@ class Run implements Lifecycle {
 		this.#parts.settle();
 	}
 
-	// The `runEnded` hooks run before the closing event is begun: a throw of one ends the run with `reason: "error"`.
+	// The `runEnded` hooks run before the closing event is begun, each followed by the calls it staged: a throw of one
+	// ends the run with `reason: "error"`.
 	#finish(end: RunEnd): RunEnd {
 		const { log, loaded } = this.#parts;
 		for (const entry of loaded.hooks("runEnded")) {
 			log.run({ actor: "kernel" }, () => {
 				entry.run(end);
 			});
+			this.#parts.settle();
 		}
 		this.#ending = true;
 		log.emit(SOURCE, "run_ended", { reason: end.reason });

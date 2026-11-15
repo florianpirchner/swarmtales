@@ -51,9 +51,7 @@ describe("the expiry of a petition is a staged call of the script", () => {
 		expect(textOf(await test.call("A02", "signPetition", { petitionId: "P1" }))).toBe("PETITION_CLOSED: P1");
 	});
 
-	// The kernel runs no staged call of a `runEnded` hook: `#finish` in `packages/kernel/src/lifecycle.ts` does not settle
-	// after each hook as `#hooks` does (one kernel line, above the gate of 1472; erratum of M5-25). Turn `it.fails` into `it` with it.
-	it.fails("fails every petition still open when the run ends, before `run_ended`", async () => {
+	it("fails every petition still open when the run ends, before `run_ended`", async () => {
 		const opening = scriptedDriver((activation) => (activation.tick === 0 && activation.actor === "resident:A01" ? [{ tool: "openPetition", params: { id: "P1", threshold: { count: 3 }, deadlineMinute: 50, visibility: "public" } }] : []));
 		const { events, kernel } = await play(game(2), { drivers: { resident: opening } });
 		expect(payloads(events, "petition_resolved")).toEqual([{ petition: "P1", outcome: "failed", signatures: 0, signers: [] }]);

@@ -418,6 +418,12 @@ M5 did not use are not held for a later issue: from now on a pull request that a
 with an issue that names the missing extension point (`CLAUDE.md`, "Limits"). The hard limit stays 1500, 28 lines
 above the gate.
 
+**M5-63 (+1, gate 1473).** The missing extension point: calls staged in a `runEnded` hook were never run, because
+`#finish` in `packages/kernel/src/lifecycle.ts` did not settle after each hook as every other hook does. Sections 4.1
+and 4.2 of `12-m5-spec.md` say staged calls and their events land before `run_ended`; `petitions` (M5-25) fails its
+open petitions there, and `script` (M5-31, M5-32) reacts at the end the same way. A mechanic cannot run a staged
+call itself, so the line is the kernel's. The hard limit is now 27 lines away.
+
 ## The gate of M3
 
 The six done-whens of `refactoring-before-release/10-m3-spec.md` and the test that proves each. All of them run
