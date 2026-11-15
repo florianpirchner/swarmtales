@@ -7,8 +7,8 @@ import { rngFor } from "./random.ts";
 /**
  * Builds the port of one plugin.
  *
- * `emit` of an undeclared event type and `schedule.at` of a job the plugin does not have throw a `RangeError`: a
- * mistake of the plugin, which the caller of its code turns into `SWT-R003`. The default audience of an event is
+ * `emit` of an undeclared event type, and `schedule.at` or a `stage` with a `then` of a job the plugin does not have,
+ * throw a `RangeError`: a mistake of the plugin, which the caller of its code turns into `SWT-R003`. The default audience of an event is
  * set by the log (`audienceOf`), not here.
  *
  * @param plugin - The plugin as the definition lists it.
@@ -39,5 +39,10 @@ export function portFor(plugin: ResolvedPlugin, parts: PluginPortParts): PluginP
 			},
 		},
 		access: parts.access.portFor(plugin.id),
+		stage(as, params, options) {
+			const then = options?.then;
+			if (then !== undefined && !parts.hasJob(plugin.id, then)) throw new RangeError(`"${plugin.id}" stages ${as} with the job "${then}", which it does not have`);
+			parts.staged.push({ owner: plugin.id, as, params, causedBy: log.frame().causedBy, then });
+		},
 	};
 }

@@ -46,7 +46,7 @@ function load(plugins: readonly ResolvedPlugin[], over: Partial<KernelDefinition
 	const actors: Actors = { ids: [], ofKind: () => [], has: () => false, mayAct: () => true, shared: () => undefined, spec: () => undefined, state: () => ({}), restore: never, portFor: () => ({ ids: [], ofKind: () => [], has: () => false, mayAct: () => true, shared: () => undefined, suspend: never, resume: never }) };
 	const access: Access = { granted: () => false, grantsOf: () => [], isLocked: () => false, setProbe: never, state: () => ({}), restore: never, portFor: () => ({ lock: never, unlock: never, isLocked: () => false, isOpen: () => false, open: () => [] }) };
 	const clock: Clock = { tick: 3, advance: never, take: () => [], state: () => [], restore: never, at: (owner, tick, job) => void jobs.push(`${owner} ${String(tick)} ${job}`) };
-	return { loaded: loadPlugins(definition, { log, actors, access, clock, services: createServices(log) }), listened, emitted, jobs, hear: () => { for (const run of heard) run(event); } };
+	return { loaded: loadPlugins(definition, { log, actors, access, clock, services: createServices(log), staged: [] }), listened, emitted, jobs, hear: () => { for (const run of heard) run(event); } };
 }
 
 const cycle = { runStarted: [{ run: () => undefined, after: ["a"] }] };

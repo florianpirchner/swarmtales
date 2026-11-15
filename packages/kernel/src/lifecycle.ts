@@ -4,7 +4,7 @@
  * and the failure. A port of `Host#play`, `start`, `#finish` and `#fail` of the old `host.ts`.
  *
  * Every hook and every job runs in its own outermost frame, so the listeners of what it emitted have run before
- * the next one is called. Whatever throws in a step ends the run through `fail` and is thrown on.
+ * the next one is called; the calls it staged run right after it (`settle`). Whatever throws in a step ends the run through `fail` and is thrown on.
  */
 import { redactSecrets, SwtError, type Job, type KernelPorts, type RunEnd } from "@swarmtales/contracts";
 import { guarded, kernelFailed, misfit, sinkThrew } from "./errors.ts";
@@ -153,6 +153,7 @@ class Run implements Lifecycle {
 			log.run({ actor: "kernel" }, () => {
 				entry.run();
 			});
+			this.#parts.settle();
 		}
 	}
 
@@ -169,6 +170,7 @@ class Run implements Lifecycle {
 				});
 			});
 		});
+		this.#parts.settle();
 	}
 
 	// The `runEnded` hooks run before the closing event is begun: a throw of one ends the run with `reason: "error"`.

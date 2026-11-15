@@ -78,7 +78,10 @@ function openActivation(parts: SchedulerPortParts, opening: Opening, step: Step,
 	// The hooks of the two ends of the activation, each in its own frame of the kernel; a throw ends the run.
 	const hooks = (end: "activationOpened" | "activationClosed"): void => {
 		step(() => {
-			for (const hook of parts.loaded.hooks(end)) log.run({ actor: "kernel", causedBy: opened.seq }, hook.run.bind(undefined, actor));
+			for (const hook of parts.loaded.hooks(end)) {
+				log.run({ actor: "kernel", causedBy: opened.seq }, hook.run.bind(undefined, actor));
+				dispatch.settle();
+			}
 		});
 	};
 	hooks("activationOpened");

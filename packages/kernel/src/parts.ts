@@ -50,6 +50,16 @@ export interface LoadedTool {
 	readonly tool: KernelTool;
 }
 
+/** A call a plugin staged (`PluginPort.stage`), waiting for the end of the outermost step that staged it. */
+export interface Staged {
+	readonly owner: string;
+	readonly as: string;
+	readonly params: unknown;
+	/** The cause of the frame it was staged in. */
+	readonly causedBy: number | undefined;
+	readonly then: string | undefined;
+}
+
 /** The hooks that have an order across plugins. `news` and `toAct` are read from the instances, in load order. */
 export type OrderedHook = "runStarted" | "tickStarted" | "inputs" | "activationOpened" | "activationClosed" | "tickEnded" | "runEnded";
 
@@ -81,6 +91,10 @@ export interface Parts {
 	readonly steps: Steps;
 	readonly loaded: Loaded;
 	readonly dispatch: Dispatch;
+	/** The staged calls, in the order they run. */
+	readonly staged: Staged[];
+	/** Runs the staged calls (`Dispatch.settle`); called after every outermost step of plugin code. */
+	settle(): void;
 	/** The sinks, to close them at the end; they are added to the log by the assembly. */
 	readonly sinks: readonly EventSink[];
 	/** The slice of the scheduler's instance, when it keeps state. */
@@ -94,13 +108,13 @@ export interface Parts {
 }
 
 /** What `loadPlugins` gets beside the definition. */
-export type LoaderParts = Pick<Parts, "log" | "actors" | "access" | "services" | "clock">;
+export type LoaderParts = Pick<Parts, "log" | "actors" | "access" | "services" | "clock" | "staged">;
 /** What `portFor` builds one plugin's port from. */
 export type PluginPortParts = LoaderParts & Pick<Parts, "definition" | "hasJob">;
 /** What `createDispatch` gets. The grant of an actor is `actors.spec(id)?.grant`. */
-export type DispatchParts = Pick<Parts, "definition" | "log" | "actors" | "access" | "steps" | "loaded" | "fail">;
+export type DispatchParts = Pick<Parts, "definition" | "log" | "actors" | "access" | "steps" | "loaded" | "fail" | "staged">;
 /** What `createLifecycle` gets. */
-export type LifecycleParts = Pick<Parts, "definition" | "log" | "clock" | "steps" | "loaded" | "sinks">;
+export type LifecycleParts = Pick<Parts, "definition" | "log" | "clock" | "steps" | "loaded" | "sinks" | "settle">;
 /** What `createSchedulerPort` gets beside the lifecycle. */
 export type SchedulerPortParts = Pick<Parts, "definition" | "log" | "actors" | "clock" | "loaded" | "dispatch" | "toolSpecs">;
 /** What `saveKernel` and `restoreKernel` read and restore. */

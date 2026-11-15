@@ -72,6 +72,7 @@ function world(plugins: Readonly<Record<string, PluginHooks>> = {}) {
 		},
 		quietEnd: () => state.quiet,
 		answerSeq: () => state.answer,
+		settle: () => undefined,
 	};
 	const actors: Actors = { ids: [A], ofKind: unused, has: unused, mayAct: () => true, shared: unused, spec: (id) => (id === A ? { id, kind: "resident", grant: "all", shared: {} } : undefined), portFor: unused, state: unused, restore: unused };
 	const clock: Clock = { tick: 4, advance: unused, at: unused, take: unused, state: unused, restore: unused };

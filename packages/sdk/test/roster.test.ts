@@ -12,6 +12,7 @@ const unused = (): never => {
 function stubPort(specs: readonly ActorSpec[], suspended: readonly string[] = []): PluginPort {
 	const ids = specs.map((spec) => spec.id);
 	return {
+		stage: () => undefined,
 		id: "roster",
 		source: "@swarmtales/sdk/roster",
 		seed: 1,

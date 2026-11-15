@@ -14,7 +14,7 @@ import { guarded, kernelFailed, misfit, noRecord, noResume, unknownFact } from "
 import { createLifecycle } from "./lifecycle.ts";
 import { loadPlugins } from "./loader.ts";
 import { createLog } from "./log.ts";
-import type { Dispatch, Lifecycle, LoadedTool, SliceParts } from "./parts.ts";
+import type { Dispatch, Lifecycle, LoadedTool, SliceParts, Staged } from "./parts.ts";
 import { createRecorder, createSchedulerPort } from "./ports.ts";
 import { createServices } from "./services.ts";
 import { restoreKernel, saveKernel } from "./slices.ts";
@@ -114,13 +114,14 @@ function assemble(definition: KernelDefinition, ports: KernelPorts, prefix: read
 	const record = createRecorder(definition, log, ports.redact);
 	const actors = createActors(definition.actors, log);
 	const access = createAccess(definition, actors, log);
-	const loaded = loadPlugins(definition, { log, actors, access, services: createServices(log), clock });
+	const staged: Staged[] = [];
+	const loaded = loadPlugins(definition, { log, actors, access, services: createServices(log), clock, staged });
 	const counted = definition.actors.map((actor) => actor.id);
 	const steps = createSteps(definition.limits.maxCallsPerTick, counted);
-	const { gate, raise, note } = gateOf(createLifecycle({ definition, log, clock, steps, loaded, sinks }, ports), run, () => clock.tick);
+	const { gate, raise, note } = gateOf(createLifecycle({ definition, log, clock, steps, loaded, sinks, settle: () => { lane.settle(); } }, ports), run, () => clock.tick);
 	const shown = (tool: LoadedTool): string => definition.names[tool.canonical] ?? tool.tool.name;
 	const toolSpecs = (grant: string): readonly ToolSpec[] => access.grantsOf(grant).flatMap((name) => [loaded.tools.get(name)].flatMap((tool) => (tool === undefined ? [] : [{ name: shown(tool), description: tool.tool.description, parameters: tool.tool.parameters }])));
-	const lane = createDispatch({ definition, log, actors, access, steps, loaded, fail: note });
+	const lane = createDispatch({ definition, log, actors, access, steps, loaded, fail: note, staged });
 	// Every call, also the one of an activation whose driver is still running, is refused once the run failed or ended.
 	const submit: Dispatch["submit"] = async (call) => {
 		usable(run, "a call");
@@ -130,7 +131,7 @@ function assemble(definition: KernelDefinition, ports: KernelPorts, prefix: read
 	const scheduler: SchedulerInstance = definition.scheduler.definition.create(definition.scheduler.options);
 	const port = createSchedulerPort({ definition, log, actors, clock, loaded, dispatch, toolSpecs }, gate, record);
 	const slices: SliceParts = { definition, log, actors, access, clock, loaded, scheduler: scheduler.slice };
-	return { log, clock, actors, access, loaded, dispatch, scheduler, port, slices, toolSpecs, shown, raise, gate, record };
+	return { log, clock, actors, access, loaded, dispatch, scheduler, port, slices, toolSpecs, shown, raise, gate, record, staged };
 }
 
 // The readers of a kernel: what it tells about its tools and facts without changing the run.
@@ -191,6 +192,7 @@ function controls(parts: ReturnType<typeof assemble>, run: Run): Pick<Kernel, "s
 		snapshot() {
 			usable(run);
 			if (run.playing) throw new RangeError("a snapshot is taken between two ticks, not inside a run");
+			if (parts.staged.length > 0) throw new RangeError(`a snapshot is refused while ${String(parts.staged.length)} staged calls wait to run`);
 			return saveKernel(parts.slices, parts.clock.tick, run.ended);
 		},
 	};

@@ -5,7 +5,7 @@
  * `tool_refused` and ends the call. Each step of plugin code runs in its own outermost frame, so the listeners of
  * what one step emitted run before the next step. A throw breaks the lane for good.
  */
-import { INVALID_ARGUMENTS, STEP_LIMIT, SwtError, TOOL_LOCKED, TOOL_NOT_GRANTED, TOOL_UNKNOWN, type ActorId, type PreparedCall, type Refusal, type Stage, type Submission, type ToolCall, type ToolOutcome } from "@swarmtales/contracts";
+import { INVALID_ARGUMENTS, STEP_LIMIT, SwtError, TOOL_LOCKED, TOOL_NOT_GRANTED, TOOL_UNKNOWN, type ActorId, type PreparedCall, type Refusal, type Stage, type StagedOutcome, type Submission, type ToolCall, type ToolOutcome } from "@swarmtales/contracts";
 import { guarded, kernelFailed } from "./errors.ts";
 import type { DispatchParts, Frame, LoadedTool } from "./parts.ts";
 
@@ -130,6 +130,20 @@ function runCall(parts: DispatchParts, memory: Memory, call: Submission): ToolOu
 	return outcome;
 }
 
+// Runs the staged calls as the actor `script`, depth first: what a call and its `then` job stage runs before the
+// calls queued behind it. The job runs in a frame caused by the call's answer and gets the outcome as JSON data.
+function settle(parts: DispatchParts, memory: Memory): void {
+	for (let next = parts.staged.shift(); next !== undefined; next = parts.staged.shift()) {
+		const behind = parts.staged.splice(0);
+		const { owner, as, params, causedBy, then } = next;
+		const outcome = runCall(parts, memory, { actor: "script", as, params, ...(causedBy === undefined ? {} : { causedBy }) });
+		const job = then === undefined ? undefined : parts.loaded.instances.get(owner)?.jobs[then];
+		const data: StagedOutcome = outcome.ok ? { ok: true, reply: outcome.reply } : { ok: false, code: outcome.code, ...(outcome.detail === undefined ? {} : { detail: outcome.detail }) };
+		if (job !== undefined) parts.log.run({ actor: "script", causedBy: memory.answers.get("script") ?? parts.log.length }, () => { guarded(owner, () => { job(data); }); });
+		parts.staged.push(...behind);
+	}
+}
+
 // The answer to "no lock handler refuses": the handlers get a call without arguments and must not emit.
 function probeOf(parts: DispatchParts): (actor: ActorId, tool: string) => boolean {
 	return (actor, tool) => {
@@ -149,7 +163,9 @@ function probeOf(parts: DispatchParts): (actor: ActorId, tool: string) => boolea
  * @param parts - The log, the actors, the access, the step counter, what was loaded, and whom to tell a failure.
  * @returns The dispatch. `submit` runs one call after the calls before it. `quietEnd` says whether the actor's last
  * call was a free look or a success that ended its activation. `answerSeq` is the seq of the `tool_result` or
- * `tool_refused` of the actor's last finished call: the `basis` of its next call in the same activation.
+ * `tool_refused` of the actor's last finished call: the `basis` of its next call in the same activation. `settle`
+ * runs the staged calls now, outside the lane; the outermost steps of the lifecycle and of the scheduler's port call
+ * it, and `submit` runs it after its call, before the next call of the lane.
  * @throws SwtError Never from the factory. A promise of `submit` rejects with `SWT-R003` when plugin code of the
  * call threw (or with what kernel code threw), and with `SWT-R001`, the first failure of the run as its cause, for
  * every call after that and for a call that was waiting when another part failed.
@@ -166,7 +182,9 @@ export function createDispatch(parts: DispatchParts) {
 			const next = queue.then(() => {
 				if (failure !== undefined) throw new SwtError(kernelFailed(), { cause: failure.error });
 				try {
-					return runCall(parts, memory, call);
+					const outcome = runCall(parts, memory, call);
+					settle(parts, memory);
+					return outcome;
 				} catch (error) {
 					// The first failure of the run: this one, unless another part failed while the call waited in the lane.
 					const first = parts.fail(error) ?? error;
@@ -179,5 +197,8 @@ export function createDispatch(parts: DispatchParts) {
 		},
 		quietEnd: (actor: ActorId): boolean => memory.looked.has(actor) || memory.ended.has(actor),
 		answerSeq: (actor: ActorId): number | undefined => memory.answers.get(actor),
+		settle: (): void => {
+			settle(parts, memory);
+		},
 	};
 }

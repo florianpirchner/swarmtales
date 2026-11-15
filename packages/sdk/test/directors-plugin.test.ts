@@ -32,6 +32,7 @@ const unused = (): never => {
 function started(changes: Partial<GameData> = {}) {
 	const emitted: unknown[] = [];
 	const port: PluginPort = {
+		stage: () => undefined,
 		id: DIRECTORS_PLUGIN,
 		source: "@swarmtales/sdk/directors",
 		seed: 1,

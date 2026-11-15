@@ -221,7 +221,36 @@ export interface PluginPort {
 	readonly schedule: SchedulePort;
 	/** Locks on tools. */
 	readonly access: AccessPort;
+	/**
+	 * Stages a tool call that the kernel makes as the actor `script` once the outermost step that staged it (a hook,
+	 * a job, a tool call with the listeners of what it emitted) has returned: through the whole pipeline, in the
+	 * order staged and depth first (what a staged call and its `then` job stage runs before the calls queued behind
+	 * it). Its `tool_called` is caused by the event whose frame staged it. The definition lists the actor `script`
+	 * with a grant; a tool outside it is refused as for any caller (`TOOL_NOT_GRANTED`).
+	 *
+	 * @param as - The name the call is made with, as the grant of `script` shows the tool.
+	 * @param params - The raw arguments.
+	 * @param options - `then`: a job of the same plugin that runs after the call, with {@link StagedOutcome} as data.
+	 */
+	stage(as: string, params: unknown, options?: StageOptions): void;
 }
+
+/**
+ * The options of a staged call.
+ *
+ * @public
+ */
+export interface StageOptions {
+	/** A job of the staging plugin that the kernel runs right after the call, with its outcome as data. */
+	readonly then?: string;
+}
+
+/**
+ * The outcome of a staged call as its `then` job gets it: JSON data, as every job's data.
+ *
+ * @public
+ */
+export type StagedOutcome = { readonly ok: true; readonly reply: string } | { readonly ok: false; readonly code: string; readonly detail?: string };
 
 /**
  * A read-only view of the actors of a run.

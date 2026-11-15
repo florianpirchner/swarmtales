@@ -242,10 +242,10 @@ function wire(definition: KernelDefinition, resume?: { readonly snapshot: Kernel
 	for (const each of sinks) log.addSink(each);
 	const actors = createActors(definition.actors, log);
 	const access = createAccess(definition, actors, log);
-	const loaded = loadPlugins(definition, { log, actors, access, services: createServices(log), clock });
+	const loaded = loadPlugins(definition, { log, actors, access, services: createServices(log), clock, staged: [] });
 	const steps = createSteps(definition.limits.maxCallsPerTick, actors.ids);
-	const life = createLifecycle({ definition, log, clock, steps, loaded, sinks });
-	const dispatch = createDispatch({ definition, log, actors, access, steps, loaded, fail: (error) => { life.fail(error); } });
+	const life = createLifecycle({ definition, log, clock, steps, loaded, sinks, settle: () => undefined });
+	const dispatch = createDispatch({ definition, log, actors, access, steps, loaded, fail: (error) => { life.fail(error); }, staged: [] });
 	const instance = definition.scheduler.definition.create(definition.scheduler.options);
 	const toolSpecs = (grant: string) => access.grantsOf(grant).flatMap((tool) => (loaded.tools.get(tool) === undefined ? [] : [{ name: definition.names[tool] ?? tool, description: "", parameters: Empty }]));
 	const port = createSchedulerPort({ definition, log, actors, clock, loaded, dispatch, toolSpecs }, life);

@@ -23,6 +23,7 @@ function raise(message: string): never {
 	throw new TypeError(message);
 }
 const port: PluginPort = {
+	stage: () => undefined,
 	id: "tally",
 	source: "@test/tally/tally",
 	seed: 7,

@@ -23,6 +23,7 @@ const ACTORS: readonly ActorId[] = ["resident:A01", "resident:A02", "director:D1
 
 function parts(): InstanceParts<M> {
 	const port: PluginPort = {
+		stage: () => undefined,
 		id: "consensus",
 		source: "@acme/consensus/consensus",
 		seed: 1,

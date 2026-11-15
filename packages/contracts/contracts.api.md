@@ -578,6 +578,7 @@ export interface PluginPort {
     readonly schedule: SchedulePort;
     readonly seed: number;
     readonly source: string;
+    stage(as: string, params: unknown, options?: StageOptions): void;
     tick(): number;
 }
 
@@ -856,10 +857,25 @@ export interface SnapshotSlice {
 export type Stage = (typeof STAGES)[number];
 
 // @public
+export type StagedOutcome = {
+    readonly ok: true;
+    readonly reply: string;
+} | {
+    readonly ok: false;
+    readonly code: string;
+    readonly detail?: string;
+};
+
+// @public
 export interface StageHandlers {
     after?(call: ToolCall, outcome: ToolOutcome): void;
     lock?(call: ToolCall): Refusal | undefined;
     rule?(call: ToolCall): Refusal | undefined;
+}
+
+// @public
+export interface StageOptions {
+    readonly then?: string;
 }
 
 // @public

@@ -106,6 +106,7 @@ function world(): World {
 		steps: { tickStarted: unused, step: (actor) => (trace.push(`step ${actor}`), (set.stepsLeft -= 1) >= 0) },
 		loaded: { order: ["grid"], instances: new Map(), limits: [], hooks: () => [], tools: new Map(tools.map((entry) => [entry.canonical, entry])), byShownName: new Map(tools.map((entry) => [definition.names[entry.canonical] ?? "", [entry]])), stages: (stage) => staged[stage] },
 		fail: (error) => (failures.push(error), set.first),
+		staged: [],
 	};
 	const dispatch = createDispatch(parts);
 	return {

@@ -7,8 +7,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-/** The gate of M1. `parts.ts` holds derived types and one bag, so the kernel meets it (issue M1-38). */
-const GATE = 1420;
+/**
+ * The gate of the kernel. M1-38 set 1420; M5-02 raised it to 1490, the cap of A51 for `runEnded`, staged calls and
+ * the stage `review`, so that the merges of M5-01, M5-02 and M5-04 stay green; M5-05 sets the measured count.
+ */
+const GATE = 1490;
 const SRC = join(import.meta.dirname, "../src");
 
 // The lines that hold code: not blank, not only a comment. The files of the kernel open no comment behind code.

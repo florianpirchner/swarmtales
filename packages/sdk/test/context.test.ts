@@ -37,6 +37,7 @@ function stub(answers: { provided?: readonly string[]; output?: unknown; tick?: 
 		calls.push(call);
 	};
 	const port: PluginPort = {
+		stage: () => undefined,
 		id: "grid",
 		source: "@acme/grid/grid",
 		seed: 7,

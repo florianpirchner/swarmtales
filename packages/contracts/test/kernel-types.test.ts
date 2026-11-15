@@ -53,9 +53,12 @@ export const handlers: StageHandlers = {
 	guard: () => undefined,
 };
 
-// Staged calls are reserved (1.4): the port has no `stage`.
-// @ts-expect-error -- `stage` is not a member of the plugin port
-export type Staged = PluginPort["stage"];
+// Staged calls (M5-02): the port stages a call by its name with a `then` job, and takes no other option.
+export const staged: Parameters<PluginPort["stage"]> = ["directorMinute", {}, {
+	then: "minuteRan",
+	// @ts-expect-error -- a staged call has no option but `then`
+	delay: 1,
+}];
 
 // A run ends by its ticks, by a limit or by an error, and by nothing else.
 export const end: RunEnd = {

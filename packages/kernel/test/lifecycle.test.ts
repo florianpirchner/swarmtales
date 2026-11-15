@@ -102,7 +102,7 @@ function world(setup: Setup = {}): World {
 	const definition: KernelDefinition = { game: { id: "grid-game", hash: "h" }, seed: 11, actors: [{ id: "worker:A01", kind: "worker", grant: "worker", shared: {} }, { id: "worker:A02", kind: "worker", grant: "worker", shared: {} }], plugins: [], scheduler: { definition: scheduler, options: null }, grants: {}, names: {}, startLocks: {}, replies: {}, limits: { maxTicks: setup.maxTicks ?? 9 } };
 	const closedWith: RunEnd[] = [];
 	const sinks = setup.sinks ?? [{ write: () => undefined, close: (end: RunEnd) => void closedWith.push(end) }];
-	return { life: createLifecycle({ definition, log, clock, steps, loaded, sinks }), log, clock, closedWith, resets: () => resets };
+	return { life: createLifecycle({ definition, log, clock, steps, loaded, sinks, settle: () => undefined }), log, clock, closedWith, resets: () => resets };
 }
 
 const says = (type: string) => (log: Log) => void log.emit("p/grid", type, {});

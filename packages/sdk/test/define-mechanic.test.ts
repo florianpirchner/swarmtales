@@ -64,6 +64,7 @@ const ACTORS: readonly ActorId[] = ["resident:A01", "resident:A02", "director:D1
 function stub(owner: { readonly id: string; readonly package: string }): { readonly port: PluginPort; readonly calls: unknown[][] } {
 	const calls: unknown[][] = [];
 	const port: PluginPort = {
+		stage: () => undefined,
 		id: owner.id,
 		source: `${owner.package}/${owner.id}`,
 		seed: 7,

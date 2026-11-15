@@ -145,6 +145,7 @@ function actorsPort(parts: Parts): ActorsPort {
 
 function portFor(plugin: ResolvedPlugin, parts: Parts): PluginPort {
 	return {
+		stage: () => undefined,
 		id: plugin.id,
 		source: sourceOf(plugin),
 		seed: parts.definition.seed,
