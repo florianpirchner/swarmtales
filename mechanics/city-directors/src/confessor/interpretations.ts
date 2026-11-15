@@ -5,7 +5,9 @@
  * which a Director cannot (erratum J131): the last messages of every conversation, the old `history`. The
  * Confessor writes through its tool `interpret`; the tool drops what the old `finish` dropped (unknown labels,
  * unknown residents, references the round did not hold) before anything reaches the log, because the model's answer
- * is untrusted. Its facts are the Confessor's sight: the residents with their names, and the conversations.
+ * is untrusted. Its facts are the Confessor's sight: the residents with their names, and the conversations. It also
+ * keeps the private labels since the gamemaker's last look, against which its `rule` handler checks a Director's
+ * note (`notes.ts`, decision A62).
  */
 import type { ToolSuccess } from "@swarmtales/contracts";
 import { IdentityService } from "@swarmtales/mechanic-contracts";
@@ -45,7 +47,34 @@ const Events = {
 };
 
 const Conversation = Type.Object({ conversation: Type.String({ description: "`dm:A01|A02` or `group:G1`" }), statements: Type.Array(StatementSchema, { description: "Its last messages, oldest first" }) }, { description: "One conversation" });
-const Slice = Type.Object({ history: Type.Array(Conversation, { description: "The conversations, in the order they began" }) }, { description: "What the Confessor remembers" });
+const Private = Type.Object({ round: Int("The old round"), agent: Type.String({ description: "The resident" }), labels: Type.Array(Label, { description: "Its private labels" }) }, { description: "The private labels of one statement" });
+const Slice = Type.Object(
+	{
+		history: Type.Array(Conversation, { description: "The conversations, in the order they began" }),
+		window: Type.Array(Private, { description: "The private labels since the gamemaker's last look (old `privateLabels`)" }),
+	},
+	{ description: "What the Confessor remembers" },
+);
+
+/** The old `gamemaker/replies/private-thoughts`, byte for byte (`prompts/gamemaker/replies/private-thoughts.md`). */
+const PRIVATE_THOUGHTS = "PRIVATE_BLOCKED: the text passes on what {{who}} privately thinks; use a private read only in a note to that resident";
+
+/**
+ * The options of `interpretations`: the check of a private thought in a Director's note.
+ *
+ * @public
+ */
+export const InterpretationsOptions = Type.Object(
+	{
+		noteTools: Type.Array(Type.String({ description: "The bare name of a tool" }), {
+			default: ["notify", "boardNote"],
+			description: "The tools of a Director's note whose `text` (or `reason`) is checked for a private read of another resident (`PRIVATE_BLOCKED`); `notify` is read by its `agent`, the others by the board.",
+		}),
+		every: Type.Integer({ minimum: 1, default: 1, description: "Rounds between two looks of the gamemaker (its `every`): the private labels of these rounds are checked." }),
+		privateThoughts: Type.String({ default: PRIVATE_THOUGHTS, description: "The refusal, with `{{who}}`: the old `gamemaker/replies/private-thoughts`." }),
+	},
+	{ description: "The options of `interpretations`" },
+);
 
 /**
  * The fact `interpretations.residents`: every resident in the game's order, with the name it chose.
@@ -86,8 +115,9 @@ export const interpretationsHead = defineHead({
 	id: "interpretations",
 	package: "@swarmtales/city-directors",
 	summary: "The Confessor's labels of what residents say, and the conversations it remembers.",
+	options: InterpretationsOptions,
 	state: Slice,
-	start: () => ({ history: [] }),
+	start: () => ({ history: [], window: [] }),
 	snapshot: { save: (state: Static<typeof Slice>) => structuredClone(state), load: (data): Static<typeof Slice> => inSchemaOrder(Slice, data) },
 	events: Events,
 	uses: [IdentityService],
@@ -95,6 +125,12 @@ export const interpretationsHead = defineHead({
 });
 
 type Ctx = ToolCtxOf<typeof interpretationsHead>;
+
+// Forgets the private labels of the rounds up to the gamemaker's last look before `round` (old `lookWindow`).
+function forgetLooked(ctx: Ctx, round: number): void {
+	const looked = Math.floor((round - 1) / ctx.options.every) * ctx.options.every;
+	ctx.state.window = ctx.state.window.filter((entry) => entry.round > looked);
+}
 
 // Keeps the last messages of each conversation of the round (old `calls`, after the context was read).
 function remember(ctx: Ctx, statements: readonly Statement[]): void {
@@ -151,6 +187,8 @@ function finish(ctx: Ctx, { round, classifier, statements, items }: Static<typeo
 		if (entry === undefined || entry.labels.size === 0) continue;
 		labeled += 1;
 		ctx.emit("interpretation", { ref: statement.ref, agent: statement.agent, source: statement.source, labels: LABELS.filter((label) => entry.labels.has(label)), targets: [...entry.targets].sort(), classifier });
+		// Old `privateLabels`: every lie, and every label of a thought or an aside, which no statement is (J171).
+		if (entry.labels.has("lie")) ctx.state.window.push({ round, agent: statement.agent, labels: ["lie"] });
 	}
 	ctx.emit("interpretation_round", { round, classifier, statements: statements.length, labeled });
 }
@@ -165,6 +203,7 @@ function finish(ctx: Ctx, { round, classifier, statements, items }: Static<typeo
  */
 function interpret(params: Static<ToolsOf<typeof interpretationsHead>["interpret"]>, ctx: Ctx): ToolSuccess {
 	remember(ctx, params.statements);
+	forgetLooked(ctx, params.round);
 	if (params.error === undefined) finish(ctx, params);
 	else ctx.emit("interpretation_error", { round: params.round, message: params.error });
 	return reply("recorded");

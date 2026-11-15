@@ -57,9 +57,14 @@ The old classifier: a Director that answers (`acts: "answer"`) and labels what t
   id, writes one `interpretation` per labelled statement and then `interpretation_round`, and remembers the round's
   messages. **Fail open:** without an answer it writes `interpretation_error` and no label; the messages are
   remembered all the same.
+- **The check of a private thought in a Director's note** (decision A62). `interpretations` keeps every `lie` it
+  wrote since the gamemaker's last look (option `every`, the gamemaker's cadence). Its `rule` handler on the note
+  tools (option `noteTools`, by bare name; the text is `text`, or `reason` for a tribunal's tool) refuses a note
+  whose sentence names such a resident beside a cue of its label or a word of what it thinks, with the old
+  `PRIVATE_BLOCKED` of `gamemaker/replies/private-thoughts` (the option `privateThoughts`). A note to that resident
+  itself passes; `notify` is read by its `agent`, every other note tool by the board.
 - **Not ported.** A resident's thoughts and asides (no mechanic writes them as events), the decider backend of the
-  old classifier, standing orders (A61), and the check of a private thought in a Director's note (decision A62),
-  which is left to a later issue.
+  old classifier, and standing orders (A61).
 
 The game loads `interpretations` and grants it `interpret` (the default grant `confessor`).
 
@@ -155,7 +160,11 @@ Audience: everyone
 <!-- generated:options -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic takes no options.
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `noteTools` | string[] | `["notify","boardNote"]` | The tools of a Director's note whose `text` (or `reason`) is checked for a private read of another resident (`PRIVATE_BLOCKED`); `notify` is read by its `agent`, the others by the board. |
+| `every` | integer ≥ 1 | `1` | Rounds between two looks of the gamemaker (its `every`): the private labels of these rounds are checked. |
+| `privateThoughts` | string | `"PRIVATE_BLOCKED: the text passes on what {{who}} privately thinks; use a private read only in a note to that resident"` | The refusal, with `{{who}}`: the old `gamemaker/replies/private-thoughts`. |
 
 <!-- /generated:options -->
 

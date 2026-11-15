@@ -3,16 +3,18 @@
  * Directors: the gamemaker, the Confessor, the judge and the guard of the City and Whispers (decision A58). M5-34
  * brings the gamemaker's head, its input from the facts (the old report of the city) and its system text; M5-35 its
  * tracks, notes, budget line and the events since its last look; M5-36 the Confessor with the mechanic
- * `interpretations`, which writes its labels and remembers its conversations; M5-37 the judge of `blame` and the
- * guard of the review handler of `puzzles`, two answerers of the stage `review`.
+ * `interpretations`, which writes its labels and remembers its conversations, and M5-72 its check of a private
+ * thought in a Director's note; M5-37 the judge of `blame` and the guard of the review handler of `puzzles`, two
+ * answerers of the stage `review`.
  *
  * @packageDocumentation
  */
 import { defineMechanic } from "@swarmtales/sdk";
 import { interpretationsBody, interpretationsHead } from "./confessor/interpretations.ts";
+import { checkThoughts } from "./confessor/notes.ts";
 
 export { confessor, confessorOptions, ConfessorAnswerSchema, ConfessorOptionsSchema, defineConfessor, type ConfessorDials, type ConfessorOptions, type ConfessorSight } from "./confessor/director.ts";
-export { HistoryFact, interpretationsHead, LABELS, ResidentsFact } from "./confessor/interpretations.ts";
+export { HistoryFact, InterpretationsOptions, interpretationsHead, LABELS, ResidentsFact } from "./confessor/interpretations.ts";
 export { conversationKey, STATEMENT_EVENTS, statementOf, StatementSchema, type Statement, type StatementEvent } from "./confessor/statements.ts";
 export { defineGamemaker, gamemaker, GAMEMAKER_FACTS, type GamemakerFact, type GamemakerSight } from "./gamemaker/director.ts";
 export { labelLines } from "./gamemaker/labels.ts";
@@ -40,4 +42,4 @@ export { JUDGE_TEMPERS, JUDGE_VERDICT_TEXT, judge, JudgeAnswer, judgeOptions, Ju
  *
  * @public
  */
-export const interpretations = defineMechanic(interpretationsHead, interpretationsBody);
+export const interpretations = defineMechanic(interpretationsHead, { ...interpretationsBody, pipeline: { rule: checkThoughts } });
