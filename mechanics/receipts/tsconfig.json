@@ -22,6 +22,9 @@
 			"path": "../contracts"
 		},
 		{
+			"path": "../cast"
+		},
+		{
 			"path": "../channels"
 		},
 		{

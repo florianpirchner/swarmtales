@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `receipts` mechanic: receipts the city verifies. It listens to the transfers of `ledger`, the treasury
- * movements and delivered direct messages of `channels` and the correct submissions of `progression`, and issues a
- * numbered receipt for each (`receipt_issued`); the receiver of a transfer or a withdrawal is told its line. It
+ * movements and delivered direct messages of `channels`, the correct submissions of `progression` and the escrow
+ * payments of `cast`, and issues a numbered receipt for each (`receipt_issued`); the receiver of a transfer, an escrow
+ * payment or a withdrawal is told its line. It
  * provides `receipt-source`, through which those mechanics name the receipt in their replies, and the tool
  * `showReceipt`; and `blame`, which the city settles by its own checks or by the answer of its judge, a Director with
  * `answers: "judge"` (the tool's own review).
@@ -10,6 +11,7 @@
  * @packageDocumentation
  */
 import { Type } from "typebox";
+import { CastEvents } from "@swarmtales/mechanic-cast/contract";
 import { ChannelsEvents } from "@swarmtales/mechanic-channels/contract";
 import { LedgerEvents } from "@swarmtales/mechanic-ledger/contract";
 import { ProgressionEvents } from "@swarmtales/mechanic-progression/contract";
@@ -62,6 +64,10 @@ export const receipts = defineMechanic(receiptsHead, {
 		kit.listen(ChannelsEvents, "treasury_withdrawal", ({ group, treasurer, to, amount, receipt }, ctx) => {
 			const text = issue(ctx, { id: receipt }, { kind: "withdrawal", group, treasurer, to, amount });
 			if (to !== treasurer) tell(ctx, to, text);
+		}),
+		// An escrow payment of a cast member: the receiver is told its line (old `cast` issued it inside `escrow`).
+		kit.listen(CastEvents, "escrow_paid", ({ cast, to, amount, txId }, ctx) => {
+			tell(ctx, to, issue(ctx, { key: `tx:${txId}` }, { kind: "escrow", cast, to, amount }));
 		}),
 		kit.listen(ChannelsEvents, "dm_delivered", (delivered, ctx) => {
 			issueDm(ctx, delivered);

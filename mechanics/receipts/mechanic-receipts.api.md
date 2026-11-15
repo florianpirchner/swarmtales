@@ -176,6 +176,15 @@ export const ReceiptSchema: Type.TUnion<[Type.TObject<{
     minute: Type.TInteger;
     parties: Type.TArray<Type.TString>;
     key: Type.TString;
+    kind: Type.TLiteral<"escrow">;
+    cast: Type.TString;
+    to: Type.TString;
+    amount: Type.TNumber;
+}>, Type.TObject<{
+    id: Type.TString;
+    minute: Type.TInteger;
+    parties: Type.TArray<Type.TString>;
+    key: Type.TString;
     kind: Type.TLiteral<"deposit">;
     from: Type.TString;
     group: Type.TString;
@@ -258,6 +267,15 @@ from: Type.TString;
 to: Type.TString;
 amount: Type.TNumber;
 memo: Type.TString;
+}>, Type.TObject<{
+id: Type.TString;
+minute: Type.TInteger;
+parties: Type.TArray<Type.TString>;
+key: Type.TString;
+kind: Type.TLiteral<"escrow">;
+cast: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
 }>, Type.TObject<{
 id: Type.TString;
 minute: Type.TInteger;

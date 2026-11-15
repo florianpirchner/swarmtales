@@ -3,7 +3,7 @@
  * The receipt book, carried from the old `mechanics/receipts/src/book.ts`: every transfer, treasury movement, solved
  * level and delivered direct message gets a short id (`R-0042`) that its parties can show as a line the city
  * verifies. Receipts prove what happened; the city never judges intent. The functions work on a list of receipts.
- * The old kind `escrow` waits for the port of `cast`.
+ * An escrow payment of a cast member gets the kind `escrow`.
  */
 import { Type, type Static } from "typebox";
 
@@ -24,6 +24,7 @@ const common = {
 export const ReceiptSchema = Type.Union(
 	[
 		Type.Object({ kind: Type.Literal("transfer", { description: "A resident's transfer" }), from: Id, to: Id, amount: Points, memo: Type.String({ description: "The memo, or empty" }), ...common }, { description: "A transfer" }),
+		Type.Object({ kind: Type.Literal("escrow", { description: "A payment from a cast member's escrow" }), cast: Type.String({ description: "The cast member" }), to: Id, amount: Points, ...common }, { description: "An escrow payment" }),
 		Type.Object({ kind: Type.Literal("deposit", { description: "A payment into a treasury" }), from: Id, group: Type.String({ description: "The group" }), amount: Points, ...common }, { description: "A deposit" }),
 		Type.Object(
 			{ kind: Type.Literal("withdrawal", { description: "A payment out of a treasury" }), group: Type.String({ description: "The group" }), treasurer: Type.String({ description: "Who paid it out" }), to: Id, amount: Points, ...common },
@@ -71,6 +72,8 @@ export function partiesOf(body: ReceiptBody): readonly string[] {
 		case "transfer":
 		case "dm":
 			return [body.from, body.to];
+		case "escrow":
+			return [body.cast, body.to];
 		case "deposit":
 			return [body.from];
 		case "withdrawal":
@@ -146,6 +149,8 @@ export function describeReceipt(receipt: Receipt): string {
 	switch (receipt.kind) {
 		case "transfer":
 			return `${receipt.id}: ${receipt.from} → ${receipt.to}, ${points(receipt.amount)}, ${tail}${receipt.memo.length > 0 ? `, memo ${JSON.stringify(receipt.memo)}` : ""}`;
+		case "escrow":
+			return `${receipt.id}: ${receipt.cast} → ${receipt.to}, ${points(receipt.amount)}, ${tail}`;
 		case "deposit":
 			return `${receipt.id}: ${receipt.from} → treasury ${receipt.group}, ${points(receipt.amount)}, ${tail}`;
 		case "withdrawal":

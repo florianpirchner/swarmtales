@@ -2,11 +2,15 @@
 /**
  * The receipts, carried from the old `test/mechanics/receipts/receipts.test.ts` (the parts of `showReceipt`, the
  * issue of a transfer's receipt and the status part; `blame` is in `blame.test.ts`), played with the real `ledger`, `channels`
- * and `exile`: the receipt of every kind is issued in the listener, and the coming id is what the callers name.
+ * and `exile`, and the escrow payment of the real `cast`: the receipt of every kind is issued in the listener, and the
+ * coming id is what the callers name.
  */
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
+import { cast } from "@swarmtales/mechanic-cast";
+import { CastService } from "@swarmtales/mechanic-cast/contract";
+import { defineHead, defineMechanic, reply } from "@swarmtales/sdk";
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, idleDriver, testKernel } from "@swarmtales/testkit";
-import { defineHead, defineMechanic } from "@swarmtales/sdk";
 import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { game, lines, namesAndMarks, say } from "./support.ts";
 
@@ -134,5 +138,25 @@ describe("the receipts in the snapshot", () => {
 		expect(["receipt_issued", "receipt_shown"].filter((type) => !types.has(type))).toEqual([]);
 		expect(await checkReplay(game({ quoteDms: true }, [], 10), drivers)).toEqual([]);
 		expect(await checkResumeEveryBoundary(game({ quoteDms: true }, [], 10), drivers)).toEqual([]);
+	});
+});
+
+/** Stands in for the script: pays from a cast member's escrow through the service of the real `cast`. */
+const payer = defineMechanic(
+	defineHead({ id: "payer", package: "@test/payer", summary: "Test: pays from escrow.", requires: [CastService], tools: { pay: { description: "Pay.", params: Type.Object({ to: Type.String(), amount: Type.Integer() }), for: ["resident"] } } }),
+	{ tools: { pay: { run: ({ to, amount }, ctx) => reply(JSON.stringify(ctx.call(CastService, "escrow", { cast: "STEWARD", to, amount }))) } } },
+);
+
+describe("the receipt of an escrow payment", () => {
+	it("is issued after cast's escrow_paid and told to the paid resident, as the old cast did", async () => {
+		const test = testKernel(game({}, [cast({ members: { STEWARD: { level: 10, escrow: 10 } } }), payer()]));
+		expect(await say(test, "A01", "pay", { to: "A02", amount: 4 })).toBe('{"ok":true}');
+		const line = "R-0001: STEWARD → A02, 4 points, minute 0";
+		expect(lines(test.kernel.log.all(), ["escrow_paid", "receipt_issued", "notice"])).toEqual([
+			'escrow_paid {"cast":"STEWARD","to":"A02","amount":4,"txId":"TX6"}',
+			`receipt_issued {"receipt":"R-0001","kind":"escrow","parties":["STEWARD","A02"],"text":"${line}"}`,
+			`notice {"to":"A02","author":"CITY","text":"${line}"}`,
+		]);
+		expect(await say(test, "A02", "showReceipt", { receiptId: "R-0001" })).toBe(`shown · board #1 · CITY verifies ${line} · shown by A02`);
 	});
 });

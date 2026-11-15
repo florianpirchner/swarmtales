@@ -37,6 +37,7 @@
 		"@swarmtales/contracts": "workspace:*",
 		"@swarmtales/sdk": "workspace:*",
 		"@swarmtales/mechanic-contracts": "workspace:*",
+		"@swarmtales/mechanic-cast": "workspace:*",
 		"@swarmtales/mechanic-channels": "workspace:*",
 		"@swarmtales/mechanic-exile": "workspace:*",
 		"@swarmtales/mechanic-ledger": "workspace:*",

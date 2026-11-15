@@ -17,7 +17,7 @@ the levels into acts and keeps the ranking. Ported from the old platform in two 
 | Id | `progression` |
 | Summary | Levels, submissions, doors, acts, the tool locks per level, the ranking and the task and status lines of a turn. |
 | Requires | `ledger` (from [ledger](../ledger/README.md)), `channels` (from [channels](../channels/README.md)), `level-pieces` (from [puzzles](../puzzles/README.md)) |
-| Uses when loaded | `identity`, `receipt-source` (from [receipts](../receipts/README.md)), `allowance` (from [marks](../marks/README.md)), `exile` (from [exile](../exile/README.md)), `cast-extras` |
+| Uses when loaded | `identity`, `receipt-source` (from [receipts](../receipts/README.md)), `allowance` (from [marks](../marks/README.md)), `exile` (from [exile](../exile/README.md)), `cast-extras` (from [cast](../cast/README.md)) |
 | Provides | `progression` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
