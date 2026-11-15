@@ -1,1 +1,13 @@
 {"capUsd":12}
+{"run":"smoke/hello-game-001","id":"420538e7-6773-4e25-bad8-e3b1d64f51f7","reservedUsd":0.002,"at":"2026-11-15T08:55:06.888Z"}
+{"run":"smoke/hello-game-001","id":"420538e7-6773-4e25-bad8-e3b1d64f51f7","costUsd":0.0017982550000000001,"at":"2026-11-15T08:55:29.288Z"}
+{"run":"smoke/hello-game-002","id":"98105ab1-ba29-46ac-b582-eb87169224c6","reservedUsd":0.001,"at":"2026-11-15T08:56:33.813Z"}
+{"run":"smoke/hello-game-002","id":"98105ab1-ba29-46ac-b582-eb87169224c6","costUsd":0.001331885,"at":"2026-11-15T08:56:55.677Z"}
+{"run":"smoke/liars-dice-001","id":"a433df7f-bc4f-4548-84b9-7599afb95b5a","reservedUsd":0.4,"at":"2026-11-15T08:57:27.625Z"}
+{"run":"smoke/liars-dice-001","id":"a433df7f-bc4f-4548-84b9-7599afb95b5a","costUsd":0.080994855,"at":"2026-11-15T09:08:00.000Z"}
+{"run":"smoke/liars-dice-002","id":"03df7d12-cb1b-4a2b-b5c5-57677961e04b","reservedUsd":0.4,"at":"2026-11-15T09:08:18.891Z"}
+{"run":"smoke/liars-dice-002","id":"03df7d12-cb1b-4a2b-b5c5-57677961e04b","costUsd":0.10875938000000002,"at":"2026-11-15T09:21:25.734Z"}
+{"run":"smoke/ember-tricks-001","id":"cc2033a2-4f48-4b38-a54e-f7eb20870e57","reservedUsd":0.4,"at":"2026-11-15T09:21:40.993Z"}
+{"run":"smoke/ember-tricks-001","id":"cc2033a2-4f48-4b38-a54e-f7eb20870e57","costUsd":0.05401683000000003,"at":"2026-11-15T09:30:08.017Z"}
+{"run":"smoke/blind-bid-001","id":"98a68f36-73a0-4da1-a023-e7deb3229293","reservedUsd":0.4,"at":"2026-11-15T09:30:21.444Z"}
+{"run":"smoke/blind-bid-001","id":"98a68f36-73a0-4da1-a023-e7deb3229293","costUsd":0.02156075499999999,"at":"2026-11-15T09:33:45.835Z"}
