@@ -21,7 +21,7 @@ mechanics check and record their Director's texts through the service `notes`.
 | Id | `channels` |
 | Summary | Talk in the city: the public board, direct messages, private notices and groups with a treasury. |
 | Requires | none |
-| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source`, `identity`, `allowance` |
+| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` (from [receipts](../receipts/README.md)), `identity`, `allowance` |
 | Provides | `channels`, `notices`, `notes` |
 | State | kept, snapshot slice version 4 |
 | Games | [city-slice](../../games/city-slice/README.md) |

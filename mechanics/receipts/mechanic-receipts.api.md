@@ -4,6 +4,502 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { ToolCtxOf } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export type BodyOf<R> = R extends unknown ? Omit<R, "id" | "minute" | "parties" | "key"> : never;
+
+// @public
+export function describeReceipt(receipt: Receipt): string;
+
+// @public
+export function partiesOf(body: ReceiptBody): readonly string[];
+
+// @public
+export type Receipt = Static<typeof ReceiptSchema>;
+
+// @public
+export type ReceiptBody = BodyOf<Receipt>;
+
+// @public
+export function receiptId(number: number): string;
+
+// @public
+export const receipts: MechanicDefinition<"receipts", Type.TObject<{
+quoteDms: Type.TBoolean;
+}>, {
+readonly receipt_issued: Type.TObject<{
+receipt: Type.TString;
+kind: Type.TString;
+parties: Type.TArray<Type.TString>;
+text: Type.TString;
+}>;
+readonly receipt_shown: Type.TObject<{
+receipt: Type.TString;
+by: Type.TString;
+postSeq: Type.TOptional<Type.TInteger>;
+to: Type.TOptional<Type.TString>;
+}>;
+}, "showReceipt">;
+
+// @public
+export const ReceiptSchema: Type.TUnion<[Type.TObject<{
+    id: Type.TString;
+    minute: Type.TInteger;
+    parties: Type.TArray<Type.TString>;
+    key: Type.TString;
+    kind: Type.TLiteral<"transfer">;
+    from: Type.TString;
+    to: Type.TString;
+    amount: Type.TNumber;
+    memo: Type.TString;
+}>, Type.TObject<{
+    id: Type.TString;
+    minute: Type.TInteger;
+    parties: Type.TArray<Type.TString>;
+    key: Type.TString;
+    kind: Type.TLiteral<"deposit">;
+    from: Type.TString;
+    group: Type.TString;
+    amount: Type.TNumber;
+}>, Type.TObject<{
+    id: Type.TString;
+    minute: Type.TInteger;
+    parties: Type.TArray<Type.TString>;
+    key: Type.TString;
+    kind: Type.TLiteral<"withdrawal">;
+    group: Type.TString;
+    treasurer: Type.TString;
+    to: Type.TString;
+    amount: Type.TNumber;
+}>, Type.TObject<{
+    id: Type.TString;
+    minute: Type.TInteger;
+    parties: Type.TArray<Type.TString>;
+    key: Type.TString;
+    kind: Type.TLiteral<"levelUp">;
+    agent: Type.TString;
+    level: Type.TInteger;
+    reward: Type.TNumber;
+}>, Type.TObject<{
+    id: Type.TString;
+    minute: Type.TInteger;
+    parties: Type.TArray<Type.TString>;
+    key: Type.TString;
+    kind: Type.TLiteral<"dm">;
+    from: Type.TString;
+    to: Type.TString;
+    number: Type.TInteger;
+    text: Type.TOptional<Type.TString>;
+}>]>;
+
+// @public
+export type ReceiptsCtx = CtxOf<typeof receiptsHead>;
+
+// @public
+export const ReceiptsEvents: EventsDefinition<"receipts", {
+readonly receipt_issued: Type.TObject<{
+receipt: Type.TString;
+kind: Type.TString;
+parties: Type.TArray<Type.TString>;
+text: Type.TString;
+}>;
+readonly receipt_shown: Type.TObject<{
+receipt: Type.TString;
+by: Type.TString;
+postSeq: Type.TOptional<Type.TInteger>;
+to: Type.TOptional<Type.TString>;
+}>;
+}>;
+
+// @public
+export const receiptsHead: MechanicHead<"receipts", Type.TObject<{
+quoteDms: Type.TBoolean;
+}>, Type.TObject<{
+receipts: Type.TArray<Type.TUnion<[Type.TObject<{
+id: Type.TString;
+minute: Type.TInteger;
+parties: Type.TArray<Type.TString>;
+key: Type.TString;
+kind: Type.TLiteral<"transfer">;
+from: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+memo: Type.TString;
+}>, Type.TObject<{
+id: Type.TString;
+minute: Type.TInteger;
+parties: Type.TArray<Type.TString>;
+key: Type.TString;
+kind: Type.TLiteral<"deposit">;
+from: Type.TString;
+group: Type.TString;
+amount: Type.TNumber;
+}>, Type.TObject<{
+id: Type.TString;
+minute: Type.TInteger;
+parties: Type.TArray<Type.TString>;
+key: Type.TString;
+kind: Type.TLiteral<"withdrawal">;
+group: Type.TString;
+treasurer: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+}>, Type.TObject<{
+id: Type.TString;
+minute: Type.TInteger;
+parties: Type.TArray<Type.TString>;
+key: Type.TString;
+kind: Type.TLiteral<"levelUp">;
+agent: Type.TString;
+level: Type.TInteger;
+reward: Type.TNumber;
+}>, Type.TObject<{
+id: Type.TString;
+minute: Type.TInteger;
+parties: Type.TArray<Type.TString>;
+key: Type.TString;
+kind: Type.TLiteral<"dm">;
+from: Type.TString;
+to: Type.TString;
+number: Type.TInteger;
+text: Type.TOptional<Type.TString>;
+}>]>>;
+coming: Type.TArray<Type.TObject<{
+key: Type.TString;
+id: Type.TString;
+}>>;
+}>, never, {
+readonly receipt_issued: Type.TObject<{
+receipt: Type.TString;
+kind: Type.TString;
+parties: Type.TArray<Type.TString>;
+text: Type.TString;
+}>;
+readonly receipt_shown: Type.TObject<{
+receipt: Type.TString;
+by: Type.TString;
+postSeq: Type.TOptional<Type.TInteger>;
+to: Type.TOptional<Type.TString>;
+}>;
+}, {
+readonly "receipts/tools/showReceipt": readonly [];
+readonly "receipts/replies/shown-board": readonly ["seq", "text"];
+readonly "receipts/replies/shown-private": readonly ["to", "receipt"];
+readonly "receipts/replies/marks-left": readonly ["remaining", "budget"];
+readonly "receipts/status/receipt-one": readonly [];
+readonly "receipts/status/receipts-many": readonly ["count"];
+readonly "receipts/notices/receipt-shown": readonly ["by", "line"];
+readonly "receipts/records/receipt-verified": readonly ["city", "line", "by"];
+}, readonly [ServiceDefinition<"channels", {
+readonly post: {
+readonly kind: "command";
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+}>;
+readonly output: Type.TObject<{
+postSeq: Type.TInteger;
+}>;
+};
+readonly notify: {
+readonly kind: "command";
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+readonly input: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly dmRecords: {
+readonly kind: "query";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+tick: Type.TInteger;
+answered: Type.TBoolean;
+}>>;
+};
+readonly createCityGroup: {
+readonly kind: "command";
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+readonly input: Type.TObject<{
+name: Type.TString;
+members: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+};
+readonly removeCityGroup: {
+readonly kind: "command";
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly postGroupAsCity: {
+readonly kind: "command";
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly group: {
+readonly kind: "query";
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+id: Type.TString;
+name: Type.TString;
+founder: Type.TString;
+treasurer: Type.TString;
+members: Type.TArray<Type.TString>;
+removed: Type.TBoolean;
+}>, Type.TNull]>;
+};
+readonly groupPost: {
+readonly kind: "query";
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+group: Type.TString;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly couldRead: {
+readonly kind: "query";
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+readonly input: Type.TObject<{
+group: Type.TString;
+reader: Type.TString;
+number: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+}>], readonly [ServiceDefinition<"receipt-source", {
+readonly ofTransfer: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued for the booking `txId` of the ledger, or null (old `ofTransfer` of `receipts`).";
+readonly input: Type.TObject<{
+txId: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly ofMessage: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued when the direct message `number` was delivered, or null.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly ofLevel: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued, or to be issued in the provider's listener, for the resident's correct `submission` of the level of `progression`, or null (decision A64).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly textsOf: {
+readonly kind: "query";
+readonly summary: "The texts of the receipts the resident is a party to, in the order issued (old `list` of `receipts`), for the reply of `getStatus`.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+}>], readonly [ServiceDefinition<"identity", {
+readonly nameOf: {
+readonly kind: "query";
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly display: {
+readonly kind: "query";
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly resolve: {
+readonly kind: "query";
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+}>, ServiceDefinition<"allowance", {
+readonly left: {
+readonly kind: "query";
+readonly summary: "The resident's marks in the current window, or null where marks do not apply (old `left` of `marks`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+remaining: Type.TNumber;
+budget: Type.TNumber;
+}>, Type.TNull]>;
+};
+readonly priceOf: {
+readonly kind: "query";
+readonly summary: "What a message on the channel costs the resident now, or null where marks do not apply (old `priceOf` of `marks`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+channel: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"dm">, Type.TLiteral<"receipt">]>;
+}>;
+readonly output: Type.TUnion<[Type.TNumber, Type.TNull]>;
+};
+}>, ServiceDefinition<"exile", {
+readonly banish: {
+readonly kind: "command";
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+ok: Type.TBoolean;
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+}>;
+};
+readonly toGate: {
+readonly kind: "command";
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+voters: Type.TArray<Type.TString>;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+bequestPerHeir: Type.TNumber;
+notice: Type.TString;
+texts: Type.TObject<{
+exiled: Type.TString;
+will: Type.TString;
+ransomed: Type.TString;
+}>;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly isExiled: {
+readonly kind: "query";
+readonly summary: "Says whether the resident is banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly exiled: {
+readonly kind: "query";
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly standing: {
+readonly kind: "query";
+readonly summary: "Where the resident stands (old `standingOf`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"alive">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"gate">;
+until: Type.TInteger;
+}>, Type.TObject<{
+kind: Type.TLiteral<"exiled">;
+}>]>;
+};
+readonly alive: {
+readonly kind: "query";
+readonly summary: "Every resident not banished, in the game's order.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly exiledBy: {
+readonly kind: "query";
+readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly gates: {
+readonly kind: "query";
+readonly summary: "Every open gate, in the order opened.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+since: Type.TInteger;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+paid: Type.TInteger;
+covered: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+};
+readonly ransomed: {
+readonly kind: "query";
+readonly summary: "Whether the resident was bought back from the gate once.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly bequeathed: {
+readonly kind: "query";
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+}>], {
+showReceipt: Type.TObject<{
+receiptId: Type.TString;
+to: Type.TOptional<Type.TString>;
+}>;
+}>;
+
+// @public
+export type ReceiptsToolCtx = ToolCtxOf<typeof receiptsHead>;
+
 // (No @packageDocumentation comment for this package)
 
 ```

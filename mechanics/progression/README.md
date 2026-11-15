@@ -18,7 +18,7 @@ come with the second (M5-20).
 | Id | `progression` |
 | Summary | Levels, submissions, doors, the penalty ladder and the task and status lines of a turn. |
 | Requires | `ledger` (from [ledger](../ledger/README.md)), `channels` (from [channels](../channels/README.md)), `level-pieces` |
-| Uses when loaded | `identity`, `receipt-source`, `allowance`, `exile` (from [exile](../exile/README.md)) |
+| Uses when loaded | `identity`, `receipt-source` (from [receipts](../receipts/README.md)), `allowance`, `exile` (from [exile](../exile/README.md)) |
 | Provides | `progression` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
