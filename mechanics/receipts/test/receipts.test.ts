@@ -58,7 +58,7 @@ describe("showReceipt", () => {
 describe("showReceipt where the board must not carry a fragment (`minRun`)", () => {
 	// Stands in for `puzzles` (its service `deal`): A01 holds the fragment 5EUXN; a text carries it from `minRun` characters in a row.
 	const fragments = defineMechanic(defineHead({ id: "puzzles", package: "@test/puzzles", summary: "Test: one fragment.", provides: [PuzzlesService] }), {
-		services: { deal: { passwordPiece: () => false, isHandover: () => false, carriesSecret: ({ resident, text, minRun }) => resident === "A01" && [0, 1, 2, 3, 4].some((at) => at + minRun <= 5 && text.includes("5EUXN".slice(at, at + minRun))) } },
+		services: { deal: { passwordPiece: () => false, revealFactor: () => ({ ok: false, code: "NOT_ADDITIVE", detail: "" }), isHandover: () => false, carriesSecret: ({ resident, text, minRun }) => resident === "A01" && [0, 1, 2, 3, 4].some((at) => at + minRun <= 5 && text.includes("5EUXN".slice(at, at + minRun))) } },
 	});
 
 	it("refuses a board show of a receipt that quotes part of a fragment, first, and shows it privately", async () => {
