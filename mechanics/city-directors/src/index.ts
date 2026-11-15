@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Directors: the gamemaker, the Confessor, the judge and the guard of the City and Whispers (decision A58). M5-34
- * brings the gamemaker's head, its input from the facts (the old report of the city) and its system text; M5-36 the
- * Confessor with the mechanic `interpretations`, which writes its labels and remembers its conversations; M5-37 the
- * judge of `blame` and the guard of the review handler of `puzzles`, two answerers of the stage `review`.
+ * brings the gamemaker's head, its input from the facts (the old report of the city) and its system text; M5-35 its
+ * tracks, notes, budget line and the events since its last look; M5-36 the Confessor with the mechanic
+ * `interpretations`, which writes its labels and remembers its conversations; M5-37 the judge of `blame` and the
+ * guard of the review handler of `puzzles`, two answerers of the stage `review`.
  *
  * @packageDocumentation
  */
@@ -14,6 +15,10 @@ export { confessor, confessorOptions, ConfessorAnswerSchema, ConfessorOptionsSch
 export { HistoryFact, interpretationsHead, LABELS, ResidentsFact } from "./confessor/interpretations.ts";
 export { conversationKey, STATEMENT_EVENTS, statementOf, StatementSchema, type Statement, type StatementEvent } from "./confessor/statements.ts";
 export { defineGamemaker, gamemaker, GAMEMAKER_FACTS, type GamemakerFact, type GamemakerSight } from "./gamemaker/director.ts";
+export { labelLines } from "./gamemaker/labels.ts";
+export { GAMEMAKER_LOOK_FACTS, lookParts } from "./gamemaker/look.ts";
+export { firingLines, GAMEMAKER_EVENTS, type GamemakerEvent } from "./gamemaker/recent.ts";
+export { REDACTED, SecretGuard } from "./gamemaker/secrets.ts";
 export { budgetLine, gamemakerOptions, GamemakerOptionsSchema, notesUsed, type GamemakerOptions } from "./gamemaker/options.ts";
 export { FigureSchema, type Figure } from "./gamemaker/report/characters.ts";
 export { gamemakerSituation, type GamemakerNote, type LookParts } from "./gamemaker/report/situation.ts";

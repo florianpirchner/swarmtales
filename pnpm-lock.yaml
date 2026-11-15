@@ -647,6 +647,9 @@ importers:
       '@swarmtales/mechanic-puzzles':
         specifier: workspace:*
         version: link:../puzzles
+      '@swarmtales/mechanic-standoff':
+        specifier: workspace:*
+        version: link:../standoff
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit

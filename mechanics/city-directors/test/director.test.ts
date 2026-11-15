@@ -2,15 +2,16 @@
 /**
  * The gamemaker in a real kernel (`12-m5-spec.md` 4.4): a Director that acts by tool use, woken after a round by the
  * run frame's `round_end` (every round, or every few), reading the facts its head lists. Two stand-in mechanics play
- * the run frame (`arena`) and the progression's fact; a test driver takes the firings as the engine's does and keeps
- * each look's input.
+ * the run frame (`arena`) and the progression's facts (the `minute` of the section is the tick minus one, J147), with the
+ * real `channels` for the notes; a test driver takes the firings as the engine's does and keeps each look's input.
  */
 import type { ActorDriver, Kernel } from "@swarmtales/contracts";
 import { defineGame, defineHead, defineMechanic, parseTake, RESIDENT_KIND, type DirectorDefinition, type Firing } from "@swarmtales/sdk";
 import { idleDriver, play } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { defineGamemaker, gamemaker, gamemakerOptions, GAMEMAKER_FACTS } from "../src/index.ts";
+import { channels } from "@swarmtales/mechanic-channels";
+import { defineGamemaker, gamemaker, gamemakerOptions, GAMEMAKER_EVENTS, GAMEMAKER_FACTS, GAMEMAKER_LOOK_FACTS } from "../src/index.ts";
 import { lookup, oldSetup } from "./support.ts";
 
 const Round = Type.Object({ round: Type.Integer({ description: "The tick plus one" }) }, { description: "A round" });
@@ -25,7 +26,7 @@ const frame = defineMechanic(defineHead({ id: "arena", package: "@test/frame", s
 });
 
 const section = (tick: number) => ({
-	minute: tick,
+	minute: Math.max(0, tick - 1),
 	rules: { penalty: [2], maxAttemptsPerWindow: 2, attemptWindowMinutes: 5, rewards: [{ level: 1, reward: 10 }], survivors: 1, residents: 2 },
 	ranking: ["A01", "A02"].map((agent, index) => ({ agent, points: 10, rank: index + 1, level: 1, standing: { kind: "alive" }, finished: false, waiting: null, nextPenalty: 2, open: 10 })),
 	alive: ["A01", "A02"],
@@ -33,7 +34,10 @@ const section = (tick: number) => ({
 });
 
 const progression = defineMechanic(defineHead({ id: "progression", package: "@test/progression", summary: "Reports." }), {
-	facts: { section: { output: Type.Unknown({ description: "The report's data" }), compute: (view) => section(view.tick) } },
+	facts: {
+		section: { output: Type.Unknown({ description: "The report's data" }), compute: (view) => section(view.tick) },
+		tracks: { output: Type.Unknown({ description: "The tracks" }), compute: () => ["A01", "A02"].map((agent) => ({ agent, levelSince: 0, wrongOnLevel: 0 })) },
+	},
 });
 
 const setup = oldSetup("oracles/whispers/setup/whispers.story.json");
@@ -51,7 +55,7 @@ function lookingDriver(director: DirectorDefinition, kernel: Kernel, looks: { ti
 }
 
 async function run(director: DirectorDefinition, ticks: number) {
-	const game = defineGame({ id: "look", seed: 3, residents: 2, mechanics: [progression(), frame()], directors: [{ use: director, options }], scheduler: { id: "turns", options: { afterBlocks: ["director"] } }, end: { ticks } });
+	const game = defineGame({ id: "look", seed: 3, residents: 2, mechanics: [channels(), progression(), frame()], directors: [{ use: director, options }], scheduler: { id: "turns", options: { afterBlocks: ["director"] } }, end: { ticks } });
 	const looks: { tick: number; firings: readonly Firing[]; system: string; input: string }[] = [];
 	await play(game, { drivers: (kernel) => ({ [RESIDENT_KIND]: idleDriver, "director:gamemaker": lookingDriver(director, kernel, looks) }) });
 	return looks;
@@ -60,21 +64,21 @@ async function run(director: DirectorDefinition, ticks: number) {
 describe("the gamemaker Director", () => {
 	it("acts by tool use, reads the facts of the old report and nothing else", () => {
 		expect(gamemaker.acts).toBe("tools");
-		expect(gamemaker.facts).toEqual(GAMEMAKER_FACTS);
-		expect(gamemaker.on.map((trigger) => ("event" in trigger ? trigger.event : trigger.every))).toEqual(["arena.round_end"]);
+		expect(gamemaker.facts).toEqual([...GAMEMAKER_LOOK_FACTS, ...GAMEMAKER_FACTS.slice(1)]);
+		expect(gamemaker.on.map((trigger) => ("event" in trigger ? [trigger.event, trigger.quiet ?? false] : trigger.every))).toEqual([["arena.round_end", false], ...GAMEMAKER_EVENTS.map((event) => [event, true])]);
 	});
 
 	it("looks at the start of the tick after each round, never after the last one, with the round in the header", async () => {
-		const looks = await run(defineGamemaker({ facts: ["progression.section"] }), 4);
+		const looks = await run(defineGamemaker({ facts: [], events: [] }), 4);
 		expect(looks.map((look) => [look.tick, look.firings.map((firing) => firing.payload)])).toEqual([
 			[1, [{ round: 1 }]],
 			[2, [{ round: 2 }]],
 			[3, [{ round: 3 }]],
 		]);
 		expect(looks[0]?.system).toBe(options.system);
-		expect(looks[1]?.input.split("\n")[0]).toBe("Minute 2 (after round 2). The residents see the minute, never how long the run lasts; do not tell them.");
-		// Until issue 35 keeps them: fresh tracks, nothing since the last look, no notes, the whole budget.
-		expect(looks[1]?.input).toContain("- A01: level 1 since minute 0 (2 min), 10 points, rank 1, 0 wrong on this level (next wrong code costs 2), 10 points still open, has not acted yet");
+		expect(looks[1]?.input.split("\n")[0]).toBe("Minute 1 (after round 2). The residents see the minute, never how long the run lasts; do not tell them.");
+		// Idle residents: fresh tracks, nothing since the last look, no notes, the whole budget.
+		expect(looks[1]?.input).toContain("- A01: level 1 since minute 0 (1 min), 10 points, rank 1, 0 wrong on this level (next wrong code costs 2), 10 points still open, has not acted yet");
 		expect(looks[1]?.input.split("\n").slice(-7)).toEqual([
 			"Since your last look:",
 			"- nothing happened",
@@ -87,11 +91,12 @@ describe("the gamemaker Director", () => {
 	});
 
 	it("looks after every few rounds with the game's every", async () => {
-		const looks = await run(defineGamemaker({ facts: ["progression.section"], every: 2 }), 6);
+		const looks = await run(defineGamemaker({ facts: [], events: [], every: 2 }), 6);
 		expect(looks.map((look) => look.tick)).toEqual([2, 4]);
 	});
 
-	it("fails the look on a fact no loaded mechanic computes (SWT-R015)", async () => {
-		await expect(run(gamemaker, 2)).rejects.toThrow(/SWT-R015|motives\.lines/);
+	it("fails the look on a fact no loaded mechanic computes (SWT-R015), and the game on an event none declares", async () => {
+		await expect(run(defineGamemaker({ events: [] }), 2)).rejects.toThrow(/SWT-R015|motives\.lines/);
+		await expect(run(gamemaker, 2)).rejects.toThrow(/SWT-D001.*progression\.submission/);
 	});
 });

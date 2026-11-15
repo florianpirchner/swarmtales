@@ -4,6 +4,7 @@
 
 ```ts
 
+import { DirectorContext } from '@swarmtales/sdk';
 import { DirectorDefinition } from '@swarmtales/sdk';
 import { Firing } from '@swarmtales/sdk';
 import { JudgeQuestion } from '@swarmtales/mechanic-receipts/contract';
@@ -105,10 +106,19 @@ export const FigureSchema: Type.TObject<{
 export function fillTemplate(template: string, values: Readonly<Record<string, string | number>>): string;
 
 // @public
+export function firingLines(firings: readonly Firing[], guard: SecretGuard): readonly string[];
+
+// @public
 export const gamemaker: DirectorDefinition;
 
 // @public
-export const GAMEMAKER_FACTS: readonly ["progression.section", "motives.lines", "motives.coreMotives", "goals.texts", "tribunal.section", "whispers.section", "standoff-tribunal.section", "seal.section", "puzzles.needs", "standoff.section"];
+export const GAMEMAKER_EVENTS: readonly ["channels.dm_sent", "channels.board_post", "channels.group_post", "progression.submission", "progression.level_up", "ledger.transfer", "channels.group_created", "channels.group_membership", "channels.treasury_deposit", "channels.treasury_withdrawal", "receipts.blame", "interpretations.interpretation", "channels.gamemaker_defied"];
+
+// @public
+export const GAMEMAKER_FACTS: readonly ["progression.section", "motives.lines", "motives.coreMotives", "goals.texts", "tribunal.section", "whispers.section", "standoff-tribunal.section", "seal.section", "puzzles.needs", "standoff.section", "puzzles.secrets"];
+
+// @public
+export const GAMEMAKER_LOOK_FACTS: readonly ["progression.section", "progression.tracks", "roster.residents", "directors.active", "channels.notes"];
 
 // @public
 export const GAMEMAKER_PROMPT_OWNER = "city-directors";
@@ -118,6 +128,9 @@ export interface GamemakerActRole {
     readonly fromLevel: number;
     readonly role: GamemakerRole;
 }
+
+// @public
+export type GamemakerEvent = (typeof GAMEMAKER_EVENTS)[number];
 
 // @public
 export type GamemakerFact = (typeof GAMEMAKER_FACTS)[number];
@@ -190,6 +203,7 @@ export interface GamemakerRules {
 
 // @public
 export interface GamemakerSight {
+    readonly events?: readonly GamemakerEvent[];
     readonly every?: number;
     readonly facts?: readonly GamemakerFact[];
 }
@@ -446,6 +460,9 @@ export function judgePrompt(question: Static<typeof JudgeQuestion>, options: Jud
 export type JudgeTemper = (typeof JUDGE_TEMPERS)[number];
 
 // @public
+export function labelLines(firings: readonly Firing[]): readonly string[];
+
+// @public
 export const LABELS: readonly ["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"];
 
 // @public
@@ -461,6 +478,9 @@ export interface LookParts {
 }
 
 // @public
+export function lookParts(ctx: DirectorContext<GamemakerOptions>): LookParts;
+
+// @public
 export const MAX_NOTE_LENGTH = 400;
 
 // @public
@@ -468,6 +488,9 @@ export function notesUsed(notes: readonly GamemakerNote[], to: string, tick: num
 
 // @public
 export type PenaltyLadder = number | readonly number[];
+
+// @public
+export const REDACTED = "[code]";
 
 // @public
 export const ResidentsFact: Type.TArray<Type.TObject<{
@@ -480,6 +503,12 @@ export interface ResidentTrack {
     readonly lastActive?: number;
     readonly levelSince: number;
     readonly wrongOnLevel: number;
+}
+
+// @public
+export class SecretGuard {
+    constructor(passwords: readonly string[], numbers?: readonly string[]);
+    redact(text: string): string;
 }
 
 // @public

@@ -41,6 +41,9 @@
 		},
 		{
 			"path": "../../packages/testkit"
+		},
+		{
+			"path": "../standoff"
 		}
 	]
 }
