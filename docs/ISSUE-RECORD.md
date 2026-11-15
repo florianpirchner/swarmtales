@@ -306,7 +306,7 @@ row of M4: a builder's branch is removed after the merge, so its first commit is
 | 228 | M4-71 | The full check fits its budget again (A46) | M4 | `41e6371` | 13:26 | 0.23 | - | - | 2.41 | +408 -242 | 264 | 227 | 15 | one builder session; the session reported twice (it waited on its own background work), the last report is taken; added by decision A46, beside the plan; `pnpm check` 549.3 s of 600 s |
 | 229 | M4-63 part 1 | the errata of the M4 specification, the issue record of M4 | M4 | `d7f4eb0` | 13:37 | 0.21 | - | - | 0.17 | +209 -27 | 0 | 0 | 236 | one builder session ("M4-63 part 1 errata, record", 213,358 tokens); the first part of the gate, whose second part is row 231 |
 | 230 | M4-59 | The three series of D11: both signs kept, chess 1.209 requests per half-move | M4 | `cfa3676` | 13:43 | 0.36 | - | - | 6.40 | +439 -12 | 0 | 0 | 451 | one session ("Run M4-59 live series", 356,263 tokens, 6.40 h, most of it waiting on the runs); live: 52 runs, 4.0901 USD (`games/m4-ledger.jsonl`), runtime revision 4 on the code of `5b6336a` (errata H41); the run folders are on `data/runs` at `570801d`; "Other" holds the 104 ledger lines; the write-up is [`M4-GATE.md`](M4-GATE.md) |
-| 231 | M4-63 | Gate of M4: the nine done-whens, the softer check, the errata, the resume note | M4 | `fbfd8d6` | 14:01 | 0.21 | - | - | 0.27 h | +172 -36 | 0 | 0 | 208 | one builder session (214323 tokens, 0.27 h by its notice); the four kinds are not in the notice |
+| 231 | M4-63 | Gate of M4: the nine done-whens, the softer check, the errata, the resume note | M4 | `1651f35` | 14:01 | 0.21 | - | - | 0.27 h | +172 -36 | 0 | 0 | 208 | one builder session (214323 tokens, 0.27 h by its notice); the four kinds are not in the notice |
 
 ## Sessions without a row
 
