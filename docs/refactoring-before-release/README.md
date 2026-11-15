@@ -32,6 +32,10 @@ The specification of a milestone is written and challenged before its issues sta
 - [`11-m4-spec.md`](11-m4-spec.md): milestone M4, the remaining ten tabletop games, the scheduler sample
   `parallel`, the platform items of the reviews, the small live reruns, and the issue list with its waves.
   Challenged on 2026-11-14 (its section 17); its section 14 words the decisions A30 to A41.
+- [`12-m5-spec.md`](12-m5-spec.md): milestone M5, the City cluster: the port of Whispers and the City of Keys,
+  the kernel's `runEnded`, staged calls and stage `review`, the City's Directors, the live resume, the Act I base,
+  the API freeze, and the issue list with its waves. Not yet challenged; its section 14 indexes the decisions A48
+  to A61.
 
 What the builders found against a specification is in its errata file:
 [`08-m1-spec-errata.md`](08-m1-spec-errata.md), [`09-m2-spec-errata.md`](09-m2-spec-errata.md),
