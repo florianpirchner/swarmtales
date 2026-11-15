@@ -80,22 +80,26 @@ export function dealLevel(ctx: PuzzlesCtx, level: number): boolean {
 }
 
 /**
- * Fragments of excluded teammates that `agent` holds now: the first remaining member of the team inherits them.
+ * Fragments of excluded teammates that `agent` holds now: the first remaining member of the team inherits them. The
+ * fragments of a teammate a strike that keeps took (the holdout tribunal) go to every teammate left (old `inheritedFragments`).
  *
  * @param reader - The context or view.
  * @param level - The level.
  * @param agent - The resident.
- * @returns Pairs of the excluded teammate and its fragment.
+ * @returns Pairs of the excluded or struck teammate and its fragment.
  */
 export function inheritedFragments(reader: PuzzlesReader, level: number, agent: string): readonly (readonly [string, string])[] {
 	const state = reader.state.levels.get(level);
 	const team = state?.teams.find((candidate) => candidate.members.includes(agent));
 	if (state === undefined || team === undefined) return [];
 	const excluded = reader.state.exclusions.get(level) ?? new Set<string>();
+	const struck = reader.state.struck;
 	const members = [...team.members].sort((a, b) => a.localeCompare(b));
-	if (members.find((member) => !excluded.has(member)) !== agent) return [];
-	return members.flatMap((member) => {
-		const fragment = state.puzzle.fragments.get(member);
-		return excluded.has(member) && fragment !== undefined ? [[member, fragment] as const] : [];
-	});
+	const heir = members.find((member) => !excluded.has(member));
+	return members
+		.filter((member) => (excluded.has(member) && heir === agent) || (struck.includes(member) && !excluded.has(member) && !struck.includes(agent)))
+		.flatMap((member) => {
+			const fragment = state.puzzle.fragments.get(member);
+			return fragment === undefined ? [] : [[member, fragment] as const];
+		});
 }

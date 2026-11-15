@@ -16,7 +16,7 @@ how a game writes courier lines, the feast and other beats.
 | Id | `script` |
 | Summary | The director's rules: courier lines, factor releases, the feast, standings and petitions. |
 | Requires | none |
-| Uses when loaded | `progression` (from [progression](../progression/README.md)), `level-pieces`, `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)) |
+| Uses when loaded | `progression` (from [progression](../progression/README.md)), `level-pieces` (from [puzzles](../puzzles/README.md)), `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |

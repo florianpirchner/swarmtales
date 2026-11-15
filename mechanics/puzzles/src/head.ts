@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
-/** The head of the `puzzles` mechanic: its options, its state with the snapshot, its events and the services it uses when loaded. */
+/** The head of the `puzzles` mechanic: its options, its state with the snapshot, its events, prompts and the services it provides and uses. */
 import { defineHead, type CtxOf, type StateSetup } from "@swarmtales/sdk";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
-import { loadLevels, PuzzlesEvents, PuzzlesOptions, PuzzlesSlice, saveLevels, type PuzzlesState } from "./model.ts";
+import { LevelPiecesService } from "@swarmtales/mechanic-progression/contract";
+import { PuzzlesService } from "./contract.ts";
+import { loadLevels, PUZZLES_PROMPTS, PuzzlesEvents, PuzzlesOptions, PuzzlesSlice, saveLevels, type PuzzlesState } from "./model.ts";
 import { TeamPlanner } from "./teams.ts";
 
 function freshPlanner(setup: StateSetup<typeof PuzzlesOptions>): TeamPlanner {
@@ -21,9 +23,11 @@ export const puzzlesHead = defineHead({
 	summary: "The deal of each level: teams, fragments, and what is left of them after an exile.",
 	options: PuzzlesOptions,
 	state: PuzzlesSlice,
-	start: (setup): PuzzlesState => ({ levels: new Map(), exclusions: new Map(), planner: freshPlanner(setup) }),
+	start: (setup): PuzzlesState => ({ levels: new Map(), exclusions: new Map(), standings: new Map(), struck: [], planner: freshPlanner(setup) }),
 	snapshot: { save: saveLevels, load: (data, setup): PuzzlesState => loadLevels(data, freshPlanner(setup)) },
 	events: PuzzlesEvents.events,
+	prompts: PUZZLES_PROMPTS,
+	provides: [LevelPiecesService, PuzzlesService],
 	// Both are optional: without `exile` nobody is banished, without `channels` no fragment was sent.
 	uses: [ExileService, ChannelsService],
 });

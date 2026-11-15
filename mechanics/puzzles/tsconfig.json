@@ -28,6 +28,12 @@
 			"path": "../channels"
 		},
 		{
+			"path": "../progression"
+		},
+		{
+			"path": "../ledger"
+		},
+		{
 			"path": "../../packages/testkit"
 		}
 	]

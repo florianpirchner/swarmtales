@@ -157,6 +157,9 @@
 			"path": "mechanics/progression"
 		},
 		{
+			"path": "mechanics/progression/test"
+		},
+		{
 			"path": "mechanics/puzzles"
 		},
 		{

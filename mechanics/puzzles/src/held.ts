@@ -5,6 +5,7 @@
  */
 import { inheritedFragments, lastLevelOf } from "./deal.ts";
 import type { PuzzlesCtx, PuzzlesReader } from "./head.ts";
+import { hasPassed, levelOf } from "./standing.ts";
 
 /** A piece a resident holds that others need. */
 interface HeldPiece {
@@ -28,21 +29,6 @@ export interface City {
 	readonly exiled: readonly string[];
 	/** Every direct message. */
 	readonly dms: readonly { readonly to: string; readonly text: string }[];
-}
-
-/**
- * The level a resident stands on (the option `standings`).
- *
- * @param reader - The context or view.
- * @param resident - The resident.
- * @returns Its level; `startLevel` when the option does not name it.
- */
-function levelOf(reader: PuzzlesReader, resident: string): number {
-	return reader.options.standings?.[resident]?.level ?? reader.options.startLevel;
-}
-
-function hasPassed(reader: PuzzlesReader, resident: string, level: number): boolean {
-	return reader.options.standings?.[resident]?.passed?.includes(level) === true;
 }
 
 /**

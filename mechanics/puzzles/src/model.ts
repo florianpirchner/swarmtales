@@ -35,7 +35,15 @@ const PuzzleSpec = Type.Object(
 	{ description: "A password cut into overlapping fragments, one per team member." },
 );
 
-const LevelSpec = Type.Object({ number: Type.Integer({ minimum: 1, description: "The level's number." }), team: TeamSpec, puzzle: PuzzleSpec }, { description: "One level." });
+const LevelSpec = Type.Object(
+	{
+		number: Type.Integer({ minimum: 1, description: "The level's number." }),
+		team: TeamSpec,
+		puzzle: PuzzleSpec,
+		opensAt: Type.Optional(Type.Integer({ minimum: 0, description: "The minute the level's door opens; open from the start when left out." })),
+	},
+	{ description: "One level." },
+);
 
 const Standing = Type.Object(
 	{ level: Type.Integer({ minimum: 1, description: "The level the resident stands on." }), passed: Type.Optional(Type.Array(Int, { description: "The levels it has passed; none when left out." })) },
@@ -52,9 +60,17 @@ export const PuzzlesOptions = Type.Object({
 	startLevel: Type.Integer({ minimum: 1, default: 1, description: "The level every resident starts on; the first level that is dealt." }),
 	lastLevel: Type.Integer({ minimum: 0, default: 0, description: "The highest level that is dealt; 0 means the game's last level." }),
 	standings: Type.Optional(
-		Type.Record(Type.String(), Standing, { description: "Where each resident stands, by resident id (a stand-in of milestone M3 until a mechanic tracks progress). A resident left out, or the option left out, stands on `startLevel` with nothing passed." }),
+		Type.Record(Type.String(), Standing, { description: "Where each resident stands, by resident id (the stand-in of milestone M3 for a game without `progression`). A resident the events of `progression` moved stands where they say; one left out stands on `startLevel` with nothing passed." }),
 	),
+	noteTools: Type.Array(Type.String({ description: "The bare name of a tool" }), { default: ["notify", "boardNote"], description: "The tools of a Director's note whose `text` is checked for a secret of the deal (`LEAK_BLOCKED`)." }),
 });
+
+/**
+ * The prompts of the mechanic and their variables.
+ *
+ * @public
+ */
+export const PUZZLES_PROMPTS = { "puzzles/notes/leak-blocked": [] } as const;
 
 /**
  * The events of the mechanic, in the old field order.
@@ -109,6 +125,10 @@ export interface PuzzlesState {
 	readonly levels: Map<number, LevelState>;
 	/** Per level, the banished whose places pass on. */
 	readonly exclusions: Map<number, Set<string>>;
+	/** Where the residents stand, as the events of `progression` told; a resident left out has not moved. */
+	readonly standings: Map<string, { level: number; readonly passed: number[] }>;
+	/** The residents a strike that keeps took from the city (`KEEPING_STRIKE`), in order. */
+	readonly struck: string[];
 	/** The planner of the teams; not saved, it is drawn from the seed. */
 	readonly planner: TeamPlanner;
 }
@@ -129,7 +149,12 @@ const LevelSnapshot = Type.Object(
 
 /** The saved state: the dealt levels and the exclusions (the old slice without the city factors). */
 export const PuzzlesSlice = Type.Object(
-	{ levels: Type.Array(LevelSnapshot, { description: "The dealt levels, ascending" }), exclusions: Type.Array(Type.Object({ level: Int, agents: Ids("The banished") }, { description: "One level's exclusions" }), { description: "The exclusions per level" }) },
+	{
+		levels: Type.Array(LevelSnapshot, { description: "The dealt levels, ascending" }),
+		exclusions: Type.Array(Type.Object({ level: Int, agents: Ids("The banished") }, { description: "One level's exclusions" }), { description: "The exclusions per level" }),
+		standings: Type.Array(Type.Object({ agent: Id, level: Int, passed: Type.Array(Int, { description: "The levels passed" }) }, { description: "Where one resident stands" }), { description: "The residents the events moved" }),
+		struck: Ids("The residents of a strike that keeps"),
+	},
 	{ description: "The saved state of the puzzles" },
 );
 
@@ -149,7 +174,8 @@ export function saveLevels(state: PuzzlesState): Static<typeof PuzzlesSlice> {
 			puzzles: puzzle.puzzles.map((item) => ({ password: item.password, fragments: [...item.fragments], overlap: item.overlap })),
 			fragments: [...puzzle.fragments].map(([agent, fragment]) => ({ agent, fragment })),
 		}));
-	return { levels, exclusions: [...state.exclusions].map(([level, set]) => ({ level, agents: [...set] })) };
+	const standings = [...state.standings].map(([agent, entry]) => ({ agent, level: entry.level, passed: [...entry.passed] }));
+	return { levels, exclusions: [...state.exclusions].map(([level, set]) => ({ level, agents: [...set] })), standings, struck: [...state.struck] };
 }
 
 /**
@@ -163,5 +189,6 @@ export function loadLevels(data: Static<typeof PuzzlesSlice>, planner: TeamPlann
 	const levels = new Map<number, LevelState>(
 		data.levels.map((entry) => [entry.level, { teams: entry.teams, puzzle: { kind: "fragments", puzzles: entry.puzzles, fragments: new Map(entry.fragments.map((held) => [held.agent, held.fragment])) } }]),
 	);
-	return { levels, exclusions: new Map(data.exclusions.map((entry) => [entry.level, new Set(entry.agents)])), planner };
+	const standings = new Map(data.standings.map((entry) => [entry.agent, { level: entry.level, passed: [...entry.passed] }]));
+	return { levels, exclusions: new Map(data.exclusions.map((entry) => [entry.level, new Set(entry.agents)])), standings, struck: [...data.struck], planner };
 }

@@ -29,6 +29,12 @@ import { Type } from 'typebox';
 export function assembleAll(fragments: readonly string[], overlap: number): readonly string[];
 
 // @public
+export function carriesRun(text: string, secret: string, minRun: number): boolean;
+
+// @public
+export function codeForms(text: string): readonly string[];
+
+// @public
 export interface FragmentPuzzle {
     readonly fragments: readonly string[];
     readonly overlap: number;
@@ -77,6 +83,7 @@ length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
 overlap: Type.TInteger;
 ownChars: Type.TOptional<Type.TInteger>;
 }>;
+opensAt: Type.TOptional<Type.TInteger>;
 }>>;
 startLevel: Type.TInteger;
 lastLevel: Type.TInteger;
@@ -84,6 +91,7 @@ standings: Type.TOptional<Type.TRecord<"^.*$", Type.TObject<{
 level: Type.TInteger;
 passed: Type.TOptional<Type.TArray<Type.TInteger>>;
 }>>>;
+noteTools: Type.TArray<Type.TString>;
 }>, {
 readonly fragments_dealt: Type.TObject<{
 level: Type.TInteger;
@@ -104,6 +112,11 @@ level: Type.TInteger;
 excluded: Type.TArray<Type.TString>;
 }>;
 }, never>;
+
+// @public
+export const PUZZLES_PROMPTS: {
+    readonly "puzzles/notes/leak-blocked": readonly [];
+};
 
 // @public
 export type PuzzlesCtx = CtxOf<typeof puzzlesHead>;
@@ -153,6 +166,7 @@ length: TTuple<[TInteger, TInteger]>;
 overlap: TInteger;
 ownChars: TOptional<TInteger>;
 }>;
+opensAt: TOptional<TInteger>;
 }>>;
 startLevel: TInteger;
 lastLevel: TInteger;
@@ -160,6 +174,7 @@ standings: TOptional<TRecord<"^.*$", TObject<    {
 level: TInteger;
 passed: TOptional<TArray<TInteger>>;
 }>>>;
+noteTools: TArray<TString>;
 }>, TObject<    {
 levels: TArray<TObject<    {
 level: TInteger;
@@ -182,6 +197,12 @@ exclusions: TArray<TObject<    {
 level: TInteger;
 agents: TArray<TString>;
 }>>;
+standings: TArray<TObject<    {
+agent: TString;
+level: TInteger;
+passed: TArray<TInteger>;
+}>>;
+struck: TArray<TString>;
 }>, PuzzlesState, {
 readonly fragments_dealt: TObject<    {
 level: TInteger;
@@ -201,7 +222,102 @@ readonly level_contracted: TObject<    {
 level: TInteger;
 excluded: TArray<TString>;
 }>;
-}, Readonly<Record<symbol, never>>, [], [], readonly [ServiceDefinition<"exile", {
+}, {
+readonly "puzzles/notes/leak-blocked": readonly [];
+}, [], readonly [ServiceDefinition<"level-pieces", {
+readonly deal: {
+readonly kind: "command";
+readonly summary: "Deals a level once, when its door opens (old `deal`); a dealt level is left as it is.";
+readonly input: TObject<    {
+level: TInteger;
+}>;
+readonly output: TNull;
+};
+readonly solutionOf: {
+readonly kind: "query";
+readonly summary: "The code that passes the level for the resident, or null (old `solutionOf`).";
+readonly input: TObject<    {
+resident: TString;
+level: TInteger;
+}>;
+readonly output: TUnion<[TString, TNull]>;
+};
+readonly kindOf: {
+readonly kind: "query";
+readonly summary: "The puzzle of a level (old `kindOf`).";
+readonly input: TObject<    {
+level: TInteger;
+}>;
+readonly output: TUnion<[TLiteral<"fragments">, TLiteral<"additive">, TLiteral<"none">]>;
+};
+readonly teamOf: {
+readonly kind: "query";
+readonly summary: "The resident's team on a level (old `teamOf`).";
+readonly input: TObject<    {
+resident: TString;
+level: TInteger;
+}>;
+readonly output: TObject<    {
+members: TArray<TString>;
+leader: TString;
+}>;
+};
+readonly taskValues: {
+readonly kind: "query";
+readonly summary: "The task placeholders a puzzle fills for the resident (old `taskValues`).";
+readonly input: TObject<    {
+resident: TString;
+level: TInteger;
+}>;
+readonly output: TObject<    {
+length: TString;
+overlap: TString;
+fragment: TString;
+digits: TString;
+factors: TString;
+}>;
+};
+readonly holders: {
+readonly kind: "query";
+readonly summary: "Who holds what the resident needs on an additive level, besides itself (old `holders`).";
+readonly input: TObject<    {
+resident: TString;
+level: TInteger;
+}>;
+readonly output: TArray<TObject<    {
+holder: TString;
+piece: TUnion<[TLiteral<"counter-factor">, TLiteral<"team certificate">]>;
+value: TString;
+}>>;
+};
+}>, ServiceDefinition<"deal", {
+readonly passwordPiece: {
+readonly kind: "query";
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly input: TObject<    {
+token: TString;
+}>;
+readonly output: TBoolean;
+};
+readonly carriesSecret: {
+readonly kind: "query";
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+readonly input: TObject<    {
+resident: TString;
+text: TString;
+minRun: TInteger;
+}>;
+readonly output: TBoolean;
+};
+readonly isHandover: {
+readonly kind: "query";
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+readonly input: TObject<    {
+text: TString;
+}>;
+readonly output: TBoolean;
+};
+}>], readonly [ServiceDefinition<"exile", {
 readonly banish: {
 readonly kind: "command";
 readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
@@ -438,6 +554,7 @@ export const PuzzlesOptions: Type.TObject<{
             overlap: Type.TInteger;
             ownChars: Type.TOptional<Type.TInteger>;
         }>;
+        opensAt: Type.TOptional<Type.TInteger>;
     }>>;
     startLevel: Type.TInteger;
     lastLevel: Type.TInteger;
@@ -445,6 +562,37 @@ export const PuzzlesOptions: Type.TObject<{
         level: Type.TInteger;
         passed: Type.TOptional<Type.TArray<Type.TInteger>>;
     }>>>;
+    noteTools: Type.TArray<Type.TString>;
+}>;
+
+// @public
+export const PuzzlesService: ServiceDefinition<"deal", {
+readonly passwordPiece: {
+readonly kind: "query";
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly input: Type.TObject<{
+token: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly carriesSecret: {
+readonly kind: "query";
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+text: Type.TString;
+minRun: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isHandover: {
+readonly kind: "query";
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
 }>;
 
 // @public
@@ -452,7 +600,15 @@ export interface PuzzlesState {
     readonly exclusions: Map<number, Set<string>>;
     readonly levels: Map<number, LevelState>;
     readonly planner: TeamPlanner;
+    readonly standings: Map<string, {
+        level: number;
+        readonly passed: number[];
+    }>;
+    readonly struck: string[];
 }
+
+// @public
+export function sharedRuns(text: string, secret: string, minRun: number): readonly string[];
 
 // @public
 export type Streams = (...labels: readonly RandomLabel[]) => RandomSource;
