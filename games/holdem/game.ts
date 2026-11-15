@@ -28,6 +28,8 @@ export interface HoldemOptions {
 	readonly hands?: number;
 	/** Each seat keeps a strategy brain; false is the control arm (same briefings, no brain, no retro). */
 	readonly brain?: boolean;
+	/** Only these seats keep a brain (a mixed table: brain against no brain on the same duplicate cards); the others get the no-brain briefing. Needs `brain` on. */
+	readonly brainSeats?: readonly string[];
 	/** Replay the same deals in every game with the seats moved (default on). */
 	readonly duplicate?: boolean;
 	/** Words a brain may have. */
@@ -36,6 +38,8 @@ export interface HoldemOptions {
 	readonly seed?: number;
 	/** Monte Carlo draws per scored decision (the report's baseline; tests use few); the mechanic's default when absent. */
 	readonly equitySamples?: number;
+	/** Decision-time aid (P430): these seats are told, on their turn, their equity against the opponents' action-narrowed ranges and the pot odds; the others play without it on the same duplicate cards. */
+	readonly aidSeats?: readonly string[];
 	/** Run length in ticks; default is an upper bound from the hands (the match ends the run earlier). */
 	readonly ticks?: number;
 }
@@ -46,17 +50,23 @@ const RETRO_TICKS = 2;
 const OUTPUT_TOKENS = 16000;
 /** The defaults of the old game; `games` and `hands` follow from the seats. */
 const DEFAULTS = { seats: 4, brain: true, duplicate: true, maxWords: 150, seed: 41 } as const satisfies HoldemOptions;
-type Filled = HoldemOptions & Required<Omit<HoldemOptions, "ticks" | "equitySamples">>;
+type Filled = HoldemOptions & Required<Omit<HoldemOptions, "ticks" | "equitySamples" | "brainSeats" | "aidSeats">>;
 
 // An upper bound: a hand rarely needs more than four ticks even with every deadline run out.
 const ticksFor = ({ games, hands }: Filled): number => games * hands * 6 + (games + 1) * RETRO_TICKS + 4;
 
-// The two mechanics with the options of the old game, in its order. The mixed tables and the aid plug in here (M4-40).
-function mechanicsOf({ games, hands, duplicate, equitySamples, brain, maxWords }: Filled, residents: readonly string[]) {
+// The two mechanics with the options of the old game, in its order, with the aid seats and the brain seats of a mixed table.
+function mechanicsOf({ games, hands, duplicate, equitySamples, brain, maxWords, aidSeats }: Filled, residents: readonly string[], brainSeats: readonly string[] | undefined) {
 	return [
-		holdem({ games, hands, duplicate, deadline: DEADLINE, ...(equitySamples === undefined ? {} : { equitySamples }) }),
-		strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(residents.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true }),
+		holdem({ games, hands, duplicate, deadline: DEADLINE, ...(equitySamples === undefined ? {} : { equitySamples }), ...(aidSeats === undefined ? {} : { aid: true, aidSeats: [...aidSeats] }) }),
+		strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(residents.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true, ...(brainSeats === undefined ? {} : { brainTeams: [...brainSeats] }) }),
 	] as const;
+}
+
+// Refuses a list of seats with a seat that is not at the table, as the old game did.
+function checkSeats(name: string, listed: readonly string[] | undefined, residents: readonly string[]): void {
+	const stranger = listed?.find((seat) => !residents.includes(seat));
+	if (stranger !== undefined) throw new SwtError(paramOverride({ name, problem: "mismatch", message: `names the seat ${stranger}, which is not at the table (${residents.join(", ")})` }));
 }
 
 // The options with every default of the old game filled in.
@@ -70,7 +80,8 @@ function filledOf(options: HoldemOptions): Filled {
  *
  * @param options - The variant; every option has the default of the old game.
  * @returns The game in its builder form.
- * @throws SwtError `SWT-G041` when `seats` is not an integer from 2 to 6.
+ * @throws SwtError `SWT-G041` when `seats` is not an integer from 2 to 6, or `brainSeats` or `aidSeats` names a seat that
+ * is not at the table.
  * @example
  * ```ts
  * const played = await play(holdemGame({ seats: 2, brain: false }), { seed: 7 });
@@ -83,12 +94,16 @@ export function holdemGame(options: HoldemOptions = {}) {
 	const { seats, brain } = filled;
 	if (!Number.isInteger(seats) || seats < 2 || seats > 6) throw new SwtError(paramOverride({ name: "seats", problem: "mismatch", message: `must be an integer from 2 to 6, got ${String(seats)}` }));
 	const residents = seatsOf(seats);
+	// The old game ignored the brain seats of a table without a brain (and checked them only with the brain on).
+	const brainSeats = brain ? filled.brainSeats : undefined;
+	checkSeats("brainSeats", brainSeats, residents);
+	checkSeats("aidSeats", filled.aidSeats, residents);
 	return defineGame({
 		id: "holdem",
 		title: seats === 2 ? "Hold'em heads-up" : "Hold'em",
 		seed: filled.seed,
 		residents,
-		mechanics: mechanicsOf(filled, residents),
+		mechanics: mechanicsOf(filled, residents, brainSeats),
 		grants: { resident: ["viewTable", "act", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: ["act", ...(brain ? (["writeBrain"] as const) : [])],
 		// Six passes a tick: one seat acts per pass, so a tick carries up to six actions; a seat may look at the table and act in each (14 calls). The reset line comes first, then the lines in the order of the old hook numbers.
@@ -96,7 +111,7 @@ export function holdemGame(options: HoldemOptions = {}) {
 		limits: { maxCallsPerTick: 14 },
 		end: { ticks: filled.ticks ?? ticksFor(filled) },
 		win: { fact: "holdem.scores" },
-		briefing: briefings(brain, seats),
+		briefing: briefings(brain, seats, filled.brainSeats),
 		model: { id: "anthropic/claude-haiku-5-5", maxOutputTokens: OUTPUT_TOKENS },
 	});
 }

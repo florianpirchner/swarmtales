@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * The game's part of the old `test/stories/holdem.test.ts`: a scripted match of the game file with a brain per seat,
- * and the timer for seats that never act. The cards, the betting and the refusals are proven by the mechanic's own
- * tests (`mechanics/holdem/test/`); the mixed tables and the aid follow with M4-40.
+ * the timer for seats that never act, the lock of `act` through the game's lists, the brain seats of a mixed table
+ * and the aid seats. The cards and the betting are proven by the mechanic's own tests (`mechanics/holdem/test/`).
  */
-import { idleDriver, play } from "@swarmtales/testkit";
+import { nameOf, type ActorDriver } from "@swarmtales/contracts";
+import { idleDriver, play, testKernel } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { field, ofType, player, rosterGame } from "./support.ts";
 
@@ -53,5 +54,56 @@ describe("holdem, scripted match", () => {
 		// Everyone folds to the big blind, which wins the small blind: each seat is each blind twice a game, so all end on 0.
 		expect(ofType(run.events, "match_ended").map((event) => field(event, "scores"))).toEqual([{ A01: 0, A02: 0, A03: 0, A04: 0 }]);
 		expect(ofType(run.events, "brain_written")).toEqual([]);
+	});
+
+	it("opens act only for the seat to act and refuses illegal actions", async () => {
+		const test = testKernel(rosterGame({ seats: 2, brain: false }));
+		// Hand 1: the button A01 posts the small blind and acts first.
+		expect(test.openTools("A01")).toContain("act");
+		expect(test.openTools("A02")).not.toContain("act");
+		expect(await test.call("A02", "act", { action: "call" })).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
+		expect(await test.call("A01", "act", { action: "check" })).toMatchObject({ ok: false, code: "ILLEGAL_ACTION" });
+		expect(await test.call("A01", "act", { action: "raise", reason: "a bluff" })).toMatchObject({ ok: true });
+		expect(test.openTools("A02")).toContain("act");
+		expect(await test.call("A02", "act", { action: "fold" })).toMatchObject({ ok: true });
+		const result = ofType(test.kernel.log.all(), "hand_ended")[0];
+		expect(result === undefined ? undefined : field(result, "net")).toEqual({ A01: 2, A02: -2 });
+		// Hand 2: the button moved to A02.
+		expect(test.openTools("A02")).toContain("act");
+		const view = await test.call("A01", "viewTable", {});
+		expect(view.ok && view.reply).toContain("Hand 1 result: everyone else folded on the preflop, A01 (you) won the pot of 6; your points +2.");
+	});
+
+	it("keeps a brain only for the brain seats of a mixed table", async () => {
+		const run = await play(rosterGame({ brainSeats: ["A01", "A03"], games: 2, hands: 2 }), { drivers: { resident: player } });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "holdem.match" });
+		const authors = new Set(ofType(run.events, "brain_written").map((event) => field(event, "author")));
+		expect(authors).toEqual(new Set(["A01", "A03"]));
+		expect(ofType(run.events, "brain_written")).toHaveLength(4);
+	});
+
+	it("keeps the brain tools closed to the seats without a brain (P138)", async () => {
+		const test = testKernel(rosterGame({ brainSeats: ["A01", "A03"] }));
+		expect(test.openTools("A01")).toContain("readBrain");
+		expect(test.openTools("A02")).not.toContain("readBrain");
+		expect(test.openTools("A04")).not.toContain("writeBrain");
+		expect(await test.call("A02", "readBrain", {})).toMatchObject({ ok: false });
+	});
+
+	it("tells only the aid seats their range equity and pot odds at the decision (P430)", async () => {
+		const seen = new Map<string, string[]>();
+		const recorder: ActorDriver = async (turn) => {
+			const lines = seen.get(nameOf(turn.actor)) ?? [];
+			lines.push(...turn.inputs.map((note) => note.text));
+			seen.set(nameOf(turn.actor), lines);
+			await player(turn);
+		};
+		const run = await play(rosterGame({ brain: false, aidSeats: ["A01", "A03"], games: 1, hands: 4 }), { drivers: { resident: recorder } });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "holdem.match" });
+		const aided = (seat: string): number => (seen.get(seat) ?? []).filter((text) => text.includes("Referee's estimate: you win")).length;
+		expect(aided("A01")).toBeGreaterThan(0);
+		expect(aided("A03")).toBeGreaterThan(0);
+		expect(aided("A02") + aided("A04")).toBe(0);
+		expect((seen.get("A01") ?? []).some((text) => /a call needs \d+ % to pay|a call needs nothing/.test(text))).toBe(true);
 	});
 });

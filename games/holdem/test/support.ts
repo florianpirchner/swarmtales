@@ -10,15 +10,18 @@ import { holdemGame, type HoldemOptions } from "../game.ts";
 type Logged = Played["events"][number];
 
 /**
- * The options behind every variant name of the old registry without a mixed table or the aid (those follow with
- * M4-40). The old registry listed fixed entries named by `storyName` of `stories/holdem/story.ts`; the names are not
+ * The options behind every variant name of the old registry, its seven arms (old `stories/index.ts`, lines 102 to
+ * 110). The old registry listed fixed entries named by `storyName` of `stories/holdem/story.ts`; the names are not
  * carried.
  */
 export const VARIANTS: Readonly<Record<string, HoldemOptions>> = {
 	holdem: {},
 	"holdem-nobrain": { brain: false },
+	"holdem-mixed": { brainSeats: ["A01", "A03"] },
+	"holdem-aid-mixed": { brain: false, aidSeats: ["A01", "A03"] },
 	"holdem-hu": { seats: 2 },
 	"holdem-hu-nobrain": { seats: 2, brain: false },
+	"holdem-hu-mixed": { seats: 2, brainSeats: ["A01"] },
 };
 
 /**

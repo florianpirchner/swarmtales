@@ -22,9 +22,9 @@ swt run games/holdem/game.ts --fake
 |---|---|
 | `game.ts` | `holdemGame(options)` and the default export (four seats, four games of eight hands, a brain per seat) |
 | `briefing.ts` | what a seat reads before the run starts, also at a mixed table |
-| `test/oracle.test.ts` | the five oracle files of `oracles/holdem/` without the aid at level 3 (four up to their cut), with the mapping of `endsTurn` below |
-| `test/carried.test.ts` | the sha256 of the briefings of eight tables against the old platform, the tools, the model block, the run length, the old variant names |
-| `test/holdem.test.ts` | the game's part of the carried game test: a match with a brain per seat, the timer for seats that never act |
+| `test/oracle.test.ts` | the six oracle files of `oracles/holdem/` at level 3 (five up to their cut), the aid's file among them, with the mapping of `endsTurn` below |
+| `test/carried.test.ts` | the sha256 of the briefings of eight tables against the old platform, the tools, the model block, the run length, the seven old variant names, the refusals |
+| `test/holdem.test.ts` | the game's part of the carried game test: a match with a brain per seat, the timer for seats that never act, the lock of `act`, a mixed table with its closed brain tools (P138), the aid seats (P430) |
 | `test/fake.test.ts`, `test/standing.test.ts` | the fake run with an accepted call of every tool; replay and resume from every boundary |
 
 ## Variants
@@ -38,15 +38,16 @@ options in `test/support.ts` (`VARIANTS`), and `test/carried.test.ts` pins them 
 | `games` | one per seat | games in the match (the full duplicate cycle) | |
 | `hands` | 8 (12 heads-up) | hands per game | |
 | `brain` | true | false is the control arm: the same briefings without the brain paragraph, no brain, no retro | `-nobrain` |
+| `brainSeats` | every seat | a mixed table: only these seats keep a brain; the others read the briefing without the brain paragraph, get no retro, and `readBrain` and `writeBrain` stay closed to them (P138); ignored without `brain` | `-mixed` |
+| `aidSeats` | none | the decision aid (P430): on their turn these seats are told their equity against the opponents' action-narrowed ranges and the pot odds; the others play without it on the same cards | `-aid-mixed` (with `brain: false`) |
 | `duplicate` | true | false deals fresh cards in every game | |
 | `maxWords` | 150 | the size of a brain | |
 | `equitySamples` | the mechanic's 400 | Monte Carlo draws per scored decision | |
 | `seed` | 41 | the seed of the run | |
 | `ticks` | 206 (154 heads-up) | the length of the run: an upper bound from the hands; the match ends the run earlier | |
 
-A table outside 2 to 6 seats is refused with `SWT-G041`, as the old game refused it. The mixed tables (`-mixed`: a
-brain for some seats only) and the decision aid (`-aid-mixed`) are the params of M4-40; the briefing already takes
-the brain seats.
+A table outside 2 to 6 seats, and a brain seat or an aid seat that is not at the table, is refused with `SWT-G041`,
+as the old game refused it (the old game checked the brain seats only with the brain on, and so does this one).
 
 ## What the oracle files do not show
 
@@ -54,8 +55,9 @@ the brain seats.
   passed the turn on or ended the hand. The flag follows from the reply, which level 2 compares (a reply that says
   "end your turn now"), and `test/oracle.test.ts` writes it back into the file before the comparison; without that
   mapping the first difference of a file with a call is that flag.
-- **The aid and the mixed tables.** `holdem-aid-mixed-s7.json` is played by M4-40; no file has a mixed table of
-  brain seats.
+- **The mixed tables of brain seats.** No file has one (`holdem-mixed`, `holdem-hu-mixed`); the brain seats are
+  proven by the carried briefings and by `test/holdem.test.ts`. The aid at a mixed table has its file,
+  `holdem-aid-mixed-s7.json`.
 
 ## Runs
 

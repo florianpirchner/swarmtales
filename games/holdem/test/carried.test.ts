@@ -9,7 +9,6 @@
 import { createHash } from "node:crypto";
 import { SwtError } from "@swarmtales/contracts";
 import { describe, expect, it } from "vitest";
-import { briefings } from "../briefing.ts";
 import { holdemGame, type HoldemOptions } from "../game.ts";
 import { VARIANTS } from "./support.ts";
 
@@ -24,7 +23,7 @@ const OLD_BRIEFINGS: readonly (readonly [string, HoldemOptions, string])[] = [
 	["6max-nobrain", { seats: 6, brain: false }, "97a52bc2b0dbf3134812b483795fb9530191b1bbd08d00f3a2d43a6ac78edf1a"],
 ];
 
-/** The briefings of the mixed tables of the old registry (the game's params for them follow with M4-40). */
+/** The briefings of the mixed tables of the old registry, by the options `seats` and `brainSeats`. */
 const OLD_MIXED: readonly (readonly [number, readonly string[], string])[] = [
 	[4, ["A01", "A03"], "6b74fd21cc09ad7559e1eaaf35530526a7f093fb01778412bed566310db8a4f3"],
 	[2, ["A01"], "67f89788d61288de4cdd6be8b308e892a2896cac15eea679bda9b14765d79bce"],
@@ -43,7 +42,10 @@ describe("carried byte for byte", () => {
 	});
 
 	it("writes the briefings of the old mixed tables", () => {
-		for (const [seats, brainSeats, hash] of OLD_MIXED) expect(sha256(JSON.stringify(briefings(true, seats, brainSeats)))).toBe(hash);
+		for (const [seats, brainSeats, hash] of OLD_MIXED) expect(sha256(JSON.stringify(holdemGame({ seats, brainSeats }).briefing))).toBe(hash);
+		// The aid does not change a briefing, and a table without a brain ignores its brain seats, as the old game did.
+		expect(holdemGame({ brain: false, aidSeats: ["A01", "A03"] }).briefing).toEqual(holdemGame({ brain: false }).briefing);
+		expect(holdemGame({ brain: false, brainSeats: ["A01"] }).briefing).toEqual(holdemGame({ brain: false }).briefing);
 	});
 
 	it("shows a seat the tools of the old game, in its order, and locks the decision tools", () => {
@@ -58,7 +60,8 @@ describe("carried byte for byte", () => {
 	});
 
 	it("gives every old variant name of an oracle file and of the old registry by the options of its row", () => {
-		for (const [name, options] of Object.entries(VARIANTS)) expect(storyName(options.seats ?? 4, options.brain ?? true, false, false), name).toBe(name);
+		expect(Object.keys(VARIANTS)).toEqual(["holdem", "holdem-nobrain", "holdem-mixed", "holdem-aid-mixed", "holdem-hu", "holdem-hu-nobrain", "holdem-hu-mixed"]);
+		for (const [name, options] of Object.entries(VARIANTS)) expect(storyName(options.seats ?? 4, options.brain ?? true, options.brainSeats !== undefined, options.aidSeats !== undefined), name).toBe(name);
 		expect([storyName(3, true, false, false), storyName(6, false, false, false)]).toEqual(["holdem-3max", "holdem-6max-nobrain"]);
 		for (const options of Object.values(VARIANTS)) expect(holdemGame(options).id).toBe("holdem");
 	});
@@ -73,5 +76,20 @@ describe("carried byte for byte", () => {
 	it("refuses a table the old game refused, with a code of the params", () => {
 		for (const seats of [1, 7, 2.5]) expect(() => holdemGame({ seats })).toThrow(SwtError);
 		expect(() => holdemGame({ seats: 7 })).toThrow(/SWT-G041/);
+		// A brain seat or an aid seat that is not at the table; the old game checked the brain seats only with the brain on.
+		expect(() => holdemGame({ seats: 2, brainSeats: ["A03"] })).toThrow(/SWT-G041.*brainSeats.*A03/);
+		expect(() => holdemGame({ aidSeats: ["A01", "A05"] })).toThrow(/SWT-G041.*aidSeats.*A05/);
+		expect(() => holdemGame({ seats: 2, brain: false, brainSeats: ["A03"] })).not.toThrow();
+	});
+
+	it("hands the aid seats and the brain seats to the two mechanics, in the options of the old game", () => {
+		const options = (game: ReturnType<typeof holdemGame>): unknown[] => game.mechanics.map((mechanic) => mechanic.options);
+		const [aid, aidBrain] = options(holdemGame(VARIANTS["holdem-aid-mixed"]));
+		expect(aid).toMatchObject({ aid: true, aidSeats: ["A01", "A03"] });
+		expect(aidBrain).toMatchObject({ enabled: false });
+		expect(aidBrain).not.toHaveProperty("brainTeams");
+		const [mixed, mixedBrain] = options(holdemGame(VARIANTS["holdem-mixed"]));
+		expect(mixed).not.toHaveProperty("aid");
+		expect(mixedBrain).toMatchObject({ enabled: true, brainTeams: ["A01", "A03"] });
 	});
 });

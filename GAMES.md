@@ -22,7 +22,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 | [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
 | [Chess](#chess) | board games, all information public | 2 (4 with teams) | `chess`, `team-channel`, `strategy-brain` | none; variants are options of `chessGame` | all twelve oracle files match at level 3 |
-| [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none; variants are options of `holdemGame` | the five oracle files without the aid match at level 3 |
+| [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none; variants are options of `holdemGame` | the six oracle files match at level 3 |
 | [Convoy](#convoy) | hidden information and bluff | 6 | `convoy`, `strategy-brain` | none; variants are options of `convoyGame` | four oracle files match at level 3 |
 | [Nine men's morris](#nine-mens-morris) | board games, all information public | 6 (two teams of three), 2, or 1 against the search | `morris`, `consensus`, `team-channel`, `strategy-brain`, `morris-referee` | none; variants are options of `morrisGame` | all five oracle files match at level 3 |
 | [Salt Market](#salt-market) | markets, bids and economics | 4 | `salt-market`, `strategy-brain` | none; variants are options of `saltMarketGame` | four oracle files match at level 3 |
@@ -184,8 +184,9 @@ memory is a short private strategy brain. The mechanic scores every decision aga
 the report only.
 
 - Variants are options of `holdemGame`: the seats (2 to 6, heads-up at 2), the games, the hands, no brain (the
-  control arm), fresh deals. The mixed tables and the decision aid follow with the next hold'em issue.
-- Proof: the five oracle files without the aid match at level 3, four of them up to their cut, with one declared
+  control arm), fresh deals, a mixed table (`brainSeats`: a brain for some seats only) and the decision aid
+  (`aidSeats`: these seats are told their equity and the pot odds on their turn).
+- Proof: the six oracle files match at level 3, five of them up to their cut, with one declared
   mapping (the files lack the flag `endsTurn`, which follows from the reply); the briefings are byte-identical.
 - Links: [folder](games/holdem/), [README](games/holdem/README.md), [oracle files](oracles/holdem/).
 
