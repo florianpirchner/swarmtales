@@ -7,7 +7,7 @@ Format and rules of comparison: [../README.md](../README.md).
 | `ember-tricks-g1-s31.json` | four seats, one game of eight rounds, a private brain | replay of run `ember-tricks-04a-004-quiet-look`, exact | the whole match: deals, bids, trump, 146 cards, tricks, round scores, calls out of turn (`NOT_YOUR_TURN`) |
 | `ember-tricks-calib-g4-s32.json` | four games, the calibration lever | replay of run `ember-tricks-04a-005-reference`, exact | game 1 of 4 (cut) |
 | `ember-tricks-mcbid-g4-s32.json` | four games, the bid-aid lever | same run | game 1 of 4 (cut); every call gets the recorded answer, 4 of 336 turns show inputs worded differently today |
-| `ember-tricks-s13-silent.json` | the registry default: three games | scripted (`silent`): no resident ever calls a tool | bids and cards forfeited by the timers (`forfeit: true`) until the match is called off; 427 KB, because every forfeited turn wakes four seats |
+| `ember-tricks-s13-silent.json` | the registry default: two games | scripted (`silent`): no resident ever calls a tool | bids and cards forfeited by the timers (`forfeit: true`) until the match is called off; 427 KB, because every forfeited turn wakes four seats |
 
 Source of the calls: recorded live runs of Haiku seats (`source.fidelity` per file).
 
@@ -22,3 +22,8 @@ recorded run of `ember-tricks-nobrain-*` that replays exactly: the three no-brai
 `ember-tricks-04a-002-long-matrix` are four-game matches (`ember-tricks-nobrain-g4`, not `-g1`) and today's code
 gives the recorded answer to 59, 50 and 50 of about 1600 calls (the first difference is a `viewTable` answer in
 minute 0). No other run of the arm was recorded. The arm is proven by the carried tests only.
+
+On the new platform (M4-34) all four files match at level 3 (`games/ember-tricks/test/oracle.test.ts`). No mapping of
+`call.endsTurn` is needed: no tool of trick play set the flag on the old platform, and none sets it here. The silent
+file's setup holds two games (`games: 2`, 114 minutes), the default of the old entry; this table said three until
+M4-34.

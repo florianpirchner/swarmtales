@@ -33,4 +33,5 @@ export const GAMES: readonly GameEntry[] = [
 	{ name: "morris-teams", file: "games/morris-teams/game.ts", seeds: [13, 31], fakeSeeds: [7] },
 	{ name: "salt-market", file: "games/salt-market/game.ts", seeds: [41, 45], fakeSeeds: [7] },
 	{ name: "blind-bid", file: "games/blind-bid/game.ts", seeds: [7, 11], fakeSeeds: [7] },
+	{ name: "ember-tricks", file: "games/ember-tricks/game.ts", seeds: [23, 31], fakeSeeds: [7] },
 ];
