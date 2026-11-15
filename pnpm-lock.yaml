@@ -202,9 +202,6 @@ importers:
       '@swarmtales/engine':
         specifier: workspace:*
         version: link:../../packages/engine
-      '@swarmtales/kernel':
-        specifier: workspace:*
-        version: link:../../packages/kernel
       '@swarmtales/models':
         specifier: workspace:*
         version: link:../../packages/models

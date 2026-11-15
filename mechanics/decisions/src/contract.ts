@@ -9,7 +9,7 @@ import { Type } from "typebox";
 import { defineEvents, defineService, defineTool } from "@swarmtales/sdk";
 
 const decision = Type.String({ description: "The id of the decision: `D1`, `D2`, in the order they were opened." });
-const kind = Type.String({ description: "What is decided, as the owner names it: `court.verdict`." });
+const kind = Type.String({ description: "What is decided, as the owning mechanic names it: `<mechanic>.<decision>`." });
 const owner = Type.String({ description: "The id of the mechanic that proposed the decision and commits it." });
 const proposal = Type.Unknown({ description: "The proposal: plain JSON data, shaped as the owner says." });
 const schema = Type.Optional(Type.Unknown({ description: "A JSON schema every amended proposal must fit." }));

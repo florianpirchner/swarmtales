@@ -4,127 +4,20 @@
 
 ```ts
 
-import { EventsDefinition } from '@swarmtales/contracts';
-import { MechanicDefinition } from '@swarmtales/sdk';
-import { ServiceDefinition } from '@swarmtales/contracts';
-import { TArray } from 'typebox';
-import { TBoolean } from 'typebox';
-import { TInteger } from 'typebox';
-import { TObject } from 'typebox';
-import { ToolRef } from '@swarmtales/contracts';
-import { TOptional } from 'typebox';
-import { TString } from 'typebox';
-import { TUnknown } from 'typebox';
-import { Type } from 'typebox';
-
 // @public
-export const AmendDecision: ToolRef<"amendDecision", Type.TObject<{
-decision: Type.TString;
-proposal: Type.TUnknown;
-reason: Type.TString;
-}>>;
+export const AmendDecision: any;
 
 // @public
 export const DECISION_REFUSALS: readonly ["DECISION_CLOSED", "DECISION_NOT_HELD", "DECISION_HUMAN", "PROPOSAL_INVALID"];
 
 // @public
-export const decisions: MechanicDefinition<"decisions", TObject<    {
-holders: TArray<TString>;
-}>, {
-readonly decision_proposed: TObject<    {
-decision: TString;
-kind: TString;
-owner: TString;
-proposal: TUnknown;
-schema: TOptional<TUnknown>;
-deadline: TInteger;
-holders: TArray<TString>;
-}>;
-readonly decision_amended: TObject<    {
-decision: TString;
-n: TInteger;
-by: TString;
-reason: TString;
-proposal: TUnknown;
-}>;
-readonly decision_settled: TObject<    {
-decision: TString;
-kind: TString;
-owner: TString;
-changed: TBoolean;
-by: TOptional<TString>;
-reason: TOptional<TString>;
-proposal: TUnknown;
-amendments: TArray<TObject<    {
-by: TString;
-n: TInteger;
-}>>;
-}>;
-}, "amendDecision">;
+export const decisions: any;
 
 // @public
-export const DecisionsEvents: EventsDefinition<"decisions", {
-readonly decision_proposed: Type.TObject<{
-decision: Type.TString;
-kind: Type.TString;
-owner: Type.TString;
-proposal: Type.TUnknown;
-schema: Type.TOptional<Type.TUnknown>;
-deadline: Type.TInteger;
-holders: Type.TArray<Type.TString>;
-}>;
-readonly decision_amended: Type.TObject<{
-decision: Type.TString;
-n: Type.TInteger;
-by: Type.TString;
-reason: Type.TString;
-proposal: Type.TUnknown;
-}>;
-readonly decision_settled: Type.TObject<{
-decision: Type.TString;
-kind: Type.TString;
-owner: Type.TString;
-changed: Type.TBoolean;
-by: Type.TOptional<Type.TString>;
-reason: Type.TOptional<Type.TString>;
-proposal: Type.TUnknown;
-amendments: Type.TArray<Type.TObject<{
-by: Type.TString;
-n: Type.TInteger;
-}>>;
-}>;
-}>;
+export const DecisionsEvents: any;
 
 // @public
-export const DecisionsService: ServiceDefinition<"decisions", {
-readonly propose: {
-readonly kind: "command";
-readonly summary: "Opens a decision owned by the caller. With a window of 0, or when no holder can act, it writes nothing and answers `committed: true`: the caller commits at once. Otherwise it writes `decision_proposed` and answers `committed: false` with the id; the caller commits in a listener to `decision_settled`.";
-readonly input: Type.TObject<{
-kind: Type.TString;
-proposal: Type.TUnknown;
-window: Type.TInteger;
-schema: Type.TOptional<Type.TUnknown>;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-committed: Type.TLiteral<true>;
-}>, Type.TObject<{
-committed: Type.TLiteral<false>;
-decision: Type.TString;
-}>]>;
-};
-readonly open: {
-readonly kind: "query";
-readonly summary: "Lists the open decisions, in the order they were opened.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-decision: Type.TString;
-kind: Type.TString;
-owner: Type.TString;
-deadline: Type.TInteger;
-}>>;
-};
-}>;
+export const DecisionsService: any;
 
 // (No @packageDocumentation comment for this package)
 

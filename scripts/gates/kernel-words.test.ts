@@ -25,6 +25,9 @@ const GAME_WORDS = new Set([
 	// what games are made of
 	"point", "score", "vote", "ballot", "board", "move", "match", "card", "deal", "puzzle", "exile", "tribunal",
 	"whisper", "marks", "ledger", "city", "story", "decision",
+	// brought by the mechanics and games of M3 and M4 (11-m4-spec.md, section 4.2)
+	"banish", "pause", "holder", "amend", "verdict", "court", "channel", "fragment", "transfer", "bid", "trick", "pawn",
+	"lantern", "convoy", "market",
 	// what belongs to drivers and reports
 	"briefing", "prompt", "model", "cost", "usd",
 ]);
@@ -52,6 +55,14 @@ describe("kernel word list", () => {
 			findWords(namesAndStrings(withoutAllowed(readText(file))), GAME_WORDS).map((hit) => `${file}:${hit.line} game word "${hit.word}"`),
 		);
 		expect(offences).toEqual([]);
+	});
+
+	it("knows the words that M3 and M4 brought, in every form a kernel file could hold them", () => {
+		const text = ["const banishes = pauseRun();", 'emit("holders_amend");', "type VerdictOf = CourtChannel;", "const fragments = transferTo(bids);", "// tricks, pawns, lanterns", "const convoys = marketDeal;"].join("\n");
+		expect(findWords(text, GAME_WORDS).map((hit) => `${String(hit.line)}:${hit.word}`)).toEqual([
+			"1:banish", "1:pause", "2:holder", "2:amend", "3:verdict", "3:court", "3:channel", "4:fragment", "4:transfer", "4:bid",
+			"5:trick", "5:pawn", "5:lantern", "6:convoy", "6:market", "6:deal",
+		]);
 	});
 
 	it("splits identifiers into words", () => {
