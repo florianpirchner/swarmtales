@@ -1,0 +1,4 @@
+{"at":1,"tool":"pause","params":{"reason":"the crew has proposed a captain; look before it settles"}}
+{"at":1,"command":"snapshot"}
+{"at":1,"tool":"resume","params":{}}
+{"at":1,"tool":"amendDecision","params":{"decision":"D1","proposal":{"captain":"A01"},"reason":"the person at the run prefers A01"}}

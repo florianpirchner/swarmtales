@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Sample: sample 6, a Director of your own, with its tutorial. The issues of milestone M4 fill this package.
+ * Sample 6: a Director of your own. The mechanic `crew` proposes a captain as a decision with a window, the Director
+ * `steward` reads the proposal and may amend it, and the game `../game.ts` loads both with the Human Hand. The
+ * tutorial is `docs/tutorials/director.md`.
  *
  * @packageDocumentation
  */
-export {};
+export { CAPTAIN, crew } from "./crew.ts";
+export { steward, STEWARD_FALLBACK } from "./steward.ts";

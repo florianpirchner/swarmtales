@@ -1,0 +1,2 @@
+fake models: no result
+own-director seed 5: ended after 2 ticks (limit crew.named: A01 is captain)
