@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import type { ServiceDefinition } from "@swarmtales/contracts";
 import { describe, expect, it } from "vitest";
-import { AllowanceService, BrainSourceService, ConsensusSourceService, FiguresService, IdentityService, ReceiptSourceService } from "../src/index.ts";
+import { AllowanceService, BrainSourceService, CapExemptionService, ConsensusSourceService, FiguresService, IdentityService, ReceiptSourceService } from "../src/index.ts";
 
 const sha256 = (value: unknown): string => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
@@ -54,5 +54,14 @@ describe("the contract figures (decision A72)", () => {
 			expect(method.input, `figures.${name} input`).toHaveProperty("description", expect.any(String));
 			expect(method.output, `figures.${name} output`).toHaveProperty("description", expect.any(String));
 		}
+	});
+});
+
+describe("the contract cap-exemption (decision A75)", () => {
+	it("names the one query that the cap of channels asks, with described schemas", () => {
+		expect(CapExemptionService.name).toBe("cap-exemption");
+		expect(Object.entries(CapExemptionService.methods).map(([name, method]) => [name, method.kind])).toEqual([["exempt", "query"]]);
+		expect(CapExemptionService.methods.exempt.input).toHaveProperty("description", expect.any(String));
+		expect(CapExemptionService.methods.exempt.output).toHaveProperty("description", expect.any(String));
 	});
 });

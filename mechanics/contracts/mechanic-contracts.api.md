@@ -54,6 +54,19 @@ readonly output: Type.TNull;
 }>;
 
 // @public
+export const CapExemptionService: ServiceDefinition<"cap-exemption", {
+readonly exempt: {
+readonly kind: "query";
+readonly summary: "True when the message from `from` to `to` is exempt from the cap (old `exemptFromCap`: the accused of a holdout tribunal to those who lack its fragment).";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>;
+
+// @public
 export const ConsensusSourceService: ServiceDefinition<"consensus-source", {
 readonly team: {
 readonly kind: "query";

@@ -1139,7 +1139,17 @@ shown: Type.TOptional<Type.TString>;
 }>;
 readonly output: Type.TNull;
 };
-}>], [], readonly [ServiceDefinition<"identity", {
+}>], readonly [ServiceDefinition<"cap-exemption", {
+readonly exempt: {
+readonly kind: "query";
+readonly summary: "True when the message from `from` to `to` is exempt from the cap (old `exemptFromCap`: the accused of a holdout tribunal to those who lack its fragment).";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>], readonly [ServiceDefinition<"identity", {
 readonly nameOf: {
 readonly kind: "query";
 readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";

@@ -6,7 +6,8 @@
  * those the old engine wrote for them, recorded once on `legacy` (`test/fixtures/old-engine/` there, the file of the
  * differential test without the old snapshots, here as `fixtures/holdout-differential.json`). `puzzles`,
  * `progression` and `exile` are stand-ins over the city, as on `legacy`; the posts, notices and notes go through the
- * real `channels` and its note desk. The exemptions of the DM cap are not compared: the cap's exemption is issue M5-68.
+ * real `channels` and its note desk. After each tick's steps a probe asks the service `cap-exemption` for every pair
+ * of residents, as the old probe asked `exemptFromCap`, and the exemptions must be the old ones too (M5-68).
  */
 import { readFileSync } from "node:fs";
 import { Type } from "typebox";
@@ -14,9 +15,10 @@ import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import type { Activation, ActorId, Envelope, ToolOutcome } from "@swarmtales/contracts";
 import { channels } from "@swarmtales/mechanic-channels";
+import { CapExemptionService } from "@swarmtales/mechanic-contracts";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
-import { defineGame, defineHead, defineMechanic, type MechanicUse } from "@swarmtales/sdk";
+import { defineGame, defineHead, defineMechanic, reply, type MechanicUse } from "@swarmtales/sdk";
 import { testKernel } from "@swarmtales/testkit";
 import { HoldoutPiecesService } from "../src/contract.ts";
 import { standoffTribunal, StandoffTribunalOptions } from "../src/index.ts";
@@ -62,12 +64,29 @@ function standIns(model: FragmentModel, strikes: string[]): readonly MechanicUse
 	return [levels(), pieces(), exile()];
 }
 
+// The old probe: every pair `tick from>to` whose message the cap would let pass now (old `exemptions`).
+function probe(residents: readonly string[], exempt: string[]): MechanicUse {
+	const head = defineHead({ id: "probe", package: "@test/probe", summary: "Test: asks the exemptions.", uses: [CapExemptionService], tools: { probeExempt: { description: "Ask.", params: Type.Object({}), for: ["gamemaker"] } } });
+	const mechanic = defineMechanic(head, {
+		tools: {
+			probeExempt: {
+				run: (_params, ctx) => {
+					const pairs = residents.flatMap((from) => residents.filter((to) => to !== from && ctx.tryCall(CapExemptionService, "exempt", { from, to }) === true).map((to) => `${String(ctx.tick)} ${from}>${to}`));
+					exempt.push(...pairs);
+					return reply("probed");
+				},
+			},
+		},
+	});
+	return mechanic();
+}
+
 const answer = (outcome: ToolOutcome): string => (outcome.ok ? outcome.reply : `${outcome.code}: ${outcome.detail ?? ""}`.trim());
 const Payload = Type.Record(Type.String(), Type.Unknown(), { description: "A payload" });
 const fields = (event: Envelope) => Value.Parse(Payload, event.payload);
 
 // What the run wrote, in the shapes of the old record (old `recordOf` and the old stand-ins' recorder).
-function recordOf(log: readonly Envelope[], strikes: readonly string[], replies: readonly string[], status: readonly string[]) {
+function recordOf(log: readonly Envelope[], strikes: readonly string[], replies: readonly string[], status: readonly string[], exempt: readonly string[]) {
 	const of = (source: string, type: string) => log.filter((event) => event.source.endsWith(`/${source}`) && event.type === type).map(fields);
 	return {
 		events: log.filter((event) => event.source.endsWith("/standoff-tribunal")).map((event) => JSON.stringify({ type: event.type, ...fields(event), minute: event.tick })),
@@ -77,6 +96,7 @@ function recordOf(log: readonly Envelope[], strikes: readonly string[], replies:
 		strikes: [...strikes],
 		replies: [...replies],
 		status: [...status],
+		exempt: [...exempt],
 	};
 }
 
@@ -84,12 +104,13 @@ function recordOf(log: readonly Envelope[], strikes: readonly string[], replies:
 async function play(scenario: Scenario) {
 	const model = scenario.model();
 	const strikes: string[] = [];
+	const exempt: string[] = [];
 	const game = defineGame({
 		id: "holdout-differential",
 		seed: 7,
 		residents: [...scenario.residents],
-		mechanics: [...standIns(model, strikes), channels(), standoffTribunal(OPTIONS)],
-		grants: { script: Object.values(DIRECTOR) },
+		mechanics: [...standIns(model, strikes), channels(), standoffTribunal(OPTIONS), probe(scenario.residents, exempt)],
+		grants: { script: [...Object.values(DIRECTOR), "probeExempt"] },
 		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster" } },
 		end: { ticks: scenario.minutes },
 	});
@@ -118,16 +139,15 @@ async function play(scenario: Scenario) {
 		for (const action of scenario.steps[activation.tick] ?? []) await step(action);
 		for (const agent of scenario.residents) status.push(`${String(activation.tick)} ${agent} ${parts.get(agent) ?? "missing"}`);
 		parts = new Map();
+		await kernel.submit({ actor: "script", as: "probeExempt", params: {} });
 	};
 	await kernel.run({ resident: driver }, { ticks: scenario.minutes });
-	return recordOf(kernel.log.all(), strikes, replies, status);
+	return recordOf(kernel.log.all(), strikes, replies, status, exempt);
 }
 
 describe("standoff-tribunal against the old HoldoutTribunal (stand-in puzzles, progression, exile)", () => {
-	it.each(SCENARIOS)("%s: the same events, posts, notices, notes, strikes, replies and status", async (name, scenario) => {
-		const old = OLD[name] ?? Value.Parse(Record_, {});
-		// The old exemptions are carried with the file and taken as they are (M5-68).
-		expect({ ...(await play(scenario())), exempt: old.exempt }).toEqual(old);
+	it.each(SCENARIOS)("%s: the same events, posts, notices, notes, strikes, replies, status and exemptions", async (name, scenario) => {
+		expect(await play(scenario())).toEqual(OLD[name] ?? Value.Parse(Record_, {}));
 	});
 
 	it("covers every tool's reply, every refusal code and every way a tribunal ends", async () => {
@@ -138,5 +158,6 @@ describe("standoff-tribunal against the old HoldoutTribunal (stand-in puzzles, p
 		expect(outcomes).toEqual(new Set(["dropped", "banished", "lot", "spared"]));
 		expect(records.flatMap((record) => record.notices).some((line) => line.includes("You now hold its fragment"))).toBe(true);
 		expect(records.flatMap((record) => record.strikes)).toContain("A02 holdout");
+		expect(records.every((record) => record.exempt.length > 0)).toBe(true);
 	});
 });

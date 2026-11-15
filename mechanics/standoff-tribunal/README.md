@@ -17,7 +17,7 @@ issues: part 1 (M5-29) holds the blockers, the call and the grace; part 2 (M5-30
 | Summary | The holdout tribunal over a resident who keeps a fragment back. |
 | Requires | `holdout-pieces` (from [puzzles](../puzzles/README.md)), `progression` (from [progression](../progression/README.md)), `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)), `notes` (from [channels](../channels/README.md)) |
 | Uses when loaded | `identity` |
-| Provides | none |
+| Provides | `cap-exemption` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
 
@@ -56,7 +56,11 @@ issues: part 1 (M5-29) holds the blockers, the call and the grace; part 2 (M5-30
 8. **The gamemaker's report.** The fact `section` (with `session`, `pending`, `cooldownUntil` and `struck`) is what
    the report of `mechanics/city-directors` reads; it writes the old lines from it.
 
-**Not done here:** the accused's direct messages past the cap (issue M5-68, errata J135); the checks of game facts
+9. **The cap on direct messages.** The mechanic provides `cap-exemption` of `mechanics/contracts` (decision A75):
+   during the grace and the votes the accused's direct messages to those who still lack its fragment pass the cap
+   of `channels` (`exempt`, the old `exemptFromCap`).
+
+**Not done here:** the checks of game facts
 on the tribunal's texts (errata J62, the owners' rules); the provider of `holdout-pieces` (`puzzles`, M5-64).
 
 ## Tools
@@ -272,7 +276,13 @@ Audience: everyone
 <!-- generated:services -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic provides no service to other mechanics.
+### `cap-exemption`
+
+Whether a resident's direct message passes the cap of the window although the window is full.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `exempt` | query | from: string, to: string | boolean | True when the message from `from` to `to` is exempt from the cap (old `exemptFromCap`: the accused of a holdout tribunal to those who lack its fragment). |
 
 <!-- /generated:services -->
 
@@ -343,3 +353,8 @@ answers. None recorded against this mechanic on this platform yet.
 - `test/tribunal.test.ts`: the blockers and their clearing, the lot among two, the refusals of `callTribunal`, the
   grace that ends in a vote and a drop, the fact `section`, the carried prompt texts, conformance, the sample, and
   the resume at every tick boundary.
+- `test/differential.test.ts`: the six scenarios of the old holdout differential test against the old engine's
+  record, field for field, the DM cap exemptions of every tick included (asked through `cap-exemption`).
+- `test/cap-exemption.test.ts`: through the real `channels` with a cap of one message, the accused writes past its
+  full window to the one who lacks its fragment during the grace and is refused to one who has it; another resident is
+  refused; and the resume at every tick boundary.

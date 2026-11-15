@@ -91,14 +91,14 @@ describe("no service cycle (M5, 4.6)", () => {
 		const edges = edgesOf(heads).map((edge) => `${edge.from} -> ${edge.to}`);
 		expect(edges.length).toBeGreaterThan(5);
 		expect(edges).toEqual(expect.arrayContaining(["grid-game -> consensus", "holdem -> strategy-brain"]));
-		expect([...CONTRACTS]).toEqual(["allowance", "brain-source", "consensus-source", "figures", "identity", "notices", "receipt-source"]);
+		expect([...CONTRACTS]).toEqual(["allowance", "brain-source", "cap-exemption", "consensus-source", "figures", "identity", "notices", "receipt-source"]);
 	});
 
-	it("counts no edge through a shared contract; counted, the repository has the cycles of errata J1 and those through receipt-source, allowance and figures", () => {
+	it("counts no edge through a shared contract; counted, the repository has the cycles of errata J1 and those through receipt-source, allowance, figures and cap-exemption", () => {
 		expect(edgesOf(heads).filter((edge) => CONTRACTS.has(edge.service))).toEqual([]);
 		const all = serviceCycles(heads, () => true);
 		expect(all.length).toBeGreaterThan(0);
-		expect(all.every((cycle) => /-\((consensus-source|brain-source|receipt-source|allowance|figures)\)->/.test(cycle))).toBe(true);
+		expect(all.every((cycle) => /-\((consensus-source|brain-source|receipt-source|allowance|figures|cap-exemption)\)->/.test(cycle))).toBe(true);
 	});
 
 	it("fails on a fixture of two heads that use each other", () => {

@@ -29,7 +29,7 @@ function checkDm(ctx: ToolCtx, to: string, text: string): Refusal | undefined {
 	if (!ctx.residents.mayAct(to)) return refuse("EXILED", `${to} was exiled; beyond the wall no message reaches them`);
 	const trimmed = text.trim();
 	if (trimmed.length === 0 || trimmed.length > MAX_DM_LENGTH) return refuse("INVALID_TEXT", `1-${String(MAX_DM_LENGTH)} characters`);
-	return dmCap(ctx, from);
+	return dmCap(ctx, from, to);
 }
 
 /**

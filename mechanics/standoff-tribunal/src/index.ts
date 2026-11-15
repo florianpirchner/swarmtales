@@ -8,7 +8,8 @@
  * vote it draws the lot with `drawLot` and strikes the one drawn; it announces each outcome with
  * `announceTribunal`, and the city does each itself after the fallback. The struck resident is banished through
  * `exile` (by `holdout`, keeping its points) and its fragments go to everyone left. The residents read the tribunal in
- * their status line and its rule under every new task. Ported from the old `mechanics/standoff-tribunal/src`.
+ * their status line and its rule under every new task. It provides the service `cap-exemption` of `mechanics/contracts`:
+ * the accused's direct messages to those who still lack its fragment pass the cap of `channels`. Ported from the old `mechanics/standoff-tribunal/src`.
  *
  * @packageDocumentation
  */
@@ -39,6 +40,10 @@ export type { Blocker, BlockerFact, HoldoutData, HoldoutOutcome, HoldoutPending,
  * @public
  */
 export const standoffTribunal = defineMechanic(standoffTribunalHead, {
+	services: {
+		// The accused's messages to those who still lack its fragment pass the cap of `channels` (old `exemptFromCap`).
+		"cap-exemption": { exempt: ({ from, to }, ctx) => courtFor(ctx).exemptFromCap(from, to) },
+	},
 	tools: {
 		tribunalVote: { run: ({ yes }, ctx) => runVote(ctx, yes), sample: sampleVote },
 		callTribunal: {

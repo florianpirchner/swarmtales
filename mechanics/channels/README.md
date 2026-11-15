@@ -21,7 +21,7 @@ mechanics check and record their Director's texts through the service `notes`.
 | Id | `channels` |
 | Summary | Talk in the city: the public board, direct messages, private notices and groups with a treasury. |
 | Requires | none |
-| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` (from [receipts](../receipts/README.md)), `identity`, `allowance` (from [marks](../marks/README.md)), `figures` (from [cast](../cast/README.md)) |
+| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` (from [receipts](../receipts/README.md)), `identity`, `allowance` (from [marks](../marks/README.md)), `figures` (from [cast](../cast/README.md)), `cap-exemption` (from [standoff-tribunal](../standoff-tribunal/README.md)) |
 | Provides | `channels`, `notices`, `notes` |
 | State | kept, snapshot slice version 4 |
 | Games | [city-slice](../../games/city-slice/README.md) |
@@ -81,7 +81,10 @@ mechanics check and record their Director's texts through the service `notes`.
    0; you can send again from minute 4`; a transfer with a memo is refused by this mechanic's `rule` handler on
    `transferPoints` (by bare name, after the ledger's own refusals) with `DM_LIMIT: ... send a memo again from minute
    4, or transfer without one`. Each activation then starts with the status part `DMs 2/8 sent since minute 0 (a new
-   allowance at minute 6)` (kind `status`, order 1200, after the other parts of the old status line).
+   allowance at minute 6)` (kind `status`, order 1200, after the other parts of the old status line). Before it
+   refuses a direct message past the cap it asks `cap-exemption.exempt({ from, to })` (decision A75, the old
+   `exemptFromCap`): an exempt message passes and is counted in the window. `standoff-tribunal` provides it (the
+   accused writes to those who lack its fragment); without a provider nothing is exempt. A memo is never exempt.
 10. **`defy`.** A resident refuses a Director's order for a reason of its own character (20 to 600 characters,
     `INVALID_REASON`); `gamemaker_defied` holds the reason and the note it names, and nobody else learns of it. The
     tool is locked (`TOOL_LOCKED`, the old words) unless the game sets `defiance`. A game mechanic that opens it to one
@@ -114,7 +117,7 @@ those handlers too.
 **Not in this cut:** the check of a private thought in a note, which needs a contract of the Confessor's labels
 (decision A62); the hand-over check of a post, which
 other mechanics make in their own handlers; the notice to the recipient of a withdrawal with its receipt (the
-provider of `receipt-source` sends it); the exemption of the accused of a holdout tribunal from the cap.
+provider of `receipt-source` sends it).
 
 **Messages to and from a figure** (decision A72). `sendDM` asks `figures.isActive` first: a message to an active
 figure (STEWARD of the cast) gets the city's next number and goes to its provider with `figures.receive`, with no cap,
@@ -658,7 +661,9 @@ determinism, and a snapshot round trip at every tick, with a direct message wait
 `test/rules.test.ts` holds the cap of a window with the real ledger (the old window case of `channels.test.ts`, the
 order of the old `checkTransfer`, the status part, a new window, the memos through snapshot round trips), `defy`
 (closed, open with `defiance`, open to one resident with a stand-in lock of the whisperer, the reason and its event)
-and the line of unread posts. `test/providers.test.ts` plays stand-in providers of `identity` and `allowance`: names
+and the line of unread posts. `test/cap-exemption.test.ts` holds the old exemption case of `differential.test.ts`
+with a stand-in provider of `cap-exemption`: an exempt message passes and is counted, every other is refused as before,
+nothing changes without a provider, and a run cut at a tick plays on equal. `test/providers.test.ts` plays stand-in providers of `identity` and `allowance`: names
 as targets and in replies, details, the board and the input lines, and the marks part of the three message tools.
 
 `test/dms.test.ts` holds the delivery cases of the old `channels.test.ts` (the number, `dm_sent`, the delivery at

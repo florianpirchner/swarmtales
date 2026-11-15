@@ -5,6 +5,7 @@
  * is refused by its own `rule` handler on `transferPoints` (12-m5-spec.md 2.3, erratum J4).
  */
 import type { InputLine, Refusal } from "@swarmtales/contracts";
+import { CapExemptionService } from "@swarmtales/mechanic-contracts";
 import { refuse } from "@swarmtales/sdk";
 import type { Ctx } from "./head.ts";
 
@@ -40,15 +41,18 @@ export function dmWindow(ctx: Ctx, agent: string): DmWindow | null {
 }
 
 /**
- * The refusal of a direct message past the window, in the old words.
+ * The refusal of a direct message past the window, in the old words. A full window asks the service `cap-exemption`
+ * first (old `exemptFromCap`, decision A75): an exempt message passes and is counted; without a provider none is.
  *
  * @param ctx - The context.
  * @param from - The sender.
- * @returns `DM_LIMIT`, or undefined while the window has room.
+ * @param to - The receiver.
+ * @returns `DM_LIMIT`, or undefined while the window has room or the message is exempt.
  */
-export function dmCap(ctx: Ctx, from: string): Refusal | undefined {
+export function dmCap(ctx: Ctx, from: string, to: string): Refusal | undefined {
 	const window = dmWindow(ctx, from);
 	if (window === null || window.sent < window.limit) return undefined;
+	if (ctx.tryCall(CapExemptionService, "exempt", { from, to }) === true) return undefined;
 	return refuse("DM_LIMIT", `${String(window.sent)} DMs sent since minute ${String(window.from)}; you can send again from minute ${String(window.until)}`);
 }
 

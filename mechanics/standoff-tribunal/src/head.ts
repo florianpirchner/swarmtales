@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of `standoff-tribunal`: its options (carried), its state with the snapshot, its events, prompts and tools. */
 import { Type } from "typebox";
-import { IdentityService } from "@swarmtales/mechanic-contracts";
+import { CapExemptionService, IdentityService } from "@swarmtales/mechanic-contracts";
 import { ChannelsService, NotesService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
@@ -98,6 +98,8 @@ export const standoffTribunalHead = defineHead({
 	},
 	requires: [HoldoutPiecesService, ProgressionService, ExileService, ChannelsService, NotesService],
 	uses: [IdentityService],
+	// What the DM cap of `channels` asks before it refuses (old `exemptFromCap`, decision A75).
+	provides: [CapExemptionService],
 	tools: {
 		tribunalVote: {
 			description: "standoff-tribunal/tools/tribunalVote",

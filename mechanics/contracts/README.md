@@ -12,6 +12,7 @@ back empty and the caller keeps the old answer (the id, no marks part, `none`).
 | `AllowanceService` | `allowance` | `marks`; without it, no marks part in a reply | `channels` |
 | `ReceiptSourceService` | `receipt-source` | `receipts`; without it, `none` | `ledger`, `channels` |
 | `FiguresService` | `figures` | `cast`; without it, a message to a figure is refused `UNKNOWN_AGENT` | `channels` |
+| `CapExemptionService` | `cap-exemption` | `standoff-tribunal`; without it, no message is exempt from the DM cap | `channels` |
 
 The last three were written by the scaffold of M5 (`12-m5-spec.md`, section 2.2, pattern 4) as service definitions
 only, so that their users and providers can be built in any wave.
