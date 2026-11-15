@@ -7,9 +7,10 @@
 	"license": "Apache-2.0",
 	"sideEffects": false,
 	"swarmtales": {
+		"kind": "mechanic",
 		"class": "game",
 		"layer": "L3",
-		"mechanics": []
+		"mechanics": ["morrisReferee"]
 	},
 	"exports": {
 		".": {
@@ -34,6 +35,9 @@
 		"typebox": "1.3.27"
 	},
 	"devDependencies": {
+		"@swarmtales/mechanic-consensus": "workspace:*",
+		"@swarmtales/mechanic-strategy-brain": "workspace:*",
+		"@swarmtales/mechanic-team-channel": "workspace:*",
 		"@swarmtales/testkit": "workspace:*"
 	}
 }

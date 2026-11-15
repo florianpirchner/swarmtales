@@ -22,6 +22,15 @@
 			"path": "../morris"
 		},
 		{
+			"path": "../consensus"
+		},
+		{
+			"path": "../strategy-brain"
+		},
+		{
+			"path": "../team-channel"
+		},
+		{
 			"path": "../../packages/testkit"
 		}
 	]
