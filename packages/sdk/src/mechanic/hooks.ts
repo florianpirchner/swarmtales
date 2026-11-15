@@ -4,7 +4,7 @@
  * forms. A hook that takes a resident runs only for an actor of that kind and answers with bare ids; a stage
  * handler sees the call under the tool's bare name.
  */
-import type { ActorId, InputLine, Ordered, PluginHooks, StageHandlers, ToolCall, ToolOutcome } from "@swarmtales/contracts";
+import type { ActorId, InputLine, Ordered, PluginHooks, RunEnd, StageHandlers, ToolCall, ToolOutcome } from "@swarmtales/contracts";
 import { actorOf, contextFor, residentOf } from "./context.ts";
 import type { MechanicContext, MechanicShape } from "./context-types.ts";
 import type { InstanceParts } from "./parts.ts";
@@ -38,7 +38,7 @@ function registrations<F, G>(slot: HookSlot<F> | undefined, bound: (run: F) => G
  */
 export function bindHooks<M extends MechanicShape>(parts: InstanceParts<M>, hooks: MechanicHooks<M> | undefined): PluginHooks {
 	const ctx: MechanicContext<M> = contextFor(parts);
-	const { news, toAct } = hooks ?? {};
+	const { news, toAct, ...slots } = hooks ?? {};
 	const plain = (run: (ctx: MechanicContext<M>) => void) => (): void => {
 		run(ctx);
 	};
@@ -47,15 +47,18 @@ export function bindHooks<M extends MechanicShape>(parts: InstanceParts<M>, hook
 		if (resident !== undefined) run(resident, ctx);
 	};
 	return {
-		runStarted: registrations(hooks?.runStarted, plain),
-		tickStarted: registrations(hooks?.tickStarted, plain),
-		inputs: registrations(hooks?.turnInputs, (run) => (actor: ActorId): readonly InputLine[] => {
+		runStarted: registrations(slots.runStarted, plain),
+		tickStarted: registrations(slots.tickStarted, plain),
+		inputs: registrations(slots.turnInputs, (run) => (actor: ActorId): readonly InputLine[] => {
 			const resident = residentOf(actor);
 			return resident === undefined ? [] : run(resident, ctx);
 		}),
-		activationOpened: registrations(hooks?.activationOpened, forResident),
-		activationClosed: registrations(hooks?.activationClosed, forResident),
-		tickEnded: registrations(hooks?.tickEnded, plain),
+		activationOpened: registrations(slots.activationOpened, forResident),
+		activationClosed: registrations(slots.activationClosed, forResident),
+		tickEnded: registrations(slots.tickEnded, plain),
+		runEnded: registrations(slots.runEnded, (run) => (end: RunEnd): void => {
+			run(end, ctx);
+		}),
 		...(news === undefined
 			? {}
 			: {

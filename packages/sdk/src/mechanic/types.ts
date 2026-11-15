@@ -6,7 +6,7 @@
  * a mechanic follows from its head alone, so a helper outside the body takes `CtxOf<typeof head>`.
  */
 import type { Static, TObject, TSchema } from "typebox";
-import type { ActorId, CanonicalTool, Envelope, EventSchemas, EventsDefinition, InputLine, Listener, JsonValue, MetricDefinition, Ordered, PromptLookup, RandomSource, Refusal, ResolvedPlugin, ServiceDefinition, ToolOutcome } from "@swarmtales/contracts";
+import type { ActorId, CanonicalTool, Envelope, EventSchemas, EventsDefinition, InputLine, Listener, JsonValue, MetricDefinition, Ordered, PromptLookup, RandomSource, Refusal, ResolvedPlugin, RunEnd, ServiceDefinition, ToolOutcome } from "@swarmtales/contracts";
 import type { MechanicUse } from "../game/types.ts";
 import type { FactView, MechanicContext, MechanicShape, PromptKeys, ServiceImplementation, Setup, Shape, StateSetup, ToolContext } from "./context-types.ts";
 
@@ -262,6 +262,8 @@ export interface MechanicHooks<M extends MechanicShape> {
 	readonly activationClosed?: HookSlot<(resident: string, ctx: MechanicContext<M>) => void>;
 	/** Runs at the end of a tick. */
 	readonly tickEnded?: HookSlot<(ctx: MechanicContext<M>) => void>;
+	/** Runs once when the run ends by its tick limit or a run limit, before `run_ended`; a run that fails calls none. */
+	readonly runEnded?: HookSlot<(end: RunEnd, ctx: MechanicContext<M>) => void>;
 	/** Says whether the resident has something new; any mechanic saying yes counts. It must not change state. */
 	readonly news?: (resident: string, ctx: MechanicContext<M>) => boolean;
 	/** Names the residents that are to act now; at most one loaded mechanic has it (SWT-R013). */

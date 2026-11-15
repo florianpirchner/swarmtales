@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /** The plugin shape: what a plugin hands the kernel, and the untyped port the kernel hands a plugin. */
 import type { TSchema } from "typebox";
-import type { JsonValue, RandomLabel, RandomSource } from "../values.ts";
+import type { JsonValue, RandomLabel, RandomSource, RunEnd } from "../values.ts";
 import type { ActorId } from "./actor.ts";
 import type { Envelope, InputLine } from "./envelope.ts";
 import type { EventSchemas } from "./event-def.ts";
@@ -53,6 +53,12 @@ export interface PluginHooks {
 	readonly activationClosed?: readonly Ordered<(actor: ActorId) => void>[];
 	/** Run at the end of a tick. */
 	readonly tickEnded?: readonly Ordered<() => void>[];
+	/**
+	 * Run once when the run ends by the tick limit or a run limit: after the last tick has ended, before `run_ended`
+	 * is written, so what one emits lands before `run_ended`. A run that fails calls none, and a run that pauses
+	 * (`until`) has not ended.
+	 */
+	readonly runEnded?: readonly Ordered<(end: RunEnd) => void>[];
 	/** Says whether there is something new for the actor. It must not change state; any plugin saying yes counts. */
 	news?(actor: ActorId): boolean;
 	/** Says who is to act now, for a scheduler that wakes only those (a game with a fixed order of play); at most one loaded plugin has it (SWT-R013). */

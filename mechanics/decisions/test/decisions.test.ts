@@ -51,10 +51,20 @@ describe("decisions", () => {
 		expect(rest.kernel.snapshot()).toEqual(straight.kernel.snapshot());
 	});
 
-	it("leaves a decision open whose deadline is after the last tick", async () => {
+	it("settles a decision whose deadline is after the last tick when the run ends, before run_ended, in the order opened", async () => {
 		const run = await decide({ window: 2 }, undefined, {}, 2);
-		expect(told(run.events)).toEqual([CALLED(2), PROPOSED, LISTED]);
-		expect(run.end?.reason).toBeDefined();
-		expect(slice(run)).toMatchObject({ open: { D1: { deadline: 2 } } });
+		expect(told(run.events)).toEqual([CALLED(2), PROPOSED, LISTED, SETTLED, [2, "committed", { proposal: PROPOSAL, decision: "D1" }]]);
+		expect(run.end).toEqual({ reason: "ticks", tick: 2 });
+		const settled = run.events.find((event) => event.type === "decision_settled");
+		expect(run.events.slice(-3).map((event) => [event.type, event.actor, event.causedBy])).toEqual([["decision_settled", "kernel", undefined], ["committed", "kernel", settled?.seq], ["run_ended", "kernel", undefined]]);
+		expect(slice(run)).toEqual({ next: 2, open: {} });
+		const two = await play(game(["resident:A02"], 2), { script: { A01: [["decide", { window: 4 }], ["decide", { window: 3 }]] } });
+		expect(two.events.filter((event) => event.type === "decision_settled").map((event) => event.payload)).toMatchObject([{ decision: "D1" }, { decision: "D2" }]);
+	});
+
+	it("settles nothing at a pause: a run played to a tick has not ended", async () => {
+		const first = await decide({ window: 2 }, undefined, { ticks: 1 }, 2);
+		expect(first.end).toBeUndefined();
+		expect(told(first.events).map((entry) => entry[1])).not.toContain("decision_settled");
 	});
 });

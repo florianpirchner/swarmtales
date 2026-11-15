@@ -77,7 +77,7 @@ interface Setup {
 	readonly maxTicks?: number;
 	readonly jobs?: readonly Job[];
 	/** Hook name to the plugins' hook code, in the final order; each is given the log to emit into. */
-	readonly hooks?: Partial<Record<OrderedHook, readonly ((log: Log) => void)[]>>;
+	readonly hooks?: Partial<Record<OrderedHook, readonly ((log: Log, ...args: readonly unknown[]) => void)[]>>;
 	readonly job?: (log: Log, data: JsonValue | undefined) => void;
 	readonly limits?: readonly RunLimit[];
 	readonly sinks?: readonly EventSink[];
@@ -94,7 +94,7 @@ function world(setup: Setup = {}): World {
 		instances: new Map([["grid", instance]]),
 		tools: new Map(),
 		byShownName: new Map(),
-		hooks: (hook) => (hook === "inputs" ? [] : (setup.hooks?.[hook] ?? []).map((run, at) => ({ plugin: at === 0 ? "grid" : "tally", run: () => { run(log); } }))),
+		hooks: (hook) => (hook === "inputs" ? [] : (setup.hooks?.[hook] ?? []).map((run, at) => ({ plugin: at === 0 ? "grid" : "tally", run: (...args: readonly unknown[]) => { run(log, ...args); } }))),
 		stages: () => [],
 		limits: (setup.limits ?? []).map((limit) => ({ id: `tally.${limit.id}`, limit })),
 	};
@@ -225,6 +225,40 @@ describe("createLifecycle", () => {
 		expect(closed).toEqual(["ticks"]);
 		expect(log.ofType("kernel", "run_ended")).toHaveLength(1);
 		expect(life.halted).toBe(true);
+	});
+
+	it("runs the runEnded hooks once in their order with the end, after limit_reached and before run_ended", async () => {
+		const ends: unknown[] = [];
+		const ended = (type: string) => (log: Log, end: unknown) => {
+			ends.push(end);
+			log.emit("p/grid", type, {});
+		};
+		const { life, log, closedWith } = world({ maxTicks: 3, limits: [limit(undefined, undefined, "over")], hooks: { runEnded: [ended("first"), ended("second")] } });
+		await life.beginTick();
+		expect(await life.endTick(false)).toBeUndefined();
+		expect(ends).toEqual([]);
+		await life.beginTick();
+		const end = await life.endTick(false);
+		expect(log.lines().slice(-5)).toEqual(["1 kernel/tick_ended", "2 kernel/limit_reached", "2 p/grid/first", "2 p/grid/second", "2 kernel/run_ended"]);
+		expect(ends).toEqual([end, end]);
+		expect(closedWith).toEqual([{ reason: "limit", tick: 2, limit: "tally.budget" }]);
+		const ticks = world({ maxTicks: 1, hooks: { runEnded: [ended("last")] } });
+		await ticks.life.beginTick();
+		await ticks.life.endTick(false);
+		expect(ticks.log.lines().slice(-2)).toEqual(["1 p/grid/last", "1 kernel/run_ended"]);
+		expect(ends.at(-1)).toEqual({ reason: "ticks", tick: 1 });
+	});
+
+	it("calls no runEnded hook in a run that fails, and a runEnded hook that throws ends the run with reason error", async () => {
+		const failed = world({ hooks: { tickStarted: [() => { throw new Error("broken"); }], runEnded: [says("late")] } });
+		await expect(failed.life.beginTick()).rejects.toThrow("broken");
+		expect(failed.log.lines()).toEqual(["0 kernel/tick_started", "0 kernel/run_ended"]);
+		const { life, log, closedWith } = world({ maxTicks: 1, hooks: { runEnded: [says("settled"), () => { throw new Error("no owner"); }] } });
+		await life.beginTick();
+		await expect(life.endTick(false)).rejects.toThrow("no owner");
+		expect(log.lines().slice(-2)).toEqual(["1 p/grid/settled", "1 kernel/run_ended"]);
+		expect(log.all().at(-1)?.payload).toEqual({ reason: "error", detail: "no owner" });
+		expect(closedWith).toEqual([{ reason: "error", tick: 1 }]);
 	});
 
 	it("a due job that no loaded plugin has is SWT-R002", async () => {

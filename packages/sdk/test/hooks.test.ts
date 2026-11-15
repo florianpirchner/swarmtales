@@ -59,8 +59,16 @@ describe("bindHooks", () => {
 		expect(instance.state.value.log).toEqual(["plain@3", "placed@3", "first@3", "second@3", "third@3"]);
 	});
 
+	it("hands `runEnded` the end and the context, and keeps `after`", () => {
+		const instance = parts();
+		const hooks = bindHooks(instance, { runEnded: { run: (end, ctx) => void ctx.state.log.push(`${end.reason}@${String(end.tick)}`), after: ["decisions"] } });
+		expect(hooks.runEnded?.map((entry) => entry.after)).toEqual([["decisions"]]);
+		hooks.runEnded?.[0]?.run({ reason: "limit", tick: 4, limit: "grid-game.won" });
+		expect(instance.state.value.log).toEqual(["limit@4"]);
+	});
+
 	it("gives no hooks, and neither `news` nor `toAct`, for a body without them", () => {
-		expect(bindHooks(parts(), undefined)).toEqual({ runStarted: [], tickStarted: [], inputs: [], activationOpened: [], activationClosed: [], tickEnded: [] });
+		expect(bindHooks(parts(), undefined)).toEqual({ runStarted: [], tickStarted: [], inputs: [], activationOpened: [], activationClosed: [], tickEnded: [], runEnded: [] });
 		expect(Object.keys(bindHooks(parts(), { news: () => true }))).not.toContain("toAct");
 	});
 

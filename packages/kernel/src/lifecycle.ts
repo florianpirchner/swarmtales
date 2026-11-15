@@ -171,9 +171,16 @@ class Run implements Lifecycle {
 		});
 	}
 
+	// The `runEnded` hooks run before the closing event is begun: a throw of one ends the run with `reason: "error"`.
 	#finish(end: RunEnd): RunEnd {
+		const { log, loaded } = this.#parts;
+		for (const entry of loaded.hooks("runEnded")) {
+			log.run({ actor: "kernel" }, () => {
+				entry.run(end);
+			});
+		}
 		this.#ending = true;
-		this.#parts.log.emit(SOURCE, "run_ended", { reason: end.reason });
+		log.emit(SOURCE, "run_ended", { reason: end.reason });
 		const thrown = this.#close(end);
 		if (thrown !== undefined) throw new SwtError(sinkThrew(thrown.error), { cause: thrown.error });
 		return end;
@@ -201,7 +208,7 @@ class Run implements Lifecycle {
  * `start` writes `run_started` and runs the `runStarted` hooks. `beginTick` resets the step counters, writes
  * `tick_started`, runs the due jobs and the `tickStarted` hooks, and forgets the breach of the last tick.
  * `endTick` checks the run limits, runs the `tickEnded` hooks, writes `tick_ended`, moves the clock on and ends
- * the run when a limit is reached or the last tick is over. `halted` checks the run limits; a breach, once seen,
+ * the run when a limit is reached or the last tick is over, after the `runEnded` hooks. `halted` checks the run limits; a breach, once seen,
  * stays for the tick.
  *
  * @param parts - The definition, the log, the clock, the step counter, what was loaded, and the sinks to close.

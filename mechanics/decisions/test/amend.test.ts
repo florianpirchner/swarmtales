@@ -59,11 +59,14 @@ describe("amendDecision", () => {
 		expect(payloads(test, "decision_settled")).toMatchObject([{ changed: false, amendments: [] }]);
 	});
 
-	it("keeps an amendment of a decision that outlasts the run, and says that nothing settles", async () => {
+	// The old `test/host/human.test.ts`, "decisions still open when the run ends": the original stands, the amendments are listed.
+	it("keeps an amendment of a decision that outlasts the run, and settles the original proposal when the run ends", async () => {
 		const test = await opened(HOLDERS, 2);
 		expect(await amend(test, "A02", "A01")).toEqual({ ok: true, reply: "amended decision D1, but its deadline (tick 2) lies after the run's last tick (1): the decision stays open and is never settled" });
-		expect((await test.playTicks(idleDriver, 5))?.reason).toBeDefined();
-		expect(payloads(test, "decision_settled")).toEqual([]);
-		expect(test.kernel.snapshot().plugins.decisions?.data).toMatchObject({ open: { D1: { amendments: [{ by: "resident:A02", n: 1 }] } } });
+		expect((await test.playTicks(idleDriver, 5))?.reason).toBe("ticks");
+		const settled = { decision: "D1", kind: "owner.verdict", owner: "owner", changed: false, proposal: { exiled: "A03" }, amendments: [{ by: "resident:A02", n: 1 }] };
+		expect(told(test.kernel.log.all()).slice(-2)).toEqual([[2, "decision_settled", settled], [2, "committed", { proposal: { exiled: "A03" }, decision: "D1" }]]);
+		expect(test.kernel.log.all().at(-1)?.type).toBe("run_ended");
+		expect(test.kernel.snapshot().plugins.decisions?.data).toEqual({ next: 2, open: {} });
 	});
 });

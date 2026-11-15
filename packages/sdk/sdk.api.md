@@ -31,6 +31,7 @@ import { RandomSource } from '@swarmtales/contracts';
 import { RecordSource } from '@swarmtales/contracts';
 import { Refusal } from '@swarmtales/contracts';
 import { ResolvedPlugin } from '@swarmtales/contracts';
+import { RunEnd } from '@swarmtales/contracts';
 import { RunLimit } from '@swarmtales/contracts';
 import { SchedulePort } from '@swarmtales/contracts';
 import { SchedulerDefinition } from '@swarmtales/contracts';
@@ -510,6 +511,7 @@ export interface MechanicHooks<M extends MechanicShape> {
     readonly activationClosed?: HookSlot<(resident: string, ctx: MechanicContext<M>) => void>;
     readonly activationOpened?: HookSlot<(resident: string, ctx: MechanicContext<M>) => void>;
     readonly news?: (resident: string, ctx: MechanicContext<M>) => boolean;
+    readonly runEnded?: HookSlot<(end: RunEnd, ctx: MechanicContext<M>) => void>;
     readonly runStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
     readonly tickEnded?: HookSlot<(ctx: MechanicContext<M>) => void>;
     readonly tickStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;

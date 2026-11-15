@@ -545,6 +545,7 @@ export interface PluginHooks {
     readonly activationOpened?: readonly Ordered<(actor: ActorId) => void>[];
     readonly inputs?: readonly Ordered<(actor: ActorId) => readonly InputLine[]>[];
     news?(actor: ActorId): boolean;
+    readonly runEnded?: readonly Ordered<(end: RunEnd) => void>[];
     readonly runStarted?: readonly Ordered<() => void>[];
     readonly tickEnded?: readonly Ordered<() => void>[];
     readonly tickStarted?: readonly Ordered<() => void>[];

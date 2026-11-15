@@ -52,8 +52,11 @@ The tool goes to the grant `human` when the game lists no grants. Every other ho
 `holders` and the tool in its grant (`grants: { resident: { add: ["amendDecision"] } }`, or the grant of a
 Director). A caller with the grant that is no holder reads `DECISION_NOT_HELD`.
 
-A decision whose deadline lies after the last tick of the run stays open: it is in the last snapshot and is never
-settled. An amendment of such a decision is kept, and the caller is told that nothing will settle. `decisions` never calls its owner back and names no other mechanic, so it cannot be part of a service
+A decision whose deadline lies after the last tick of the run settles when the run ends (the hook `runEnded`, before
+`run_ended`), in the order it was opened, with its original proposal (`changed: false`, the amendments listed), as the
+old `DecisionGate.settleAll` did. A run that fails settles nothing, and a run played only to a tick has not ended. An
+amendment of such a decision is kept; the reply to it still says that the decision is never settled (erratum J4 of
+the M5 specification). `decisions` never calls its owner back and names no other mechanic, so it cannot be part of a service
 cycle. A proposal that does not fit its own `schema` is a mistake of the owner and stops the run.
 
 The option `holders` lists actor ids, not resident ids, because a holder need not be a resident. An id that is no
@@ -240,12 +243,13 @@ None recorded yet. The log is [`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEA
 covers the cases of the old platform's `test/host/decisions.test.ts` that need no amendment: a window of 0 and a
 missing or suspended holder commit at once and write nothing; a proposal is logged with its deadline and holders;
 the deadline settles with the original proposal and causes the owner's commit; the open decision survives a
-snapshot and the resumed run settles at the same tick; a deadline after the last tick leaves the decision open.
+snapshot and the resumed run settles at the same tick; a deadline after the last tick settles when the run ends,
+before `run_ended`, in the order opened, and a pause settles nothing.
 The first case is the refusal of a holder that is no actor of the run.
 
 `test/amend.test.ts` holds the amendment cases with residents as holders: an amendment stands and the owner commits
 it; of two amendments the last stands, and `changed` is false when it repeats the original; the refusals for a
 decision that is not open, a caller that is no holder, a proposal off the schema, and an amendment after the
-deadline; the reply for a decision that outlasts the run. `test/human.test.ts` plays the human: its amendment
+deadline; the reply for a decision that outlasts the run, and its original proposal settled at the run's end. `test/human.test.ts` plays the human: its amendment
 stands against a later one of another holder, it may amend again, and no `human_amend` is written. The sdk gives
 the game the actor `human` because the tool is granted to it.

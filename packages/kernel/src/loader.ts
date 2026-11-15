@@ -136,6 +136,7 @@ export function loadPlugins(definition: KernelDefinition, parts: LoaderParts) {
 		activationOpened: placeHooks(instances, (all) => all.activationOpened),
 		activationClosed: placeHooks(instances, (all) => all.activationClosed),
 		tickEnded: placeHooks(instances, (all) => all.tickEnded),
+		runEnded: placeHooks(instances, (all) => all.runEnded),
 	};
 	const stages = stageTable(instances);
 	const limits: readonly { readonly id: string; readonly limit: RunLimit }[] = [...instances].flatMap(([plugin, instance]) => instance.limits.map((limit) => ({ id: `${plugin}.${limit.id}`, limit })));

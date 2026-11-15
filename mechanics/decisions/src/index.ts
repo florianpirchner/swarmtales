@@ -3,7 +3,8 @@
  * Mechanic: the decision window. A mechanic proposes a decision through the service `decisions`; the holders may
  * amend it with the tool `amendDecision` until its deadline; at the deadline a job writes `decision_settled` with the proposal that stands, and
  * the owner commits in a listener to that event. With a window of 0, or when no holder can act, nothing is written
- * and the owner commits at once. A decision whose deadline lies after the last tick of the run stays open.
+ * and the owner commits at once. A decision still open when the run ends settles then, with its original proposal
+ * (the hook `runEnded`, the old `DecisionGate.settleAll`).
  *
  * @packageDocumentation
  */
@@ -59,12 +60,13 @@ function amend(ctx: ToolCtxOf<typeof head>, { decision, proposal, reason }: Amen
 	return reply(ctx.prompt("decisions/replies/decision-amended", { decision, proposal: JSON.stringify(proposal) }));
 }
 
-// The job of a deadline: closes the decision with the proposal that stands, which is the last amendment's or the original.
-function settle(ctx: CtxOf<typeof head>, id: string): void {
+// Closes a decision: at its deadline (a job) with the proposal that stands, which is the last amendment's or the
+// original; at the end of the run (`standing: false`) with the original, the amendments listed.
+function settle(ctx: CtxOf<typeof head>, id: string, standing = true): void {
 	const open: OpenDecision | undefined = ctx.state.open[id];
 	if (open === undefined) throw new RangeError(`decisions: a deadline of the decision ${id}, which is not open`);
 	ctx.state.open = Object.fromEntries(Object.entries(ctx.state.open).filter(([key]) => key !== id));
-	const winner = open.amendments.at(-1);
+	const winner = standing ? open.amendments.at(-1) : undefined;
 	ctx.emit("decision_settled", {
 		decision: id,
 		kind: open.kind,
@@ -74,6 +76,12 @@ function settle(ctx: CtxOf<typeof head>, id: string): void {
 		proposal: winner === undefined ? open.proposal : winner.proposal,
 		amendments: open.amendments.map((amendment) => ({ by: amendment.by, n: amendment.n })),
 	});
+}
+
+// The end of the run: every decision still open settles, in the order it was opened. Its deadline job never runs.
+function settleAll(ctx: CtxOf<typeof head>): void {
+	const ids = Object.keys(ctx.state.open).sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)));
+	for (const id of ids) settle(ctx, id, false);
 }
 
 /**
@@ -114,6 +122,11 @@ export const decisions = defineMechanic(head, {
 	jobs: {
 		settle: (ctx, data) => {
 			settle(ctx, typeof data === "string" ? data : "");
+		},
+	},
+	hooks: {
+		runEnded: (_end, ctx) => {
+			settleAll(ctx);
 		},
 	},
 });
