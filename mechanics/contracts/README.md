@@ -11,6 +11,7 @@ back empty and the caller keeps the old answer (the id, no marks part, `none`).
 | `IdentityService` | `identity` | `names`; without it, the id itself | `channels`, `ledger`, `exile` |
 | `AllowanceService` | `allowance` | `marks`; without it, no marks part in a reply | `channels` |
 | `ReceiptSourceService` | `receipt-source` | `receipts`; without it, `none` | `ledger`, `channels` |
+| `FiguresService` | `figures` | `cast`; without it, a message to a figure is refused `UNKNOWN_AGENT` | `channels` |
 
 The last three were written by the scaffold of M5 (`12-m5-spec.md`, section 2.2, pattern 4) as service definitions
 only, so that their users and providers can be built in any wave.

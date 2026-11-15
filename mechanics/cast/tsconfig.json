@@ -22,6 +22,9 @@
 			"path": "../channels"
 		},
 		{
+			"path": "../contracts"
+		},
+		{
 			"path": "../ledger"
 		},
 		{

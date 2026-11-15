@@ -2,6 +2,7 @@
 /** The head of the `cast` mechanic: its options, its state, its events, services and prompts. */
 import { Type } from "typebox";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
+import { FiguresService } from "@swarmtales/mechanic-contracts";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { CastExtrasService } from "@swarmtales/mechanic-progression/contract";
 import { defineHead, type CtxOf } from "@swarmtales/sdk";
@@ -51,7 +52,8 @@ export const castHead = defineHead({
 	},
 	// The escrow accounts are the ledger's, a published collection is a post of the channels.
 	requires: [LedgerService, ChannelsService],
-	provides: [CastService, CastExtrasService],
+	// `figures` is what `channels` asks to hand a resident's direct message to a member (decision A72).
+	provides: [CastService, CastExtrasService, FiguresService],
 });
 
 /**

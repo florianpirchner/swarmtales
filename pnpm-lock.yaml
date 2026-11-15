@@ -544,6 +544,9 @@ importers:
       '@swarmtales/mechanic-channels':
         specifier: workspace:*
         version: link:../channels
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@swarmtales/mechanic-ledger':
         specifier: workspace:*
         version: link:../ledger

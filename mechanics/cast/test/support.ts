@@ -9,7 +9,7 @@ import type { Envelope } from "@swarmtales/contracts";
 import { channels } from "@swarmtales/mechanic-channels";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { CastExtrasService, ProgressionEvents } from "@swarmtales/mechanic-progression/contract";
-import { defineGame, defineHead, defineMechanic, reply, type Game } from "@swarmtales/sdk";
+import { defineGame, defineHead, defineMechanic, reply, type Game, type MechanicUse } from "@swarmtales/sdk";
 import type { TestKernel } from "@swarmtales/testkit";
 import { cast, CastService } from "../src/index.ts";
 
@@ -86,14 +86,15 @@ const driver = defineMechanic(
  *
  * @param options - The options of the cast.
  * @param ticks - The ticks.
+ * @param first - Mechanics loaded before all others (a stand-in that charges a call before `channels` does its part).
  * @returns The game.
  */
-export function game(options: Parameters<typeof cast>[0] = { members: { STEWARD: { level: 10, hidden: false, escrow: 10 } } }, ticks = 14): Game {
+export function game(options: Parameters<typeof cast>[0] = { members: { STEWARD: { level: 10, hidden: false, escrow: 10 } } }, ticks = 14, first: readonly MechanicUse[] = []): Game {
 	return defineGame({
 		id: "cast-test",
 		seed: 7,
 		residents: ["A01", "A02", "A03", "A04", "A05", "A06"],
-		mechanics: [ledger({ startPoints: 10 }), channels(), levels(), cast(options), driver()],
+		mechanics: [...first, ledger({ startPoints: 10 }), channels(), levels(), cast(options), driver()],
 		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster" } },
 		end: { ticks },
 	});

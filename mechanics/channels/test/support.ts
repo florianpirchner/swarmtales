@@ -17,6 +17,7 @@ const city = defineMechanic(
 		tools: {
 			cityPost: { description: "Post as the city.", params: Type.Object({ text: Type.String(), system: Type.Optional(Type.Boolean()) }), for: ["resident"] },
 			cityNotify: { description: "Notify as the city.", params: Type.Object({ to: Type.String(), text: Type.String() }), for: ["resident"] },
+			cityDeliver: { description: "A message of a sender that is no resident.", params: Type.Object({ from: Type.String(), to: Type.String(), text: Type.String() }), for: ["resident"] },
 			cityRecords: { description: "Read the direct messages.", params: Type.Object({}), for: ["resident"] },
 			cityExile: { description: "Suspend a resident.", params: Type.Object({ resident: Type.String() }), for: ["resident"] },
 		},
@@ -30,6 +31,7 @@ const city = defineMechanic(
 					return reply("ok");
 				},
 			},
+			cityDeliver: { run: (params, ctx) => reply(JSON.stringify(ctx.call(ChannelsService, "deliver", params))) },
 			cityRecords: { run: (_params, ctx) => reply(JSON.stringify(ctx.call(ChannelsService, "dmRecords", {}))) },
 			cityExile: {
 				run: (params, ctx) => {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Direct messages: sending and delivery. The check order, the codes and the texts are the old platform's. */
 import type { Refusal, ToolOutcome } from "@swarmtales/contracts";
-import { ReceiptSourceService } from "@swarmtales/mechanic-contracts";
+import { FiguresService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
 import { refuse, reply } from "@swarmtales/sdk";
 import type { Ctx, ToolCtx } from "./head.ts";
 import { MAX_DM_LENGTH, type MailboxEntry } from "./mailbox.ts";
@@ -44,7 +44,69 @@ export function noteReply(ctx: Ctx, author: string, matches: (from: string) => b
 }
 
 /**
- * Runs `sendDM` after its rule: the receiver's mailbox, then the message with its number.
+ * The answer to a message that was sent: its number, the receiver and the marks left.
+ *
+ * @param ctx - The context of the tool call.
+ * @param number - The message's number.
+ * @param target - The receiver.
+ * @returns The answer.
+ */
+function dmSent(ctx: ToolCtx, number: number, target: string): ToolOutcome {
+	return reply(`${ctx.prompt("channels/replies/dm-sent", { number: ` #${String(number)}`, target })}${marksPart(ctx, "dm")}`);
+}
+
+/**
+ * A message to an active figure (old `dmToCast`): its text, then the city's number, and the figure collects it; no
+ * cap, no mailbox and no record. A sender new in a collection is told to the figure by {@link tellCollected}, once
+ * `marks` has charged the message in its `after` handler (the old order: `cast_dm`, `marks_spent`, `cast_collected`).
+ *
+ * @param ctx - The context of the tool call.
+ * @param cast - The figure.
+ * @param text - The text as the caller wrote it.
+ * @returns The answer with the message's number and the marks left, or `INVALID_TEXT`.
+ */
+function dmToFigure(ctx: ToolCtx, cast: string, text: string): ToolOutcome {
+	const from = selfOf(ctx);
+	const trimmed = text.trim();
+	if (trimmed.length === 0 || trimmed.length > MAX_DM_LENGTH) return refuse("INVALID_TEXT", `1-${String(MAX_DM_LENGTH)} characters`);
+	const number = ctx.state.numbers.next();
+	const received = ctx.tryCall(FiguresService, "receive", { from, cast, text: trimmed, number });
+	if (received !== undefined && received.newSender.length > 0) ctx.state.collecting.push({ from, cast, into: received.newSender });
+	return dmSent(ctx, number, cast);
+}
+
+/**
+ * Tells the figure of a message of this call that its sender is new in a collection (old `collected`): the `after`
+ * handler of `channels`, which runs after the one of `marks` when the game loads `marks` first, as the City does.
+ *
+ * @param ctx - The context.
+ */
+export function tellCollected(ctx: Ctx): void {
+	for (const entry of ctx.state.collecting.splice(0)) ctx.tryCall(FiguresService, "collected", { from: entry.from, cast: entry.cast, into: [...entry.into] });
+}
+
+/**
+ * A direct message from someone who is not a resident, a cast member say (old `deliverFrom`): delivered always, no
+ * cap, no marks and no record.
+ *
+ * @param ctx - The context.
+ * @param from - The sender.
+ * @param to - The resident id.
+ * @param text - The text.
+ * @returns The message's number.
+ * @throws RangeError when `to` is no resident of the run.
+ */
+export function deliverFrom(ctx: Ctx, from: string, to: string, text: string): number {
+	const inbox = inboxOf(ctx, to);
+	const number = ctx.state.numbers.next();
+	inbox.mailbox.deliverAlways({ from, text, tick: ctx.tick, number });
+	ctx.emit("dm_sent", { from, to, text, number });
+	return number;
+}
+
+/**
+ * Runs `sendDM` after its rule: a message to an active figure goes to it (asked first, as on `legacy`); any other
+ * goes to the receiver's mailbox with its number.
  *
  * @param ctx - The context of the tool call.
  * @param to - The receiver's id, resolved.
@@ -52,6 +114,7 @@ export function noteReply(ctx: Ctx, author: string, matches: (from: string) => b
  * @returns The answer with the message's number and the marks left, or `MAILBOX_FULL` or `MAILBOX_SENDER_LIMIT`.
  */
 export function sendDm(ctx: ToolCtx, to: string, text: string): ToolOutcome {
+	if (ctx.tryCall(FiguresService, "isActive", { cast: to }) === true) return dmToFigure(ctx, to, text);
 	const from = selfOf(ctx);
 	const refused = checkDm(ctx, to, text);
 	if (refused !== undefined) return refused;
@@ -63,7 +126,7 @@ export function sendDm(ctx: ToolCtx, to: string, text: string): ToolOutcome {
 	ctx.emit("dm_sent", { from, to, text: trimmed, number });
 	noteReply(ctx, from, (sender) => sender === to);
 	ctx.state.dms.push({ number, from, to, text: trimmed, tick: ctx.tick, answered: false });
-	return reply(`${ctx.prompt("channels/replies/dm-sent", { number: ` #${String(number)}`, target: to })}${marksPart(ctx, "dm")}`);
+	return dmSent(ctx, number, to);
 }
 
 /**

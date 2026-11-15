@@ -3,7 +3,9 @@
 Named characters the game plays. A cast member (such as STEWARD, the host of the City of Keys' feast) has a name, an
 escrow account and a level; it can be hidden until the script reveals it, receive residents' direct messages, collect
 them in a time window, publish them, draw a lottery among their senders and pay residents from its escrow. The script
-decides what the cast does; this mechanic keeps its state. Ported from the old platform (M5-24).
+decides what the cast does; this mechanic keeps its state. Ported from the old platform (M5-24). A resident's
+`sendDM` to an active member reaches it through the service `figures` of `mechanics/contracts`, which `channels` asks
+(M5-65, decision A72).
 
 ## At a glance
 
@@ -17,7 +19,7 @@ decides what the cast does; this mechanic keeps its state. Ported from the old p
 | Summary | The cast: figures, their escrow, collections and lotteries. |
 | Requires | `ledger` (from [ledger](../ledger/README.md)), `channels` (from [channels](../channels/README.md)) |
 | Uses when loaded | none |
-| Provides | `cast`, `cast-extras` |
+| Provides | `cast`, `cast-extras`, `figures` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
 
@@ -203,6 +205,16 @@ The active cast members and their public levels.
 | Method | Kind | Input | Output | Summary |
 | --- | --- | --- | --- | --- |
 | `active` | query | - | { id: string, level: integer }[] | Declared, revealed and not retired cast members in the game's order, with their public level. |
+
+### `figures`
+
+The figures of a game that a resident may write to, and what becomes of a direct message to one of them.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `isActive` | query | cast: string | boolean | Whether a resident may write to this figure now: it exists, is not hidden and not retired (old `cast.isActive`). |
+| `receive` | command | from: string, cast: string, text: string, number: integer | { collections: string[], newSender: string[] } | A resident's direct message to a figure, after the checks of the router: collected while a collection runs; writes `cast_dm` with the number the router took. |
+| `collected` | command | from: string, cast: string, into: string[] | null | The message's marks were spent: `from` is a new sender in `into` (the `newSender` of `receive`); writes `cast_collected`. |
 
 <!-- /generated:services -->
 

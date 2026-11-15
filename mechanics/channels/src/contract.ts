@@ -53,6 +53,12 @@ export const ChannelsService = defineService({
 			input: Type.Object({ to: Type.String({ description: "The resident id" }), author, text }, { additionalProperties: false, description: "The notice" }),
 			output: Type.Null({ description: "Nothing" }),
 		},
+		deliver: {
+			kind: "command",
+			summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.",
+			input: Type.Object({ from: author, to: Type.String({ description: "The resident id" }), text }, { additionalProperties: false, description: "The message" }),
+			output: Type.Object({ number: messageNumber }, { additionalProperties: false, description: "The message's number" }),
+		},
 		dmRecords: {
 			kind: "query",
 			summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).",

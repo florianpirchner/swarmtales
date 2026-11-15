@@ -3,7 +3,7 @@
 import { createHash } from "node:crypto";
 import type { ServiceDefinition } from "@swarmtales/contracts";
 import { describe, expect, it } from "vitest";
-import { AllowanceService, BrainSourceService, ConsensusSourceService, IdentityService, ReceiptSourceService } from "../src/index.ts";
+import { AllowanceService, BrainSourceService, ConsensusSourceService, FiguresService, IdentityService, ReceiptSourceService } from "../src/index.ts";
 
 const sha256 = (value: unknown): string => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
@@ -35,6 +35,24 @@ describe("the contracts of M5 (12-m5-spec.md, section 2.2, pattern 4)", () => {
 				expect(method.input, `${service.name}.${name} input`).toHaveProperty("description", expect.any(String));
 				expect(method.output, `${service.name}.${name} output`).toHaveProperty("description", expect.any(String));
 			}
+		}
+	});
+});
+
+describe("the contract figures (decision A72)", () => {
+	it("names the old three methods of the cast that the router asks", () => {
+		expect(FiguresService.name).toBe("figures");
+		expect(Object.entries(FiguresService.methods).map(([name, method]) => [name, method.kind])).toEqual([
+			["isActive", "query"],
+			["receive", "command"],
+			["collected", "command"],
+		]);
+	});
+
+	it("describes every input and output schema", () => {
+		for (const [name, method] of Object.entries(FiguresService.methods)) {
+			expect(method.input, `figures.${name} input`).toHaveProperty("description", expect.any(String));
+			expect(method.output, `figures.${name} output`).toHaveProperty("description", expect.any(String));
 		}
 	});
 });

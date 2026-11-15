@@ -21,7 +21,7 @@ mechanics check and record their Director's texts through the service `notes`.
 | Id | `channels` |
 | Summary | Talk in the city: the public board, direct messages, private notices and groups with a treasury. |
 | Requires | none |
-| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` (from [receipts](../receipts/README.md)), `identity`, `allowance` (from [marks](../marks/README.md)) |
+| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` (from [receipts](../receipts/README.md)), `identity`, `allowance` (from [marks](../marks/README.md)), `figures` (from [cast](../cast/README.md)) |
 | Provides | `channels`, `notices`, `notes` |
 | State | kept, snapshot slice version 4 |
 | Games | [city-slice](../../games/city-slice/README.md) |
@@ -114,7 +114,15 @@ those handlers too.
 **Not in this cut:** the check of a private thought in a note, which needs a contract of the Confessor's labels
 (decision A62); the hand-over check of a post, which
 other mechanics make in their own handlers; the notice to the recipient of a withdrawal with its receipt (the
-provider of `receipt-source` sends it); messages to or from a cast member; the exemption of the accused of a holdout tribunal from the cap.
+provider of `receipt-source` sends it); the exemption of the accused of a holdout tribunal from the cap.
+
+**Messages to and from a figure** (decision A72). `sendDM` asks `figures.isActive` first: a message to an active
+figure (STEWARD of the cast) gets the city's next number and goes to its provider with `figures.receive`, with no cap,
+mailbox or record; a sender that is new in a collection is told with `figures.collected` in the `after` handler of
+`channels`, after the charge of a mechanic loaded before it (`marks` in the City), as the old order was. Without a
+provider, or for a hidden or retired figure, the message is refused `UNKNOWN_AGENT` as before. The command `deliver`
+is a message of a sender that is no resident (the script's action `dm`): always delivered, numbered, with no cap,
+record, receipt or notice.
 
 **`dm_delivered` is written while input lines are built.** The `turnInputs` hook of this mechanic writes events
 (`dm_delivered` and the `notice` for the sender). The kernel allows it: `test/emit-in-inputs.test.ts` is the first
@@ -518,6 +526,7 @@ The city's voice (posts on the public board, private notices, its own groups), t
 | --- | --- | --- | --- | --- |
 | `post` | command | author: string, text: string, kind?: "city" or "system" | { postSeq: integer } | Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is. |
 | `notify` | command | to: string, author: string, text: string | null | Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws. |
+| `deliver` | command | from: string, to: string, text: string | { number: integer } | A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws. |
 | `dmRecords` | query | - | { from: string, to: string, text: string, number: integer, tick: integer, answered: boolean, deliveredTick?: integer, deliveredAfter?: integer }[] | Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`). |
 | `boardPost` | query | number: integer | { number: integer, author: string, text: string, tick: integer } or null | The board post with the city's message number `number`, of a resident or of the city; null when no board post has it. |
 | `pendingDms` | query | resident: string | integer | How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident. |

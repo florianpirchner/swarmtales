@@ -19,7 +19,7 @@ import { LedgerEvents } from "@swarmtales/mechanic-ledger/contract";
 import { defineMechanic } from "@swarmtales/sdk";
 import { ChannelsEvents, ChannelsService, NotesService } from "./contract.ts";
 import { defy, defyLock } from "./defy.ts";
-import { sendDm } from "./dms.ts";
+import { deliverFrom, sendDm, tellCollected } from "./dms.ts";
 import { addGroupMember, checkGroupPost, createGroup, leaveGroup, listMyGroups, postGroup, readGroup, removeGroupMember, setTreasurer } from "./group-actions.ts";
 import { groupSamples } from "./group-samples.ts";
 import { channelsHead } from "./head.ts";
@@ -76,6 +76,7 @@ export const channels = defineMechanic(channelsHead, {
 				notify(ctx, input.to, input.author, input.text);
 				return null;
 			},
+			deliver: (input, ctx) => ({ number: deliverFrom(ctx, input.from, input.to, input.text) }),
 			dmRecords: (_input, ctx) => ctx.state.dms.map(dmRecordOf),
 			boardPost: (input, ctx) => {
 				const post = ctx.state.board.all(input.number - 1).find((candidate) => candidate.seq === input.number);
@@ -126,10 +127,14 @@ export const channels = defineMechanic(channelsHead, {
 		notify: { sample: sampleNotify, check: (params, ctx) => checkNotify(ctx, params.agent, params.text), run: (params, ctx) => runNotify(ctx, params.agent, params.text) },
 		boardNote: { sample: sampleBoardNote, check: (params, ctx) => checkBoardNote(ctx, params.text), run: (params, ctx) => runBoardNote(ctx, params.text) },
 	},
-	// `defy` is closed unless the game opens it; a memo past the window of the cap is refused like a direct message.
+	// `defy` is closed unless the game opens it; a memo past the window of the cap is refused like a direct message; a
+	// message to a figure tells it a new sender once the call is through.
 	pipeline: {
 		lock: (call, ctx) => (call.resident === undefined ? undefined : defyLock(call.tool, call.owner, ctx)),
 		rule: (call, ctx) => memoCap(call.tool, call.resident, call.params, ctx),
+		after: (_call, _outcome, ctx) => {
+			tellCollected(ctx);
+		},
 	},
 	listeners: (kit) => [
 		kit.listen(LedgerEvents, "transfer", (transfer, ctx) => {

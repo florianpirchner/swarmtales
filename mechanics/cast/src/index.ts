@@ -3,7 +3,8 @@
  * The `cast` mechanic, carried from the old `mechanics/cast`: named figures the script plays (STEWARD, the host of the
  * City's feast). It provides the service `cast`: the script reveals and retires members, pays from their escrow,
  * starts and shortens collections of direct messages, publishes them and draws lotteries among their senders; a
- * message to a member is handed in with `receive`. It provides `cast-extras` for the `listAgents` of `progression`
+ * message to a member is handed in with `receive`, which `channels` calls through the service `figures` of
+ * `mechanics/contracts` (with `isActive` and `collected`). It provides `cast-extras` for the `listAgents` of `progression`
  * and reads the first solve of a level from `progression.submission`, never by asking `progression` (J73). A
  * collection whose window also ends some ticks after the first solve of a level is shortened at the tick start,
  * after the tick starts that came before it on `legacy` and before the script's. An escrow payment writes
@@ -97,6 +98,20 @@ function flip(ctx: CastCtx, cast: string, what: "reveal" | "retire"): boolean {
 	return true;
 }
 
+const isActive = ({ cast: id }: { readonly cast: string }, ctx: CastCtx): boolean => activeMembers(ctx.state).some((member) => member.id === id);
+
+// A resident's message to a member after the router's checks (old `receive`): collected while a collection runs.
+function receive(input: { readonly from: string; readonly cast: string; readonly text: string; readonly number: number }, ctx: CastCtx): { collections: string[]; newSender: string[] } {
+	const collected = collect(ctx.state, input.cast, { from: input.from, text: input.text, minute: ctx.tick });
+	ctx.emit("cast_dm", { from: input.from, cast: input.cast, text: input.text, collections: collected.collections, number: input.number });
+	return collected;
+}
+
+function collected(input: { readonly from: string; readonly cast: string; readonly into: readonly string[] }, ctx: CastCtx): null {
+	ctx.emit("cast_collected", { from: input.from, cast: input.cast, into: [...input.into] });
+	return null;
+}
+
 /**
  * The cast of a game: its figures, their escrow, collections and lotteries.
  *
@@ -110,20 +125,13 @@ function flip(ctx: CastCtx, cast: string, what: "reveal" | "retire"): boolean {
 export const cast = defineMechanic(castHead, {
 	services: {
 		cast: {
-			isActive: ({ cast: id }, ctx) => activeMembers(ctx.state).some((member) => member.id === id),
+			isActive,
 			collection: ({ into }, ctx) => {
 				const collection = collectionOf(ctx.state, into);
 				return collection === undefined ? null : { first: collection.first, untilMinute: collection.untilMinute, entries: collection.entries.length };
 			},
-			receive: ({ from, cast: id, text, number }, ctx) => {
-				const collected = collect(ctx.state, id, { from, text, minute: ctx.tick });
-				ctx.emit("cast_dm", { from, cast: id, text, collections: collected.collections, number });
-				return collected;
-			},
-			collected: ({ from, cast: id, into }, ctx) => {
-				ctx.emit("cast_collected", { from, cast: id, into: [...into] });
-				return null;
-			},
+			receive,
+			collected,
 			setLevel: ({ cast: id, level }, ctx) => {
 				const member = memberOf(ctx.state, id);
 				if (member === undefined) return null;
@@ -147,6 +155,8 @@ export const cast = defineMechanic(castHead, {
 			drawLottery,
 		},
 		"cast-extras": { active: (_input, ctx) => [...activeMembers(ctx.state)] },
+		// The same three methods for the router of `channels`, which cannot import the contract of the cast (decision A72).
+		figures: { isActive, receive, collected },
 	},
 	listeners: (kit) => [
 		// The first solve of each level, which the old cast asked of the progression (`firstSolveMinute`).

@@ -316,6 +316,18 @@ text: Type.TString;
 }>;
 readonly output: Type.TNull;
 };
+readonly deliver: {
+readonly kind: "command";
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+};
 readonly dmRecords: {
 readonly kind: "query";
 readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
@@ -327,7 +339,43 @@ text: Type.TString;
 number: Type.TInteger;
 tick: Type.TInteger;
 answered: Type.TBoolean;
+deliveredTick: Type.TOptional<Type.TInteger>;
+deliveredAfter: Type.TOptional<Type.TInteger>;
 }>>;
+};
+readonly boardPost: {
+readonly kind: "query";
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly pendingDms: {
+readonly kind: "query";
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly dmWindow: {
+readonly kind: "query";
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+sent: Type.TInteger;
+limit: Type.TInteger;
+from: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
 };
 readonly createCityGroup: {
 readonly kind: "command";
@@ -540,6 +588,39 @@ readonly output: Type.TArray<Type.TObject<{
 id: Type.TString;
 level: Type.TInteger;
 }>>;
+};
+}>, ServiceDefinition<"figures", {
+readonly isActive: {
+readonly kind: "query";
+readonly summary: "Whether a resident may write to this figure now: it exists, is not hidden and not retired (old `cast.isActive`).";
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly receive: {
+readonly kind: "command";
+readonly summary: "A resident's direct message to a figure, after the checks of the router: collected while a collection runs; writes `cast_dm` with the number the router took.";
+readonly input: Type.TObject<{
+from: Type.TString;
+cast: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+}>;
+readonly output: Type.TObject<{
+collections: Type.TArray<Type.TString>;
+newSender: Type.TArray<Type.TString>;
+}>;
+};
+readonly collected: {
+readonly kind: "command";
+readonly summary: "The message's marks were spent: `from` is a new sender in `into` (the `newSender` of `receive`); writes `cast_collected`.";
+readonly input: Type.TObject<{
+from: Type.TString;
+cast: Type.TString;
+into: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TNull;
 };
 }>], [], Readonly<Record<symbol, never>>>;
 

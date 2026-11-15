@@ -92,6 +92,42 @@ readonly output: Type.TBoolean;
 }>;
 
 // @public
+export const FiguresService: ServiceDefinition<"figures", {
+readonly isActive: {
+readonly kind: "query";
+readonly summary: "Whether a resident may write to this figure now: it exists, is not hidden and not retired (old `cast.isActive`).";
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly receive: {
+readonly kind: "command";
+readonly summary: "A resident's direct message to a figure, after the checks of the router: collected while a collection runs; writes `cast_dm` with the number the router took.";
+readonly input: Type.TObject<{
+from: Type.TString;
+cast: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+}>;
+readonly output: Type.TObject<{
+collections: Type.TArray<Type.TString>;
+newSender: Type.TArray<Type.TString>;
+}>;
+};
+readonly collected: {
+readonly kind: "command";
+readonly summary: "The message's marks were spent: `from` is a new sender in `into` (the `newSender` of `receive`); writes `cast_collected`.";
+readonly input: Type.TObject<{
+from: Type.TString;
+cast: Type.TString;
+into: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+}>;
+
+// @public
 export const IdentityService: ServiceDefinition<"identity", {
 readonly nameOf: {
 readonly kind: "query";

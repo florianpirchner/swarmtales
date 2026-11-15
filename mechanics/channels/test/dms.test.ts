@@ -92,6 +92,26 @@ describe("direct messages", () => {
 		expect(await say(testKernel(game(), { resume }), "A03", "cityRecords", {})).toBe(delivered);
 	});
 
+	it("delivers a message of a sender that is no resident always, numbered, with no cap, record, receipt or notice (old deliver)", async () => {
+		const test = testKernel(game());
+		await say(test, "A03", "postBoard", { message: "public" });
+		expect(await say(test, "A01", "cityDeliver", { from: "STEWARD", to: "A02", text: "Your seat is ready." })).toBe('{"number":2}');
+		expect(await say(test, "A01", "cityDeliver", { from: "STEWARD", to: "A02", text: "Come at seven." })).toBe('{"number":3}');
+		expect(payloads(test.kernel.log.all(), "dm_sent")).toEqual([
+			{ from: "STEWARD", to: "A02", text: "Your seat is ready.", number: 2 },
+			{ from: "STEWARD", to: "A02", text: "Come at seven.", number: 3 },
+		]);
+		expect(await say(test, "A01", "cityRecords", {})).toBe("[]");
+		expect(await idle(test, 2)).toEqual(["0:A01", "0:A02 dm|[DM #2 from STEWARD] Your seat is ready. dm|[DM #3 from STEWARD] Come at seven.", "0:A03", "1:A01", "1:A02", "1:A03"]);
+		expect([payloads(test.kernel.log.all(), "dm_delivered"), payloads(test.kernel.log.all(), "notice")]).toEqual([[], []]);
+	});
+
+	it("refuses a message to a figure as an unknown resident while no mechanic provides figures", async () => {
+		const test = testKernel(game());
+		expect(await say(test, "A01", "sendDM", { target: "STEWARD", message: "hello" })).toBe("UNKNOWN_AGENT: STEWARD");
+		expect(test.kernel.log.all().map((event) => event.type)).not.toContain("cast_dm");
+	});
+
 	it("shows the old text of the tool, with the old parameters", () => {
 		const spec = testKernel(game()).kernel.toolSpecs("resident").find((tool) => tool.name === "sendDM");
 		expect(spec?.description).toBe(

@@ -83,6 +83,8 @@ export interface ChannelsState {
 	readonly notes: NoteRecord[];
 	/** The board's newest player post when a resident's inputs were built; not saved, it is taken again in every activation. */
 	readonly taken: Map<string, number>;
+	/** A message to a figure whose sender is new in a collection, told to the figure once the call is paid; not saved, it lives within one call. */
+	readonly collecting: { readonly from: string; readonly cast: string; readonly into: readonly string[] }[];
 }
 
 /**
@@ -103,6 +105,7 @@ export function newState(residents: readonly string[]): ChannelsState {
 		memos: [],
 		notes: [],
 		taken: new Map(),
+		collecting: [],
 	};
 }
 
