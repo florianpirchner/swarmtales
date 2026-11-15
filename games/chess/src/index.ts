@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game: chess. The issues of milestone M4 fill this package.
+ * Game: chess, a match of chess games between two solo seats.
  *
  * @packageDocumentation
  */
-export {};
+export { chessGame, default, ticksFor, type ChessOptions } from "../game.ts";
+export { briefings, SEATS } from "../briefing.ts";

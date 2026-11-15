@@ -37,3 +37,8 @@ platform locks `playMove` and `resign` for everyone but the captain of the move,
 has a post: the advisor is woken once per half-move, and where the seeded order of a pass puts the captain first,
 the move is played before the advice. No recorded run at revision 1 replays exactly (a move ends the turn since
 revision 2).
+
+Registered difference (M4-29, as M4-20 registered it for liar's dice): no file of `oracles/` carries `call.endsTurn`,
+although the format names it and the old mechanic set it on every accepted `playMove` and `resign` (old
+`mechanics/chess/src/index.ts`, lines 449 and 578). The oracle tests of the mechanic and of the game write it back
+into those call entries before they compare; without it the first difference of a file with a move is that flag.

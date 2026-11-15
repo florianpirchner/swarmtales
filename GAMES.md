@@ -1,6 +1,6 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. Six games run on the new platform today, each with a scripted
+The catalogue of the games that run on Swarm Tales. Nine games run on the new platform today, each with a scripted
 or sampled player in place of a model. The first live runs on this platform are those of the gate of milestone M2
 ([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding or a recorded moment yet:** a finding appears
 on a card only when it is reproduced on this platform, with n, standard error and a link.
@@ -21,6 +21,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Lanterns](#lanterns) | cooperation under hidden information | 6 (two teams of three) | `clue-grid`, `team-channel`, `strategy-brain` | none; variants are options of `lanternsGame` | four oracle files match at level 3 |
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 | [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
+| [Chess](#chess) | board games, all information public | 2 | `chess`, `team-channel`, `strategy-brain` | none; variants are options of `chessGame` | the five oracle files of the default, the fresh context and the compact board match at level 3 |
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
 old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
@@ -151,16 +152,31 @@ probability baseline, for the report only.
   lack the flag `endsTurn`, which follows from the reply); the briefings are byte-identical.
 - Links: [folder](games/liars-dice/), [README](games/liars-dice/README.md), [oracle files](oracles/liars-dice/).
 
+## Chess
+
+Two solo seats (A01, A02) play a match of chess games with alternating colours. A move is text: chess.js plays a
+legal one, refuses an illegal one (the board stays) and ends the game on mate, stalemate, repetition, the fifty-move
+rule or insufficient material. A move cap scores long games on material, and a seat that does not move gets a
+seeded legal move played for it until three such moves lose the game. Every game starts from a fresh context; a
+seat's only memory is a short private strategy brain. The mechanic scores every move against a one-ply material
+baseline, for the report only.
+
+- Variants are options of `chessGame`: the games, the move cap, a fresh context per move, the compact board. The
+  legal-move list, the loose pieces, the coach, the teams and the control arm follow with the next chess issue.
+- Proof: the five oracle files of these variants match at level 3, three of them up to their cut, with one declared
+  mapping (the files lack the flag `endsTurn`, which every accepted move sets); the briefings are byte-identical.
+- Links: [folder](games/chess/), [README](games/chess/README.md), [oracle files](oracles/chess/).
+
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families. Four are ported so far, marked in bold; the Hello Game and the city slice are new and are
+five families. Seven are ported so far, marked in bold; the Hello Game and the city slice are new and are
 not among the fifteen.
 
 | Family | Games |
 |---|---|
 | Societies | City of Keys, Whispers |
-| Board games, all information public | chess, nine men's morris, **tic-tac-toe teams (ported)** |
+| Board games, all information public | **chess (ported)**, nine men's morris, **tic-tac-toe teams (ported)** |
 | Hidden information and bluff | Hold'em, **Liar's Dice (ported)**, Convoy |
 | Cooperation under hidden information | **Harbor Lights (ported)**, **Lanterns (ported)** |
 | Markets, bids and economics | **Econ Lab (ported)**, Salt Market, Blind Bid, **Quarry (ported)**, Ember Tricks |
