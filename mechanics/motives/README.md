@@ -16,7 +16,7 @@ resident's system prompt as who it is, never as what to do, and it never changes
 | Id | `motives` |
 | Summary | The private core motives dealt to residents. |
 | Requires | none |
-| Uses when loaded | `whispers` (from [whispers](../whispers/README.md)), `identity` |
+| Uses when loaded | `whispers` (from [whispers](../whispers/README.md)), `identity` (from [names](../names/README.md)) |
 | Provides | `motives` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |

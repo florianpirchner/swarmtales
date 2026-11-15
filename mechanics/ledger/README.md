@@ -15,7 +15,7 @@ through the service `ledger`, so the log explains every balance.
 | Id | `ledger` |
 | Summary | Points per account and bookings between accounts. |
 | Requires | `roster` |
-| Uses when loaded | `identity`, `receipt-source` (from [receipts](../receipts/README.md)) |
+| Uses when loaded | `identity` (from [names](../names/README.md)), `receipt-source` (from [receipts](../receipts/README.md)) |
 | Provides | `ledger`, `exile-purse` |
 | State | kept, snapshot slice version 1 |
 | Games | [city-slice](../../games/city-slice/README.md) |

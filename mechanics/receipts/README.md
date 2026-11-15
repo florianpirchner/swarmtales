@@ -17,7 +17,7 @@ platform in two halves (M5-21, M5-22).
 | Id | `receipts` |
 | Summary | Receipts the city verifies, for transfers, treasuries, solved levels and delivered direct messages, showReceipt, and blame with a judge. |
 | Requires | `channels` (from [channels](../channels/README.md)), `ledger` (from [ledger](../ledger/README.md)) |
-| Uses when loaded | `identity`, `allowance` (from [marks](../marks/README.md)), `exile` (from [exile](../exile/README.md)), `progression` (from [progression](../progression/README.md)), `deal` (from [puzzles](../puzzles/README.md)) |
+| Uses when loaded | `identity` (from [names](../names/README.md)), `allowance` (from [marks](../marks/README.md)), `exile` (from [exile](../exile/README.md)), `progression` (from [progression](../progression/README.md)), `deal` (from [puzzles](../puzzles/README.md)) |
 | Provides | `receipt-source` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |

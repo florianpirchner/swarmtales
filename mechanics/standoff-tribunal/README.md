@@ -16,7 +16,7 @@ issues: part 1 (M5-29) holds the blockers, the call and the grace; part 2 (M5-30
 | Id | `standoff-tribunal` |
 | Summary | The holdout tribunal over a resident who keeps a fragment back. |
 | Requires | `holdout-pieces` (from [puzzles](../puzzles/README.md)), `progression` (from [progression](../progression/README.md)), `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)), `notes` (from [channels](../channels/README.md)) |
-| Uses when loaded | `identity` |
+| Uses when loaded | `identity` (from [names](../names/README.md)) |
 | Provides | `cap-exemption` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |

@@ -156,7 +156,7 @@ Audience: everyone
 | `maxRounds` | integer ≥ 1 | `3` | Rounds (whole minutes with the team on move) without a played move before the deadlock rule applies. |
 | `onDeadlock` | "forfeitRandomLegalMove" or "refuse" | `"forfeitRandomLegalMove"` | At the deadlock: play a random legal value for the team and count a forfeit, or only keep refusing the gated tool. |
 | `maxConsecutiveForfeits` | integer ≥ 0 | `0` | Forfeits in a row with no agreed move between them after which the match is invalid (match_invalid) and the run ends; 0 = off. |
-| `teams` | record of string[] | `{}` | The teams that must agree, by the names the ConsensusSourceApi provider uses. |
+| `teams` | record of string[] | `{}` | The teams that must agree, by the team ids the ConsensusSourceApi provider uses. |
 
 <!-- /generated:options -->
 

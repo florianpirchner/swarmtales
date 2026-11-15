@@ -18,7 +18,7 @@ away itself.
 | Id | `exile` |
 | Summary | Banishing a resident: the gate, the ransom, the last will, one event and one suspension. |
 | Requires | none |
-| Uses when loaded | `exile-purse` (from [ledger](../ledger/README.md)), `identity`, `notices` (from [channels](../channels/README.md)) |
+| Uses when loaded | `exile-purse` (from [ledger](../ledger/README.md)), `identity` (from [names](../names/README.md)), `notices` (from [channels](../channels/README.md)) |
 | Provides | `exile` |
 | State | kept, snapshot slice version 1 |
 | Games | [city-slice](../../games/city-slice/README.md) |
@@ -111,7 +111,7 @@ Audience: everyone
 | --- | --- | --- | --- |
 | `agent` | string | yes | The resident that was banished |
 | `will` | string | no | The text of its last will, when the gate closed on one |
-| `by` | string | no | Who banished it: the `by` of the call of `banish`, or the id of the calling plugin when the call names none |
+| `by` | string | no | Who banished it: the `by` of the call of `banish`, or the id of the calling plugin when the call gives none |
 
 ### `exile_gate`
 

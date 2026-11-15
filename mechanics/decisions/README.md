@@ -101,7 +101,7 @@ Audience: everyone
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `decision` | string | yes | The id of the decision: `D1`, `D2`, in the order they were opened. |
-| `kind` | string | yes | What is decided, as the owning mechanic names it: `<mechanic>.<decision>`. |
+| `kind` | string | yes | What is decided, as the owning mechanic calls it: `<mechanic>.<decision>`. |
 | `owner` | string | yes | The id of the mechanic that proposed the decision and commits it. |
 | `proposal` | any | yes | The proposal: plain JSON data, shaped as the owner says. |
 | `schema` | any | no | A JSON schema every amended proposal must fit. |
@@ -127,7 +127,7 @@ Audience: everyone
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `decision` | string | yes | The id of the decision: `D1`, `D2`, in the order they were opened. |
-| `kind` | string | yes | What is decided, as the owning mechanic names it: `<mechanic>.<decision>`. |
+| `kind` | string | yes | What is decided, as the owning mechanic calls it: `<mechanic>.<decision>`. |
 | `owner` | string | yes | The id of the mechanic that proposed the decision and commits it. |
 | `changed` | boolean | yes | True when an amendment stands and differs from the original proposal. |
 | `by` | string | no | The actor id of the holder that amended the decision. |

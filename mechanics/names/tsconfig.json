@@ -11,5 +11,33 @@
 		"src",
 		"test"
 	],
-	"references": []
+	"references": [
+		{
+			"path": "../../packages/contracts"
+		},
+		{
+			"path": "../../packages/sdk"
+		},
+		{
+			"path": "../contracts"
+		},
+		{
+			"path": "../channels"
+		},
+		{
+			"path": "../exile"
+		},
+		{
+			"path": "../progression"
+		},
+		{
+			"path": "../puzzles"
+		},
+		{
+			"path": "../ledger"
+		},
+		{
+			"path": "../../packages/testkit"
+		}
+	]
 }

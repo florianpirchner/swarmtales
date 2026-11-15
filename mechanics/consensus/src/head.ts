@@ -54,7 +54,7 @@ const options = Type.Object({
 	maxConsecutiveForfeits: Type.Integer({ minimum: 0, default: 0, description: "Forfeits in a row with no agreed move between them after which the match is invalid (match_invalid) and the run ends; 0 = off." }),
 	teams: Type.Record(Type.String(), Type.Array(Type.String(), { description: "Resident ids of one team, the captain included." }), {
 		default: {},
-		description: "The teams that must agree, by the names the ConsensusSourceApi provider uses.",
+		description: "The teams that must agree, by the team ids the ConsensusSourceApi provider uses.",
 	}),
 });
 

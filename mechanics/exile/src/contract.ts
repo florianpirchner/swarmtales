@@ -40,7 +40,7 @@ export const Exiled = Type.Object(
 	{
 		agent: Type.String({ description: "The resident that was banished" }),
 		will: Type.Optional(Type.String({ description: "The text of its last will, when the gate closed on one" })),
-		by: Type.Optional(Type.String({ description: "Who banished it: the `by` of the call of `banish`, or the id of the calling plugin when the call names none" })),
+		by: Type.Optional(Type.String({ description: "Who banished it: the `by` of the call of `banish`, or the id of the calling plugin when the call gives none" })),
 	},
 	{ additionalProperties: false, description: "A resident was banished; it is suspended from now on" },
 );
@@ -96,7 +96,7 @@ export const BanishResult = Type.Object(
 	{
 		ok: Type.Boolean({ description: "True when this call banished the resident" }),
 		code: Type.Optional(
-			Type.Union([Type.Literal("UNKNOWN_RESIDENT", { description: "The id names no resident of the run" }), Type.Literal("ALREADY_EXILED", { description: "The resident was banished before" })], {
+			Type.Union([Type.Literal("UNKNOWN_RESIDENT", { description: "The id is no resident of the run" }), Type.Literal("ALREADY_EXILED", { description: "The resident was banished before" })], {
 				description: "Why nothing happened; absent when `ok` is true",
 			}),
 		),

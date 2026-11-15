@@ -15,7 +15,7 @@ looks. Its place in the layer table is in [`docs/LAYERS.md`](../../docs/LAYERS.m
 | Id | `interpretations` |
 | Summary | The Confessor's labels of what residents say, and the conversations it remembers. |
 | Requires | none |
-| Uses when loaded | `identity` |
+| Uses when loaded | `identity` (from [names](../names/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |

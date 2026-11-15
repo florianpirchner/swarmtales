@@ -17,7 +17,7 @@ const Amendment = Type.Object(
 
 const Open = Type.Object(
 	{
-		kind: Type.String({ description: "What is decided, as the owner names it." }),
+		kind: Type.String({ description: "What is decided, as the owner calls it." }),
 		owner: Type.String({ description: "The id of the mechanic that proposed it." }),
 		proposal: Type.Unknown({ description: "The original proposal." }),
 		schema: Type.Optional(Type.Unknown({ description: "A JSON schema every amended proposal must fit." })),
@@ -43,7 +43,7 @@ export const head = defineHead({
 	// Runs while the kernel is created, for a fresh run and a resumed one: a holder that is no actor of the run is `SWT-G020`.
 	start: ({ options, actors }) => {
 		const unknown = options.holders.findIndex((holder) => !actors.some((actor) => actor === holder));
-		if (unknown >= 0) throw new SwtError(optionMismatch({ owner: "decisions", package: "@swarmtales/mechanic-decisions", path: `options.holders[${String(unknown)}]`, message: `names "${options.holders[unknown] ?? ""}", which is no actor of the run` }));
+		if (unknown >= 0) throw new SwtError(optionMismatch({ owner: "decisions", package: "@swarmtales/mechanic-decisions", path: `options.holders[${String(unknown)}]`, message: `holds "${options.holders[unknown] ?? ""}", which is no actor of the run` }));
 		return { next: 1, open: {} };
 	},
 	events: DecisionsEvents.events,

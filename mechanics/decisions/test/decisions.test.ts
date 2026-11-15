@@ -17,7 +17,7 @@ describe("decisions", () => {
 	it("refuses a holder that is no actor of the run before the run starts", async () => {
 		const refused = await decide({ window: 2 }, ["resident:A02", "director:warden"]).catch((thrown: unknown) => thrown);
 		expect(refused).toBeInstanceOf(SwtError);
-		expect(refused instanceof SwtError ? refused.issues.map((issue) => [issue.code, issue.summary]) : []).toEqual([["SWT-G020", '`options.holders[1]` of the mechanic "decisions" names "director:warden", which is no actor of the run']]);
+		expect(refused instanceof SwtError ? refused.issues.map((issue) => [issue.code, issue.summary]) : []).toEqual([["SWT-G020", '`options.holders[1]` of the mechanic "decisions" holds "director:warden", which is no actor of the run']]);
 	});
 
 	it("commits at once with a window of 0 and writes nothing", async () => {
