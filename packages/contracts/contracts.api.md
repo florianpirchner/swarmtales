@@ -33,7 +33,7 @@ export interface Activation {
 export type ActorDriver = (activation: Activation) => Promise<DriverResult | undefined> | Promise<void>;
 
 // @public
-export type ActorId = `${string}:${string}` | "human" | "script" | "kernel";
+export type ActorId = `${string}:${string}` | "human" | "kernel" | "script";
 
 // @public
 export function actorId(kind: string, name: string): ActorId;
@@ -120,7 +120,7 @@ export interface Envelope<T extends string = string, P = unknown> {
 // @public
 export function envelopeLogIssues(lines: readonly unknown[]): readonly {
     readonly line: number;
-    readonly kind: "envelope" | "seq" | "tick" | "causedBy" | "basis";
+    readonly kind: "basis" | "causedBy" | "envelope" | "seq" | "tick";
     readonly reason: string;
 }[];
 
@@ -503,7 +503,7 @@ export type ModelAnswer = {
     readonly costUsd: number;
 } | {
     readonly ok: false;
-    readonly reason: "limit" | "invalid" | "error";
+    readonly reason: "error" | "invalid" | "limit";
     readonly detail: string;
 };
 
@@ -696,7 +696,7 @@ export interface ReviewRequest {
 // @public
 export interface RunEnd {
     readonly limit?: string;
-    readonly reason: "ticks" | "limit" | "error";
+    readonly reason: "error" | "limit" | "ticks";
     readonly tick: number;
 }
 
@@ -803,7 +803,7 @@ export interface SchedulePort {
 // @public
 export interface SchedulerDefinition<O = unknown> {
     create(options: O): SchedulerInstance;
-    readonly determinism: "seeded" | "recorded";
+    readonly determinism: "recorded" | "seeded";
     readonly events: EventSchemas;
     readonly id: string;
     readonly options: TSchema;

@@ -44,13 +44,13 @@ export const ChainCheckpointSchema: Type.TObject<{
 }>;
 
 // @public
-export type ChainFault = "chain" | "signature" | "unsigned" | "manifest" | "continuity";
+export type ChainFault = "chain" | "continuity" | "manifest" | "signature" | "unsigned";
 
 // @public
 export type ChainGenesis = Static<typeof ChainGenesisSchema>;
 
 // @public
-export type ChainGenesisInput = Omit<ChainGenesis, "format" | "version" | "algorithm" | "digest" | "canonical" | "publicKey">;
+export type ChainGenesisInput = Omit<ChainGenesis, "algorithm" | "canonical" | "digest" | "format" | "publicKey" | "version">;
 
 // @public
 export const ChainGenesisSchema: Type.TObject<{
@@ -87,7 +87,7 @@ export const ChainGenesisSchema: Type.TObject<{
 export type ChainGenesisV2 = Static<typeof ChainGenesisV2Schema>;
 
 // @public
-export type ChainGenesisV2Input = Omit<ChainGenesisV2, "format" | "version" | "algorithm" | "digest" | "canonical" | "publicKey">;
+export type ChainGenesisV2Input = Omit<ChainGenesisV2, "algorithm" | "canonical" | "digest" | "format" | "publicKey" | "version">;
 
 // @public
 export const ChainGenesisV2Schema: Type.TObject<{

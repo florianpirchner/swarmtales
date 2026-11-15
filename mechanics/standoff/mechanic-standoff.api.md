@@ -151,7 +151,7 @@ agent: TString;
 points: TInteger;
 }>>;
 }>;
-}, "ultimatum" | "claimPiece">;
+}, "claimPiece" | "ultimatum">;
 
 // @public
 export const STANDOFF_PROMPTS: {

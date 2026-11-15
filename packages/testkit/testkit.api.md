@@ -64,7 +64,7 @@ export function checkResumeEveryBoundary(game: Game | GameData, drivers: Standin
 export function checkSnapshotRoundTrip(game: Game | GameData, driver: () => ActorDriver, cut: number, options?: ConformanceOptions): Promise<readonly string[]>;
 
 // @public
-export type ConformanceOptions = Pick<PlayOptions, "seed" | "prompts" | "installed">;
+export type ConformanceOptions = Pick<PlayOptions, "installed" | "prompts" | "seed">;
 
 // @public
 export function countsOf(timeline: readonly OracleEntry[]): Oracle["counts"];
@@ -178,7 +178,7 @@ export type OracleLevel = 1 | 2 | 3;
 // @public
 export interface OracleMismatch {
     readonly actual: unknown;
-    readonly at: "setup" | "call" | "event" | "inputs" | "turn" | "end";
+    readonly at: "call" | "end" | "event" | "inputs" | "setup" | "turn";
     readonly expected: unknown;
     readonly index: number;
     readonly level: OracleLevel;
@@ -421,7 +421,7 @@ export function scriptedDriver(plan: Plan, record?: CallRecord[]): ActorDriver;
 export type StandingDrivers = (kernel: Kernel) => DriverTable;
 
 // @public
-export interface StandingOptions extends Pick<PlayOptions, "seed" | "prompts" | "installed" | "params" | "records"> {
+export interface StandingOptions extends Pick<PlayOptions, "installed" | "params" | "prompts" | "records" | "seed"> {
     readonly boundaries?: readonly number[];
 }
 

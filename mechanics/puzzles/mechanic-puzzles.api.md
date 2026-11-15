@@ -72,7 +72,7 @@ export interface FactorHolding {
 }
 
 // @public
-export type FactorTopology = "mutual" | "cycle" | "crossTeam";
+export type FactorTopology = "crossTeam" | "cycle" | "mutual";
 
 // @public
 export interface FragmentPuzzle {

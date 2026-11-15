@@ -240,7 +240,7 @@ missed: Type.TInteger;
 match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-}, "viewAuction" | "bid">;
+}, "bid" | "viewAuction">;
 
 // @public
 export type SealedAuctionCtx = CtxOf<typeof sealedAuctionHead>;
@@ -296,7 +296,7 @@ bids: Record<string, number>;
 lots: {
 worth?: number;
 number: number;
-kind: "first-price" | "second-price" | "common";
+kind: "common" | "first-price" | "second-price";
 values: Record<string, number>;
 }[];
 lot: number;
@@ -313,7 +313,7 @@ reasons: Record<string, string>;
 results: {
 winner?: string;
 number: number;
-kind: "first-price" | "second-price" | "common";
+kind: "common" | "first-price" | "second-price";
 bids: Record<string, number>;
 price: number;
 profit: number;

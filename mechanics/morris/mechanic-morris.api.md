@@ -141,7 +141,7 @@ draw: Type.TInteger;
 }>;
 invalid: Type.TOptional<Type.TBoolean>;
 }>;
-}, "viewBoard" | "playMove">;
+}, "playMove" | "viewBoard">;
 
 // @public
 export type MorrisCtx = CtxOf<typeof morrisHead>;
@@ -485,7 +485,7 @@ export interface MorrisState {
 export type MorrisView = ViewOf<typeof morrisHead>;
 
 // @public
-export type MoveClass = "best" | "inaccuracy" | "blunder" | "missed_win";
+export type MoveClass = "best" | "blunder" | "inaccuracy" | "missed_win";
 
 // @public
 export const NEIGHBOURS: readonly (readonly number[])[];
@@ -543,7 +543,7 @@ export const Side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
 export type Side = Static<typeof Side>;
 
 // @public
-export type Stage = "place" | "move" | "fly";
+export type Stage = "fly" | "move" | "place";
 
 // @public
 export function stageOf(position: Position, side: Side, flying: boolean): Stage;

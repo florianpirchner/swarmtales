@@ -101,7 +101,7 @@ mutualCooperation: Type.TOptional<Type.TNumber>;
 match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-}, "contribute" | "offer" | "respond" | "choose" | "viewTable">;
+}, "choose" | "contribute" | "offer" | "respond" | "viewTable">;
 
 // @public
 export type EconGamesCtx = CtxOf<typeof econGamesHead>;

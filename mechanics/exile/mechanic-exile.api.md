@@ -59,7 +59,7 @@ to: Type.TString;
 factor: Type.TString;
 }>]>>;
 }>;
-}, "payRansom" | "lastWill">;
+}, "lastWill" | "payRansom">;
 
 // @public
 export type ExileCtx = CtxOf<typeof exileHead>;

@@ -52,7 +52,7 @@ outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
 signatures: Type.TInteger;
 signers: Type.TArray<Type.TString>;
 }>;
-}, "resolvePetition" | "signPetition" | "listPetitions">;
+}, "listPetitions" | "resolvePetition" | "signPetition">;
 
 // @public
 export type PetitionsCtx = CtxOf<typeof petitionsHead>;
@@ -102,7 +102,7 @@ threshold: number;
 deadlineMinute: number;
 visibility: "public" | "secret";
 openedAt: number;
-status: "open" | "passed" | "failed";
+status: "failed" | "open" | "passed";
 signers: string[];
 }[];
 }, {

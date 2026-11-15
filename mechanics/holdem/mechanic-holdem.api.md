@@ -218,7 +218,7 @@ due: Type.TBoolean;
 hand?: {
 number: number;
 bet: number;
-street: "preflop" | "flop" | "turn" | "river";
+street: "flop" | "preflop" | "river" | "turn";
 board: string[];
 seats: string[];
 button: number;
@@ -234,12 +234,12 @@ log: ({
 missed?: boolean;
 kind: "action";
 seat: string;
-done: "fold" | "check" | "call" | "bet" | "raise" | "small blind" | "big blind";
+done: "bet" | "big blind" | "call" | "check" | "fold" | "raise" | "small blind";
 to: number;
-street: "preflop" | "flop" | "turn" | "river";
+street: "flop" | "preflop" | "river" | "turn";
 } | {
 kind: "board";
-street: "preflop" | "flop" | "turn" | "river";
+street: "flop" | "preflop" | "river" | "turn";
 cards: string[];
 })[];
 over: boolean;
@@ -247,8 +247,8 @@ over: boolean;
 seats: string[];
 game: number;
 decisions: {
-done: "fold" | "check" | "call" | "bet" | "raise";
-street: "preflop" | "flop" | "turn" | "river";
+done: "bet" | "call" | "check" | "fold" | "raise";
+street: "flop" | "preflop" | "river" | "turn";
 missed: boolean;
 toCall: number;
 hand: number;
@@ -259,7 +259,7 @@ opponents: number;
 equity: number;
 rangeEquity: number;
 potOdds: number;
-baseline: "fold" | "check" | "call" | "bet" | "raise";
+baseline: "bet" | "call" | "check" | "fold" | "raise";
 evLoss: number;
 }[];
 opened: number;
@@ -269,7 +269,7 @@ seenLog: Record<string, number>;
 seenResults: Record<string, number>;
 told: boolean;
 results: {
-street: "preflop" | "flop" | "turn" | "river";
+street: "flop" | "preflop" | "river" | "turn";
 board: string[];
 button: string;
 hand: number;

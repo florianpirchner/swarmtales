@@ -161,7 +161,7 @@ export interface LookInput {
     };
     readonly meter: CostMeter;
     readonly redact: Redact;
-    readonly settings: (actor: ActorId) => Pick<ModelSettings, "thinking" | "maxOutputTokens">;
+    readonly settings: (actor: ActorId) => Pick<ModelSettings, "maxOutputTokens" | "thinking">;
     readonly source: ModelSource;
 }
 

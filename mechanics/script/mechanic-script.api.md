@@ -229,7 +229,7 @@ export class FiringState {
     save(): DirectorSlice;
     readonly splitAnnounced: Set<string>;
     readonly splitSince: Map<string, number>;
-    readonly statuses: Map<string, "passed" | "failed" | "open">;
+    readonly statuses: Map<string, "failed" | "open" | "passed">;
 }
 
 // @public

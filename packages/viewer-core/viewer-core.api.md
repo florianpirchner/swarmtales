@@ -144,7 +144,7 @@ export interface Firing {
 interface Highlight_2 {
     readonly reason: string;
     readonly seq: number;
-    readonly source: "report" | "rare" | "notable";
+    readonly source: "notable" | "rare" | "report";
     readonly thought?: {
         readonly seq: number;
         readonly text: string;
@@ -347,7 +347,7 @@ export interface RunSource {
 
 // @public
 export interface RunSourceEntry {
-    readonly kind: "file" | "dir";
+    readonly kind: "dir" | "file";
     readonly name: string;
 }
 
@@ -377,7 +377,7 @@ export type RunVerification =
 } | {
     readonly signed: true;
     readonly verdict: ChainVerdict;
-    readonly checkedWith: "run.pub" | "given key";
+    readonly checkedWith: "given key" | "run.pub";
     readonly key?: string;
 };
 

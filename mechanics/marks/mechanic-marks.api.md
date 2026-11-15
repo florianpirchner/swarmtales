@@ -32,7 +32,7 @@ export interface Book {
 export function canAfford(state: MarksState, book: Book, agent: string, channel: Channel): boolean;
 
 // @public
-export type Channel = "board" | "group" | "dm" | "receipt";
+export type Channel = "board" | "dm" | "group" | "receipt";
 
 // @public
 export const DEFAULT_RECEIPT_PRICE = 1;

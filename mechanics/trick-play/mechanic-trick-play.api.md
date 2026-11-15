@@ -101,7 +101,7 @@ wins: Type.TRecord<"^.*$", Type.TInteger>;
 points: Type.TRecord<"^.*$", Type.TInteger>;
 invalid: Type.TOptional<Type.TBoolean>;
 }>;
-}, "viewTable" | "placeBid" | "nameTrump" | "playCard" | "vetoLead">;
+}, "nameTrump" | "placeBid" | "playCard" | "vetoLead" | "viewTable">;
 
 // @public
 export const TrickPlayEvents: EventsDefinition<"trick-play", {

@@ -64,7 +64,7 @@ export class LedgerError extends Error {
 }
 
 // @public
-export type LedgerErrorCode = "INVALID_AMOUNT" | "SAME_ACCOUNT" | "INSUFFICIENT_FUNDS" | "UNKNOWN_ACCOUNT";
+export type LedgerErrorCode = "INSUFFICIENT_FUNDS" | "INVALID_AMOUNT" | "SAME_ACCOUNT" | "UNKNOWN_ACCOUNT";
 
 // @public
 export const ledgerHead: MechanicHead<"ledger", Type.TObject<{

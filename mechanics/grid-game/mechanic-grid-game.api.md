@@ -48,7 +48,7 @@ draw: Type.TInteger;
 }>;
 invalid: Type.TOptional<Type.TBoolean>;
 }>;
-}, "viewBoard" | "playMove">;
+}, "playMove" | "viewBoard">;
 
 // (No @packageDocumentation comment for this package)
 

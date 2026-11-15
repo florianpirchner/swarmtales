@@ -94,7 +94,7 @@ efficiency: Type.TNumber;
 draft_match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-}, "viewTable" | "pick">;
+}, "pick" | "viewTable">;
 
 // (No @packageDocumentation comment for this package)
 

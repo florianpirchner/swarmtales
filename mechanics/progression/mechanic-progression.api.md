@@ -144,7 +144,7 @@ readonly tools_unlocked: Type.TObject<{
 agent: Type.TString;
 tools: Type.TArray<Type.TString>;
 }>;
-}, "getStatus" | "activeTools" | "getProblem" | "submitSolution" | "listAgents">;
+}, "activeTools" | "getProblem" | "getStatus" | "listAgents" | "submitSolution">;
 
 // @public
 export type ProgressionCtx = CtxOf<typeof progressionHead>;

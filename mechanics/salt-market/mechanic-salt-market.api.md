@@ -455,7 +455,7 @@ trades: Type.TInteger;
 market_match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-}, "give" | "offer" | "viewMarket" | "accept" | "decline" | "withdraw" | "say">;
+}, "accept" | "decline" | "give" | "offer" | "say" | "viewMarket" | "withdraw">;
 
 // @public
 export type SaltMarketCtx = CtxOf<typeof saltMarketHead>;
@@ -695,7 +695,7 @@ spice: number;
 wax: number;
 };
 note: string;
-status: "open" | "accepted" | "declined" | "withdrawn" | "expired";
+status: "accepted" | "declined" | "expired" | "open" | "withdrawn";
 }[];
 says: Record<string, number>;
 spoiled: Record<string, number>;
@@ -716,7 +716,7 @@ spice: number;
 wax: number;
 };
 escrow: boolean;
-status: "pending" | "kept" | "broken";
+status: "broken" | "kept" | "pending";
 offer: string;
 due: number;
 delivered: {

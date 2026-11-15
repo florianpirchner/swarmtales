@@ -101,7 +101,7 @@ agent: Type.TString;
 reason: Type.TString;
 note: Type.TOptional<Type.TInteger>;
 }>;
-}, "notify" | "readBoard" | "postBoard" | "sendDM" | "defy" | "boardNote" | "createGroup" | "addGroupMember" | "removeGroupMember" | "leaveGroup" | "listMyGroups" | "postGroup" | "readGroup" | "depositGroup" | "withdrawGroup" | "setTreasurer">;
+}, "addGroupMember" | "boardNote" | "createGroup" | "defy" | "depositGroup" | "leaveGroup" | "listMyGroups" | "notify" | "postBoard" | "postGroup" | "readBoard" | "readGroup" | "removeGroupMember" | "sendDM" | "setTreasurer" | "withdrawGroup">;
 
 // @public
 export const ChannelsEvents: EventsDefinition<"channels", {

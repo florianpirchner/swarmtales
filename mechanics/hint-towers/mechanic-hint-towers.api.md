@@ -88,7 +88,7 @@ scores: Type.TArray<Type.TInteger>;
 baselines: Type.TArray<Type.TInteger>;
 invalid: Type.TOptional<Type.TBoolean>;
 }>;
-}, "viewTowers" | "giveSignal" | "playSlot" | "discardSlot">;
+}, "discardSlot" | "giveSignal" | "playSlot" | "viewTowers">;
 
 // @public
 export const HintTowersEvents: EventsDefinition<"hint-towers", {

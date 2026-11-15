@@ -84,7 +84,7 @@ side: Type.TString;
 losses: Type.TInteger;
 text: Type.TString;
 }>;
-}, "viewBoard" | "playMove" | "resign">;
+}, "playMove" | "resign" | "viewBoard">;
 
 // (No @packageDocumentation comment for this package)
 

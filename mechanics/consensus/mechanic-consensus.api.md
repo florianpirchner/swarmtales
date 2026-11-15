@@ -52,7 +52,7 @@ match_invalid: Type.TObject<{
 reason: Type.TString;
 forfeits: Type.TInteger;
 }>;
-}, "proposeMove" | "castVote">;
+}, "castVote" | "proposeMove">;
 
 // @public
 export const ConsensusAgreedService: ServiceDefinition<"consensus-agreed", {

@@ -131,7 +131,7 @@ posterior: Type.TRecord<"^.*$", Type.TNumber>;
 convoy_match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-}, "accuse" | "audit" | "viewConvoy" | "proposeCrew" | "speak" | "voteConfidence" | "playCrewCard">;
+}, "accuse" | "audit" | "playCrewCard" | "proposeCrew" | "speak" | "viewConvoy" | "voteConfidence">;
 
 // @public
 export type ConvoyCtx = CtxOf<typeof convoyHead>;
@@ -227,18 +227,18 @@ text: string;
 stage: number;
 lead: string;
 crew: string[];
-votes: Record<string, "yes" | "no">;
+votes: Record<string, "no" | "yes">;
 noVote: string[];
 game: number;
 missed: Record<string, number>;
 seats: string[];
 roles: Record<string, "loyal" | "saboteur">;
-phase: "idle" | "propose" | "talk" | "vote" | "play" | "accuse";
+phase: "accuse" | "idle" | "play" | "propose" | "talk" | "vote";
 opened: number;
 nextLead: number;
 proposals: number;
-firstVotes: Record<string, "yes" | "no">;
-plays: Record<string, "safe" | "damage">;
+firstVotes: Record<string, "no" | "yes">;
+plays: Record<string, "damage" | "safe">;
 lastDamage: Record<string, number>;
 owing: string[];
 told: string[];
@@ -251,20 +251,20 @@ crew: string[];
 noVote?: string[];
 audit?: {
 seat: string;
-card: "safe" | "damage";
+card: "damage" | "safe";
 by: string;
 };
 damage: number;
 stage: number;
 lead: string;
 crew: string[];
-votes: Record<string, "yes" | "no">;
+votes: Record<string, "no" | "yes">;
 damaged: boolean;
 }[];
 sealed: {
 stage: number;
 seat: string;
-card: "safe" | "damage";
+card: "damage" | "safe";
 game: number;
 role: "loyal" | "saboteur";
 missed: boolean;

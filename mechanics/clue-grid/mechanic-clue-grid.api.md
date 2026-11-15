@@ -162,7 +162,7 @@ winner: Type.TUnion<[Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]
 reason: Type.TUnion<[Type.TLiteral<"finished">, Type.TLiteral<"clues">]>;
 }>>;
 }>;
-}, "guess" | "viewGrid" | "giveClue" | "endGuesses">;
+}, "endGuesses" | "giveClue" | "guess" | "viewGrid">;
 
 // (No @packageDocumentation comment for this package)
 

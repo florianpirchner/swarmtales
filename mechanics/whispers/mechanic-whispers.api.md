@@ -106,7 +106,7 @@ export function isForgeable(receipt: DmReceipt, whisperer: string): boolean;
 export function namesList(names: readonly string[]): string;
 
 // @public
-export type Phase = "pending" | "open" | "closed";
+export type Phase = "closed" | "open" | "pending";
 
 // @public
 export const PopularitySpec: Type.TObject<{

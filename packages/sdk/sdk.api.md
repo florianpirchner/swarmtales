@@ -77,7 +77,7 @@ export function bindStages<M extends MechanicShape>(parts: InstanceParts<M>, pip
 export function bodyMismatch(input: {
     readonly mechanic: string;
     readonly package?: string;
-    readonly part: "tool" | "service";
+    readonly part: "service" | "tool";
     readonly name: string;
     readonly problem: "missing" | "undeclared";
 }): SwtIssue;
@@ -211,7 +211,7 @@ export interface DirectorContext<O> {
 }
 
 // @public
-export const directorContext: (director: ResolvedDirector, at: Pick<DirectorContext<unknown>, "tick" | "firings" | "question">, read?: (key: string) => unknown) => DirectorContext<unknown>;
+export const directorContext: (director: ResolvedDirector, at: Pick<DirectorContext<unknown>, "firings" | "question" | "tick">, read?: (key: string) => unknown) => DirectorContext<unknown>;
 
 // @public
 export interface DirectorDefinition {
@@ -363,7 +363,7 @@ export interface Firing {
 }
 
 // @public
-export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]> extends Omit<GameData, "schema" | "mechanics" | "grants" | "locked" | "directors"> {
+export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]> extends Omit<GameData, "directors" | "grants" | "locked" | "mechanics" | "schema"> {
     readonly directors?: readonly DirectorPlacement[];
     readonly grants?: Partial<Readonly<Record<string, readonly ToolOf<Ms>[] | GrantTweak<ToolOf<Ms>>>>>;
     readonly locked?: readonly ToolOf<Ms>[];
@@ -614,7 +614,7 @@ export interface MechanicUse<D extends MechanicDefinition = MechanicDefinition> 
 
 // @public
 export function memberNotResident(input: {
-    readonly kind: "team" | "role";
+    readonly kind: "role" | "team";
     readonly group: string;
     readonly id: string;
     readonly path: string;
@@ -625,7 +625,7 @@ export function memberNotResident(input: {
 export type MetricEvent<E extends EventSchemas, K extends keyof E & string> = { readonly [T in K]: Envelope<T, Static<E[T]>>; }[K];
 
 // @public
-export interface MetricSpec<E extends EventSchemas, K extends keyof E & string> extends Omit<MetricDefinition, "reads" | "compute"> {
+export interface MetricSpec<E extends EventSchemas, K extends keyof E & string> extends Omit<MetricDefinition, "compute" | "reads"> {
     compute(events: readonly MetricEvent<E, K>[]): number | undefined;
     readonly reads: readonly K[];
 }
@@ -679,7 +679,7 @@ export const onStaged: <M extends MechanicShape>(job: (ctx: MechanicContext<M>, 
 // @public
 export function optionMismatch(input: {
     readonly owner: string;
-    readonly kind?: "mechanic" | "scheduler" | "director";
+    readonly kind?: "director" | "mechanic" | "scheduler";
     readonly package?: string;
     readonly path: string;
     readonly message: string;
@@ -704,7 +704,7 @@ export function packageMismatch(input: {
 // @public
 export function paramOverride(input: {
     readonly name: string;
-    readonly problem: "unknown" | "mismatch" | "no-family";
+    readonly problem: "mismatch" | "no-family" | "unknown";
     readonly known?: readonly string[];
     readonly message?: string;
 }): SwtIssue;
@@ -1028,7 +1028,7 @@ export function shownNameMalformed(input: {
 export function sliceMismatch(input: {
     readonly mechanic: string;
     readonly package?: string;
-    readonly problem: "saved" | "loaded" | "newer" | "no-migration";
+    readonly problem: "loaded" | "newer" | "no-migration" | "saved";
     readonly version?: number;
     readonly known?: number;
     readonly path?: string;
@@ -1088,7 +1088,7 @@ export type StateSetup<O extends TSchema> = Setup<Static<O>>;
 export function stateUnsaved(input: {
     readonly mechanic: string;
     readonly package?: string;
-    readonly problem: "no-start" | "no-schema";
+    readonly problem: "no-schema" | "no-start";
 }): SwtIssue;
 
 // @public

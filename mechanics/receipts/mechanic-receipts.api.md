@@ -66,7 +66,7 @@ export interface BlameParams {
 export const blameReview: MechanicReview<BlameParams, ReceiptsToolCtx>;
 
 // @public
-export type BodyOf<R> = R extends unknown ? Omit<R, "id" | "minute" | "parties" | "key"> : never;
+export type BodyOf<R> = R extends unknown ? Omit<R, "id" | "key" | "minute" | "parties"> : never;
 
 // @public
 export function checkBlame(facts: BlameFacts, caller: string, accused: string, dm: number, claim: number): BlameChecked;

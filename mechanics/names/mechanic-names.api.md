@@ -31,7 +31,7 @@ export interface NameEntry {
 }
 
 // @public
-export type NameError = "NAME_INVALID" | "NAME_ID" | "NAME_RESERVED" | "NAME_TAKEN" | "NAME_CHOSEN" | "NAME_CLOSED";
+export type NameError = "NAME_CHOSEN" | "NAME_CLOSED" | "NAME_ID" | "NAME_INVALID" | "NAME_RESERVED" | "NAME_TAKEN";
 
 // @public
 export function nameOf(state: NamesState, agent: string): string | undefined;

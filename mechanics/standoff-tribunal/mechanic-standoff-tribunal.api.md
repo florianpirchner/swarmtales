@@ -49,7 +49,7 @@ export interface Called {
 }
 
 // @public
-export type CallError = "NOT_NOW" | "INVALID_ACCUSED" | "NOT_A_BLOCKER";
+export type CallError = "INVALID_ACCUSED" | "NOT_A_BLOCKER" | "NOT_NOW";
 
 // @public
 export type Ctx = CtxOf<typeof standoffTribunalHead>;
@@ -94,7 +94,7 @@ export interface HoldoutData {
 }
 
 // @public
-export type HoldoutOutcome = "dropped" | "graceFailed" | "voteFailed" | "spared";
+export type HoldoutOutcome = "dropped" | "graceFailed" | "spared" | "voteFailed";
 
 // @public
 export interface HoldoutPending {
@@ -258,7 +258,7 @@ export const HoldoutSlice: Type.TObject<{
 }>;
 
 // @public
-export type HoldoutStage = "grace" | "vote" | "banish" | "lot";
+export type HoldoutStage = "banish" | "grace" | "lot" | "vote";
 
 // @public
 export interface HoldoutState {
@@ -284,7 +284,7 @@ export interface HoldoutTexts {
 }
 
 // @public
-export type LotError = "NOT_NOW" | "INVALID_CANDIDATES" | "ALREADY_DRAWN";
+export type LotError = "ALREADY_DRAWN" | "INVALID_CANDIDATES" | "NOT_NOW";
 
 // @public
 export const PendingFact: Type.TUnion<[Type.TObject<{
@@ -414,7 +414,7 @@ outcome: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"banished">, Type.
 struck: Type.TOptional<Type.TString>;
 by: Type.TOptional<Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>>;
 }>;
-}, "tribunalVote" | "callTribunal" | "drawLot" | "announceTribunal" | "permaDeath">;
+}, "announceTribunal" | "callTribunal" | "drawLot" | "permaDeath" | "tribunalVote">;
 
 // @public
 export const StandoffTribunalEvents: EventsDefinition<"standoff-tribunal", {
@@ -1221,13 +1221,13 @@ export const StandoffTribunalOptions: Type.TObject<{
 }>;
 
 // @public
-export type StrikeError = "NOT_NOW" | "NOT_ALLOWED" | "NO_LOT";
+export type StrikeError = "NOT_ALLOWED" | "NOT_NOW" | "NO_LOT";
 
 // @public
 export type ToolCtx = ToolCtxOf<typeof standoffTribunalHead>;
 
 // @public
-export type TribunalVoteError = "NO_VOTE" | "NOT_A_VOTER";
+export type TribunalVoteError = "NOT_A_VOTER" | "NO_VOTE";
 
 // @public
 export type View = ViewOf<typeof standoffTribunalHead>;

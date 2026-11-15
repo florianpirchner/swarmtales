@@ -101,7 +101,7 @@ export interface RunFolderOptions {
 
 // @public
 export interface RunVerdict {
-    readonly continuity?: "holds" | "broken" | "unchecked";
+    readonly continuity?: "broken" | "holds" | "unchecked";
     readonly finished: boolean;
     readonly head?: string;
     readonly issues: readonly SwtIssue[];

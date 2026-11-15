@@ -343,7 +343,7 @@ statements: {
 group?: string;
 ref: number;
 agent: string;
-source: "dm" | "board" | "group" | "cast";
+source: "board" | "cast" | "dm" | "group";
 to: string[];
 text: string;
 }[];

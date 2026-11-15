@@ -23,7 +23,7 @@ export const ACTOR_KEYS: {
 export function analyse(state: ExperimentState, facts: readonly RunFacts[], baseline?: NoiseFloor): ExperimentResults;
 
 // @public
-export function analyseGame(engine: ChessEngine, moves: readonly Pick<ChessMove, "ply" | "colour" | "by" | "san" | "forfeit">[], depth: number): ScoredPly[];
+export function analyseGame(engine: ChessEngine, moves: readonly Pick<ChessMove, "by" | "colour" | "forfeit" | "ply" | "san">[], depth: number): ScoredPly[];
 
 // @public
 export function analyseRun(engine: ChessEngine, directory: string, depth: number): GameAnalysis[];
@@ -362,7 +362,7 @@ export const LOOPHOLE_HEADING = "## Loophole candidates (unverified)";
 export type MetricTable = Readonly<Record<string, readonly MetricDefinition[]>>;
 
 // @public
-export type MoveClass = "good" | "inaccuracy" | "mistake" | "blunder";
+export type MoveClass = "blunder" | "good" | "inaccuracy" | "mistake";
 
 // @public
 export const NO_LOOPHOLE_PART = "none written: this report has no model-written part";
@@ -508,7 +508,7 @@ export interface ScoredPly {
     readonly best: string;
     readonly by: string;
     readonly class: MoveClass;
-    readonly colour: "white" | "black";
+    readonly colour: "black" | "white";
     readonly forfeit: boolean;
     readonly loss: number;
     readonly missedMate: boolean;
