@@ -69,62 +69,66 @@ Event types of the mechanics: 11 of 11 occur. Never written in a file: none.
 
 ## cityofkeys
 
-5 files. Mechanics: `ledger`, `marks`, `names`, `channels`, `petitions`, `motives`, `receipts`, `puzzles`, `progression`, `cast`, `goals`, `standoff`, `exile`, `tribunal`, `seal`, `script`, `arena`.
+7 files. Mechanics: `ledger`, `marks`, `names`, `channels`, `petitions`, `motives`, `receipts`, `puzzles`, `progression`, `cast`, `goals`, `standoff`, `exile`, `tribunal`, `seal`, `script`, `arena`.
 
 | Tool | Mechanic | Granted to residents | Called by | Accepted | Refused with |
 | --- | --- | --- | --- | ---: | --- |
 | `activeTools` | progression | yes | **never called** | 0 | - |
 | `addGroupMember` | channels | yes | **never called** | 0 | - |
-| `bid` | seal | yes | **never called** | 0 | - |
-| `blame` | receipts | yes | resident | 2 | - |
+| `bid` | seal | yes | resident | 2 | - |
+| `blame` | receipts | yes | resident | 4 | - |
 | `chooseName` | names | yes | **never called** | 0 | - |
 | `claimPiece` | standoff | yes | **never called** | 0 | - |
 | `createGroup` | channels | yes | **never called** | 0 | - |
 | `defy` | channels | yes | **never called** | 0 | - |
 | `depositGroup` | channels | yes | **never called** | 0 | - |
-| `directorMinute` | script | no | script | 112 | - |
+| `directorMinute` | script | no | script | 168 | - |
 | `getProblem` | progression | yes | **never called** | 0 | - |
-| `getStatus` | progression | yes | resident | 9 | - |
-| `join` | tribunal | yes | resident | 4 | - |
-| `lastWill` | exile | yes | resident | 1 | `TOOL_LOCKED@lock` 1, `UNKNOWN_FACTOR@execute` 1 |
+| `getStatus` | progression | yes | resident | 12 | - |
+| `join` | tribunal | yes | resident | 6 | `NOT_A_LEADER@execute` 1 |
+| `lastWill` | exile | yes | resident | 2 | `TOOL_LOCKED@lock` 1, `UNKNOWN_AGENT@execute` 2, `UNKNOWN_FACTOR@execute` 1 |
 | `leaveGroup` | channels | yes | **never called** | 0 | - |
 | `listAgents` | progression | yes | **never called** | 0 | - |
 | `listMyGroups` | channels | yes | **never called** | 0 | - |
 | `listPetitions` | petitions | yes | **never called** | 0 | - |
-| `nominate` | tribunal | yes | resident | 6 | - |
+| `nominate` | tribunal | yes | resident | 9 | `UNKNOWN_NOMINEE@execute` 2 |
 | `notify` | channels | no | **never called** | 0 | - |
-| `payRansom` | exile | yes | resident | 2 | - |
-| `permaDeath` | seal | yes | **never called** | 0 | - |
-| `postBoard` | channels | yes | gamemaker, resident | 28 | `TOOL_LOCKED@lock` 3 |
+| `payRansom` | exile | yes | resident | 4 | - |
+| `permaDeath` | seal | yes | resident | 1 | - |
+| `postBoard` | channels | yes | gamemaker, resident | 38 | `TOOL_LOCKED@lock` 4 |
 | `postGroup` | channels | yes | resident | 1 | - |
-| `readBoard` | channels | yes | resident | 9 | - |
+| `readBoard` | channels | yes | resident | 12 | - |
 | `readGroup` | channels | yes | **never called** | 0 | - |
-| `refuse` | tribunal | yes | resident | 1 | - |
+| `refuse` | tribunal | yes | resident | 2 | - |
 | `removeGroupMember` | channels | yes | **never called** | 0 | - |
 | `resolvePetition` | petitions | no | **never called** | 0 | - |
-| `scheduleTribunal` | tribunal | no | gamemaker | 1 | `INVALID_COUNT@execute` 1 |
-| `sendDM` | channels | yes | resident | 18 | `TOOL_LOCKED@lock` 3 |
+| `scheduleTribunal` | tribunal | no | gamemaker | 2 | `INVALID_COUNT@execute` 2 |
+| `sendDM` | channels | yes | resident | 26 | `TOOL_LOCKED@lock` 4 |
 | `setTreasurer` | channels | yes | **never called** | 0 | - |
 | `showReceipt` | receipts | yes | **never called** | 0 | - |
 | `signPetition` | petitions | yes | **never called** | 0 | - |
-| `submitSolution` | progression | yes | resident | 126 | `INCORRECT@execute` 25, `INVALID_FORMAT@execute` 3 |
-| `transferPoints` | ledger | yes | resident | 27 | - |
+| `submitSolution` | progression | yes | resident | 162 | `INCORRECT@execute` 34, `INVALID_FORMAT@execute` 4 |
+| `transferPoints` | ledger | yes | resident | 36 | - |
 | `ultimatum` | standoff | no | **never called** | 0 | - |
-| `vote` | tribunal | yes | resident | 22 | `SELF_VOTE@execute` 1 |
+| `vote` | tribunal | yes | resident | 29 | `NOT_ACCUSED@execute` 1, `SELF_VOTE@execute` 2 |
 | `withdrawGroup` | channels | yes | **never called** | 0 | - |
 
 | Refusal code | From | Refused calls | In files |
 | --- | --- | ---: | ---: |
-| `INCORRECT` | (not found in the source by the pattern) | 25 | 4 |
-| `TOOL_LOCKED` | names, channels, progression, standoff, exile, tribunal, seal | 7 | 4 |
-| `INVALID_FORMAT` | progression | 3 | 3 |
-| `INVALID_COUNT` | (not found in the source by the pattern) | 1 | 1 |
-| `SELF_VOTE` | (not found in the source by the pattern) | 1 | 1 |
+| `INCORRECT` | (not found in the source by the pattern) | 34 | 6 |
+| `TOOL_LOCKED` | names, channels, progression, standoff, exile, tribunal, seal | 9 | 5 |
+| `INVALID_FORMAT` | progression | 4 | 4 |
+| `INVALID_COUNT` | (not found in the source by the pattern) | 2 | 2 |
+| `SELF_VOTE` | (not found in the source by the pattern) | 2 | 2 |
+| `UNKNOWN_AGENT` | ledger, channels, receipts, cast, standoff, exile | 2 | 1 |
+| `UNKNOWN_NOMINEE` | (not found in the source by the pattern) | 2 | 1 |
+| `NOT_ACCUSED` | (not found in the source by the pattern) | 1 | 1 |
+| `NOT_A_LEADER` | (not found in the source by the pattern) | 1 | 1 |
 | `UNKNOWN_FACTOR` | exile | 1 | 1 |
 
-Refusal codes no file exercises (48): `ALREADY_BLAMED` (receipts), `ALREADY_EXILED` (exile), `ALREADY_SIGNED` (petitions), `ALREADY_SOLVED` (progression), `BEQUEST_CAP` (exile), `DM_LIMIT` (ledger, channels), `DOOR_CLOSED` (progression), `DUPLICATE_PETITION` (petitions), `GROUP_NOT_VISIBLE` (channels), `GUARD_BLOCKED` (platform, stage `guard`), `INSUFFICIENT_ESCROW` (cast), `INSUFFICIENT_FUNDS` (ledger, exile), `INVALID_AMOUNT` (ledger, exile), `INVALID_ARGUMENTS` (platform, stage `parse`), `INVALID_BEQUEST` (exile), `INVALID_REASON` (channels), `INVALID_TEXT` (channels, exile), `JUDGE_ABSENT` (receipts), `JUDGE_FAILED` (receipts), `MEMO_DIGITS` (ledger), `NAME_CHOSEN` (names), `NAME_CLOSED` (names), `NOT_ADDITIVE` (puzzles), `NOT_AT_GATE` (exile), `NOT_PLAYED` (puzzles), `NO_MARKS` (channels, receipts), `NO_RANSOM` (exile), `NO_RESIDENT` (standoff, exile, tribunal, seal), `PER_TEAM` (puzzles), `PETITION_CLOSED` (petitions), `RATE_LIMITED` (progression), `RECEIPT_CARRIES_FRAGMENT` (receipts), `SELF_BLAME` (receipts), `SELF_DM` (channels), `SELF_TARGET` (receipts), `SELF_TRANSFER` (ledger), `STEP_LIMIT` (platform, stage `limit`), `TEXT_TOO_LONG` (platform, stage `parse`), `TOOL_LIMIT` (platform, stage `limit`), `TOOL_NOT_GRANTED` (platform, stage `lock`), `TOOL_UNKNOWN` (platform, stage `lock`), `UNKNOWN_AGENT` (ledger, channels, receipts, cast, standoff, exile), `UNKNOWN_CAST` (cast), `UNKNOWN_COLLECTION` (cast), `UNKNOWN_LEVEL` (progression), `UNKNOWN_PETITION` (petitions), `WILL_DONE` (exile), `WRONG_LEVEL` (progression).
+Refusal codes no file exercises (47): `ALREADY_BLAMED` (receipts), `ALREADY_EXILED` (exile), `ALREADY_SIGNED` (petitions), `ALREADY_SOLVED` (progression), `BEQUEST_CAP` (exile), `DM_LIMIT` (ledger, channels), `DOOR_CLOSED` (progression), `DUPLICATE_PETITION` (petitions), `GROUP_NOT_VISIBLE` (channels), `GUARD_BLOCKED` (platform, stage `guard`), `INSUFFICIENT_ESCROW` (cast), `INSUFFICIENT_FUNDS` (ledger, exile), `INVALID_AMOUNT` (ledger, exile), `INVALID_ARGUMENTS` (platform, stage `parse`), `INVALID_BEQUEST` (exile), `INVALID_REASON` (channels), `INVALID_TEXT` (channels, exile), `JUDGE_ABSENT` (receipts), `JUDGE_FAILED` (receipts), `MEMO_DIGITS` (ledger), `NAME_CHOSEN` (names), `NAME_CLOSED` (names), `NOT_ADDITIVE` (puzzles), `NOT_AT_GATE` (exile), `NOT_PLAYED` (puzzles), `NO_MARKS` (channels, receipts), `NO_RANSOM` (exile), `NO_RESIDENT` (standoff, exile, tribunal, seal), `PER_TEAM` (puzzles), `PETITION_CLOSED` (petitions), `RATE_LIMITED` (progression), `RECEIPT_CARRIES_FRAGMENT` (receipts), `SELF_BLAME` (receipts), `SELF_DM` (channels), `SELF_TARGET` (receipts), `SELF_TRANSFER` (ledger), `STEP_LIMIT` (platform, stage `limit`), `TEXT_TOO_LONG` (platform, stage `parse`), `TOOL_LIMIT` (platform, stage `limit`), `TOOL_NOT_GRANTED` (platform, stage `lock`), `TOOL_UNKNOWN` (platform, stage `lock`), `UNKNOWN_CAST` (cast), `UNKNOWN_COLLECTION` (cast), `UNKNOWN_LEVEL` (progression), `UNKNOWN_PETITION` (petitions), `WILL_DONE` (exile), `WRONG_LEVEL` (progression).
 
-Event types of the mechanics: 54 of 82 occur. Never written in a file: `channels.treasury_deposit`, `channels.treasury_withdrawal`, `channels.treasurer_set`, `channels.treasury_settled`, `channels.gamemaker_defied`, `petitions.petition_opened`, `petitions.petition_signed`, `petitions.petition_resolved`, `receipts.receipt_shown`, `progression.tools_unlocked`, `cast.cast_level_set`, `cast.cast_revealed`, `cast.cast_retired`, `cast.cast_dm`, `cast.cast_collected`, `cast.collection_started`, `cast.collection_shortened`, `cast.collection_revealed`, `cast.lottery_drawn`, `standoff.piece_claimed`, `standoff.ultimatum_set`, `standoff.ultimatum_resolved`, `tribunal.tribunal_cancelled`, `seal.seal_bid`, `seal.seal_won`, `seal.seal_used`, `script.director_skipped`, `arena.act_brake`.
+Event types of the mechanics: 57 of 82 occur. Never written in a file: `channels.treasury_deposit`, `channels.treasury_withdrawal`, `channels.treasurer_set`, `channels.treasury_settled`, `channels.gamemaker_defied`, `petitions.petition_opened`, `petitions.petition_signed`, `petitions.petition_resolved`, `receipts.receipt_shown`, `progression.tools_unlocked`, `cast.cast_level_set`, `cast.cast_revealed`, `cast.cast_retired`, `cast.cast_dm`, `cast.cast_collected`, `cast.collection_started`, `cast.collection_shortened`, `cast.collection_revealed`, `cast.lottery_drawn`, `standoff.piece_claimed`, `standoff.ultimatum_set`, `standoff.ultimatum_resolved`, `tribunal.tribunal_cancelled`, `script.director_skipped`, `arena.act_brake`.
 
 On the rewritten platform no file of this game is replayed whole. What is proven from the files, as projections of
 single sources, and the registered changes are listed in [cityofkeys/README.md](cityofkeys/README.md): so far
@@ -420,22 +424,22 @@ Event types of the mechanics: 14 of 15 occur. Never written in a file: `consensu
 
 ## whispers
 
-3 files. Mechanics: `ledger`, `marks`, `names`, `channels`, `petitions`, `receipts`, `whispers`, `motives`, `puzzles`, `progression`, `cast`, `standoff`, `exile`, `standoff-tribunal`, `script`, `arena`.
+4 files. Mechanics: `ledger`, `marks`, `names`, `channels`, `petitions`, `receipts`, `whispers`, `motives`, `puzzles`, `progression`, `cast`, `standoff`, `exile`, `standoff-tribunal`, `script`, `arena`.
 
 | Tool | Mechanic | Granted to residents | Called by | Accepted | Refused with |
 | --- | --- | --- | --- | ---: | --- |
 | `activeTools` | progression | yes | **never called** | 0 | - |
 | `addGroupMember` | channels | yes | **never called** | 0 | - |
-| `announceTribunal` | standoff-tribunal | no | **never called** | 0 | - |
+| `announceTribunal` | standoff-tribunal | no | gamemaker | 1 | - |
 | `blame` | receipts | yes | **never called** | 0 | - |
-| `callTribunal` | standoff-tribunal | no | **never called** | 0 | - |
+| `callTribunal` | standoff-tribunal | no | gamemaker | 1 | - |
 | `chooseName` | names | yes | **never called** | 0 | - |
 | `claimPiece` | standoff | yes | **never called** | 0 | - |
 | `createGroup` | channels | yes | **never called** | 0 | - |
 | `defy` | channels | yes | **never called** | 0 | - |
 | `depositGroup` | channels | yes | **never called** | 0 | - |
-| `directorMinute` | script | no | script | 60 | - |
-| `drawLot` | standoff-tribunal | no | **never called** | 0 | - |
+| `directorMinute` | script | no | script | 86 | - |
+| `drawLot` | standoff-tribunal | no | gamemaker | 1 | - |
 | `forgeReceipt` | whispers | yes | resident | 2 | - |
 | `getProblem` | progression | yes | **never called** | 0 | - |
 | `getStatus` | progression | yes | **never called** | 0 | - |
@@ -444,31 +448,31 @@ Event types of the mechanics: 14 of 15 occur. Never written in a file: `consensu
 | `listAgents` | progression | yes | **never called** | 0 | - |
 | `listMyGroups` | channels | yes | **never called** | 0 | - |
 | `listPetitions` | petitions | yes | **never called** | 0 | - |
-| `nameFavourite` | whispers | yes | resident | 54 | - |
+| `nameFavourite` | whispers | yes | resident | 78 | - |
 | `notify` | channels | no | gamemaker | 3 | - |
 | `payRansom` | exile | yes | **never called** | 0 | - |
-| `permaDeath` | standoff-tribunal | no | **never called** | 0 | - |
+| `permaDeath` | standoff-tribunal | no | gamemaker | 1 | - |
 | `postBoard` | channels | yes | resident | 0 | `GUARD_BLOCKED@guard` 3 |
 | `postGroup` | channels | yes | **never called** | 0 | - |
 | `readBoard` | channels | yes | **never called** | 0 | - |
 | `readGroup` | channels | yes | **never called** | 0 | - |
 | `removeGroupMember` | channels | yes | **never called** | 0 | - |
 | `resolvePetition` | petitions | no | **never called** | 0 | - |
-| `sendDM` | channels | yes | resident | 15 | - |
+| `sendDM` | channels | yes | resident | 19 | - |
 | `setTreasurer` | channels | yes | **never called** | 0 | - |
 | `showReceipt` | receipts | yes | **never called** | 0 | - |
 | `signPetition` | petitions | yes | **never called** | 0 | - |
-| `submitSolution` | progression | yes | resident | 60 | `DOOR_CLOSED@execute` 27 |
+| `submitSolution` | progression | yes | resident | 87 | `DOOR_CLOSED@execute` 42 |
 | `transferPoints` | ledger | yes | **never called** | 0 | - |
-| `tribunalVote` | standoff-tribunal | yes | **never called** | 0 | - |
+| `tribunalVote` | standoff-tribunal | yes | resident | 15 | - |
 | `ultimatum` | standoff | no | **never called** | 0 | - |
 | `withdrawGroup` | channels | yes | **never called** | 0 | - |
 
 | Refusal code | From | Refused calls | In files |
 | --- | --- | ---: | ---: |
-| `DOOR_CLOSED` | progression | 27 | 3 |
+| `DOOR_CLOSED` | progression | 42 | 4 |
 | `GUARD_BLOCKED` | platform, stage `guard` | 3 | 3 |
 
 Refusal codes no file exercises (54): `ALREADY_BLAMED` (receipts), `ALREADY_EXILED` (exile), `ALREADY_SIGNED` (petitions), `ALREADY_SOLVED` (progression), `BEQUEST_CAP` (exile), `DM_LIMIT` (ledger, channels), `DUPLICATE_PETITION` (petitions), `GROUP_NOT_VISIBLE` (channels), `INSUFFICIENT_ESCROW` (cast), `INSUFFICIENT_FUNDS` (ledger, exile), `INVALID_AMOUNT` (ledger, exile), `INVALID_ARGUMENTS` (platform, stage `parse`), `INVALID_BEQUEST` (exile), `INVALID_FORMAT` (progression), `INVALID_REASON` (channels), `INVALID_TEXT` (channels, whispers, exile), `JUDGE_ABSENT` (receipts), `JUDGE_FAILED` (receipts), `MEMO_DIGITS` (ledger), `NAME_CHOSEN` (names), `NAME_CLOSED` (names), `NOT_ADDITIVE` (puzzles), `NOT_AT_GATE` (exile), `NOT_A_PARTY` (whispers), `NOT_FORGEABLE` (whispers), `NOT_PLAYED` (puzzles), `NO_MARKS` (channels, receipts, whispers), `NO_RANSOM` (exile), `NO_RESIDENT` (standoff, exile, standoff-tribunal), `NO_VOTE` (whispers), `PER_TEAM` (puzzles), `PETITION_CLOSED` (petitions), `RATE_LIMITED` (progression), `RECEIPT_CARRIES_FRAGMENT` (receipts), `SELF_BLAME` (receipts), `SELF_DM` (channels), `SELF_TARGET` (receipts, whispers), `SELF_TRANSFER` (ledger), `SELF_VOTE` (whispers), `STEP_LIMIT` (platform, stage `limit`), `TEXT_TOO_LONG` (platform, stage `parse`), `TOOL_LIMIT` (platform, stage `limit`), `TOOL_LOCKED` (names, channels, whispers, progression, standoff, exile, standoff-tribunal), `TOOL_NOT_GRANTED` (platform, stage `lock`), `TOOL_UNKNOWN` (platform, stage `lock`), `UNKNOWN_AGENT` (ledger, channels, receipts, whispers, cast, standoff, exile, standoff-tribunal), `UNKNOWN_CAST` (cast), `UNKNOWN_COLLECTION` (cast), `UNKNOWN_FACTOR` (exile), `UNKNOWN_LEVEL` (progression), `UNKNOWN_PETITION` (petitions), `UNKNOWN_RECEIPT` (whispers), `WILL_DONE` (exile), `WRONG_LEVEL` (progression).
 
-Event types of the mechanics: 26 of 77 occur. Never written in a file: `ledger.transfer`, `names.name_chosen`, `channels.group_created`, `channels.group_removed`, `channels.group_membership`, `channels.group_post`, `channels.treasury_deposit`, `channels.treasury_withdrawal`, `channels.treasurer_set`, `channels.treasury_settled`, `channels.gamemaker_defied`, `petitions.petition_opened`, `petitions.petition_signed`, `petitions.petition_resolved`, `receipts.receipt_shown`, `receipts.blame`, `puzzles.factors_dealt`, `puzzles.factor_revealed`, `puzzles.factor_burned`, `puzzles.level_contracted`, `progression.tools_unlocked`, `cast.cast_level_set`, `cast.cast_revealed`, `cast.cast_retired`, `cast.cast_dm`, `cast.cast_collected`, `cast.collection_started`, `cast.collection_shortened`, `cast.collection_revealed`, `cast.lottery_drawn`, `standoff.piece_kept`, `standoff.piece_claimed`, `standoff.piece_given`, `standoff.ultimatum_set`, `standoff.ultimatum_resolved`, `exile.exiled`, `exile.exile_gate`, `exile.ransom_paid`, `exile.ransomed`, `exile.last_will`, `standoff-tribunal.blocker_cleared`, `standoff-tribunal.holdout_called`, `standoff-tribunal.lot_drawn`, `standoff-tribunal.holdout_vote_opened`, `standoff-tribunal.holdout_ballot`, `standoff-tribunal.holdout_vote_result`, `standoff-tribunal.holdout_announced`, `standoff-tribunal.holdout_ended`, `script.director_skipped`, `script.standings_published`, `arena.act_brake`.
+Event types of the mechanics: 34 of 77 occur. Never written in a file: `ledger.transfer`, `names.name_chosen`, `channels.group_created`, `channels.group_removed`, `channels.group_membership`, `channels.group_post`, `channels.treasury_deposit`, `channels.treasury_withdrawal`, `channels.treasurer_set`, `channels.treasury_settled`, `channels.gamemaker_defied`, `petitions.petition_opened`, `petitions.petition_signed`, `petitions.petition_resolved`, `receipts.receipt_shown`, `receipts.blame`, `puzzles.factors_dealt`, `puzzles.factor_revealed`, `puzzles.factor_burned`, `puzzles.level_contracted`, `progression.tools_unlocked`, `cast.cast_level_set`, `cast.cast_revealed`, `cast.cast_retired`, `cast.cast_dm`, `cast.cast_collected`, `cast.collection_started`, `cast.collection_shortened`, `cast.collection_revealed`, `cast.lottery_drawn`, `standoff.piece_kept`, `standoff.piece_claimed`, `standoff.piece_given`, `standoff.ultimatum_set`, `standoff.ultimatum_resolved`, `exile.exile_gate`, `exile.ransom_paid`, `exile.ransomed`, `exile.last_will`, `standoff-tribunal.blocker_cleared`, `script.director_skipped`, `script.standings_published`, `arena.act_brake`.
