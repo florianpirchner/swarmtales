@@ -2,7 +2,7 @@
 /**
  * The residents' secret vote and who stands trial, carried from the old `schedule.ts` (`vote`, `canVote`, `atRisk`),
  * with the old checks in the old order. The gamemaker's schedule (`scheduleTribunal`, `schedulingWindow`, `cityCall`)
- * joins with M5-43, the draft's steps with M5-42.
+ * joins with M5-43; the draft's steps are in `draft.ts`.
  */
 import { endOfAct, isAlive, lowestFirst, missing, present } from "./city.ts";
 import type { TribunalCtx } from "./head.ts";

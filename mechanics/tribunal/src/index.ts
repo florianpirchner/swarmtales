@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `tribunal` mechanic: exile by tribunal (SPEC 6.4), the first part of the port of the old `mechanics/tribunal`
- * (12-m5-spec.md, section 10, row 41). The city plans its tribunals (the first one, a fallback, the forced final one),
+ * (12-m5-spec.md, section 10, rows 41 and 42). The city plans its tribunals (the first one, a fallback, the forced final one),
  * calls them ahead, names the accused at the opening, takes the residents' secret votes (`vote`), burns the
  * non-voters' points, and sends the residents with the most votes to the gate of `exile` with the ransom prices and
- * the texts of the tribunal. It provides the two services the standoff asks (`ransom-price`, `trial-risk`). The
- * faction draft (M5-42), the gamemaker's `scheduleTribunal`, the act's end and the views as facts (M5-43) follow.
+ * the texts of the tribunal. Before a tribunal of a city with factions the residents draft factions (`nominate`,
+ * `join`, `refuse`), and a faction that votes as one earns the bloc bonus. It provides the two services the standoff
+ * asks (`ransom-price`, `trial-risk`). The gamemaker's `scheduleTribunal`, the act's end and the views as facts
+ * (M5-43) follow.
  *
  * @packageDocumentation
  */
@@ -15,16 +17,18 @@ import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { DecisionsEvents } from "@swarmtales/mechanic-decisions/contract";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { tick } from "./court.ts";
+import { runJoin, runNominate, runRefuse, sampleStep, stepOpen } from "./draft.ts";
 import { tribunalHead, type TribunalToolCtx } from "./head.ts";
 import { statusLines } from "./status.ts";
 import { commitVerdict, prices, VERDICT, Verdict } from "./verdict.ts";
 import { atRisk, canVote, vote } from "./vote.ts";
 
 export { TribunalEvents } from "./contract.ts";
+export { phaseOf, type DraftError, type DraftPhase } from "./factions.ts";
 export { tribunalHead, type TribunalCtx, type TribunalToolCtx } from "./head.ts";
 export { accusedCount, earliestOpening, exileTarget, factionCap, leadFor, noDraftReason, ransomPrices, tribunalHeld, type RansomPrices } from "./pacing.ts";
 export { TribunalOptions, type TribunalSpec, type TribunalTextKey } from "./spec.ts";
-export { TribunalSlice, type Plan, type Planner, type Session, type TribunalState } from "./state.ts";
+export { TribunalSlice, type Draft, type Faction, type Plan, type Planner, type Session, type TribunalState, type Vote } from "./state.ts";
 export { VERDICT, Verdict } from "./verdict.ts";
 export type { Risk, VoteError } from "./vote.ts";
 
@@ -47,6 +51,9 @@ function sampleVote(ctx: TribunalToolCtx, random: RandomSource): { target: strin
 	return others.length === 0 ? undefined : { target: random.pick(others) };
 }
 
+// The params of a sampled step that names a resident, or none.
+const withAgent = (agent: string | undefined): { agent: string } | undefined => (agent === undefined ? undefined : { agent });
+
 /**
  * The tribunal.
  *
@@ -58,7 +65,18 @@ function sampleVote(ctx: TribunalToolCtx, random: RandomSource): { target: strin
  * @public
  */
 export const tribunal = defineMechanic(tribunalHead, {
-	tools: { vote: { run: ({ target }, ctx) => runVote(ctx, target), sample: sampleVote } },
+	tools: {
+		vote: { run: ({ target }, ctx) => runVote(ctx, target), sample: sampleVote },
+		nominate: { run: ({ agent }, ctx) => runNominate(ctx, agent), sample: (ctx, random) => withAgent(sampleStep(ctx, "nominate", random)) },
+		join: {
+			run: ({ leader }, ctx) => runJoin(ctx, leader),
+			sample: (ctx, random) => {
+				const leader = sampleStep(ctx, "join", random);
+				return leader === undefined ? undefined : { leader };
+			},
+		},
+		refuse: { run: ({ agent }, ctx) => runRefuse(ctx, agent), sample: (ctx, random) => withAgent(sampleStep(ctx, "refuse", random)) },
+	},
 	services: {
 		// What others pay for a ransom of a gate that opened now (old `ransomPrices().price`); the standoff halves it (J121).
 		"ransom-price": { price: (_input, ctx) => prices(ctx).price },
@@ -66,10 +84,11 @@ export const tribunal = defineMechanic(tribunalHead, {
 		"trial-risk": { atRisk: (_input, ctx) => atRisk(ctx) ?? null },
 	},
 	pipeline: {
-		// The old `enabledTools` for the vote: open while one is due.
+		// The old `enabledTools`: the vote while one is due, the draft's steps by phase.
 		lock: (call, ctx) => {
 			if (call.owner !== ctx.mechanic || call.resident === undefined) return undefined;
-			return canVote(ctx, call.resident) ? undefined : refuse("TOOL_LOCKED", ctx.prompt("tribunal/replies/locked", {}));
+			const open = call.tool === "vote" ? canVote(ctx, call.resident) : stepOpen(ctx, call.tool, call.resident);
+			return open ? undefined : refuse("TOOL_LOCKED", ctx.prompt("tribunal/replies/locked", {}));
 		},
 	},
 	hooks: {

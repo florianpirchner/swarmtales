@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The tribunal's state, carried from the old `state.ts` and `slice.ts`: what the old `Tribunal` kept besides the gate
- * (the gates, the exiled and the ransomed are the exile's), as plain data whose schema is also the snapshot slice. The
- * faction draft joins it with M5-42. Lists stand in for the old maps and keep their order.
+ * (the gates, the exiled and the ransomed are the exile's) and the faction draft (old `FactionDraft`), as plain data whose
+ * schema is also the snapshot slice. Lists stand in for the old maps and keep their order.
  */
 import { Type, type Static } from "typebox";
 
@@ -10,7 +10,7 @@ const Id = Type.String({ description: "A resident id" });
 const Ids = Type.Array(Id, { description: "Resident ids" });
 const Int = (description: string) => Type.Integer({ description });
 
-const Vote = Type.Object({ voter: Id, target: Id }, { description: "One secret vote" });
+const VoteSchema = Type.Object({ voter: Id, target: Id }, { description: "One secret vote" });
 
 const SessionSchema = Type.Object(
 	{
@@ -20,7 +20,7 @@ const SessionSchema = Type.Object(
 		voters: Ids,
 		until: Int("The tick the vote closes"),
 		count: Int("Residents it exiles"),
-		votes: Type.Array(Vote, { description: "In the order the votes were cast (old `Map` order)" }),
+		votes: Type.Array(VoteSchema, { description: "In the order the votes were cast (old `Map` order)" }),
 		closed: Type.Boolean({ description: "Whether the vote is counted" }),
 	},
 	{ description: "One tribunal's vote" },
@@ -40,6 +40,26 @@ const PlanSchema = Type.Object(
 	{ description: "A tribunal planned and not yet open (old `TribunalPlan`)" },
 );
 
+const FactionSchema = Type.Object({ leader: Id, group: Type.String({ description: "The faction's group" }), members: Ids }, { description: "One faction formed at the opening" });
+
+const DraftSchema = Type.Object(
+	{
+		tribunal: Int("The tribunal's number"),
+		factions: Int("Factions it forms"),
+		group: Type.String({ description: "The draft's group `GT<k>`" }),
+		members: Ids,
+		nominateUntil: Int("The tick the nominations close"),
+		opens: Int("The tick the tribunal opens, which ends the applications"),
+		cap: Int("The most members of a faction, its leader included"),
+		nominations: Type.Array(Type.Object({ voter: Id, nominee: Id }, { description: "One resident's nomination" }), { description: "The last nomination of each resident" }),
+		leaders: Type.Optional(Ids),
+		applications: Type.Array(Type.Object({ agent: Id, leader: Id }, { description: "One resident's application" }), { description: "The last application of each resident" }),
+		refusals: Type.Array(Type.Object({ leader: Id, agent: Id }, { description: "A leader refused an applicant" }), { description: "Every refusal" }),
+		formed: Type.Optional(Type.Array(FactionSchema, { description: "The factions, once formed" })),
+	},
+	{ description: "A faction draft (old `FactionDraft`)" },
+);
+
 /**
  * The state of `tribunal` and its snapshot slice.
  *
@@ -56,6 +76,7 @@ export const TribunalSlice = Type.Object(
 		lastResult: Type.Optional(Int("The tick of the last result")),
 		ended: Type.Boolean({ description: "Whether the target is reached and the last gate closed" }),
 		halted: Type.Boolean({ description: "Whether the city stopped holding tribunals" }),
+		draft: Type.Optional(DraftSchema),
 		lastTick: Int("The last tick the city acted in (old `#lastTick`)"),
 	},
 	{ description: "The state of `tribunal`" },
@@ -81,6 +102,27 @@ export type Session = Static<typeof SessionSchema>;
  * @public
  */
 export type Plan = Static<typeof PlanSchema>;
+
+/**
+ * A faction draft.
+ *
+ * @public
+ */
+export type Draft = Static<typeof DraftSchema>;
+
+/**
+ * A faction formed at a tribunal's opening.
+ *
+ * @public
+ */
+export type Faction = Static<typeof FactionSchema>;
+
+/**
+ * One secret vote.
+ *
+ * @public
+ */
+export type Vote = Static<typeof VoteSchema>;
 
 /**
  * Who planned a tribunal.

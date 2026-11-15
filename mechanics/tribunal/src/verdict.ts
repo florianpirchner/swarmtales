@@ -3,12 +3,13 @@
  * The close of a tribunal's vote and its verdict, carried from the old `court.ts` (`#close`, `commitVerdict`,
  * `#prices`, `busy`, `#end`): the non-voters' penalty, the verdict at the decision gate (committed at once without
  * `decisions` or with the window 0), the result, and the gates opened through `exile` with the prices and texts of the
- * tribunal (12-m5-spec.md 2.3: the caller passes them). The settling of the faction draft joins with M5-42.
+ * tribunal (12-m5-spec.md 2.3: the caller passes them), and the settling of the faction draft.
  */
 import { Type, type Static } from "typebox";
 import { DecisionsService } from "@swarmtales/mechanic-decisions/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { burn, exiledList, gateCount, lowestFirst, missing, notify, points, post, register, render, text } from "./city.ts";
+import { settleDraft } from "./factions.ts";
 import type { TribunalCtx } from "./head.ts";
 import { ransomPrices, type RansomPrices } from "./pacing.ts";
 import { currentSession, type Session } from "./state.ts";
@@ -121,7 +122,7 @@ export function closeSession(ctx: TribunalCtx, session: Session, minute: number)
 /**
  * The commit of `tribunal.verdict`: the old close's second half with the verdict that stood. It runs against the city
  * as it is now, so it drops whoever left meanwhile (a seal) and exiles no more than are still missing; then the result
- * post, `tribunal_result`, and the gates through `exile`.
+ * post, `tribunal_result`, the gates through `exile`, and the draft's bloc bonus.
  *
  * @param ctx - The context.
  * @param proposal - The verdict that stands.
@@ -141,6 +142,12 @@ export function commitVerdict(ctx: TribunalCtx, proposal: Static<typeof Verdict>
 	post(ctx, text(ctx, "result", { counts: countsText, exiled: namesOf([...exiled].sort()), until: String(until), price: String(price.price), selfPrice: String(price.selfPrice) }));
 	ctx.emit("tribunal_result", { counts, exiled: [...exiled], nonVoters: [...nonVoters] });
 	for (const agent of exiled) toGate(ctx, agent, session, until, price);
+	const draft = ctx.state.draft;
+	if (draft?.tribunal === session.tribunal) {
+		const left = exiledList(ctx);
+		settleDraft(ctx, draft, session.voters, session.votes, (agent) => !left.includes(agent));
+		delete ctx.state.draft;
+	}
 }
 
 // The gate through `exile`: the notice and the board's texts are the tribunal's, rendered now; `{exiled}`, `{payers}` and `{will}` are the exile's to fill.

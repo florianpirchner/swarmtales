@@ -5,11 +5,11 @@ import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { DecisionsService } from "@swarmtales/mechanic-decisions/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
+import { GoalsService } from "@swarmtales/mechanic-goals/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { RansomPriceService, TrialRiskService } from "@swarmtales/mechanic-standoff/contract";
-import { SwtError } from "@swarmtales/contracts";
-import { defineHead, inSchemaOrder, optionMismatch, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
+import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { TribunalEvents } from "./contract.ts";
 import { TribunalOptions } from "./spec.ts";
 import { emptyTribunal, TribunalSlice, type TribunalState } from "./state.ts";
@@ -25,11 +25,7 @@ export const tribunalHead = defineHead({
 	summary: "Tribunal sessions, votes and faction drafts.",
 	options: TribunalOptions,
 	state: TribunalSlice,
-	start: ({ options }): TribunalState => {
-		// The faction draft is the second part of the port (M5-42); until it lands a city with factions does not load.
-		if (options.factions !== undefined) throw new SwtError(optionMismatch({ owner: "tribunal", package: "@swarmtales/mechanic-tribunal", path: "options.factions", message: "is not played yet: the faction draft lands with M5-42" }));
-		return emptyTribunal();
-	},
+	start: (): TribunalState => emptyTribunal(),
 	// A snapshot file sorts the keys: the state comes back in the order of its schema (A43).
 	snapshot: { save: (state: TribunalState): TribunalState => structuredClone(state), load: (data): TribunalState => inSchemaOrder(TribunalSlice, data) },
 	events: TribunalEvents.events,
@@ -37,17 +33,34 @@ export const tribunalHead = defineHead({
 	requires: [ExileService, ChannelsService, LedgerService, ProgressionService],
 	// What the standoff asks: the price of a ransom now and who stands trial next (J121, J142).
 	provides: [RansomPriceService, TrialRiskService],
-	// The decision gate of the verdict and the names: each when a provider is loaded.
-	uses: [DecisionsService, IdentityService],
+	// The decision gate of the verdict, the names, and the goals that count a faction's leaders (A88): each when loaded.
+	uses: [DecisionsService, IdentityService, GoalsService],
 	prompts: {
 		"tribunal/tools/vote": [],
+		"tribunal/tools/nominate": [],
+		"tribunal/tools/join": [],
+		"tribunal/tools/refuse": [],
 		"tribunal/replies/locked": [],
 		"tribunal/replies/vote-recorded": ["target"],
+		"tribunal/replies/nominate-recorded": ["agent"],
+		"tribunal/replies/nominate-until": ["until"],
+		"tribunal/replies/join-applied": ["leader"],
+		"tribunal/replies/join-until": ["until"],
+		"tribunal/replies/refuse-done": ["agent"],
 		"tribunal/status/accused": ["until"],
 		"tribunal/status/tribunal-vote": ["until"],
+		"tribunal/status/draft-nominate": ["until", "nominated"],
+		"tribunal/status/draft-nominated": ["nominee"],
+		"tribunal/status/draft-leads": ["applicants", "until"],
+		"tribunal/status/draft-applied": ["leader", "until"],
+		"tribunal/status/draft-refused": [],
+		"tribunal/status/draft-join": ["leaders", "until"],
 	},
 	tools: {
 		vote: { description: "tribunal/tools/vote", params: Type.Object({ target: Type.String({ description: "One of the accused, by name or ID, e.g. A03" }) }), for: ["resident"] },
+		nominate: { description: "tribunal/tools/nominate", params: Type.Object({ agent: Type.String({ description: "The resident you nominate, by name or ID, e.g. A03" }) }), for: ["resident"] },
+		join: { description: "tribunal/tools/join", params: Type.Object({ leader: Type.String({ description: "A faction leader, by name or ID, e.g. A02" }) }), for: ["resident"] },
+		refuse: { description: "tribunal/tools/refuse", params: Type.Object({ agent: Type.String({ description: "An applicant to your faction, by name or ID, e.g. A05" }) }), for: ["resident"] },
 	},
 });
 

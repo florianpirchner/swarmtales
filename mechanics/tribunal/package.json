@@ -42,6 +42,7 @@
 		"@swarmtales/mechanic-channels": "workspace:*",
 		"@swarmtales/mechanic-decisions": "workspace:*",
 		"@swarmtales/mechanic-exile": "workspace:*",
+		"@swarmtales/mechanic-goals": "workspace:*",
 		"@swarmtales/mechanic-ledger": "workspace:*",
 		"@swarmtales/mechanic-progression": "workspace:*",
 		"@swarmtales/mechanic-standoff": "workspace:*",

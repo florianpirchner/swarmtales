@@ -94,7 +94,12 @@ async function foreignOf(root: string): Promise<Foreign> {
  * Strings a base mechanic carries byte for byte from the old platform (A41), as `file` NUL `string`: a port keeps its
  * option defaults, so the gate lets these through and names why.
  */
-const CARRIED: ReadonlyMap<string, string> = new Map([["mechanics/consensus/src/head.ts\0playMove", "the default of the option `tool`, carried from `legacy`"]]);
+const CARRIED: ReadonlyMap<string, string> = new Map([
+	["mechanics/consensus/src/head.ts\0playMove", "the default of the option `tool`, carried from `legacy`"],
+	// The value `refuse` of the option `onDeadlock` (a word, not the tool `refuse` of `tribunal`), carried from `legacy`.
+	["mechanics/consensus/src/head.ts\0refuse", "a value of the option `onDeadlock`, carried from `legacy`"],
+	["mechanics/consensus/src/index.ts\0refuse", "a value of the option `onDeadlock`, carried from `legacy`"],
+]);
 
 /** The strings of the code: literals and the fixed parts of templates. */
 function stringsOf(file: string, text: string): readonly string[] {

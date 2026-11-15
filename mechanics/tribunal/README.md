@@ -3,10 +3,11 @@
 Exile by vote. Once the act is under way, the city holds tribunals: the lowest-ranked residents present stand
 accused, everyone votes in secret against one of them, and the one with the most votes goes to the gate (see
 [exile](../exile/README.md)). The city plans the tribunals itself within bounds, until a share of the act's residents
-has left. A port of the old `mechanics/tribunal`, in three parts (12-m5-spec.md, section 10, rows 41 to 43): this
-first part holds the schedule of the city, the call, the accused, the secret vote, the result and the gate. The faction
-draft (`nominate`, `join`, `refuse`, the bloc bonus; M5-42), the gamemaker's `scheduleTribunal`, the act's end and the
-views as facts (M5-43) follow; until M5-42 a game whose options name `factions` is refused at load.
+has left. Before a tribunal the residents may draft factions, and a faction that votes as one earns a bonus. A port
+of the old `mechanics/tribunal`, in three parts (12-m5-spec.md, section 10, rows 41 to 43): the first two hold the
+schedule of the city, the call, the accused, the secret vote, the result, the gate, and the faction draft (`nominate`,
+`join`, `refuse`, the leaders, the bloc bonus). The gamemaker's `scheduleTribunal`, the act's end and the views as
+facts (M5-43) follow.
 
 ## At a glance
 
@@ -19,7 +20,7 @@ views as facts (M5-43) follow; until M5-42 a game whose options name `factions` 
 | Id | `tribunal` |
 | Summary | Tribunal sessions, votes and faction drafts. |
 | Requires | `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)), `ledger` (from [ledger](../ledger/README.md)), `progression` (from [progression](../progression/README.md)) |
-| Uses when loaded | `decisions` (from [decisions](../decisions/README.md)), `identity` (from [names](../names/README.md)) |
+| Uses when loaded | `decisions` (from [decisions](../decisions/README.md)), `identity` (from [names](../names/README.md)), `goals` (from [goals](../goals/README.md)) |
 | Provides | `ransom-price`, `trial-risk` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
@@ -46,7 +47,19 @@ views as facts (M5-43) follow; until M5-42 a game whose options name `factions` 
    `ransom.selfShare` for itself, at least `ransom.minimum`), with the will's cap `bequestPerHeir` and the tribunal's
    texts. With `decisions` loaded and a `decisionWindow`, the verdict waits that many ticks at the decision gate for the
    names that hold `tribunal.verdict` to amend it.
-4. **The end.** Once the tribunals have exiled `targetShare` of the residents of the act's start and the last gate
+4. **The faction draft.** In a city with `factions`, a tribunal called with at least two factions that fit (two up to
+   half the residents present, and at least as many residents per faction as accused; else `noDraft` says why and
+   `texts.calledNoDraft` is posted) opens a draft with its call: the city founds the group `GT<k>` of every present
+   resident through `channels` and posts the rules there. Until `nominateUntil` (half way to the opening) each member
+   may `nominate` a leader, the last nomination counting (`faction_nominated`). Then the city names as many leaders
+   as factions, most nominations first (ties: more points, then `rng("factions", tribunal)`; `faction_leaders`), and
+   tells `goals` through `noteLeaders` when it is loaded. Until the opening every other member may `join` a leader
+   (`faction_applied`), at most `cap` (the present residents shared evenly) to a faction, its leader included; a
+   leader may `refuse` an applicant (`faction_refused`), who may apply elsewhere. At the opening each leader still
+   present gets a group of its faction (`factions_formed`). With the result, a faction whose voting members (at least
+   two) all voted against the same accused earns each of them `blocBonus` points; every member of such a faction
+   learns whether it voted as one, never who broke ranks (`bloc_result`). Then every group of the draft is removed.
+5. **The end.** Once the tribunals have exiled `targetShare` of the residents of the act's start and the last gate
    closed, the board says `texts.targetReached`.
 
 The prices and the next trial are what the standoff asks (`ransom-price`, `trial-risk`, declared in
@@ -69,6 +82,42 @@ names, and before the seal and the standoff (old `HOOK_ORDER.minuteStarted` 300)
 What the caller reads ([tribunal/tools/vote](prompts/tribunal/tools/vote.md)):
 
 > Casts your secret vote in the open tribunal against one of the accused. Once, and final. Nobody sees whom you voted for, except the one you voted against if the city exiles them. Not voting costs points.
+
+### `nominate`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `agent` | string | yes | The resident you nominate, by name or ID, e.g. A03 |
+
+What the caller reads ([tribunal/tools/nominate](prompts/tribunal/tools/nominate.md)):
+
+> Nominates a faction leader for the coming tribunal (yourself allowed). Your last nomination counts. When the nominations close, the residents with the most nominations lead the factions.
+
+### `join`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `leader` | string | yes | A faction leader, by name or ID, e.g. A02 |
+
+What the caller reads ([tribunal/tools/join](prompts/tribunal/tools/join.md)):
+
+> Applies to join a leader's faction for the coming tribunal. Your last application counts; the leader may refuse you until the tribunal opens, and then you may apply elsewhere. A faction whose voters all vote for the same target earns each of them a bonus.
+
+### `refuse`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `agent` | string | yes | An applicant to your faction, by name or ID, e.g. A05 |
+
+What the caller reads ([tribunal/tools/refuse](prompts/tribunal/tools/refuse.md)):
+
+> As a faction leader, refuses a resident who applied to your faction. The city tells them; they may apply elsewhere.
 
 <!-- /generated:tools -->
 
@@ -330,10 +379,24 @@ This mechanic exports no metrics.
 | Prompt | Variables |
 | --- | --- |
 | [tribunal/tools/vote](prompts/tribunal/tools/vote.md) | - |
+| [tribunal/tools/nominate](prompts/tribunal/tools/nominate.md) | - |
+| [tribunal/tools/join](prompts/tribunal/tools/join.md) | - |
+| [tribunal/tools/refuse](prompts/tribunal/tools/refuse.md) | - |
 | [tribunal/replies/locked](prompts/tribunal/replies/locked.md) | - |
 | [tribunal/replies/vote-recorded](prompts/tribunal/replies/vote-recorded.md) | `target` |
+| [tribunal/replies/nominate-recorded](prompts/tribunal/replies/nominate-recorded.md) | `agent` |
+| [tribunal/replies/nominate-until](prompts/tribunal/replies/nominate-until.md) | `until` |
+| [tribunal/replies/join-applied](prompts/tribunal/replies/join-applied.md) | `leader` |
+| [tribunal/replies/join-until](prompts/tribunal/replies/join-until.md) | `until` |
+| [tribunal/replies/refuse-done](prompts/tribunal/replies/refuse-done.md) | `agent` |
 | [tribunal/status/accused](prompts/tribunal/status/accused.md) | `until` |
 | [tribunal/status/tribunal-vote](prompts/tribunal/status/tribunal-vote.md) | `until` |
+| [tribunal/status/draft-nominate](prompts/tribunal/status/draft-nominate.md) | `until`, `nominated` |
+| [tribunal/status/draft-nominated](prompts/tribunal/status/draft-nominated.md) | `nominee` |
+| [tribunal/status/draft-leads](prompts/tribunal/status/draft-leads.md) | `applicants`, `until` |
+| [tribunal/status/draft-applied](prompts/tribunal/status/draft-applied.md) | `leader`, `until` |
+| [tribunal/status/draft-refused](prompts/tribunal/status/draft-refused.md) | - |
+| [tribunal/status/draft-join](prompts/tribunal/status/draft-join.md) | `leaders`, `until` |
 
 <!-- /generated:prompts -->
 
@@ -367,13 +430,18 @@ What the port changed against the old platform, by the recut (12-m5-spec.md 2.2 
 `TribunalApi.text` and `ransomPrices`); the texts of the gate are filled with the rule values when the gate opens, not
 when it closes (the values do not change after the act's start); the prompt ids moved into the mechanic's folder
 (`tools/vote` is `tribunal/tools/vote`, `competitor/status/accused` is `tribunal/status/accused`, J145); a text with
-an unknown placeholder is `SWT-G020`, not a bare error.
+an unknown placeholder is `SWT-G020`, not a bare error. The draft's tools take a name where an id goes and show ids by
+name through `identity`, as the old presentation of `names` did; a draft without `factions` in the options, which the
+old code refused with a bare error, cannot start and would be `SWT-G020`.
 
 ## Tests
 
 Offline, with the City's own tribunal texts (`oracles/cityofkeys/setup/cityofkeys.story.json`) and the real
 `ledger`, `channels`, `exile`, `progression`, `decisions` and `standoff`. `test/tribunal.test.ts`: the plan at the
 first deadline, the call and the opening in the old words; the vote's refusals and lock, the status line, the result,
-the non-voters' penalty and the gate with its prices; the refusal of `factions` until M5-42; the price of the city's
+the non-voters' penalty and the gate with its prices; the price of the city's
 pieces and the next trial as the standoff reads them; a verdict amended at the decision gate; a fake run replayed and
+resumed at every tick boundary. `test/factions.test.ts`: the draft's call, the nominations with their refusals and
+status line, the leaders told to `goals`; the applications under the cap, a refusal and the factions formed; the bloc
+bonus of a united faction, the notices of a split one and the removed groups; a fake run with the draft replayed and
 resumed at every tick boundary.

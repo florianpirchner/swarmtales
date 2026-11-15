@@ -190,6 +190,18 @@ export function burn(ctx: TribunalCtx, agent: string, amount: number, reason: st
 }
 
 /**
+ * Grants points to a resident (the bloc bonus).
+ *
+ * @param ctx - The context.
+ * @param agent - The resident.
+ * @param amount - The points.
+ * @param reason - Why, for the booking.
+ */
+export function grant(ctx: TribunalCtx, agent: string, amount: number, reason: string): void {
+	ctx.call(LedgerService, "mint", { account: agent, amount, reason });
+}
+
+/**
  * A template with the rule values every tribunal text may show (old `#render`).
  *
  * @param ctx - The context.

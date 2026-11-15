@@ -1506,6 +1506,9 @@ importers:
       '@swarmtales/mechanic-exile':
         specifier: workspace:*
         version: link:../exile
+      '@swarmtales/mechanic-goals':
+        specifier: workspace:*
+        version: link:../goals
       '@swarmtales/mechanic-ledger':
         specifier: workspace:*
         version: link:../ledger

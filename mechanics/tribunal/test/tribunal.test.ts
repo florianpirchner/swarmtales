@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The first part of the tribunal (12-m5-spec.md, section 10, row 41) with the City's own texts (the setup file of
- * `cityofkeys-act1-s7.json`, its faction draft left out until M5-42): the city plans the first tribunal at its
+ * `cityofkeys-act1-s7.json`, its faction draft left out: `factions.test.ts` plays it): the city plans the first tribunal at its
  * deadline, calls it ahead, opens it with the lowest-ranked accused, takes the secret votes, burns a non-voter's
  * points and sends the one voted out to the gate of `exile` with its prices and texts. The prices and the next trial
  * are read through the real `standoff` (`ransom-price`, `trial-risk`), and a verdict waits at the decision gate.
@@ -21,7 +21,7 @@ import { checkReplay, checkResumeEveryBoundary, fakeDriver, play, testKernel, ty
 import { TribunalOptions, tribunal, type TribunalSpec } from "../src/index.ts";
 
 const setup = Parse(Type.Object({ tribunal: TribunalOptions }), JSON.parse(readFileSync(new URL("../../../oracles/cityofkeys/setup/cityofkeys.story.json", import.meta.url), "utf8")));
-// The act begins at the run's start, the first tribunal is due at tick 2; the draft comes with M5-42.
+// The act begins at the run's start, the first tribunal is due at tick 2; no faction draft.
 const spec: TribunalSpec = { ...setup.tribunal, act: 1, first: { level: 1, latestAfter: 2 } };
 delete spec.factions;
 
@@ -106,12 +106,6 @@ describe("a tribunal from its plan to the gate", () => {
 		]);
 		expect(of(events, "notice").filter(([, , payload]) => JSON.stringify(payload).includes("You did not vote"))).toHaveLength(2);
 		expect(test.kernel.fact("ledger.balances")).toMatchObject({ [high]: 22, [others[3] ?? ""]: 22 });
-	});
-});
-
-describe("the faction draft", () => {
-	it("is refused at load until its part of the port lands (M5-42)", () => {
-		expect(() => testKernel(game([], setup.tribunal.factions === undefined ? {} : { factions: setup.tribunal.factions }))).toThrow(/options\.factions/);
 	});
 });
 

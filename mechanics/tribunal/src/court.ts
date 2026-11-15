@@ -2,11 +2,11 @@
 /**
  * The tribunal's work at the start of a tick, carried from the old `court.ts` (old `Tribunal.tick`, SPEC 6.4), step
  * for step: the act begins, the votes close (the exile closed the gates just before: it loads first), the city plans,
- * calls and opens tribunals, and the act's target is reached. The faction draft of the call and the opening joins with
- * M5-42. Votes are never shown; only the exiled learns who voted against it (the exile's gate notice).
+ * calls and opens tribunals with their faction drafts, and the act's target is reached. Votes are never shown; only the exiled learns who voted against it (the exile's gate notice).
  */
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { active, actLevel, endOfAct, exiledList, lowestFirst, missing, notify, post, present, register, render, residentsCount, target, text } from "./city.ts";
+import { dissolveDraft, formFactions, startDraft, tickDraft } from "./factions.ts";
 import type { TribunalCtx } from "./head.ts";
 import { accusedCount, callTick, earliestOpening, fitsBefore, maxFactions, noDraftReason, roomAfter } from "./pacing.ts";
 import { currentSession, previousOpening, type Plan, type Planner } from "./state.ts";
@@ -27,6 +27,7 @@ export function tick(ctx: TribunalCtx): void {
 	for (const session of state.sessions) if (!session.closed && minute >= session.until) closeSession(ctx, session, minute);
 	pace(ctx, minute);
 	callDue(ctx, minute);
+	if (state.draft !== undefined) tickDraft(ctx, state.draft, minute, present(ctx));
 	openDue(ctx, minute);
 	if (reached(ctx)) end(ctx);
 }
@@ -73,7 +74,7 @@ function callDue(ctx: TribunalCtx, minute: number): void {
 		delete ctx.state.plan;
 		return;
 	}
-	call(ctx, plan.count > left ? { ...plan, count: left } : plan);
+	call(ctx, plan.count > left ? { ...plan, count: left } : plan, minute);
 }
 
 // Whether the city may plan a tribunal of its own now: nothing pending, something missing, no door shut.
@@ -143,8 +144,8 @@ function draftRule(ctx: TribunalCtx, plan: Plan, count: number): { readonly fact
 	return reason === undefined ? { factions } : { factions: 0, noDraft: reason };
 }
 
-// Calls a planned tribunal: the rules with the first call, then when it opens and how many it exiles (old `#call`).
-function call(ctx: TribunalCtx, plan: Plan): void {
+// Calls a planned tribunal: the rules with the first call, then when it opens and how many it exiles, and the draft (old `#call`).
+function call(ctx: TribunalCtx, plan: Plan, minute: number): void {
 	const { state } = ctx;
 	const here = present(ctx);
 	if (!state.announced) {
@@ -156,19 +157,33 @@ function call(ctx: TribunalCtx, plan: Plan): void {
 	}
 	state.called = plan.tribunal;
 	state.plan = { ...plan, called: true };
-	const { noDraft } = draftRule(ctx, plan, here.length);
+	const { factions, noDraft } = draftRule(ctx, plan, here.length);
 	const values = { tribunal: String(plan.tribunal), minute: String(plan.opens), count: String(plan.count), accusedCount: String(accusedCount(plan.count, here.length)) };
 	// A city with factions says plainly when there are none this time.
 	const calledNoDraft = ctx.options.texts.calledNoDraft;
 	const called = noDraft !== undefined && calledNoDraft !== undefined ? render(ctx, calledNoDraft, values) : text(ctx, "called", values);
 	post(ctx, called);
 	for (const agent of here) notify(ctx, agent, called);
+	if (factions >= 2) {
+		const nominateUntil = minute + Math.max(1, Math.floor((plan.opens - minute) / 2));
+		const draft = startDraft(ctx, plan.tribunal, factions, here, nominateUntil, plan.opens);
+		state.draft = draft;
+		ctx.emit("tribunal_called", { tribunal: plan.tribunal, opens: plan.opens, count: plan.count, factions, group: draft.group, nominateUntil });
+		return;
+	}
 	ctx.emit("tribunal_called", { tribunal: plan.tribunal, opens: plan.opens, count: plan.count, factions: 0, ...(noDraft === undefined ? {} : { noDraft }) });
 }
 
-// Old `#open`: the accused are named and every present resident votes.
+// A tribunal cancelled at its opening drops its draft and the draft's groups.
+function dropDraft(ctx: TribunalCtx): void {
+	if (ctx.state.draft !== undefined) dissolveDraft(ctx, ctx.state.draft);
+	delete ctx.state.draft;
+}
+
+// Old `#open`: the factions form, the accused are named and every present resident votes.
 function open(ctx: TribunalCtx, plan: Plan, minute: number): void {
 	const { state, options: spec } = ctx;
+	if (state.draft !== undefined) formFactions(ctx, state.draft, present(ctx));
 	const here = present(ctx);
 	// The last tribunal that fits takes everything still missing, also what a ransom since its planning added.
 	const final = !roomAfter(spec, minute, endOfAct(ctx));
@@ -176,6 +191,7 @@ function open(ctx: TribunalCtx, plan: Plan, minute: number): void {
 	if (left === 0) {
 		// A seal struck the last resident still missing since the call (v09): nothing is left to exile.
 		ctx.emit("tribunal_cancelled", { tribunal: plan.tribunal, reason: "the target is reached" });
+		dropDraft(ctx);
 		return;
 	}
 	const planned = Math.min(final ? Math.max(plan.count, left) : plan.count, left);
@@ -183,6 +199,7 @@ function open(ctx: TribunalCtx, plan: Plan, minute: number): void {
 	if (accused.length === 0) {
 		// Fewer than three residents present: no tribunal can be held, and the city stops calling them.
 		ctx.emit("tribunal_cancelled", { tribunal: plan.tribunal, reason: "too few residents present" });
+		dropDraft(ctx);
 		state.halted = true;
 		return;
 	}

@@ -26,11 +26,38 @@ import { Type } from 'typebox';
 // @public
 export function accusedCount(count: number, present: number): number;
 
+// Warning: (ae-forgotten-export) The symbol "DraftSchema" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type Draft = Static<typeof DraftSchema>;
+
+// @public
+export type DraftError = "FACTION_FULL" | "IS_LEADER" | "NOT_APPLYING" | "NOT_A_LEADER" | "NOT_IN_DRAFT" | "NO_DRAFT" | "REFUSED" | "UNKNOWN_NOMINEE";
+
+// @public
+export type DraftPhase = {
+    readonly kind: "nominate";
+    readonly nominee?: string;
+    readonly until: number;
+} | {
+    readonly applicants: readonly string[];
+    readonly kind: "join";
+    readonly leader?: string;
+    readonly leads: boolean;
+    readonly refusedBy: readonly string[];
+    readonly until: number;
+};
+
 // @public
 export function earliestOpening(spec: TribunalSpec, now: number, previousOpening: number | undefined): number;
 
 // @public
 export function exileTarget(spec: TribunalSpec, residents: number): number;
+
+// Warning: (ae-forgotten-export) The symbol "FactionSchema" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type Faction = Static<typeof FactionSchema>;
 
 // @public
 export function factionCap(present: number, factions: number): number;
@@ -40,6 +67,9 @@ export function leadFor(spec: TribunalSpec, opens: number, previousOpening: numb
 
 // @public
 export function noDraftReason(present: number, factions: number, accused: number): "too few per faction" | "too few residents" | undefined;
+
+// @public
+export function phaseOf(draft: Readonly<Draft>, agent: string): DraftPhase | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "PlanSchema" needs to be exported by the entry point index.d.ts
 //
@@ -222,7 +252,7 @@ readonly tribunal_vote: TObject<    {
 target: TString;
 voter: TString;
 }>;
-}, "vote">;
+}, "join" | "nominate" | "refuse" | "vote">;
 
 // @public
 export type TribunalCtx = CtxOf<typeof tribunalHead>;
@@ -386,6 +416,33 @@ voteMinutes: Type.TInteger;
 actStart: Type.TOptional<Type.TInteger>;
 announced: Type.TBoolean;
 called: Type.TInteger;
+draft: Type.TOptional<Type.TObject<{
+applications: Type.TArray<Type.TObject<{
+agent: Type.TString;
+leader: Type.TString;
+}>>;
+cap: Type.TInteger;
+factions: Type.TInteger;
+formed: Type.TOptional<Type.TArray<Type.TObject<{
+group: Type.TString;
+leader: Type.TString;
+members: Type.TArray<Type.TString>;
+}>>>;
+group: Type.TString;
+leaders: Type.TOptional<Type.TArray<Type.TString>>;
+members: Type.TArray<Type.TString>;
+nominateUntil: Type.TInteger;
+nominations: Type.TArray<Type.TObject<{
+nominee: Type.TString;
+voter: Type.TString;
+}>>;
+opens: Type.TInteger;
+refusals: Type.TArray<Type.TObject<{
+agent: Type.TString;
+leader: Type.TString;
+}>>;
+tribunal: Type.TInteger;
+}>>;
 ended: Type.TBoolean;
 halted: Type.TBoolean;
 lastResult: Type.TOptional<Type.TInteger>;
@@ -418,6 +475,33 @@ voter: Type.TString;
 actStart?: number;
 announced: boolean;
 called: number;
+draft?: {
+applications: {
+agent: string;
+leader: string;
+}[];
+cap: number;
+factions: number;
+formed?: {
+group: string;
+leader: string;
+members: string[];
+}[];
+group: string;
+leaders?: string[];
+members: string[];
+nominateUntil: number;
+nominations: {
+nominee: string;
+voter: string;
+}[];
+opens: number;
+refusals: {
+agent: string;
+leader: string;
+}[];
+tribunal: number;
+};
 ended: boolean;
 halted: boolean;
 lastResult?: number;
@@ -536,10 +620,24 @@ target: Type.TString;
 voter: Type.TString;
 }>;
 }, {
+readonly "tribunal/replies/join-applied": readonly ["leader"];
+readonly "tribunal/replies/join-until": readonly ["until"];
 readonly "tribunal/replies/locked": readonly [];
+readonly "tribunal/replies/nominate-recorded": readonly ["agent"];
+readonly "tribunal/replies/nominate-until": readonly ["until"];
+readonly "tribunal/replies/refuse-done": readonly ["agent"];
 readonly "tribunal/replies/vote-recorded": readonly ["target"];
 readonly "tribunal/status/accused": readonly ["until"];
+readonly "tribunal/status/draft-applied": readonly ["leader", "until"];
+readonly "tribunal/status/draft-join": readonly ["leaders", "until"];
+readonly "tribunal/status/draft-leads": readonly ["applicants", "until"];
+readonly "tribunal/status/draft-nominate": readonly ["until", "nominated"];
+readonly "tribunal/status/draft-nominated": readonly ["nominee"];
+readonly "tribunal/status/draft-refused": readonly [];
 readonly "tribunal/status/tribunal-vote": readonly ["until"];
+readonly "tribunal/tools/join": readonly [];
+readonly "tribunal/tools/nominate": readonly [];
+readonly "tribunal/tools/refuse": readonly [];
 readonly "tribunal/tools/vote": readonly [];
 }, readonly [ServiceDefinition<"exile", {
 readonly alive: {
@@ -1123,7 +1221,38 @@ readonly kind: "query";
 readonly output: Type.TString;
 readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 };
+}>, ServiceDefinition<"goals", {
+readonly goalOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+act: Type.TInteger;
+kind: Type.TString;
+target: Type.TOptional<Type.TString>;
+text: Type.TString;
+}>, Type.TNull]>;
+readonly summary: "The goal the resident holds in an act still running, in the game's words, or null (old `goalOf`).";
+};
+readonly noteLeaders: {
+readonly input: Type.TObject<{
+leaders: Type.TArray<Type.TString>;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Faction leaders of a tribunal: one more leadership each in every running act (old `noteLeaders`; the tribunal's leaders).";
+};
 }>], {
+join: Type.TObject<{
+leader: Type.TString;
+}>;
+nominate: Type.TObject<{
+agent: Type.TString;
+}>;
+refuse: Type.TObject<{
+agent: Type.TString;
+}>;
 vote: Type.TObject<{
 target: Type.TString;
 }>;
@@ -1202,6 +1331,33 @@ export const TribunalSlice: Type.TObject<{
     actStart: Type.TOptional<Type.TInteger>;
     announced: Type.TBoolean;
     called: Type.TInteger;
+    draft: Type.TOptional<Type.TObject<{
+        applications: Type.TArray<Type.TObject<{
+            agent: Type.TString;
+            leader: Type.TString;
+        }>>;
+        cap: Type.TInteger;
+        factions: Type.TInteger;
+        formed: Type.TOptional<Type.TArray<Type.TObject<{
+            group: Type.TString;
+            leader: Type.TString;
+            members: Type.TArray<Type.TString>;
+        }>>>;
+        group: Type.TString;
+        leaders: Type.TOptional<Type.TArray<Type.TString>>;
+        members: Type.TArray<Type.TString>;
+        nominateUntil: Type.TInteger;
+        nominations: Type.TArray<Type.TObject<{
+            nominee: Type.TString;
+            voter: Type.TString;
+        }>>;
+        opens: Type.TInteger;
+        refusals: Type.TArray<Type.TObject<{
+            agent: Type.TString;
+            leader: Type.TString;
+        }>>;
+        tribunal: Type.TInteger;
+    }>>;
     ended: Type.TBoolean;
     halted: Type.TBoolean;
     lastResult: Type.TOptional<Type.TInteger>;
@@ -1252,6 +1408,11 @@ export const Verdict: Type.TObject<{
     exiled: Type.TArray<Type.TString>;
     tribunal: Type.TInteger;
 }>;
+
+// Warning: (ae-forgotten-export) The symbol "VoteSchema" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type Vote = Static<typeof VoteSchema>;
 
 // @public
 export type VoteError = "ALREADY_VOTED" | "NOT_ACCUSED" | "NOT_A_VOTER" | "NO_TRIBUNAL" | "SELF_VOTE";
