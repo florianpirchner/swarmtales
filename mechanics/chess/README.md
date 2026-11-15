@@ -331,8 +331,12 @@ From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md). The rows were rec
 models write them, the baseline's scoring, the settled cap (LH17); a scripted match (alternating colours, mate, the
 briefing of game 2), forfeits, the move cap, `playMove` open only on move, refused moves and their hints, a
 resignation, the fresh context, the compact board; the samples of the fake driver; documented options, determinism
-and a run resumed from a snapshot. [`test/oracle.test.ts`](test/oracle.test.ts) plays the eight oracle files of the
-solo variants at level 3; the silent file is the proof of the forfeit clock. [`test/carried.test.ts`](test/carried.test.ts)
-holds the prompt files, tools, options, events and audiences to those of the old platform. Teams, the advisor's
-wake, the legal-move list, the loose pieces and the coach are carried but not tested here yet (the second chess
-issue). The game is tested in [`games/chess/`](../../games/chess/).
+and a run resumed from a snapshot. [`test/variants.test.ts`](test/variants.test.ts), from the same old file: the
+loose pieces, the legal-move list, the threats, the coach's review in the retro, and the teams (the captaincy
+rotating move by move, the advisor woken once per half-move by the `told` list, its posts, the locked move of the
+advisor, a fake run with the advisor looking at the board). [`test/oracle.test.ts`](test/oracle.test.ts) plays all
+twelve oracle files of `oracles/chess/` at level 3 inside the test game; the silent file is the proof of the forfeit
+clock, the team file that of `wakeTeam`. `NOT_CAPTAIN` is carried without a test: the game locks the moves for all
+but the captain, so the call is refused at the stage `lock` first, as on the old platform.
+[`test/carried.test.ts`](test/carried.test.ts) holds the prompt files, tools, options, events and audiences to those
+of the old platform. The game is tested in [`games/chess/`](../../games/chess/).

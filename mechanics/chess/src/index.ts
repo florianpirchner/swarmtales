@@ -26,6 +26,9 @@ import { adjudicate } from "./model.ts";
 import { boardNow, moverOf, sideOnMove, teamOf } from "./seats.ts";
 import { boardText } from "./texts.ts";
 
+// How often the fake driver looks at the board between games, per call.
+const BETWEEN_GAMES = 0.5;
+
 // The position when `ctx.resident` is the one who plays the next move, else undefined: nobody else has a legal call of `playMove` or `resign`.
 function positionOfMover(ctx: ChessToolCtx) {
 	if (ctx.resident === undefined || !ctx.state.running) return undefined;
@@ -52,8 +55,9 @@ function lost(ctx: ChessToolCtx): boolean {
  */
 export const chess = defineMechanic(chessHead, {
 	tools: {
-		// The fake driver calls the first tool that gives a sample: it looks at the board only when it has no move to play.
-		viewBoard: { run: (_params, ctx) => reply(boardText(ctx, ctx.resident)), sample: (ctx) => (positionOfMover(ctx) === undefined ? {} : undefined) },
+		// The fake driver calls the first tool that gives a sample, in grant order: it looks at the board in a game only when it
+		// has no move to play, and between games only now and then, so the tools granted after this one (the brain's) are reached.
+		viewBoard: { run: (_params, ctx) => reply(boardText(ctx, ctx.resident)), sample: (ctx, random) => (ctx.state.running ? positionOfMover(ctx) === undefined : !ctx.state.finished && random.next() < BETWEEN_GAMES) ? {} : undefined },
 		[TOOLS.play]: {
 			check: (_params, ctx) => problemWith(ctx, ctx.resident),
 			run: (params, ctx) => play(ctx, params.move, params.reason),

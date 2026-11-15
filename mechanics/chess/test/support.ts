@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * The game the chess tests play: two solo seats, chess, the team channel without teams and a strategy brain per
- * seat, set up as the old platform's chess game was (`stories/chess/story.ts`). The scripted resident is the player
+ * The game the chess tests play: two solo seats (or two teams of two), chess, the team channel and a strategy brain
+ * per seat or team, set up as the old platform's chess game was (`stories/chess/story.ts`), with its variants. The scripted resident is the player
  * of the old game test (`test/stories/chess.test.ts`): it reads the board, so it holds no state.
  */
 import { nameOf, type ActorDriver, type Envelope } from "@swarmtales/contracts";
@@ -12,6 +12,9 @@ import { chess } from "../src/index.ts";
 
 export const SEATS = ["A01", "A02"] as const;
 
+/** The two teams of the team variant, as the old game had them. */
+export const TEAMS = { A: ["A01", "A02"], B: ["A03", "A04"] } as const;
+
 /** The variants of the test game, named as the old game named them. */
 export interface ChessGameOptions {
 	readonly games?: number;
@@ -21,28 +24,34 @@ export interface ChessGameOptions {
 	readonly compact?: boolean;
 	readonly settleCap?: boolean;
 	readonly order?: "seeded" | "roster";
+	readonly moves?: boolean;
+	readonly threats?: boolean;
+	readonly coach?: boolean;
+	readonly teams?: boolean;
 }
 
-const DEFAULTS = { games: 2, brain: true, maxPlies: 160, fresh: false, compact: false, settleCap: false, order: "roster" } as const satisfies ChessGameOptions;
+const DEFAULTS = { games: 2, brain: true, maxPlies: 160, fresh: false, compact: false, settleCap: false, order: "roster", moves: false, threats: false, coach: false, teams: false } as const satisfies ChessGameOptions;
 
 /** The chess game of the old platform around the mechanic under test. */
 export function chessGame(options: ChessGameOptions = {}): Game {
-	const { games, brain, maxPlies, fresh, compact, settleCap, order } = { ...DEFAULTS, ...options };
-	const sides = Object.fromEntries(SEATS.map((seat) => [seat, [seat]]));
+	const { games, brain, maxPlies, fresh, compact, settleCap, order, moves, threats, coach, teams } = { ...DEFAULTS, ...options };
+	const sides = teams ? Object.fromEntries(Object.entries(TEAMS).map(([name, list]) => [name, [...list]])) : Object.fromEntries(SEATS.map((seat) => [seat, [seat]]));
+	const residents = teams ? Object.values(TEAMS).flat() : [...SEATS];
 	return defineGame({
 		id: "chess",
 		seed: 29,
-		residents: [...SEATS],
+		residents,
 		mechanics: [
-			chess({ games, maxPlies, showLegalMoves: false, showThreats: false, coach: false, maxIdleTurns: 3, maxForfeits: 3, adjudicateMargin: 3, alternateColours: true, score: true, teams: sides, wakeTeam: false, freshContext: fresh, compactBoard: compact, settleCap }),
-			teamChannel({ teams: {}, maxPostsPerMove: 2 }),
-			strategyBrain({ enabled: brain, solo: true, maxWords: 150, teams: sides, retroMaxPosts: 6, retroMaxMinutes: 2, shared: false, brainAtStart: true }),
+			chess({ games, maxPlies, showLegalMoves: moves, showThreats: threats, coach, maxIdleTurns: 3, maxForfeits: 3, adjudicateMargin: 3, alternateColours: true, score: true, teams: sides, wakeTeam: teams, freshContext: fresh, compactBoard: compact, settleCap }),
+			teamChannel({ teams: teams ? sides : {}, maxPostsPerMove: 2 }),
+			strategyBrain({ enabled: brain, solo: !teams, maxWords: 150, teams: sides, retroMaxPosts: 6, retroMaxMinutes: 2, shared: false, brainAtStart: true }),
 		],
-		grants: { resident: ["viewBoard", "playMove", "resign", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
+		grants: { resident: ["viewBoard", "playMove", "resign", ...(teams ? (["postTeam", "readTeam"] as const) : []), ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: ["playMove", "resign", ...(brain ? (["writeBrain"] as const) : [])],
-		scheduler: { id: "turns", options: { passes: 4, activation: "onNews", order, inputs: [{ kind: "context-reset" }] } },
+		// The reset line first, then the lines in the order of the old hook numbers: the brain, chess, the team's new posts.
+		scheduler: { id: "turns", options: { passes: 4, activation: "onNews", order, inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "chess" }, { source: "team-channel" }] } },
 		limits: { maxCallsPerTick: 16 },
-		end: { ticks: games * Math.ceil((maxPlies * 3) / 4) + (games + 1) * 2 + 4 },
+		end: { ticks: (games * Math.ceil((maxPlies * 3) / 4) + (games + 1) * 2 + 4) * (teams ? 2 : 1) },
 	});
 }
 

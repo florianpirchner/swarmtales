@@ -50,11 +50,9 @@ The legal-move list, the loose pieces, the coach, the teams, the control arm wit
 - **`call.endsTurn`.** No file of `oracles/` holds the flag, although the old mechanic set it on every accepted
   `playMove` and `resign`. `test/oracle.test.ts` writes it back into those call entries before the comparison;
   without that mapping the first difference of a file with a move is that flag.
-- **The brain in a fake run (open).** The fake driver calls the first open tool that gives a sample, in grant order;
-  `viewBoard`, granted first, samples whenever the caller is not on move. So in a retro window a seat looks at the
-  board until its calls of the tick run out, the window closes by timeout, and `readBrain` and `writeBrain` are
-  never called. The fix belongs to the `sample` of `viewBoard` in `mechanics/chess`; `test/fake.test.ts` pins the
-  gap until then.
+- **The brain in a fake run.** `viewBoard` samples during a game only for the seat not on move, and between games
+  only every second call, so a fake run reaches `readBrain` and `writeBrain` in the retro window (fixed by M4-28;
+  `test/fake.test.ts` asks for an accepted call of all five tools).
 
 ## Runs
 
