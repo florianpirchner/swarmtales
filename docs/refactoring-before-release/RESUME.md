@@ -1,19 +1,48 @@
 # Resume note of the rewrite (kept by the integrator)
 
-## State on 2026-11-15, 07:40 UTC (read this part first)
+## State at the end of M4, 2026-11-15, about 14:00 UTC (read this part first)
 
-- The integrator session changed on 2026-11-15 (the first one reached its weekly usage limit); builder work that
-  was not merged then lived only in that session's container and was rebuilt from the specification.
-- **M4 merged on `rewrite/develop`:** 00, 01, 02, 04, 05, 06, 07, 08, 11, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-  26, 27, 28, 29, 31, 37, 38, 39, 41, 42, 44 (inside 45), 45, 47, 48, 64, 65 (decision A43). Games that play:
-  liar's dice, Harbor Lights, Lanterns, chess (default, fresh, compact), hold'em (without the aid and mixed tables).
-- **Open in M4:** 03, 09, 10, 12, 13, 14, 15, 30, 32 to 36, 40, 43, 46, 49 to 63, and a follow-up of 65 for the
-  key order on resume of `holdem`, `chess`, `salt-market` and `strategy-brain` (the open pin in tic-tac-toe teams).
-- **The check on this container:** 4 cores. `pnpm check` runs about 710 s on a quiet machine (typecheck 140 s,
-  lint 260 s, tests 185 s, build and API 125 s), so the time budget of 600 s stops it at the build gate. The
-  integrator runs the check, and then `pnpm build` and `pnpm api` on their own, and records that every gate
-  passed; the budget overrun is an erratum of M4 for the gate issue (E16 of the integrator's list).
-- The errata found while building M4 are collected for `11-m4-spec-errata.md` (written by issue 63).
+Written by the gate issue of M4 (M4-63). The older sections below are kept as they were; where they differ, this
+one holds.
+
+- **M4 is built.** All 72 issues are merged on `rewrite/develop`: M4-00 to M4-71 (64 planned by A32, M4-64 to M4-71
+  added by A42, A43, A45 and A46; M4-44 is inside M4-45). The last commits are M4-63 part 1 (`d7f4eb0`, the errata
+  and the record), M4-59 (`cfa3676`, the three series) and the squash commit of the gate, M4-63. Decisions run to
+  A46 (`DECISIONS.md` section 9); the specification is `11-m4-spec.md`, its errata `11-m4-spec-errata.md` (H1 to
+  H47, open points Q1 to Q6).
+- **Games that play:** the Hello Game, tic-tac-toe teams, quarry, econ-lab, the city slice and the ten tabletop
+  games of M4 (liar's dice, Harbor Lights, Lanterns, chess, Ember Tricks, Blind Bid, hold'em, nine men's morris,
+  Convoy, Salt Market). Each of the ten matches all of its oracle files at level 3 (58 files); every game passes
+  the standing checks; `GAMES.md` has the thirteen tabletop cards and a generated overview.
+- **The gate:** the nine done-whens are met, each with its test or its write-up, in `docs/ISSUE-RECORD.md` ("The
+  gate of M4", "The softer check of M4"). The kernel has 1402 code lines (9 added, the two activation hooks of
+  M4-16), kernel + sdk + engine 3861 of 4100; the sample `parallel` (`samples/own-scheduler/`) needed no line of
+  kernel, sdk or engine and no change of the scheduler port. No stop rule fired, nothing was cut.
+- **Live:** `games/m4-ledger.jsonl` holds 5.1262 USD of the cap of 12.00 (63 runs: the ten smokes of M4-60 and
+  M4-61, the check run of M4-70, the 52 runs of the series of M4-59). The series (`docs/M4-GATE.md`): Harbor
+  Lights' private notes +1.58 (SE 1.37), sign kept and size not reproduced; Lanterns' team brain +0.058 recall
+  (SE 0.022), kept; chess 1.209 requests per half-move beside the old 1.18 to 1.22, the count holds. The run folders
+  are on `data/runs` at `570801d` (pushed, the leak scan clean). Every recorded run of M4 is runtime revision 4;
+  the runtime revision of `rewrite/develop` is 5 since M4-68, and no run of it is recorded yet (errata H41).
+- **The check:** `pnpm check` runs its gates in three lanes and fits its budget again (M4-71: 549.3 s of 600 s,
+  5348 MB of 6144 MB on this 4-core container; errata H16). Builders run targeted checks; the integrator runs the
+  full check after each merge.
+
+**Open points, in this order:**
+
+1. **Owed by the owner** (the build session cannot push tags): the tag `v0-final` on `a73e6a9` (still not on the
+   remote; the switch of `main` waits for it), `runtime-r4` at the merge of M4-02 (`b158a5b`) and `runtime-r5` at
+   the merge of M4-68 (`6d1a685`), as `docs/RUNTIME-REVISIONS.md` says. The owner's go is also open for P465 (no
+   game tool in an answer turn) and the look at the provider's usage page against the 4.09 USD of the series.
+2. **The milestone review of M4** runs next: a challenger session that reads the specification, the errata and the
+   result, and attacks the gate. Its findings become issues of M4 by a decision row, as the reviews of M2 and M3
+   did; M4 is closed by that review.
+3. **The row of M4-63** in `docs/ISSUE-RECORD.md` (row 231) waits for its commit id, merge time, tokens and agent
+   time, which the integrator writes in with the merge.
+4. **M5** is specified after the review: the City of Keys and Whispers (`REWRITE.md` section 4). Its inputs from
+   M4: the softer check (staged calls and `runEnded` fit in the kernel, the rest of the reserved list does not;
+   the gate of 1420 is raised by the issue of A20 with measured lines), the open points Q3 and Q5 of the errata,
+   and that `parallel` was never played live.
 
 ## Older state (2026-11-14)
 

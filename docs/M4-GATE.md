@@ -270,7 +270,7 @@ tool in an answer turn), which needs the owner's go.
 
 - Done by the integrator: the chess count holds (above); the ledger holds the lines of the smokes of issues 60, 61
   and 70 too (5.1262 USD in all, M4 cap 12.00); the run folders are on `data/runs` at `570801db`, after the leak
-  scan; the repair of three dirty-tree records of the Harbor Lights series (deviation 2) is accepted, as they spent
+  scan; the repair of three dirty-tree records of the Lanterns series (deviation 2) is accepted, as they spent
   nothing.
 - The owner's: the go or no for P465; one look at the provider's usage page against 4.09 USD.
 - **What entered the findings.** Both signs are kept, so both rows of [`FINDINGS.md`](FINDINGS.md) ("Status on the

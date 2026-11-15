@@ -10,7 +10,7 @@ changes a decision that stands, the integrator ruled on it, and section 14 holds
 decision row. Section 8 lists what only the owner can decide.
 
 **Errata:** [`11-m4-spec-errata.md`](11-m4-spec-errata.md) lists every difference between this file and the code
-that the builders and the integrator found (H1 to H43); where the two differ, the errata hold.
+that the builders and the integrator found (H1 to H47); where the two differ, the errata hold.
 
 Words as in the earlier specifications. An "old" path is a path on the branch `legacy` (read with
 `git show origin/legacy:<path>`). "Carried" means copied with at most import changes and the renames of M1

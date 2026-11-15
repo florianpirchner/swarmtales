@@ -268,10 +268,14 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
 | M5 | City and Whispers | a tabletop game that M4 cut, first; recut of the City cluster, Whispers first; Act I and Act II at six residents; API freeze after this, not before (the scheduler port was tried by a second scheduler at M4) | City plays Act I and II; a new Act I base snapshot is recorded |
 | M6 | Release | samples 2 to 4, a mechanic and a Director installed from outside the repository, the rename of original games, `swt doctor --online`, names and publishing | the 1.0 list of section 5 holds |
 
-**State of the milestones** (added while building; the table above is the plan as decided). M1: done. M2: built;
-its gate with the live series is merged ([`../M2-GATE.md`](../M2-GATE.md)), its milestone review is open. M3: built, and its done-when is proven offline by the gate issue
-M3-31 (the tests and the softer check of section 7 are in [`../ISSUE-RECORD.md`](../ISSUE-RECORD.md), "The gate of
-M3"); the milestone closes with its review, after M2.
+**State of the milestones** (added while building; the table above is the plan as decided). M1: done. M2: done;
+its gate with the live series ([`../M2-GATE.md`](../M2-GATE.md)) and its milestone review are merged. M3: done; its
+done-when is proven offline by the gate issue M3-31 (the tests and the softer check of section 7 are in
+[`../ISSUE-RECORD.md`](../ISSUE-RECORD.md), "The gate of M3"), and its review closed it (decision A28). M4: built,
+72 issues; its gate M4-63 proves the nine done-whens of `11-m4-spec.md` (the tests and the softer check are in
+[`../ISSUE-RECORD.md`](../ISSUE-RECORD.md), "The gate of M4"; the live series in [`../M4-GATE.md`](../M4-GATE.md):
+both firm effects of M4 keep their sign, the chess count holds). The ten tabletop games match their oracle files at
+level 3, and the sample `parallel` needed no line of kernel, sdk or engine. The milestone closes with its review.
 
 ### 4.1 Where the rewrite happens
 

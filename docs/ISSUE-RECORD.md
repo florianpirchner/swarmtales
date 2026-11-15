@@ -57,18 +57,19 @@ What the numbers of this table can and cannot say:
   viewer, the ported mechanics, the chain) is not told apart from new source.
 - **Cost is a dash in every row:** the sessions are not billed per token.
 
-The merges of the rows 1 to 163 are of 2026-11-14, those of the rows 164 to 228 of 2026-11-15; the times are UTC.
-The table is complete up to commit `41e6371` of `rewrite/develop` (M4-71); the rows 85 to 129 were written from the
-history by issue M3-31, the rows 130 to 132 by issue M2-27, the rows 133 to 135 by issue M3-34, the rows 136 to 143
-by issue M4-00, and the rows 144 to 228 by issue M4-63, whose own row is owed (the integrator adds it with the
-merge commit, as the rows of M3-31, M2-27, M3-34 and M4-00 were added).
+The merges of the rows 1 to 163 are of 2026-11-14, those of the rows 164 to 231 of 2026-11-15; the times are UTC.
+The table is complete up to commit `cfa3676` of `rewrite/develop` (M4-59) and the gate's own squash commit (row 231);
+the rows 85 to 129 were written from the history by issue M3-31, the rows 130 to 132 by issue M2-27, the rows 133 to
+135 by issue M3-34, the rows 136 to 143 by issue M4-00, and the rows 144 to 231 by issue M4-63 (its two parts). The
+commit id and the merge time of row 231 are those of the integrator's squash commit, which this row cannot name; the
+integrator fills them with the merge, as the rows of M3-31, M2-27, M3-34 and M4-00 were filled.
 
 How the rows of M4 were filled. The lines come from `git show --shortstat` and `git show --numstat` of each commit,
 split by the rule above; row 209 also leaves out the vendored chess engine, which is carried. The builders of M4 ran
 in two integrator sessions. The first ran until the weekly usage limit of its model on 2026-11-15; no report of its
 builder sessions is here, so the rows 144 to 170 (merged before 05:32 UTC) say "not recorded". The second started at
 05:32 UTC; each of its builder sessions ended with a notice that names the issue ("Build M4-23 Harbor Lights game")
-and gives the session's tokens and duration, and the rows 171 to 228 take them, one session per issue. Three sessions
+and gives the session's tokens and duration, and the rows 171 to 231 take them, one session per issue. Three sessions
 sent two notices (they waited on their own background work); the numbers of a notice are of the whole session so far,
 so the last is taken. No challenger session is among the notices of the second session. Wall time is a dash in every
 row of M4: a builder's branch is removed after the merge, so its first commit is not known.
@@ -303,6 +304,9 @@ row of M4: a builder's branch is removed after the merge, so its first commit is
 | 226 | M4-69 | Option quietEnds: no answer wake after a call that ends a seat's part (A46) | M4 | `9e7c8a8` | 11:02 | 0.23 | - | - | 0.33 | +329 -49 | 91 | 250 | 33 | one builder session; added by decision A46, beside the plan |
 | 227 | M4-70 | Salt Market option markOwnOffers, with its live check (A46) | M4 | `fcec4aa` | 11:14 | 0.17 | - | - | 0.53 | +175 -10 | 77 | 93 | 13 | one builder session; added by decision A46, beside the plan; live check run 0.1746 USD (`games/m4-ledger.jsonl`) |
 | 228 | M4-71 | The full check fits its budget again (A46) | M4 | `41e6371` | 13:26 | 0.23 | - | - | 2.41 | +408 -242 | 264 | 227 | 15 | one builder session; the session reported twice (it waited on its own background work), the last report is taken; added by decision A46, beside the plan; `pnpm check` 549.3 s of 600 s |
+| 229 | M4-63 part 1 | the errata of the M4 specification, the issue record of M4 | M4 | `d7f4eb0` | 13:37 | 0.21 | - | - | 0.17 | +209 -27 | 0 | 0 | 236 | one builder session ("M4-63 part 1 errata, record", 213,358 tokens); the first part of the gate, whose second part is row 231 |
+| 230 | M4-59 | The three series of D11: both signs kept, chess 1.209 requests per half-move | M4 | `cfa3676` | 13:43 | 0.36 | - | - | 6.40 | +439 -12 | 0 | 0 | 451 | one session ("Run M4-59 live series", 356,263 tokens, 6.40 h, most of it waiting on the runs); live: 52 runs, 4.0901 USD (`games/m4-ledger.jsonl`), runtime revision 4 on the code of `5b6336a` (errata H41); the run folders are on `data/runs` at `570801d`; "Other" holds the 104 ledger lines; the write-up is [`M4-GATE.md`](M4-GATE.md) |
+| 231 | M4-63 | Gate of M4: the nine done-whens, the softer check, the errata, the resume note | M4 | `fbfd8d6` | 14:01 | 0.21 | - | - | 0.27 h | +172 -36 | 0 | 0 | 208 | one builder session (214323 tokens, 0.27 h by its notice); the four kinds are not in the notice |
 
 ## Sessions without a row
 
@@ -327,10 +331,10 @@ Sessions whose name matches no row of the record. By their names their work is t
 
 ## Totals
 
-State at commit `41e6371`, 228 rows (226 commits and the milestone reviews of M2 and M3, which have no commit). The
-token sums below are those of the first 82 rows and of the rows 171 to 228: the usage file of the sessions ends at
-row 82, the rows 83 to 170 have no number, and the rows of M4 from 171 on take the notices of the second
-integrator session.
+State at commit `cfa3676` and the gate's squash commit, 231 rows (229 commits and the milestone reviews of M2 and
+M3, which have no commit). The token sums below are those of the first 82 rows and of the rows 171 to 230: the usage
+file of the sessions ends at row 82, the rows 83 to 170 have no number, the rows of M4 from 171 on take the notices
+of the second integrator session, and row 231 waits for its notice.
 
 | | Planned | Merged | Note |
 |---|---|---|---|
@@ -339,24 +343,25 @@ integrator session.
 | M2 | 25 (A12) | 25 | M2-00 to M2-24; the gate M2-24 merged last (row 129, [`M2-GATE.md`](M2-GATE.md): 61 live runs, 1.6022 USD of the live budget of 10 USD). Beside the plan: the follow-up issues M2-25 and M2-26 of the reviews, both merged, M2-27 (row 134), which closes the milestone review (row 132), and M2-28 to M2-30 of A29 (rows 141, 142, 153) |
 | Sum of M0 to M2 | 76 | 62 planned issues of M1 and M2, plus the 3 rows of M0. With the issues beside the plan (M1-37 to M1-40, M2-25 to M2-27): **72**, the number of kill check 1; with M2-28 to M2-30 (A29, merged after the gate): 75 | kill line 150. Every row with the milestone M0, M1 or M2 (reviews, the specification, follow-up and integrator commits included): 91 |
 | M3 | 32 (A19), 33 with M3-32 (A24) | 33 | M3-00 to M3-32 (rows 130 and 131 are the live smoke M3-30 and the gate M3-31). Beside the plan: M3-33 (A26, row 137) and M3-34 (row 138), which closes the milestone review (row 135). M3 is closed by decision A28 (row 139). Stop line of A19: above 64 |
-| M4 | 64 (A32), 72 with M4-64 to M4-71 (A42, A43, A45, A46) | 70 | M4-00 to M4-58, M4-60 to M4-62 and M4-64 to M4-71 (rows 144 to 228); M4-44 has no commit of its own and is inside M4-45 (row 167, errata H32). Open when this was written: M4-59, the three series (running; its row and its live spend are the integrator's), and M4-63, the gate. The specification is row 143. The cut list is applied at 90 issues merged or open, and M4 is stopped and planned again above 128 (A32): 72 stand, nothing was cut |
+| M4 | 64 (A32), 72 with M4-64 to M4-71 (A42, A43, A45, A46) | 72 | M4-00 to M4-71 (rows 144 to 231); M4-44 has no commit of its own and is inside M4-45 (row 167, errata H32); M4-59, the three series, is row 230; M4-63, the gate, has two rows (229 and 231). The specification is row 143. The cut list is applied at 90 issues merged or open, and M4 is stopped and planned again above 128 (A32): 72 stand, nothing was cut. Open after the gate: the milestone review of M4 |
 
 Rows beside the plan: 69. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
 milestone), the specifications of M2, M3 and M4, the reviews A and B and the milestone review of M2, the six
 follow-up issues of M2 (M2-25 to M2-30), the milestone review of M3 and its two issues (M3-33, M3-34), the eight
 issues M4-64 to M4-71 (A42, A43, A45, A46), eight follow-up and prep commits with the id of their issue (rows 89, 96,
 106, 139, 212, 219, 220, 223), and thirty commits of the integrator without an issue id (eleven of them in M4: five
-decisions, three of API reports, a lint change, a README fix, the resume note).
+decisions, three of API reports, a lint change, a README fix, the resume note). The two rows of M4-63 (229 and 231)
+are one planned issue built in two parts, not a row beside the plan.
 
 | | Recorded | Budget | Share |
 |---|---|---|---|
-| Agent tokens in rows (118 of 228 rows have a number, row 222 points to row 221, 109 are "not recorded") | 22.39 million | | |
+| Agent tokens in rows (120 of 231 rows have a number, row 222 points to row 221, 109 are "not recorded", row 231 is owed) | 22.96 million | | |
 | Agent tokens of the 12 sessions without a row | 2.38 million | | |
 | Agent tokens, the 85 session reports up to row 82 | 15.60 million | 300 million (M0 to M2) | 5.2 % |
-| Agent tokens, the 48 builder sessions of M4 from row 171 on | 9.17 million | | median 0.19 million, largest 0.30 million (M4-47); agent time 15.12 h |
+| Agent tokens, the 50 sessions of M4 from row 171 on (48 builders, the series M4-59, the first part of the gate) | 9.74 million | | median 0.19 million, largest 0.36 million (M4-59, a session that mostly waited on its runs), largest builder 0.30 million (M4-47); agent time 21.69 h, of which 6.40 h are M4-59 |
 | Agent cost | - | 750 USD | the sessions are not billed per token, so the USD line of the kill criterion cannot be counted |
 | Live model spend | 1.6022 USD (M2 gate, 61 runs, `games/m2-ledger.jsonl`) and 0.0206 USD (M3 smoke, 3 runs, `games/m3-ledger.jsonl`) on this platform; 0.72 USD before M2 on the old one (specification of M2, 8.5) | 10 USD | not a kill number |
-| Live model spend after M3 | 0.6515 USD (M2-30, the two cure series of A29, 24 runs, `games/a29-ledger.jsonl`); M4: 0.8615 USD (smokes of M4-60 and M4-61, 10 runs) and 0.1746 USD (the check run of M4-70), 1.0361 USD in `games/m4-ledger.jsonl` at `41e6371`. The series of M4-59 were running when this was written; their spend is the integrator's to add | M4: 12.00 USD (A33); the rewrite: 50 USD | not a kill number |
+| Live model spend after M3 | 0.6515 USD (M2-30, the two cure series of A29, 24 runs, `games/a29-ledger.jsonl`); M4: 0.8615 USD (smokes of M4-60 and M4-61, 10 runs), 0.1746 USD (the check run of M4-70) and 4.0901 USD (the three series of M4-59, 52 runs): **5.1262 USD** in `games/m4-ledger.jsonl` at `cfa3676`, 63 runs, every reservation closed by its cost line. The rewrite so far on this platform: 1.6022 + 0.0206 + 0.6515 + 5.1262 = 7.4005 USD | M4: 12.00 USD (A33), 6.8738 left; the rewrite: 50 USD | not a kill number |
 
 **Kill check 1** (specification of M2, 8.6), recounted by M2-27 from the rows above and written into
 [`M2-GATE.md`](M2-GATE.md): 72 issues of M0 to M2 against 150; 15.60 million recorded tokens against 600 million
@@ -433,3 +438,94 @@ gap left open. The reserved returns of M1 1.4 were not taken (decision 20 of the
 specification, A20). Limits of this answer: the slice is six scripted residents and seven cut mechanics, not the
 City; the judge, hooks for blocks above 1 and a stop inside a tick are M5 and are the next test of the same
 question.
+
+## The gate of M4
+
+The nine done-whens of `refactoring-before-release/11-m4-spec.md` (the list "M4 is done when" at its head) and what
+proves each. Done-whens 1 to 6 and 8 are tests, all offline and in `pnpm check`. The gate issue ran each named test
+green at commit `cfa3676`: `pnpm vitest run games/` (113 files, 702 tests), then the command-line standing checks,
+`apps/cli/test/city-slice.test.ts`, `apps/cli/test/help.test.ts`, `samples/`, `scripts/` and
+`packages/kernel/test/budget.test.ts` (40 files, 271 tests). Done-when 7 is the live write-up
+[`M4-GATE.md`](M4-GATE.md) with the smokes' rows in the runs indexes; done-when 9 is the next section. No game was
+cut (section 2.6): the cut list was never applied, and all ten games of section 2.3 count. The milestone closes with
+its review, which runs next.
+
+| # | Done when | Met | Proven by |
+|---|---|---|---|
+| 1 | every tabletop game is ported: each of the ten plays, and `runOracle` finds no mismatch at level 3 for each of its oracle files, or the difference is a registered change | yes: 58 files (the 48 and ten additions; addition 11 was not recorded, errata H19), all at level 3 | `games/<game>/test/oracle.test.ts` of the ten games, one test per file, "`<file>`: runOracle at level 3 finds no mismatch": liar's dice 6, Harbor Lights 8, Lanterns 4, chess 12, Ember Tricks 4, Blind Bid 5, hold'em 6, nine men's morris 5, Convoy 4, Salt Market 4. In each file a test checks that the folder holds no other file ("covers every oracle file of the folder, each with the options of its variant", "covers every file of the folder ..." in chess; "knows every oracle file of the folder and the params of its variant" in Harbor Lights and Ember Tricks). The registered changes are the `call.endsTurn` mappings in `oracles/<game>/README.md` (errata H4) |
+| 2 | standing checks: every game under `games/` passes replay, resume from every tick boundary in process, resume from every boundary through the command line, and a `swt run --fake` that ends without an `error` end and holds an accepted call | yes, with the sampled boundaries of section 4.3 for a long run through the command line (errata H44) | in process: `games/<game>/test/standing.test.ts` of all fifteen games, "`<run>`: the log replays equal" and "`<run>`: resumed from every boundary, the log is the straight log" (`checkResumeEveryBoundary` on scripted and fake runs, `[]` expected). Through the command line: `apps/cli/test/standing.test.ts`, `standing-b.test.ts` and `standing-c.test.ts` over the games list, "`<game>`, fake seed `<n>`: the fake run holds, and resumed from its boundaries it is the straight run, verifies and replays". The list is whole by `scripts/gates/games-list.test.ts` ("rejects a game folder that is not on the list, and an empty list"). The fake runs are also checked by `games/<game>/test/fake.test.ts` ("seed 7: ends by the match limit with an accepted call of every granted tool") |
+| 3 | the scheduler sample `parallel`: a second scheduler outside the engine; its game plays to its end under `turns` and `parallel`; sixty runs replay to their own log; resume from every boundary; a Director works under it; kernel, sdk and engine have no line for it | yes | `samples/own-scheduler/test/game.test.ts`: "ends with the same result lines under turns and under parallel, though the guesses arrive in another order". `replay.test.ts`: "replays twenty races under `<activation>` to themselves, and the races differ" for `always`, `onNews` and `toAct` (60 runs, drivers that wait a seeded random time), and "resumes a kernel from the snapshot of every boundary, and the replay drivers of the rest write the rest of the log". `director.test.ts`: "wakes the Director by a firing at the next close, while a resident is still open, and the log replays". No line: the three commits of the sample (M4-53 `7156ef2`, M4-54 `f7f29c1`, M4-55 `054781a`) touch no file under `packages/{kernel,sdk,engine}` (`git show --stat`; outside the sample they touch the testkit only), and `SchedulerPort` (`packages/contracts/src/kernel/ports.ts`) has no changed line since `0ecabab` |
+| 4 | no log position in a payload: the city slice resumed through the command line from every boundary differs from the straight run only in the marker line and the envelope fields `seq`, `causedBy` and `basis` | yes | `apps/cli/test/standing*.test.ts`, the cases "city-slice, fake seed 7" and "city-slice, fake seed 4". The slice runs at most 12 ticks, so every boundary is resumed, and `withoutMarker` takes out `run_resumed` and moves only those envelope fields back. In process: `games/city-slice/test/city-slice.test.ts`, "holds no log position in a payload of `decisions`: an amendment is named by its number `n` (decision A34)", and `director-amends.test.ts`, "writes no log position into a payload of the Director or of `decisions`" |
+| 5 | the gates "a mechanic is a plain `defineMechanic` value" and "a base mechanic names no game mechanic" are in the check, each with a fixture that fails | yes | `scripts/gates/plain-mechanic.test.ts`: "holds in this repository, in the source and in the loaded values" and "fails on the fixture: decisions as it was before M3-34, wrapping resolve and create". `scripts/gates/base-alone.test.ts`: "holds in this repository" and "fails on a fixture in which ledger names puzzles". Both are under `scripts/gates/`, which `pnpm check` runs |
+| 6 | the mechanic tutorial and the Director tutorial pass as tests; `docs/reference/errors.md` has an anchor for every code; `swt --help` prints the commands | yes | `samples/own-mechanic/test/tutorial.test.ts`: "every code block of the tutorial is an include of a file of the sample" and "the commands run as the tutorial says: the fake run prints its lines, verifies and replays equal". `samples/own-director/test/tutorial.test.ts`: the same two, and "a fake run without a hand: resumed through the command line from every boundary, it is the straight run, verifies and replays equal". `scripts/gates/error-docs.test.ts`: "has an anchor for every code of the source and a code for every anchor", with its failing twin. `apps/cli/test/help.test.ts`: "prints every command of the table and exits with 0, with and without the flag" |
+| 7 | live: Harbor Lights and Lanterns keep the sign at 12 seeds; the chess count stands beside the old range; every other ported game has one recorded live run; the spend is inside the caps; no key in any artefact | yes | [`M4-GATE.md`](M4-GATE.md) (M4-59, row 230). Harbor Lights +1.58 (SE 1.37, n 12 pairs): sign kept, size not reproduced. Lanterns +0.058 recall (SE 0.022, n 12): kept. Chess 1.209 requests per half-move (1.196 to 1.238) beside 1.18 to 1.22: "holds". The other seven games have one smoke each in `games/<game>/RUNS.md` (liar's dice, Ember Tricks and Blind Bid by M4-60; hold'em, nine men's morris, Convoy and Salt Market by M4-61). Spend: 5.1262 USD of 12.00 in `games/m4-ledger.jsonl`, with every part inside its cap of 7.1 (below). Keys: the gate issue ran `swt scan` again over a checkout of `data/runs` at `570801d`, which printed "clean, 1486 files, keys of 2 providers held"; `swt scan docs` is clean too |
+| 8 | `GAMES.md` is complete: thirteen cards beside the Hello Game and the city slice, and the overview table is generated | yes | `scripts/game-docs/game-docs.test.ts`: "is current: every block written from the games list and the game files, every game with its card" and "has a card for each of the thirteen ported tabletop games, beside the Hello Game and the city slice" |
+| 9 | the stop rules and the softer check of section 9 answered in writing: the lines the kernel got, the three budgets, the issue count | yes | the next section, measured with `scripts/lib/budget.ts`; the gates `scripts/gates/budget.test.ts` and `packages/kernel/test/budget.test.ts` (the gate of 1420) are green |
+
+**The caps of 7.1, by `games/m4-ledger.jsonl`.** Smokes part 1 (M4-60: six runs, the Hello Game twice and liar's
+dice twice): 0.2685 of 1.25 USD. Part 2 (M4-61, four runs): 0.5932 of 1.60. The dearest smoke run cost 0.1973
+(Convoy) of 0.40, and the Hello Game's cap runs 0.0018 and 0.0013 (errata H30). Harbor Lights cost 1.2814 of 1.60,
+Lanterns 1.6631 of 2.35 and chess 1.1455 of 2.00 (dearest runs 0.0645, 0.1053 and 0.3181 of 0.12, 0.20 and 0.80).
+The check run of M4-70 cost 0.1746 of the 0.40 that A46 gave it. No bridge was played (both signs kept), so its 2.00
+are unspent. Sum: 5.1262 of 12.00.
+
+## The softer check of M4
+
+Section 9 of `refactoring-before-release/11-m4-spec.md`. Measured with the counter of the budget gate
+(`scripts/lib/budget.ts`) at `0ecabab` (the state that section 1.2 was measured on) and at `cfa3676` (the head of M4
+before the gate, which changes docs only):
+
+| | Before M4 (`0ecabab`) | After M4 (`cfa3676`) | Added | Planned by section 1.2 | Limit |
+|---|---:|---:|---:|---|---|
+| `kernel` | 1393 | 1402 | 9 | 17, at most 1410 | gate 1420, hard 1500 |
+| `sdk` | 2065 | 2099 | 34 | 25, at most 2090 | |
+| `engine` | 360 | 360 | 0 | 0 | |
+| kernel + sdk + engine | 3818 | 3861 | 43 | 42, at most 3860 | 4100 (A20): 239 left |
+| Issues of M4 | | 72 merged (M4-00 to M4-71), none open | | 64 (A32), 72 with A42, A43, A45, A46 | cut list at 90, stop above 128 |
+
+**Stop rules.** None fired. Rule 1: 72 issues, under 128. Rule 2: the kernel is at 1402, under its gate of 1420,
+and kernel + sdk + engine are at 3861, under 4100; the issue of A20 was not needed. Rule 3: every ported game reaches
+level 3 on every oracle file (done-when 1), so no game stopped.
+
+**Which kernel lines did M4 add?** Nine, all of M4-16 (row 149), against the 17 booked: the two activation hooks
+`activationOpened` and `activationClosed` that M1 1.4 reserved (`packages/kernel/src/ports.ts`, `parts.ts`,
+`loader.ts`), with their two lists in `PluginHooks` of the kernel contracts (`packages/contracts/src/kernel/plugin.ts`,
+4 lines). Their first user is chess (the forfeit of an idle turn). `kit.on` was not taken, so
+`oracles/chess/README.md` has no registered change for it. M4-01 and M4-68 changed only the value of
+`RUNTIME_REVISION` (3 to 4, then 4 to 5), which adds no code line; the kernel's API report differs from `0ecabab` in
+that constant alone.
+
+**Did a tabletop game need a kernel mechanism that was not reserved?** No. Two needs of the ports were met in the
+sdk, each by a decision. A mechanic locks a tool of another mechanic by its bare name through `ctx.access` (A42,
+M4-64, for Harbor Lights' crew arm): 6 sdk lines of the 15 booked. A snapshot's state comes back in the key order of
+its schema (A43, M4-65 and M4-66): `inSchemaOrder` is 16 sdk lines by the counter (15 in its file and the barrel's
+export line) against the 15 booked (errata H45). No port issue stopped for a missing kernel mechanism.
+
+**Did `parallel` need a line in kernel, sdk or engine, or a change of `SchedulerPort`?** No (done-when 3). The
+sample lives in `samples/own-scheduler/`. Outside it, its three issues touched only the testkit (`play`'s option
+`schedulers`, the replay by the close line), no file of the three packages, and `SchedulerPort` has no changed line.
+By the specification's own reading the scheduler port is ready to freeze. The M5 specification gets that as an
+input, with what the sample did not try: a production scheduler, live runs under it, a stop inside a tick.
+
+**Where do the three budgets stand, and what can M5 take?** The kernel is at 1402 (planned at most 1410): 98 lines
+under its hard limit and 18 under its gate. Kernel + sdk + engine are at 3861: 239 lines under 4100, and one line
+above the plan of 3860. The cause is the 22 sdk lines of A42 and A43, which section 1.2 did not book; the booked parts
+used 12 of their 25 (the hooks 8 of 15, the firing numbers of M4-02 4 of 10). Against the table of section 1.2:
+staged calls (65 kernel lines) and `runEnded` (8) fit. The kernel would then be at 1475, under 1500 and above the
+gate of 1420, which the issue of A20 raises with the measured lines; the total would be at 3934 plus the sdk lines of
+the two, with 166 left. The rest of the reserved list does not fit in the kernel (attributes 20, `afford`/`settle`
+10, `guard`/`consult` 15, `every` 10 and `kit.on` 5 would bring it to 1535). It keeps the ways that section 1.2
+names, which cost no kernel line.
+
+**Did a firm effect change sign?** No (section 7.2, [`M4-GATE.md`](M4-GATE.md)). Harbor Lights' private notes keep
+their sign (+1.58, SE 1.37, 12 pairs), at half the old size and with an interval that holds zero. Lanterns' team
+brain keeps its sign and its size (+0.058, SE 0.022, 12 pairs), with another shape over the games. With quarry and
+econ-lab of M2, all four firm effects of D11 keep their sign. The chess count holds (1.209 beside 1.18 to 1.22). No
+bridge was run.
+
+**Answer.** The ten tabletop games needed nine kernel lines, all reserved by M1 1.4, and no kernel mechanism that
+was not reserved. The sample `parallel` needed none, and the scheduler port did not change. The check passes: the
+kernel interface stands, and M5 starts on it. The authoring interface grew by 34 sdk lines, 22 of them by two
+decisions taken while building (A42, A43). That puts the total one line above the plan of section 1.2 and well under
+its limit. Limits of this answer: `parallel` is a sample with a scripted game and was never played live. The City
+(M5), with its staged calls, its judge and a stop inside a tick, is the next test of the same question.
