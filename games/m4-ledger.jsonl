@@ -11,3 +11,11 @@
 {"run":"smoke/ember-tricks-001","id":"cc2033a2-4f48-4b38-a54e-f7eb20870e57","costUsd":0.05401683000000003,"at":"2026-11-15T09:30:08.017Z"}
 {"run":"smoke/blind-bid-001","id":"98a68f36-73a0-4da1-a023-e7deb3229293","reservedUsd":0.4,"at":"2026-11-15T09:30:21.444Z"}
 {"run":"smoke/blind-bid-001","id":"98a68f36-73a0-4da1-a023-e7deb3229293","costUsd":0.02156075499999999,"at":"2026-11-15T09:33:45.835Z"}
+{"run":"smoke/holdem-001","id":"59e45996-333c-4324-8207-71a9b88c3cce","reservedUsd":0.4,"at":"2026-11-15T09:34:02.556Z"}
+{"run":"smoke/holdem-001","id":"59e45996-333c-4324-8207-71a9b88c3cce","costUsd":0.11585161000000004,"at":"2026-11-15T09:50:51.195Z"}
+{"run":"smoke/morris-teams-001","id":"cc5acb85-1b46-4be2-adfd-f03c69b57759","reservedUsd":0.4,"at":"2026-11-15T09:51:02.053Z"}
+{"run":"smoke/morris-teams-001","id":"cc5acb85-1b46-4be2-adfd-f03c69b57759","costUsd":0.096857405,"at":"2026-11-15T09:58:08.319Z"}
+{"run":"smoke/convoy-001","id":"d121d391-ea0c-4a4a-9e15-50e068d8a562","reservedUsd":0.4,"at":"2026-11-15T09:58:26.420Z"}
+{"run":"smoke/convoy-001","id":"d121d391-ea0c-4a4a-9e15-50e068d8a562","costUsd":0.19731602499999995,"at":"2026-11-15T10:17:11.678Z"}
+{"run":"smoke/salt-market-001","id":"b8da9764-0cd5-43cb-9090-8dee870fea30","reservedUsd":0.4,"at":"2026-11-15T10:17:30.932Z"}
+{"run":"smoke/salt-market-001","id":"b8da9764-0cd5-43cb-9090-8dee870fea30","costUsd":0.18305499999999986,"at":"2026-11-15T10:36:08.515Z"}
