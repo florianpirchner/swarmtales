@@ -1,0 +1,221 @@
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
+/**
+ * The book's own rules, carried from old `test/engine/standoff.test.ts`: the value in a text, the hand-overs, the
+ * ultimatums with their settlement and seizure, the city's pieces, the unused hand-overs and the state saved and
+ * loaded. The book works on state the mechanic owns and on ports a test fills.
+ */
+import { describe, expect, it } from "vitest";
+import { inSchemaOrder } from "@swarmtales/sdk";
+import { carriesValue, StandoffSlice, type StandoffState } from "../src/index.ts";
+import type { StandoffPiece } from "../src/model.ts";
+import { UltimatumBook } from "../src/ultimatum.ts";
+
+/** Door 8: A01 holds A02's counter-factor, A02 holds A01's; A03 holds nothing. */
+const PIECES: Readonly<Record<string, readonly StandoffPiece[]>> = {
+	A01: [{ id: "L8-counter-A02", level: 8, label: "the counter-factor of A02 for door 8", value: "403343", needers: ["A02"] }],
+	A02: [{ id: "L8-counter-A01", level: 8, label: "the counter-factor of A01 for door 8", value: "542489", needers: ["A01"] }],
+	A03: [],
+};
+
+function book() {
+	let minute = 10;
+	const points = new Map([
+		["A01", 50],
+		["A02", 6],
+		["A03", 40],
+	]);
+	// The mechanic's book emits a type and a payload; the old book emitted one event object.
+	const events: (Readonly<Record<string, unknown>> & { readonly type: string })[] = [];
+	const notices: { agent: string; text: string }[] = [];
+	const board: string[] = [];
+	const passed = new Set<string>();
+	const exiled = new Set<string>();
+	const data: StandoffState = { given: [], city: [], ultimatums: [], last: 0 };
+	const standoff = new UltimatumBook(
+		{
+			ids: ["A01", "A02", "A03"],
+			rule: { penalty: 10, maxMinutes: 5 },
+			minute: () => minute,
+			points: (agent) => points.get(agent) ?? 0,
+			burn: (agent, amount) => points.set(agent, (points.get(agent) ?? 0) - amount),
+			notify: (agent, _author, text) => notices.push({ agent, text }),
+			emit: (type, payload) => events.push({ type, ...payload }),
+			announce: (_author, text) => board.push(text),
+			held: (agent) => (exiled.has(agent) ? [] : (PIECES[agent] ?? [])),
+			needsNow: (agent, level) => level === 8 && !passed.has(agent) && !exiled.has(agent),
+			inCity: (agent) => !exiled.has(agent),
+		},
+		data,
+	);
+	// The old book's `snapshot` / `restore`: the state as the mechanic saves and loads it (A43).
+	const snapshot = (): StandoffState => inSchemaOrder(StandoffSlice, structuredClone(data));
+	const restore = (saved: StandoffState): void => {
+		Object.assign(data, inSchemaOrder(StandoffSlice, structuredClone(saved)));
+	};
+	return { standoff, snapshot, restore, events, notices, board, points, passed, exiled, at: (next: number) => (minute = next) };
+}
+
+describe("the give-first standoff (P43)", () => {
+	it("finds a value only as a whole number", () => {
+		expect(carriesValue("here: 403343, use it", "403343")).toBe(true);
+		expect(carriesValue("1403343", "403343")).toBe(false);
+		expect(carriesValue("4033430", "403343")).toBe(false);
+	});
+
+	it("reads a value split by separators or without its leading zeros", () => {
+		expect(carriesValue("it is 403 343", "403343")).toBe(true);
+		expect(carriesValue("403-343", "403343")).toBe(true);
+		expect(carriesValue("40.33.43!", "403343")).toBe(true);
+		expect(carriesValue("try 42317", "042317")).toBe(true);
+		expect(carriesValue("12 403343", "403343")).toBe(true);
+	});
+
+	it("does not count a value hidden among decoys", () => {
+		expect(carriesValue("one of these: 111111, 403343, 529001, 777777", "403343")).toBe(false);
+		expect(carriesValue("yours is 403343, mine was 529001", "403343")).toBe(true);
+	});
+
+	it("notes a hand-over when the holder writes the value to the one who needs it, and only then", () => {
+		const { standoff, events } = book();
+		standoff.noteText("A01", ["A03"], "403343");
+		expect(standoff.isGiven("A01", "A02", "L8-counter-A02")).toBe(false);
+		standoff.noteText("A01", ["A02"], "Your factor is 403343.");
+		expect(standoff.isGiven("A01", "A02", "L8-counter-A02")).toBe(true);
+		expect(events).toEqual([{ type: "piece_given", holder: "A01", needer: "A02", level: 8, piece: "L8-counter-A02" }]);
+		expect(standoff.outstanding()).toEqual([{ holder: "A02", needer: "A01", level: 8, pieces: [{ id: "L8-counter-A01", label: "the counter-factor of A01 for door 8" }] }]);
+	});
+
+	it("gives an ultimatum only to a pair that holds out on each other, and settles it: the giver keeps its points", () => {
+		const { standoff, events, notices, points, at } = book();
+		expect(standoff.issue("A01", "A03", 3, "Courier")).toMatchObject({ ok: false, error: "NO_STANDOFF" });
+		expect(standoff.issue("A01", "A02", 9, "Courier")).toMatchObject({ ok: false, error: "INVALID_MINUTES" });
+		const given = standoff.issue("A01", "A02", 3, "Courier");
+		expect(given).toMatchObject({ ok: true, value: { number: 1, until: 13, penalty: 10 } });
+		expect(standoff.issue("A02", "A01", 2, "Courier")).toMatchObject({ ok: false, error: "ALREADY_SET" });
+		expect(notices.map((notice) => notice.agent)).toEqual(["A01", "A02"]);
+		expect(notices[0]?.text).toContain("by minute 13, A01 hands A02 the counter-factor of A02 for door 8; A02 hands A01 the counter-factor of A01 for door 8");
+
+		standoff.noteText("A01", ["A02"], "403343");
+		at(12);
+		standoff.tick(12, "CITY");
+		expect(standoff.ultimatums).toHaveLength(1);
+		at(13);
+		standoff.tick(13, "CITY");
+		expect(standoff.ultimatums).toEqual([]);
+		expect(points.get("A01")).toBe(50);
+		// A02 held out and pays what it has, at most the penalty.
+		expect(points.get("A02")).toBe(0);
+		expect(events.at(-1)).toEqual({ type: "ultimatum_resolved", number: 1, kept: ["A01"], released: [], paid: [{ agent: "A02", points: 6 }] });
+		expect(notices.at(-1)?.text).toBe("The ultimatum of minute 13 is up: A01 handed over; A02 did not and loses 6 points.");
+	});
+
+	it("does not charge a holder whose partner passed its door anyway, and says it owed nothing", () => {
+		const { standoff, events, notices, points, passed } = book();
+		standoff.issue("A01", "A02", 2, "Courier");
+		passed.add("A02");
+		standoff.tick(12, "CITY");
+		expect(points.get("A01")).toBe(50);
+		expect(points.get("A02")).toBe(0);
+		expect(events.at(-1)).toEqual({ type: "ultimatum_resolved", number: 1, kept: [], released: ["A01"], paid: [{ agent: "A02", points: 6 }] });
+		expect(notices.at(-1)?.text).toContain("A01 owed nothing any more");
+	});
+
+	it("releases both sides when one leaves the city before the deadline", () => {
+		const { standoff, events, points, exiled } = book();
+		standoff.issue("A01", "A02", 2, "Courier");
+		exiled.add("A02");
+		standoff.tick(12, "CITY");
+		expect(points.get("A01")).toBe(50);
+		expect(events.at(-1)).toEqual({ type: "ultimatum_resolved", number: 1, kept: [], released: ["A01", "A02"], paid: [] });
+	});
+
+	it("tells a needer behind the piece's door that it may buy it later", () => {
+		const { standoff, notices, passed } = book();
+		const piece = PIECES.A02?.[0];
+		if (piece === undefined) throw new RangeError("fixture");
+		passed.add("A01");
+		standoff.keep("A02", [piece], 20, "CITY");
+		expect(notices.at(-1)?.text).toContain("once you stand before door 8");
+	});
+
+	it("keeps an exiled's pieces and sells them once, one price per door, to the one who needs them", () => {
+		const { standoff, events, notices, points } = book();
+		const piece = PIECES.A02?.[0];
+		if (piece === undefined) throw new RangeError("fixture");
+		const certificate: StandoffPiece = { id: "L8-certificate", level: 8, label: "the team certificate of door 8", value: "323122", needers: ["A01"] };
+		standoff.keep("A02", [piece, certificate], 20, "CITY");
+		// One notice for the door, naming both pieces.
+		expect(notices.filter((notice) => notice.agent === "A01")).toHaveLength(1);
+		expect(notices.at(-1)?.text).toContain('claimPiece("L8-counter-A01", "A02")');
+		expect(notices.at(-1)?.text).toContain("the counter-factor of A01 for door 8 and the team certificate of door 8");
+		expect(standoff.claimable("A01").map((entry) => entry.piece.id)).toEqual(["L8-counter-A01", "L8-certificate"]);
+		expect(standoff.claimable("A03")).toEqual([]);
+		expect(standoff.claim("A03", "L8-counter-A01", "A02", 20)).toMatchObject({ ok: false, error: "UNKNOWN_PIECE" });
+		expect(standoff.claim("A01", "L8-counter-A01", "A02", 60)).toMatchObject({ ok: false, error: "INSUFFICIENT_FUNDS" });
+		const bought = standoff.claim("A01", "L8-certificate", "A02", 20);
+		expect(bought.ok && bought.pieces.map((entry) => entry.value)).toEqual(["542489", "323122"]);
+		expect(bought).toMatchObject({ ok: true, price: 20 });
+		expect(points.get("A01")).toBe(30);
+		expect(standoff.claim("A01", "L8-counter-A01", "A02", 20)).toMatchObject({ ok: false, error: "ALREADY_CLAIMED" });
+		expect(standoff.claimable("A01")).toEqual([]);
+		expect(events.map((event) => event.type)).toEqual(["piece_kept", "piece_kept", "piece_claimed", "piece_claimed"]);
+		expect(events.filter((event) => event.type === "piece_claimed").map((event) => event.price)).toEqual([20, 0]);
+	});
+
+	it("seizes what a holdout kept back and sells it to the one who waited for the penalty (P50)", () => {
+		const { standoff, events, notices, board, points, at } = book();
+		standoff.issue("A01", "A02", 2, "Courier");
+		at(12);
+		standoff.tick(12, "CITY");
+		// Neither handed over: both pay, and the city seizes both pieces.
+		expect(points.get("A01")).toBe(40);
+		expect(events.filter((event) => event.type === "piece_kept").map((event) => [event.agent, event.cause])).toEqual([
+			["A01", "ultimatum"],
+			["A02", "ultimatum"],
+		]);
+		expect(board).toEqual([
+			"The ultimatum of minute 12 is up: the city has seized from A01 what it held back for A02.",
+			"The ultimatum of minute 12 is up: the city has seized from A02 what it held back for A01.",
+		]);
+		expect(notices.find((notice) => notice.agent === "A01" && notice.text.includes("seized"))?.text).toContain('claimPiece("L8-counter-A01", "A02") buys it for 10 points');
+		// The debts are the city's now: no second ultimatum on the same pieces.
+		expect(standoff.outstanding()).toEqual([]);
+		// The seized price is the penalty, whatever the city's price.
+		expect(standoff.claim("A01", "L8-counter-A01", "A02", 3)).toMatchObject({ ok: true, price: 10 });
+		expect(points.get("A01")).toBe(30);
+	});
+
+	it("does not keep a piece its holder already handed to the one who needs it (P51)", () => {
+		const { standoff, events } = book();
+		const piece = PIECES.A02?.[0];
+		if (piece === undefined) throw new RangeError("fixture");
+		standoff.noteText("A02", ["A01"], "542489");
+		standoff.keep("A02", [piece], 20, "CITY");
+		expect(events.some((event) => event.type === "piece_kept")).toBe(false);
+		expect(standoff.claimable("A01")).toEqual([]);
+	});
+
+	it("shows the gamemaker hand-overs the needer has not used", () => {
+		const { standoff, passed, at } = book();
+		at(9);
+		standoff.noteText("A01", ["A02"], "403343");
+		expect(standoff.unused()).toEqual([{ holder: "A01", needer: "A02", level: 8, label: "the counter-factor of A02 for door 8", minute: 9 }]);
+		passed.add("A02");
+		expect(standoff.unused()).toEqual([]);
+	});
+
+	it("survives a snapshot", () => {
+		const first = book();
+		first.standoff.noteText("A01", ["A02"], "403343");
+		first.standoff.issue("A01", "A02", 3, "Courier");
+		const piece = PIECES.A03?.[0] ?? PIECES.A01?.[0];
+		if (piece === undefined) throw new RangeError("fixture");
+		first.standoff.keep("A01", [piece], 20, "CITY");
+		const saved = first.snapshot();
+		const second = book();
+		second.restore(saved);
+		expect(second.snapshot()).toEqual(saved);
+		expect(second.standoff.isGiven("A01", "A02", "L8-counter-A02")).toBe(true);
+		expect(second.standoff.issue("A01", "A02", 3, "Courier")).toMatchObject({ ok: false, error: "ALREADY_SET" });
+	});
+});

@@ -12,6 +12,8 @@ import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { StandoffBook, type StandoffPorts } from "./book.ts";
 import { HeldPiecesService, RansomPriceService, type HeldPiece } from "./contract.ts";
 import type { StandoffCtx, StandoffView } from "./head.ts";
+import type { StandoffState } from "./model.ts";
+import { UltimatumBook } from "./ultimatum.ts";
 
 /** The author of the city's notices. */
 export const CITY = "CITY";
@@ -89,21 +91,43 @@ function readingPorts(reader: StandoffView): Pick<StandoffPorts, "ids" | "minute
  * @param ctx - The context.
  * @returns The book.
  */
-export function bookFor(ctx: StandoffCtx): StandoffBook {
-	return new StandoffBook(
+export function bookFor(ctx: StandoffCtx): UltimatumBook {
+	const { ultimatum } = ctx.options;
+	return new UltimatumBook(
 		{
 			...readingPorts(ctx),
+			...(ultimatum === undefined ? {} : { rule: ultimatum }),
 			points: (agent) => ctx.call(LedgerService, "balance", { account: agent }),
 			burn: (agent, amount, reason) => {
 				ctx.call(LedgerService, "burn", { account: agent, amount, reason });
 			},
-			notify: (agent, text) => {
-				ctx.call(ChannelsService, "notify", { to: agent, author: CITY, text: shown(ctx, text) });
+			notify: (agent, author, text) => {
+				ctx.call(ChannelsService, "notify", { to: agent, author, text: shown(ctx, text) });
 			},
 			emit: (type, payload) => {
 				ctx.emit(type, payload);
 			},
+			announce: (author, text) => {
+				ctx.call(ChannelsService, "post", { author, text: shown(ctx, text) });
+			},
 		},
 		ctx.state,
 	);
+}
+
+// A fact writes nothing: it reads only `outstanding` and `unused`, which call none of these.
+function unwritten(): void {
+	return undefined;
+}
+
+/**
+ * The book a fact reads, over the state as it is: its writing ports do nothing.
+ *
+ * @param view - The view.
+ * @returns The book.
+ */
+export function factBook(view: StandoffView): StandoffBook {
+	// The view's state is read-only; `outstanding` and `unused` never change it.
+	const data: StandoffState = { given: [...view.state.given], city: [...view.state.city], ultimatums: [...view.state.ultimatums], last: view.state.last };
+	return new StandoffBook({ ...readingPorts(view), points: () => 0, burn: unwritten, notify: unwritten, emit: unwritten, announce: unwritten }, data);
 }

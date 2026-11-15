@@ -18,6 +18,28 @@ const CityEntry = Type.Object(
 	{ description: "A piece the city keeps since its holder left; each needer may buy it once" },
 );
 
+/** What one holder still owes one needer at one door. */
+const Debt = Type.Object(
+	{
+		holder: Id,
+		needer: Id,
+		level: Type.Integer({ description: "The door" }),
+		pieces: Type.Array(Type.Object({ id: Type.String({ description: "The piece" }), label: Type.String({ description: "How a text names it" }) }, { description: "One piece owed" }), { description: "The pieces owed" }),
+	},
+	{ description: "What one side owes the other" },
+);
+
+const Ultimatum = Type.Object(
+	{
+		number: Type.Integer({ description: "Its number, from 1" }),
+		between: Type.Array(Id, { description: "The two residents" }),
+		until: Type.Integer({ description: "The tick it is due" }),
+		penalty: Type.Number({ description: "What a holdout loses" }),
+		debts: Type.Array(Debt, { description: "The debts it binds" }),
+	},
+	{ description: "A running ultimatum" },
+);
+
 /**
  * The state of `standoff`, saved as it is: the hand-overs the city saw and the pieces it keeps.
  *
@@ -29,6 +51,8 @@ export const StandoffSlice = Type.Object(
 			description: "The hand-overs the city saw, in the order seen",
 		}),
 		city: Type.Array(CityEntry, { description: "The pieces the city keeps, in the order kept" }),
+		ultimatums: Type.Array(Ultimatum, { description: "The ultimatums still running, in the order given" }),
+		last: Type.Integer({ description: "The number of the last ultimatum given" }),
 	},
 	{ description: "The state of `standoff`" },
 );
@@ -46,6 +70,12 @@ export type CityPiece = StandoffState["city"][number];
 /** A piece as the book knows it. */
 export type StandoffPiece = Static<typeof Piece>;
 
+/** What one holder still owes one needer at one door. */
+export type Debt = Static<typeof Debt>;
+
+/** A running ultimatum. */
+export type Ultimatum = Static<typeof Ultimatum>;
+
 /**
  * The prompts of `standoff`, with their variables.
  *
@@ -58,4 +88,6 @@ export const STANDOFF_PROMPTS = {
 	"standoff/status/held": ["pieces"],
 	"standoff/status/held-piece": ["waiting", "level", "noun", "value"],
 	"standoff/will-piece": ["agent", "label", "value"],
+	"standoff/tools/ultimatum": [],
+	"standoff/replies/ultimatum-given": ["number", "between", "until", "penalty"],
 } as const;

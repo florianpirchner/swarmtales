@@ -8,7 +8,6 @@ import { CtxOf } from '@swarmtales/sdk';
 import { EventsDefinition } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
 import { MechanicHead } from '@swarmtales/sdk';
-import { NoOptions } from '@swarmtales/sdk';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { Static } from 'typebox';
 import { TArray } from 'typebox';
@@ -16,6 +15,7 @@ import { TInteger } from 'typebox';
 import { TLiteral } from 'typebox';
 import { TObject } from 'typebox';
 import { ToolCtxOf } from '@swarmtales/sdk';
+import { TOptional } from 'typebox';
 import { TString } from 'typebox';
 import { TUnion } from 'typebox';
 import { Type } from 'typebox';
@@ -23,6 +23,27 @@ import { ViewOf } from '@swarmtales/sdk';
 
 // @public
 export function carriesValue(text: string, value: string): boolean;
+
+// @public
+export const CityPieces: Type.TArray<Type.TObject<{
+    from: Type.TString;
+    piece: Type.TObject<{
+        id: Type.TString;
+        kind: Type.TUnion<[Type.TLiteral<"counter">, Type.TLiteral<"certificate">, Type.TLiteral<"fragment">]>;
+        level: Type.TInteger;
+        label: Type.TString;
+        value: Type.TString;
+        needers: Type.TArray<Type.TString>;
+    }>;
+    claimed: Type.TArray<Type.TString>;
+    price: Type.TOptional<Type.TNumber>;
+}>>;
+
+// @public
+export const DEFAULT_DIRECTION = 4;
+
+// @public
+export function grantsUltimatum(direction: number | undefined, hasUltimatums: boolean): boolean;
 
 // @public
 export const HeldPiece: Type.TObject<{
@@ -57,6 +78,21 @@ needers: Type.TArray<Type.TString>;
 }>;
 
 // @public
+export const Outstanding: Type.TArray<Type.TObject<{
+    holder: Type.TString;
+    needer: Type.TString;
+    level: Type.TInteger;
+    pieces: Type.TArray<Type.TObject<{
+        id: Type.TString;
+        kind: Type.TUnion<[Type.TLiteral<"counter">, Type.TLiteral<"certificate">, Type.TLiteral<"fragment">]>;
+        level: Type.TInteger;
+        label: Type.TString;
+        value: Type.TString;
+        needers: Type.TArray<Type.TString>;
+    }>>;
+}>>;
+
+// @public
 export const RansomPriceService: ServiceDefinition<"ransom-price", {
 readonly price: {
 readonly kind: "query";
@@ -67,7 +103,13 @@ readonly output: Type.TInteger;
 }>;
 
 // @public
-export const standoff: MechanicDefinition<"standoff", NoOptions, {
+export const standoff: MechanicDefinition<"standoff", TObject<    {
+ultimatum: TOptional<TObject<    {
+penalty: TInteger;
+maxMinutes: TInteger;
+}>>;
+author: TString;
+}>, {
 readonly piece_kept: TObject<    {
 agent: TString;
 level: TInteger;
@@ -88,7 +130,28 @@ needer: TString;
 level: TInteger;
 piece: TString;
 }>;
-}, "claimPiece">;
+readonly ultimatum_set: TObject<    {
+number: TInteger;
+between: TArray<TString>;
+until: TInteger;
+penalty: TInteger;
+debts: TArray<TObject<    {
+holder: TString;
+needer: TString;
+level: TInteger;
+pieces: TArray<TString>;
+}>>;
+}>;
+readonly ultimatum_resolved: TObject<    {
+number: TInteger;
+kept: TArray<TString>;
+released: TArray<TString>;
+paid: TArray<TObject<    {
+agent: TString;
+points: TInteger;
+}>>;
+}>;
+}, "ultimatum" | "claimPiece">;
 
 // @public
 export const STANDOFF_PROMPTS: {
@@ -98,6 +161,8 @@ export const STANDOFF_PROMPTS: {
     readonly "standoff/status/held": readonly ["pieces"];
     readonly "standoff/status/held-piece": readonly ["waiting", "level", "noun", "value"];
     readonly "standoff/will-piece": readonly ["agent", "label", "value"];
+    readonly "standoff/tools/ultimatum": readonly [];
+    readonly "standoff/replies/ultimatum-given": readonly ["number", "between", "until", "penalty"];
 };
 
 // @public
@@ -125,10 +190,37 @@ needer: Type.TString;
 level: Type.TInteger;
 piece: Type.TString;
 }>;
+readonly ultimatum_set: Type.TObject<{
+number: Type.TInteger;
+between: Type.TArray<Type.TString>;
+until: Type.TInteger;
+penalty: Type.TInteger;
+debts: Type.TArray<Type.TObject<{
+holder: Type.TString;
+needer: Type.TString;
+level: Type.TInteger;
+pieces: Type.TArray<Type.TString>;
+}>>;
+}>;
+readonly ultimatum_resolved: Type.TObject<{
+number: Type.TInteger;
+kept: Type.TArray<Type.TString>;
+released: Type.TArray<Type.TString>;
+paid: Type.TArray<Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+}>>;
+}>;
 }>;
 
 // @public
-export const standoffHead: MechanicHead<"standoff", NoOptions, Type.TObject<{
+export const standoffHead: MechanicHead<"standoff", Type.TObject<{
+ultimatum: Type.TOptional<Type.TObject<{
+penalty: Type.TInteger;
+maxMinutes: Type.TInteger;
+}>>;
+author: Type.TString;
+}>, Type.TObject<{
 given: Type.TArray<Type.TObject<{
 key: Type.TString;
 minute: Type.TInteger;
@@ -145,6 +237,22 @@ needers: Type.TArray<Type.TString>;
 claimed: Type.TArray<Type.TString>;
 price: Type.TOptional<Type.TNumber>;
 }>>;
+ultimatums: Type.TArray<Type.TObject<{
+number: Type.TInteger;
+between: Type.TArray<Type.TString>;
+until: Type.TInteger;
+penalty: Type.TNumber;
+debts: Type.TArray<Type.TObject<{
+holder: Type.TString;
+needer: Type.TString;
+level: Type.TInteger;
+pieces: Type.TArray<Type.TObject<{
+id: Type.TString;
+label: Type.TString;
+}>>;
+}>>;
+}>>;
+last: Type.TInteger;
 }>, {
 given: {
 key: string;
@@ -152,7 +260,6 @@ minute: number;
 }[];
 city: {
 price?: number;
-from: string;
 piece: {
 id: string;
 level: number;
@@ -160,8 +267,25 @@ label: string;
 value: string;
 needers: string[];
 };
+from: string;
 claimed: string[];
 }[];
+ultimatums: {
+number: number;
+between: string[];
+until: number;
+penalty: number;
+debts: {
+level: number;
+holder: string;
+needer: string;
+pieces: {
+id: string;
+label: string;
+}[];
+}[];
+}[];
+last: number;
 }, {
 readonly piece_kept: Type.TObject<{
 agent: Type.TString;
@@ -183,6 +307,27 @@ needer: Type.TString;
 level: Type.TInteger;
 piece: Type.TString;
 }>;
+readonly ultimatum_set: Type.TObject<{
+number: Type.TInteger;
+between: Type.TArray<Type.TString>;
+until: Type.TInteger;
+penalty: Type.TInteger;
+debts: Type.TArray<Type.TObject<{
+holder: Type.TString;
+needer: Type.TString;
+level: Type.TInteger;
+pieces: Type.TArray<Type.TString>;
+}>>;
+}>;
+readonly ultimatum_resolved: Type.TObject<{
+number: Type.TInteger;
+kept: Type.TArray<Type.TString>;
+released: Type.TArray<Type.TString>;
+paid: Type.TArray<Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+}>>;
+}>;
 }, {
 readonly "standoff/tools/claimPiece": readonly [];
 readonly "standoff/replies/piece-bought": readonly ["pieces", "price"];
@@ -190,6 +335,8 @@ readonly "standoff/replies/locked": readonly [];
 readonly "standoff/status/held": readonly ["pieces"];
 readonly "standoff/status/held-piece": readonly ["waiting", "level", "noun", "value"];
 readonly "standoff/will-piece": readonly ["agent", "label", "value"];
+readonly "standoff/tools/ultimatum": readonly [];
+readonly "standoff/replies/ultimatum-given": readonly ["number", "between", "until", "penalty"];
 }, readonly [ServiceDefinition<"ledger", {
 readonly balance: {
 readonly kind: "query";
@@ -295,7 +442,43 @@ text: Type.TString;
 number: Type.TInteger;
 tick: Type.TInteger;
 answered: Type.TBoolean;
+deliveredTick: Type.TOptional<Type.TInteger>;
+deliveredAfter: Type.TOptional<Type.TInteger>;
 }>>;
+};
+readonly boardPost: {
+readonly kind: "query";
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly pendingDms: {
+readonly kind: "query";
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly dmWindow: {
+readonly kind: "query";
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+sent: Type.TInteger;
+limit: Type.TInteger;
+from: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
 };
 readonly createCityGroup: {
 readonly kind: "command";
@@ -567,6 +750,17 @@ readonly summary: "What others pay in full for the ransom of a gate that opened 
 readonly input: Type.TObject<{}>;
 readonly output: Type.TInteger;
 };
+}>, ServiceDefinition<"trial-risk", {
+readonly atRisk: {
+readonly kind: "query";
+readonly summary: "The next trial and its accused, or null without one or with nobody at risk (old `atRisk`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TObject<{
+opens: Type.TInteger;
+now: Type.TBoolean;
+accused: Type.TArray<Type.TString>;
+}>, Type.TNull]>;
+};
 }>, ServiceDefinition<"exile", {
 readonly banish: {
 readonly kind: "command";
@@ -706,6 +900,64 @@ claimPiece: Type.TObject<{
 piece: Type.TString;
 from: Type.TString;
 }>;
+ultimatum: Type.TObject<{
+a: Type.TString;
+b: Type.TString;
+minutes: Type.TInteger;
+}>;
+}>;
+
+// @public
+export const StandoffOptions: Type.TObject<{
+    ultimatum: Type.TOptional<Type.TObject<{
+        penalty: Type.TInteger;
+        maxMinutes: Type.TInteger;
+    }>>;
+    author: Type.TString;
+}>;
+
+// @public
+export type StandoffSection = Static<typeof StandoffSectionFact>;
+
+// @public
+export const StandoffSectionFact: Type.TObject<{
+    minute: Type.TInteger;
+    debts: Type.TArray<Type.TObject<{
+        holder: Type.TString;
+        needer: Type.TString;
+        level: Type.TInteger;
+        labels: Type.TArray<Type.TString>;
+    }>>;
+    city: Type.TArray<Type.TObject<{
+        from: Type.TString;
+        label: Type.TString;
+        needer: Type.TString;
+        seized: Type.TBoolean;
+        price: Type.TNumber;
+    }>>;
+    ultimatums: Type.TArray<Type.TObject<{
+        number: Type.TInteger;
+        between: Type.TTuple<[Type.TString, Type.TString]>;
+        until: Type.TInteger;
+        penalty: Type.TInteger;
+    }>>;
+    unused: Type.TArray<Type.TObject<{
+        holder: Type.TString;
+        needer: Type.TString;
+        label: Type.TString;
+        level: Type.TInteger;
+        minute: Type.TInteger;
+    }>>;
+    risk: Type.TUnion<[Type.TObject<{
+        opens: Type.TInteger;
+        now: Type.TBoolean;
+    }>, Type.TNull]>;
+    atRisk: Type.TArray<Type.TObject<{
+        agent: Type.TString;
+        points: Type.TNumber;
+        gate: Type.TUnion<[Type.TInteger, Type.TNull]>;
+        holds: Type.TArray<Type.TString>;
+    }>>;
 }>;
 
 // @public
@@ -726,6 +978,22 @@ export const StandoffSlice: Type.TObject<{
         claimed: Type.TArray<Type.TString>;
         price: Type.TOptional<Type.TNumber>;
     }>>;
+    ultimatums: Type.TArray<Type.TObject<{
+        number: Type.TInteger;
+        between: Type.TArray<Type.TString>;
+        until: Type.TInteger;
+        penalty: Type.TNumber;
+        debts: Type.TArray<Type.TObject<{
+            holder: Type.TString;
+            needer: Type.TString;
+            level: Type.TInteger;
+            pieces: Type.TArray<Type.TObject<{
+                id: Type.TString;
+                label: Type.TString;
+            }>>;
+        }>>;
+    }>>;
+    last: Type.TInteger;
 }>;
 
 // @public
@@ -736,6 +1004,40 @@ export type StandoffToolCtx = ToolCtxOf<typeof standoffHead>;
 
 // @public
 export type StandoffView = ViewOf<typeof standoffHead>;
+
+// @public
+export const TrialRiskService: ServiceDefinition<"trial-risk", {
+readonly atRisk: {
+readonly kind: "query";
+readonly summary: "The next trial and its accused, or null without one or with nobody at risk (old `atRisk`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TObject<{
+opens: Type.TInteger;
+now: Type.TBoolean;
+accused: Type.TArray<Type.TString>;
+}>, Type.TNull]>;
+};
+}>;
+
+// @public
+export const ULTIMATUM_DIRECTION = 10;
+
+// @public
+export const Ultimatums: Type.TArray<Type.TObject<{
+    number: Type.TInteger;
+    between: Type.TTuple<[Type.TString, Type.TString]>;
+    until: Type.TInteger;
+    penalty: Type.TInteger;
+}>>;
+
+// @public
+export const Unused: Type.TArray<Type.TObject<{
+    holder: Type.TString;
+    needer: Type.TString;
+    label: Type.TString;
+    level: Type.TInteger;
+    minute: Type.TInteger;
+}>>;
 
 // (No @packageDocumentation comment for this package)
 

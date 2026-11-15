@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The `standoff` mechanic, first part of the port (12-m5-spec.md, section 10, row 27): the pieces residents hold for
- * others (asked of `held-pieces`), the hand-over the city sees in a text (it listens to the board, the direct messages
- * and the groups of `channels`), the pieces of the exiled the city keeps (it listens to `exile.exiled`) and sells
- * with `claimPiece`, and the pieces of a last will. The ultimatum comes with the second part.
+ * The `standoff` mechanic (12-m5-spec.md, section 10, rows 27 and 28): the pieces residents hold for others (asked of
+ * `held-pieces`), the hand-over the city sees in a text (it listens to the board, the direct messages and the groups
+ * of `channels`), the pieces of the exiled the city keeps (it listens to `exile.exiled`) and sells with `claimPiece`,
+ * the pieces of a last will, the gamemaker's `ultimatum` (settled at the start of a tick) and the gamemaker's facts.
  *
  * @packageDocumentation
  */
@@ -14,12 +14,15 @@ import { ExileEvents, ExileService } from "@swarmtales/mechanic-exile/contract";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import type { HeldPiece } from "./contract.ts";
 import { onExiled, onLastWill, willRule } from "./exile.ts";
+import { standoffFacts } from "./facts.ts";
 import { standoffHead, type StandoffCtx, type StandoffToolCtx } from "./head.ts";
 import { bookFor, cityPiecePrice, CITY, heldAll, isExiled, needsNow, shown } from "./reads.ts";
 
 export { carriesValue } from "./carries.ts";
-export { HeldPiece, HeldPiecesService, RansomPriceService, StandoffEvents } from "./contract.ts";
-export { standoffHead, type StandoffCtx, type StandoffToolCtx, type StandoffView } from "./head.ts";
+export { HeldPiece, HeldPiecesService, RansomPriceService, StandoffEvents, TrialRiskService } from "./contract.ts";
+export { DEFAULT_DIRECTION, grantsUltimatum, ULTIMATUM_DIRECTION } from "./grants.ts";
+export { standoffHead, StandoffOptions, type StandoffCtx, type StandoffToolCtx, type StandoffView } from "./head.ts";
+export { CityPieces, Outstanding, StandoffSectionFact, Ultimatums, Unused, type StandoffSection } from "./situation.ts";
 export { STANDOFF_PROMPTS, StandoffSlice, type StandoffState } from "./model.ts";
 
 /** The old order of the standoff's part of the status line (`STATUS_ORDER.held`). */
@@ -52,6 +55,29 @@ function claimPiece({ piece, from }: { readonly piece: string; readonly from: st
 	return reply(shown(ctx, ctx.prompt("standoff/replies/piece-bought", { pieces: claimed.pieces.map((entry) => entry.id).join(", "), price: claimed.price })));
 }
 
+function ultimatum({ a, b, minutes }: { readonly a: string; readonly b: string; readonly minutes: number }, ctx: StandoffToolCtx) {
+	const first = ctx.tryCall(IdentityService, "resolve", { text: a }) ?? a;
+	const second = ctx.tryCall(IdentityService, "resolve", { text: b }) ?? b;
+	if (!ctx.residents.has(first) || !ctx.residents.has(second)) return refuse("UNKNOWN_AGENT", `${a}, ${b}`);
+	const given = bookFor(ctx).issue(first, second, minutes, ctx.options.author);
+	if (!given.ok) return refuse(given.error, shown(ctx, given.detail));
+	const { number, between, until, penalty } = given.value;
+	return reply(shown(ctx, ctx.prompt("standoff/replies/ultimatum-given", { number, between: between.join(" and "), until, penalty })));
+}
+
+// The fake driver's ultimatum: the first pair that holds out on each other.
+function ultimatumSample(ctx: StandoffToolCtx): { readonly a: string; readonly b: string; readonly minutes: number } | undefined {
+	if (ctx.options.ultimatum === undefined) return undefined;
+	const book = bookFor(ctx);
+	const debts = book.outstanding();
+	const pair = debts.find((debt) => debts.some((other) => other.holder === debt.needer && other.needer === debt.holder));
+	const busy = (debt: { readonly holder: string; readonly needer: string }): boolean => book.ultimatums.some((running) => running.between.includes(debt.holder) && running.between.includes(debt.needer));
+	return pair === undefined || busy(pair) ? undefined : { a: pair.holder, b: pair.needer, minutes: 1 };
+}
+
+/** The old `HOOK_ORDER.minuteStarted`: the motives, the door, the names, the tribunal and the seal tick before the standoff. */
+const BEFORE_STANDOFF = ["motives", "progression", "names", "tribunal", "seal"];
+
 /**
  * The standoff: pieces held for others, the hand-overs the city sees, and the city's shop of the pieces of the exiled.
  *
@@ -71,6 +97,7 @@ export const standoff = defineMechanic(standoffHead, {
 			},
 			run: claimPiece,
 		},
+		ultimatum: { sample: ultimatumSample, run: ultimatum },
 	},
 	pipeline: {
 		// The old `enabledTools`: a resident in the city buys only while the city keeps a piece it needs.
@@ -81,7 +108,17 @@ export const standoff = defineMechanic(standoffHead, {
 		},
 		rule: willRule,
 	},
-	hooks: { turnInputs: (resident, ctx) => heldPart(ctx, resident) },
+	hooks: {
+		// Ultimatums due are settled at the start of the tick (old `#standoff.tick`, signed by the city).
+		tickStarted: {
+			after: BEFORE_STANDOFF,
+			run: (ctx) => {
+				bookFor(ctx).tick(ctx.tick, CITY);
+			},
+		},
+		turnInputs: (resident, ctx) => heldPart(ctx, resident),
+	},
+	facts: standoffFacts,
 	listeners: (kit) => [
 		// A text counts as a hand-over to every reader in the city it reached (old `noteText`, called by `channels`).
 		kit.listen(ChannelsEvents, "board_post", ({ author, text, kind }, ctx) => {

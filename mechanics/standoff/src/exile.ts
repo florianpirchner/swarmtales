@@ -46,7 +46,7 @@ export function onExiled(ctx: StandoffCtx, exiled: Exiled): void {
 		const needers = piece.needers.filter((id) => !isExiled(ctx, id) && !ctx.call(ProgressionService, "hasPassed", { resident: id, level: piece.level }));
 		return needers.length === 0 ? [] : [{ id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers }];
 	});
-	if (kept.length > 0) bookFor(ctx).keep(agent, kept, cityPiecePrice(ctx));
+	if (kept.length > 0) bookFor(ctx).keep(agent, kept, cityPiecePrice(ctx), CITY);
 }
 
 // The bequests of the will as `exile` splits them (points first, then the piece); undefined when an entry has neither.

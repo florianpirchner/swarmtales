@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The contract of the mechanic `standoff`: its events, and the two services it asks of others. `held-pieces` (what a
- * resident holds for others, provided by `puzzles`) and `ransom-price` (what a ransom costs now, provided by
- * `tribunal`) are declared here, as `progression` declares `level-pieces`: their providers import this file, and
+ * The contract of the mechanic `standoff`: its events, and the three services it asks of others. `held-pieces` (what a
+ * resident holds for others, provided by `puzzles`), `ransom-price` (what a ransom costs now) and `trial-risk` (who
+ * stands trial next), both provided by `tribunal`, are declared here, as `progression` declares `level-pieces`: their providers import this file, and
  * `standoff` imports neither, so no package or service cycle forms (12-m5-spec.md, section 2.2, pattern 5). The only
  * file another mechanic imports.
  *
@@ -41,7 +41,7 @@ export const HeldPiece = Type.Object(
 export type HeldPiece = Static<typeof HeldPiece>;
 
 /**
- * The events of `standoff`, field for field as the old platform wrote them (the ultimatum's two come with its tool).
+ * The events of `standoff`, field for field as the old platform wrote them.
  *
  * @public
  */
@@ -55,6 +55,25 @@ export const StandoffEvents = defineEvents("standoff", {
 		{ description: "A needer bought a piece the city keeps" },
 	),
 	piece_given: Type.Object({ holder: Id, needer: Id, level: Level, piece: PieceId }, { description: "The city saw a holder hand a piece to its needer, in a text or a last will" }),
+	ultimatum_set: Type.Object(
+		{
+			number: Type.Integer({ description: "The ultimatum's number, from 1" }),
+			between: Ids,
+			until: Type.Integer({ description: "The tick it is due" }),
+			penalty: Type.Integer({ description: "What a holdout loses" }),
+			debts: Type.Array(Type.Object({ holder: Id, needer: Id, level: Level, pieces: Type.Array(PieceId, { description: "The pieces owed" }) }, { description: "What one side owes the other" }), { description: "The debts it binds" }),
+		},
+		{ description: "The gamemaker gave two residents who hold pieces for each other a deadline" },
+	),
+	ultimatum_resolved: Type.Object(
+		{
+			number: Type.Integer({ description: "The ultimatum's number" }),
+			kept: Ids,
+			released: Ids,
+			paid: Type.Array(Type.Object({ agent: Id, points: Type.Integer({ description: "The points lost" }) }, { description: "A holdout and its loss" }), { description: "Who did not hand over" }),
+		},
+		{ description: "An ultimatum came due: who handed over, who owed nothing any more, who paid" },
+	),
 });
 
 /**
@@ -91,6 +110,31 @@ export const RansomPriceService = defineService({
 			summary: "What others pay in full for the ransom of a gate that opened now.",
 			input: Type.Object({}, { additionalProperties: false, description: "Nothing" }),
 			output: Type.Integer({ description: "The points" }),
+		},
+	},
+});
+
+const Risk = Type.Object(
+	{ opens: Type.Integer({ description: "The tick the next trial opens" }), now: Type.Boolean({ description: "Whether it runs now" }), accused: Ids },
+	{ additionalProperties: false, description: "The next trial and its accused" },
+);
+
+/**
+ * What the gamemaker's report of `standoff` asks of the tribunal: who stands trial next (old `TribunalViewApi.atRisk`;
+ * erratum J85 left it without a provider), provided by `tribunal`. Without a provider only the residents at the gate
+ * are at risk.
+ *
+ * @public
+ */
+export const TrialRiskService = defineService({
+	name: "trial-risk",
+	summary: "Who stands trial next, and when.",
+	methods: {
+		atRisk: {
+			kind: "query",
+			summary: "The next trial and its accused, or null without one or with nobody at risk (old `atRisk`).",
+			input: Type.Object({}, { additionalProperties: false, description: "Nothing" }),
+			output: Type.Union([Risk, Type.Null({ description: "Nobody at risk" })], { description: "The next trial" }),
 		},
 	},
 });
