@@ -95,7 +95,7 @@ export function createProviderRegistry(extra?: readonly ProviderSpec[]): Provide
 export function createResidentSession(input: SessionInput): ResidentSession;
 
 // @public
-export function createToolsNotice(texts: PromptLookup): ToolsNotice;
+export function createToolsNotice(texts: PromptLookup, last?: readonly string[]): ToolsNotice;
 
 // @public
 export const DIRECTOR_MODEL_RECORDS: RecordSource;
@@ -156,6 +156,7 @@ export interface ModelBinding {
 export interface ModelDrivers {
     readonly drivers: DriverTable;
     fix(): void;
+    save(): SavedSessions;
 }
 
 // @public
@@ -165,6 +166,7 @@ export interface ModelDriversInput {
     readonly kernel: Kernel;
     readonly meter: CostMeter;
     readonly redact: Redact;
+    readonly saved?: SavedSessions;
     readonly settings: ModelSettings;
     readonly source: ModelSource | ((actor: ActorId) => ModelSource);
     readonly systemPrompts: Readonly<Record<string, string>>;
@@ -222,6 +224,9 @@ export interface OpenRouterRouting {
 
 // @public
 export function outcomeText(outcome: ToolOutcome): string;
+
+// @public
+export function parseSavedSessions(value: unknown, redact: Redact): SavedSessions;
 
 // @public
 export interface PromptFacts {
@@ -282,11 +287,42 @@ export interface ResidentSession {
     readonly declared: readonly string[];
     readonly messages: number;
     readonly pending: boolean;
+    save(): SavedSession;
     step(activation: Activation, frame: StepFrame): Promise<DriverResult>;
 }
 
 // @public
 export function resolveModelSettings(overrides: ModelOverrides, env: ModelEnv, game: GameData["model"], registry: ProviderRegistry): ModelSettings;
+
+// @public
+export const SAVED_SESSION_FORMAT = 1;
+
+// @public
+export type SavedSession = Static<typeof SavedSessionSchema>;
+
+// @public
+export function savedSessionInvalid(actor: string, reason: string): SwtIssue;
+
+// @public
+export type SavedSessions = Static<typeof SavedSessionsSchema>;
+
+// @public
+export const SavedSessionSchema: Type.TObject<{
+    format: Type.TLiteral<1>;
+    initial: Type.TArray<Type.TString>;
+    declared: Type.TArray<Type.TString>;
+    notice: Type.TOptional<Type.TArray<Type.TString>>;
+    messages: Type.TArray<Type.TString>;
+}>;
+
+// @public
+export const SavedSessionsSchema: Type.TRecord<"^.*$", Type.TObject<{
+    format: Type.TLiteral<1>;
+    initial: Type.TArray<Type.TString>;
+    declared: Type.TArray<Type.TString>;
+    notice: Type.TOptional<Type.TArray<Type.TString>>;
+    messages: Type.TArray<Type.TString>;
+}>>;
 
 // @public
 export function say(text?: string): ScriptStep;
@@ -309,6 +345,7 @@ export interface SessionInput {
     readonly binding: ModelBinding;
     readonly meter: CostMeter;
     readonly redact: Redact;
+    readonly saved?: SavedSession;
     readonly systemPrompt: string;
     readonly thinking: ThinkingLevel;
     readonly tools: readonly ToolSpec[];
@@ -354,6 +391,7 @@ export function toolChoiceDefaults(choice: ToolChoice, api: string): Readonly<Re
 // @public
 export interface ToolsNotice {
     forget(): void;
+    readonly last: readonly string[] | undefined;
     next(open: readonly string[]): readonly string[];
 }
 

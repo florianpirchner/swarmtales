@@ -118,8 +118,15 @@ function notManifest(mismatch: string): SwtIssue {
 	};
 }
 
-// The path of the first string value that `redact` would change, or undefined when it would change none.
-function secretAt(value: unknown, redact: Redact, path: string): string | undefined {
+/**
+ * The path of the first string value that `redact` would change, or undefined when it would change none.
+ *
+ * @param value - The value to search.
+ * @param redact - The redaction.
+ * @param path - The path of `value`; `""` for the root.
+ * @returns The path, with `.` between keys and `[n]` for an entry of a list.
+ */
+export function secretAt(value: unknown, redact: Redact, path: string): string | undefined {
 	if (typeof value === "string") return redact(value) === value ? undefined : path;
 	if (typeof value !== "object" || value === null) return undefined;
 	for (const [key, item] of Object.entries(value)) {

@@ -430,6 +430,14 @@ A tool call of a model reached its session while no activation was open.
 - **Fix:** Await the model request with all its tool calls before the driver returns.
 - **Named in:** `packages/models`
 
+### SWT-X042
+
+A saved session cannot be loaded: it does not match its schema, or it does not fit the session it is loaded into.
+
+- **Why:** A resumed session asks its model what the straight run would have asked, so its conversation and its declared tools must be the ones the snapshot saved, for the game that saved them.
+- **Fix:** Resume from a snapshot file as the run wrote it, with the game of that run.
+- **Named in:** `packages/models`
+
 ## P: Texts
 
 ### SWT-P003

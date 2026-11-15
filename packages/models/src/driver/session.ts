@@ -9,12 +9,13 @@
 import { Agent, type AgentMessage, type AgentTool, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type { Activation, ActorId, DriverResult, Redact, ToolOutcome, ToolSpec } from "@swarmtales/contracts";
-import { callOutsideActivation, thrown } from "../errors.ts";
+import { callOutsideActivation, savedSessionInvalid, thrown } from "../errors.ts";
 import type { CostMeter } from "../meter.ts";
 import { RESIDENT_RECORDS, residentRecord, type ResidentRecords } from "../records.ts";
 import { withRequestDefaults } from "../request.ts";
 import type { ThinkingLevel } from "../settings.ts";
 import type { ModelBinding } from "../source.ts";
+import { loadConversation, SAVED_SESSION_FORMAT, saveConversation, type SavedSession } from "./saved.ts";
 
 /**
  * The kind of an input line that asks for a context reset: the conversation is dropped (the system prompt stays)
@@ -79,8 +80,10 @@ export interface SessionInput {
 	readonly thinking: ThinkingLevel;
 	/** The cost meter: every answer is counted there, and nothing is sent once its cap is reached. */
 	readonly meter: CostMeter;
-	/** Takes secrets out of the error text of a failed request. */
+	/** Takes secrets out of the error text of a failed request, and out of every text of a saved session. */
 	readonly redact: Redact;
+	/** The saved session to go on from; its `initial` tools must be `tools`, and its later tools are declared by the caller. Left out: a new conversation. */
+	readonly saved?: SavedSession;
 }
 
 /**
@@ -124,6 +127,12 @@ export interface ResidentSession {
 	 * @throws SwtError `SWT-X040` when a record does not match its schema, `SWT-R017` when the record source is not declared.
 	 */
 	step(activation: Activation, frame: StepFrame): Promise<DriverResult>;
+	/**
+	 * Saves the conversation between two steps, for a snapshot file.
+	 *
+	 * @returns The saved session, without the leading system message and redacted; it has no `notice`.
+	 */
+	save(): SavedSession;
 }
 
 // The mutable part of a session: the activation of the running step; tool calls and records go through it.
@@ -236,12 +245,20 @@ async function request(agent: Agent, texts: readonly string[], activation: Activ
 	if (refusal) agent.state.messages = agent.state.messages.slice(0, before);
 }
 
+// Puts a saved conversation after the leading system message the session was created with.
+function restore(agent: Agent, input: SessionInput, saved: SavedSession): void {
+	const initial = input.tools.map((spec) => spec.name);
+	if (initial.join(",") !== saved.initial.join(",")) throw thrown(savedSessionInvalid(input.actor, `the session starts with the tools [${initial.join(", ")}], the saved one with [${saved.initial.join(", ")}]`), input.redact);
+	agent.state.messages = [...agent.state.messages.filter((message, index) => index === 0 && isSystem(message)), ...loadConversation(input.actor, saved.messages, input.redact)];
+}
+
 /**
  * The session of one resident. The fixed fields of the old runner are carried: the session id is the resident's
  * id, no attribution is sent, and the binding's fixed request fields are merged over every payload.
  *
- * @param input - The resident, its prompt, its first tools, its model, the meter and the redaction.
+ * @param input - The resident, its prompt, its first tools, its model, the meter, the redaction and the saved session.
  * @returns The session.
+ * @throws SwtError `SWT-X042` when the saved session does not start with `tools` or holds a message that is none.
  * @example
  * ```ts
  * const session = createResidentSession({ actor, systemPrompt, tools, binding: source.bind(actor, limits), thinking: "medium", meter, redact });
@@ -256,6 +273,9 @@ export function createResidentSession(input: SessionInput): ResidentSession {
 		live.activation?.record(RESIDENT_RECORDS.id, type, residentRecord(type, payload));
 	};
 	const agent = createAgent(input, live, record);
+	// The provider library writes a leading system message only for a system prompt or a tool.
+	const leads = input.systemPrompt.length > 0 || input.tools.length > 0;
+	if (input.saved !== undefined) restore(agent, input, input.saved);
 	const context = (): number => agent.state.messages.filter((message) => !isSystem(message)).length;
 	const pending = (): boolean => agent.state.messages.at(-1)?.role === "toolResult";
 	const step = async (activation: Activation, frame: StepFrame): Promise<DriverResult> => {
@@ -293,5 +313,6 @@ export function createResidentSession(input: SessionInput): ResidentSession {
 			if (added.length > 0) agent.state.tools = [...agent.state.tools, ...added];
 		},
 		step,
+		save: (): SavedSession => ({ format: SAVED_SESSION_FORMAT, ...saveConversation(agent.state.messages, leads, input.redact), declared: agent.state.tools.map((tool) => tool.name) }),
 	});
 }

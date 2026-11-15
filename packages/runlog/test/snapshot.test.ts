@@ -8,7 +8,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { CHAIN_FILE, EVENTS_FILE, jsonHash, snapshotStateHash } from "@swarmtales/chain";
 import { type Envelope, type KernelSnapshot, type RunManifest, type SnapshotCheckpoint, type SnapshotFile, SwtError } from "@swarmtales/contracts";
 import { openRunFolder, type RunFolder, type RunFolderOptions } from "../src/folder.ts";
-import { readSnapshotFile, writeSnapshotFile } from "../src/snapshot.ts";
+import { readSnapshotFile, snapshotFileState, writeSnapshotFile } from "../src/snapshot.ts";
 import { verifyRun } from "../src/verify.ts";
 
 const GAME = { id: "hello-game" };
@@ -98,6 +98,26 @@ describe("snapshot file", () => {
 		rewrite({ ...file, snapshot: { ...SNAPSHOT, plugins: { hello: { version: 1, data: { n: 99 } } } } });
 		expect(await refusal(path)).toBe("SWT-L008");
 		rewrite({ ...file, checkpoint: { ...file.checkpoint, lines: 1 } });
+		expect(await refusal(path)).toBe("SWT-L008");
+	});
+
+	it("holds the sessions of a live run, signed with the state, and refuses a secret in them (SWT-L006)", async () => {
+		const sessions = { "resident:A01": { messages: ['{"role":"user","content":"Hello.","timestamp":0}'] } };
+		const folder = open("hello-game-001");
+		folder.sink.write(event(1, "run_started"));
+		const secret = { "resident:A01": { messages: [`sk-${"x".repeat(20)}`] } };
+		await expect(writeSnapshotFile(folder, SNAPSHOT, 1, { sessions: secret })).rejects.toMatchObject({ code: "SWT-L006", issues: [{ where: { file: "snapshots/t1.json", path: "sessions.resident:A01.messages[0]" } }] });
+		expect(readdirSync(folder.directory)).not.toContain("snapshots");
+		const { path } = await writeSnapshotFile(folder, SNAPSHOT, 1, { sessions });
+		finish(folder, [END]);
+		const file = await readSnapshotFile(path);
+		expect(file.sessions).toEqual(sessions);
+		expect(file.checkpoint.state).toBe(snapshotFileState(SNAPSHOT, sessions));
+		expect(file.checkpoint.state).not.toBe(snapshotStateHash(SNAPSHOT));
+		const rewrite = (value: unknown): void => { writeFileSync(path, JSON.stringify(value)); };
+		rewrite({ ...file, sessions: { "resident:A01": { messages: [] } } });
+		expect(await refusal(path)).toBe("SWT-L008");
+		rewrite(Object.fromEntries(Object.entries(file).filter(([key]) => key !== "sessions")));
 		expect(await refusal(path)).toBe("SWT-L008");
 	});
 });

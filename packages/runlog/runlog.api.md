@@ -74,7 +74,7 @@ export function nextRunFolder(root: string, gameId: string): string;
 export function openRunFolder(directory: string, manifest: RunManifest, options: RunFolderOptions): RunFolder;
 
 // @public
-export function readSnapshotFile(path: string, expected?: SnapshotExpectation): Promise<SnapshotFile>;
+export function readSnapshotFile(path: string, expected?: SnapshotExpectation): Promise<SessionSnapshotFile>;
 
 // @public
 export interface RunFolder {
@@ -110,13 +110,30 @@ export interface RunVerdict {
 }
 
 // @public
+export interface SessionSnapshotFile extends SnapshotFile {
+    readonly sessions?: SnapshotSessions;
+}
+
+// @public
 export interface SnapshotExpectation {
     readonly gameHash?: string;
     readonly runId?: string;
 }
 
 // @public
+export interface SnapshotExtras {
+    readonly redact?: Redact;
+    readonly sessions?: SnapshotSessions;
+}
+
+// @public
+export function snapshotFileState(snapshot: KernelSnapshot, sessions?: SnapshotSessions): string;
+
+// @public
 export const SNAPSHOTS_FOLDER = "snapshots";
+
+// @public
+export type SnapshotSessions = Readonly<Record<string, unknown>>;
 
 // @public
 export const TAKE_TOOL = "@swarmtales/sdk/directors/take";
@@ -133,7 +150,7 @@ export interface VerifyRunOptions {
 }
 
 // @public
-export function writeSnapshotFile(folder: RunFolder, snapshot: KernelSnapshot, tick: number): Promise<{
+export function writeSnapshotFile(folder: RunFolder, snapshot: KernelSnapshot, tick: number, extras?: SnapshotExtras): Promise<{
     readonly path: string;
     readonly hash: string;
 }>;

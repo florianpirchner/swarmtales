@@ -36,13 +36,16 @@ export interface ToolsNotice {
 	next(open: readonly string[]): readonly string[];
 	/** Forgets the last notice (a context reset dropped it), so the next step announces the open tools again. */
 	forget(): void;
+	/** The open tools the last notice named, for a saved session; `undefined` when none was sent since the start or the last reset. */
+	readonly last: readonly string[] | undefined;
 }
 
 /**
  * Creates the notice memory of one resident.
  *
  * @param texts - The lookup that renders the notice.
- * @returns The memory; nothing is announced yet.
+ * @param last - The open tools of the last notice of a saved session; left out: nothing is announced yet.
+ * @returns The memory.
  * @example
  * ```ts
  * const notice = createToolsNotice(texts);
@@ -52,17 +55,19 @@ export interface ToolsNotice {
  *
  * @public
  */
-export function createToolsNotice(texts: PromptLookup): ToolsNotice {
-	let announced: string | undefined;
+export function createToolsNotice(texts: PromptLookup, last?: readonly string[]): ToolsNotice {
+	let announced: readonly string[] | undefined = last;
 	return Object.freeze({
 		next: (open: readonly string[]): readonly string[] => {
-			const key = open.join(",");
-			if (key === announced || open.length === 0) return [];
-			announced = key;
+			if (open.length === 0 || open.join(",") === announced?.join(",")) return [];
+			announced = [...open];
 			return [toolsNotice(open, texts)];
 		},
 		forget: (): void => {
 			announced = undefined;
+		},
+		get last(): readonly string[] | undefined {
+			return announced;
 		},
 	});
 }

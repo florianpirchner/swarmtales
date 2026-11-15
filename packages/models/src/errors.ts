@@ -192,3 +192,24 @@ export function callOutsideActivation(actor: string): SwtIssue {
 		details: { actor },
 	};
 }
+
+/**
+ * `SWT-X042`: a saved session cannot be loaded: it does not match its schema, or it does not fit the session it is
+ * loaded into.
+ *
+ * @param actor - The actor of the session.
+ * @param reason - What is wrong: the place and what the schema says, or the tools that differ; never a value.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function savedSessionInvalid(actor: string, reason: string): SwtIssue {
+	return {
+		code: "SWT-X042",
+		summary: `the saved session of ${actor} cannot be loaded: ${reason}`,
+		where: { path: `sessions.${actor}`, package: "@swarmtales/models" },
+		why: "A resumed session asks its model what the straight run would have asked, so its conversation and its declared tools must be the ones the snapshot saved, for the game that saved them.",
+		fix: "Resume from a snapshot file as the run wrote it, with the game of that run.",
+		details: { actor },
+	};
+}

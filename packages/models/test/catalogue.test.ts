@@ -17,6 +17,7 @@ const CATALOGUE: Readonly<Record<string, SwtIssue>> = {
 	"SWT-X030": errors.keyLeaked(["events.jsonl"]),
 	"SWT-X040": errors.recordMismatch("response", "/input", "must be >= 0"),
 	"SWT-X041": errors.callOutsideActivation("resident:A01"),
+	"SWT-X042": errors.savedSessionInvalid("resident:A01", "message 0 is no JSON"),
 };
 
 const RECORDS: ResidentRecords = {

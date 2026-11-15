@@ -4,7 +4,7 @@
  *
  * @packageDocumentation
  */
-export { callOutsideActivation, emptyModel, keyLeaked, noCostCap, noKey, noPrice, recordMismatch, shortKey, thrown, unknownModel, unknownProvider } from "./errors.ts";
+export { callOutsideActivation, emptyModel, keyLeaked, noCostCap, noKey, noPrice, recordMismatch, savedSessionInvalid, shortKey, thrown, unknownModel, unknownProvider } from "./errors.ts";
 export { createKeyBroker, KEY_VARIABLES, type KeyAuth, type KeyBroker } from "./keys.ts";
 export { BUILTIN_PROVIDERS, createProviderRegistry, modelOf, openRouterProviderPreferences, type OpenRouterRouting, type ProviderRegistry, type ProviderSpec } from "./providers.ts";
 export { RESIDENT_RECORDS, residentRecord, type ResidentRecords } from "./records.ts";
@@ -15,6 +15,7 @@ export { act, fail, say, scriptedSource, type Script, type ScriptStep } from "./
 export { closedModels, createModelSource, limitedStream, type ModelBinding, type ModelSource } from "./source.ts";
 export { asksReset, CONTEXT_RESET_KIND, createResidentSession, isSafeguardRefusal, outcomeText, type ResidentSession, type SessionInput, type StepFrame } from "./driver/session.ts";
 export { createToolsNotice, toolsNotice, type ToolsNotice } from "./driver/notice.ts";
+export { parseSavedSessions, SAVED_SESSION_FORMAT, SavedSessionSchema, SavedSessionsSchema, type SavedSession, type SavedSessions } from "./driver/saved.ts";
 export { systemPrompt, type PromptFacts } from "./driver/prompt.ts";
 export { createAsker, DIRECTOR_MODEL_RECORDS, scriptedAsker } from "./director.ts";
 export { createModelDrivers, RESIDENT_DRIVER, type ModelDrivers, type ModelDriversInput } from "./driver/create.ts";
