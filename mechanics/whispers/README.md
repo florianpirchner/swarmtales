@@ -46,6 +46,9 @@ the most liked get points. Ported from the old platform (M5-26).
    at the whisperer's role is refused with `PRIVATE_BLOCKED`, in a `rule` handler. `defy` of `channels` is closed for
    every resident but the whisperer, and for it unless `direction.defies` holds at level 10 (the old option
    `whispererDefies` of `channels`).
+6. **At the start of a tick** the duty falls due, then the vote is counted, after the ultimatums of `standoff` (its
+   `after`, old `HOOK_ORDER.minuteStarted` 600 after 500; decisions A77 and A78). As `standoff` requires `progression`,
+   the door clock of `progression` (old 700) now runs before them, a registered change (erratum J146).
 
 **Not done here:** the old snapshot's slice (version 0) is not migrated, as an old snapshot is not resumed here
 (decision A56).
@@ -269,4 +272,4 @@ None recorded against this mechanic on this platform yet.
 vote and the duty, the forged show, the vote's points, the replies and the vote's status part equal the file's.
 [`test/whispers.test.ts`](test/whispers.test.ts): the checks of a ballot and a forgery in the old order, the locks,
 `defy`, the role check of a note, the measured orders at figure direction 10, the service `whispers`, the control
-run and the resume at every boundary under the fake driver.
+run, the duty after a `standoff` loaded after it, and the resume at every boundary under the fake driver.

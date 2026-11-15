@@ -37,6 +37,7 @@
 		"@swarmtales/mechanic-ledger": "workspace:*",
 		"@swarmtales/mechanic-petitions": "workspace:*",
 		"@swarmtales/mechanic-progression": "workspace:*",
+		"@swarmtales/mechanic-puzzles": "workspace:*",
 		"@swarmtales/sdk": "workspace:*",
 		"typebox": "1.3.27"
 	},

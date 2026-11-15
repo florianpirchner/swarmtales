@@ -16,7 +16,7 @@ how a game writes courier lines, the feast and other beats.
 | Id | `script` |
 | Summary | The director's rules: courier lines, factor releases, the feast, standings and petitions. |
 | Requires | none |
-| Uses when loaded | `channels` (from [channels](../channels/README.md)), `progression` (from [progression](../progression/README.md)), `cast` (from [cast](../cast/README.md)), `petitions` (from [petitions](../petitions/README.md)), `ledger` (from [ledger](../ledger/README.md)), `level-pieces` (from [puzzles](../puzzles/README.md)), `exile` (from [exile](../exile/README.md)) |
+| Uses when loaded | `channels` (from [channels](../channels/README.md)), `progression` (from [progression](../progression/README.md)), `cast` (from [cast](../cast/README.md)), `petitions` (from [petitions](../petitions/README.md)), `ledger` (from [ledger](../ledger/README.md)), `level-pieces` (from [puzzles](../puzzles/README.md)), `exile` (from [exile](../exile/README.md)), `deal` (from [puzzles](../puzzles/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
@@ -47,7 +47,7 @@ how a game writes courier lines, the feast and other beats.
    | --- | --- | --- |
    | `post` | `channels.post` | its author is a cast member that is not active |
    | `notify` | `channels.notify`, signed `CITY`, per target | the target reaches nobody, or lists unknown ids |
-   | `dm` | `cast.isActive`, then the old `channels.deliver` | the member is not active; else the run ends: `channels` has no command for a message of a sender that is no resident yet |
+   | `dm` | `cast.isActive`, then `channels.deliver` from the member, per target | the member is not active; else as `notify` |
    | `grant`, `fine` | `ledger.mint`, `ledger.burn`, per target | as `notify` |
    | `escrowTransfer` | `cast.escrow`, per target | as `notify`; a refused payment adds `<resident>: <code>` |
    | `unlockTools` | `progression.unlock`, per target | as `notify` |
@@ -55,7 +55,7 @@ how a game writes courier lines, the feast and other beats.
    | `openPetition` | `petitions.open`; its `onPass` and `onFail` run on `petition_resolved` with `via` | the id was opened before |
    | `publishStandings` | `progression.ranking` and `bounds`, `exile`, then `channels.post`, then `standings_published` | never |
    | `collectDms`, `revealCollection`, `lottery` | `cast.startCollection`, `cast.revealCollection`, `cast.drawLottery`; a lottery's `then` runs for the winner with `via` | the collection exists already, does not exist, or has no senders |
-   | `revealFactor` | none yet: the run ends (`puzzles` offers no command for its factors before M5-64) | |
+   | `revealFactor` | `deal.revealFactor` of `puzzles`: on the `board`, or privately to the residents the target reaches | the refusal's detail (not played, no factors, a city factor per team); as `notify`; `<ids> already hold(s) it` when it reached nobody new |
 
    A target is `actor` (unless banished), `all` (everyone in the city), a list of ids or `{ onLevel }`. A text takes
    `{actor}` (in a private text the recipient when the firing has none), `{other}`, `{minute}` (the tick), `{level}`,
@@ -184,8 +184,8 @@ script({
 
 **What it reads.** Through queries of the services it uses: `exile` (who is in the city), `progression` (levels,
 bounds, the holders behind, the ranking), `level-pieces` (a level's teams, provided by `puzzles`), `channels` (the
-direct messages with their numbers and the `answered` mark) and `cast` (a collection by name, whether a member is
-active). A rule that needs one of them when no loaded mechanic provides it ends the run; a collection reads as not
+direct messages with their numbers and the `answered` mark), `cast` (a collection by name, whether a member is
+active) and `deal` (the city factors, provided by `puzzles`). A rule that needs one of them when no loaded mechanic provides it ends the run; a collection reads as not
 started when `cast` is not loaded. The old script read three things from the log: the teams (now `level-pieces`,
 whose teams come in the order of their first member in the roster, not by the deal's team index), a petition's status
 (now the script's own record of `petition_opened` and `petition_resolved`, in its slice as `statuses`) and the cast's
@@ -202,8 +202,9 @@ not from `mechanics/shared`; the event triggers are listeners that run after the
 inside the call); the migration of the old file's version-0 slice is not carried (A56); the slice holds `statuses`.
 M5-32: the actions are commands of the services the script uses, as on `legacy`, not staged tool calls (erratum of
 M5-32: no oracle file holds a call of `script` but `directorMinute`); `onCollect` runs after the step that collected,
-where the old listener ran at once; `dm` and `revealFactor` end the run until `channels` and `puzzles` offer their
-commands.
+where the old listener ran at once. M5-69: `dm` goes through `channels.deliver` (M5-65) and `revealFactor` through the
+command `revealFactor` of `deal` (M5-64, erratum J155), with the old recipients and reasons; the tick start of the
+script names `standoff` in its `after`, as the old order did (decisions A77, A78).
 
 ## Tests
 
@@ -215,6 +216,9 @@ pieces; the run's end when a rule needs a mechanic the game did not load; replay
 `test/actions.test.ts` (M5-32, the scenarios of the old `test/mechanics/script/differential.test.ts`, whose old
 engine is gone): every action kind through the real `channels`, `ledger`, `progression`, `petitions`, `exile` and
 `cast`, line for line with the old skip reasons; nested petitions and the lottery with `via`; a collection with
-`onCollect`, `collectionOpen`, `collectionEnded` and `onCollectionEnd`, fed by a stand-in router of a resident's
-message to a member; the texts of a holder behind and the bands with the banished; the run's end on `dm` and
-`revealFactor`; the four standings prompts by their sha256 on `legacy`; replay and resume from every boundary.
+`onCollect`, `collectionOpen`, `collectionEnded` and `onCollectionEnd`, fed by a resident's `sendDM` to a member
+through the real routing of `channels` and `figures` of the cast; a member's `dm` through `channels.deliver`; the
+texts of a holder behind and the bands with the banished; the run's end on `revealFactor` without `deal`; the expiry
+of the petitions and the time triggers after a `standoff` loaded after both; the four standings prompts by their sha256 on `legacy`; replay and resume from every boundary.
+`test/factors.test.ts` (M5-69): `revealFactor` against the real `puzzles`, on the board and privately, with every old
+skip reason; replay and resume.

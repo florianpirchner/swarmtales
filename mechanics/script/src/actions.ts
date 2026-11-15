@@ -6,16 +6,18 @@
  * (`channels.post`, `cast.reveal`, `ledger.mint`, `petitions.open`, ...), run at once in the frame of the firing, so
  * its lines land where the old synchronous calls wrote them: as the actor `script` in `directorMinute`, in the frame
  * of the resident's call for a firing on `level_entered`. The script makes no tool call for an action: no oracle
- * file holds a call of the actor `script` but `directorMinute`.
+ * file holds a call of the actor `script` but `directorMinute`. A message of a member goes through `channels.deliver`, a
+ * city factor through the command `revealFactor` of the service `deal` of `puzzles` (decision A76, erratum J155).
  */
 import { CastService } from "@swarmtales/mechanic-cast/contract";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { PetitionsService } from "@swarmtales/mechanic-petitions/contract";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
+import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { need, type ScriptCtx } from "./head.ts";
 import { alive, castActive } from "./reads.ts";
-import type { Action } from "./rules.ts";
+import type { Action, NoticeTarget } from "./rules.ts";
 import { publishBands, publishSnapshot } from "./standings.ts";
 import type { Origin } from "./state.ts";
 import { forEachTarget, personal, render } from "./targets.ts";
@@ -101,10 +103,12 @@ const HANDLERS: Handlers = {
 			need(ctx, ChannelsService, "notify", { to: agent, author: CITY, text: render(ctx, action.text, personal(occasion, agent)) });
 			return undefined;
 		}),
-	dm: (ctx, action) => {
+	dm: (ctx, action, _origin, occasion) => {
 		if (!castActive(ctx, action.from)) return inactive(action.from);
-		// The old `ChannelsApi.deliver` (a message of a sender that is no resident) has no command in `channels` yet.
-		throw new RangeError(`script: a rule needs channels.deliver for a message of ${action.from}, but no loaded mechanic provides it`);
+		return forEachTarget(ctx, action.to, occasion, (agent) => {
+			need(ctx, ChannelsService, "deliver", { from: action.from, to: agent, text: render(ctx, action.text, personal(occasion, agent)) });
+			return undefined;
+		});
 	},
 	setCastLevel: (ctx, action) => {
 		need(ctx, CastService, "setLevel", { cast: action.cast, level: action.level });
@@ -170,11 +174,28 @@ const HANDLERS: Handlers = {
 		runActions(ctx, { rule: origin.rule, via }, action.then, { actor: winner });
 		return undefined;
 	},
-	revealFactor: (_ctx, action) => {
-		// The factors of `puzzles` (old `PuzzlesApi.revealFactor`) have no command in its contract yet.
-		throw new RangeError(`script: a rule needs puzzles.revealFactor for level ${String(action.level)}, but no loaded mechanic provides it`);
-	},
+	revealFactor: (ctx, action, _origin, occasion) => revealFactor(ctx, action.level, action.target, occasion),
 };
+
+// The city factor of an additive level through `deal` (old `revealFactor`): the board, or the residents the target
+// reaches; prior holders are skipped quietly, and the action counts as skipped only when it reached nobody new.
+function revealFactor(ctx: ScriptCtx, level: number, target: "board" | NoticeTarget, occasion: Occasion): string | undefined {
+	if (target === "board") {
+		const revealed = need(ctx, PuzzlesService, "revealFactor", { level, target: "board" });
+		return revealed.ok ? undefined : revealed.detail;
+	}
+	const recipients: string[] = [];
+	const skipped = forEachTarget(ctx, target, occasion, (agent) => {
+		recipients.push(agent);
+		return undefined;
+	});
+	if (recipients.length === 0) return skipped;
+	const revealed = need(ctx, PuzzlesService, "revealFactor", { level, target: recipients });
+	if (!revealed.ok) return revealed.detail;
+	const holders = revealed.agents.length > 0 ? [] : recipients;
+	const reasons = [...(skipped === undefined ? [] : [skipped]), ...(holders.length === 0 ? [] : [`${holders.join(", ")} already ${holders.length === 1 ? "holds" : "hold"} it`])];
+	return reasons.length === 0 ? undefined : reasons.join("; ");
+}
 
 /**
  * A count fixed in the game, or a share of the residents in the city, rounded up, at least the minimum (old

@@ -12,6 +12,7 @@ import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { PetitionsService } from "@swarmtales/mechanic-petitions/contract";
 import { LevelPiecesService, ProgressionService } from "@swarmtales/mechanic-progression/contract";
+import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { defineHead, defineTool, inSchemaOrder, type CtxOf, type ServiceInput, type ServiceMethodName, type ServiceOutput, type ShapeOf } from "@swarmtales/sdk";
 import { Rule } from "./rules.ts";
 import { DirectorSlice, FiringState } from "./state.ts";
@@ -95,8 +96,8 @@ export const scriptHead = defineHead({
 	tools: { directorMinute: { description: "script/tools/directorMinute", params: TimeTriggers.parameters, for: ["script"] } },
 	// The time triggers are a call of the script: a game grants `directorMinute` to `script` (SWT-G015).
 	stages: ["directorMinute"],
-	// Old `uses`: the mechanics the actions go through, and those the rules read.
-	uses: [ChannelsService, ProgressionService, CastService, PetitionsService, LedgerService, LevelPiecesService, ExileService],
+	// Old `uses`: the mechanics the actions go through (`deal` of `puzzles` for a city factor), and those the rules read.
+	uses: [ChannelsService, ProgressionService, CastService, PetitionsService, LedgerService, LevelPiecesService, ExileService, PuzzlesService],
 });
 
 /**

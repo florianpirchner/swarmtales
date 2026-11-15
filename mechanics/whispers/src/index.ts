@@ -98,10 +98,14 @@ export const whispers = defineMechanic(whispersHead, {
 		runStarted: (ctx) => {
 			if (ctx.state.whisperer !== null) ctx.emit("whisperer_chosen", { agent: ctx.state.whisperer });
 		},
-		// The duty falls due before the vote is counted (old `startMinute`).
-		tickStarted: (ctx) => {
-			tickDuty(ctx);
-			tickVote(ctx);
+		// The duty falls due before the vote is counted (old `startMinute`), after the ultimatums of `standoff` (old
+		// `HOOK_ORDER.minuteStarted` 600 after 500; decisions A77 and A78).
+		tickStarted: {
+			after: ["standoff"],
+			run: (ctx) => {
+				tickDuty(ctx);
+				tickVote(ctx);
+			},
 		},
 		turnInputs: statusLines,
 	},

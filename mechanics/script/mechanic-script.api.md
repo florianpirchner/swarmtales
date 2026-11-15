@@ -925,6 +925,18 @@ text: Type.TString;
 }>;
 readonly output: Type.TNull;
 };
+readonly deliver: {
+readonly kind: "command";
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+};
 readonly dmRecords: {
 readonly kind: "query";
 readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
@@ -1625,6 +1637,49 @@ readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
 readonly output: Type.TArray<Type.TString>;
+};
+}>, ServiceDefinition<"deal", {
+readonly passwordPiece: {
+readonly kind: "query";
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly input: Type.TObject<{
+token: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly carriesSecret: {
+readonly kind: "query";
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+text: Type.TString;
+minRun: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isHandover: {
+readonly kind: "query";
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly revealFactor: {
+readonly kind: "command";
+readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+target: Type.TUnion<[Type.TLiteral<"board">, Type.TArray<Type.TString>]>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+agents: Type.TArray<Type.TString>;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TString;
+detail: Type.TString;
+}>]>;
 };
 }>], {
 directorMinute: Type.TObject<{}>;

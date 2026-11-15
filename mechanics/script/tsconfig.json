@@ -37,6 +37,9 @@
 			"path": "../ledger"
 		},
 		{
+			"path": "../puzzles"
+		},
+		{
 			"path": "../../packages/testkit"
 		}
 	]

@@ -138,6 +138,24 @@ describe("the whisperer and the contract", () => {
 	});
 });
 
+// Stands in for `standoff` and marks its place at the tick start; it uses `whispers`, so it loads after it.
+const standoffMarker = defineMechanic(defineHead({ id: "standoff", package: "@test/standoff", summary: "Test: marks its place in the tick.", uses: [WhispersService], events: { mark_standoff: Type.Object({}, { description: "Its place" }) } }), {
+	hooks: {
+		tickStarted: (ctx) => {
+			ctx.emit("mark_standoff", {});
+		},
+	},
+});
+
+describe("the order of the tick start", () => {
+	it("counts the duty after the ultimatums of standoff, loaded after it (old HOOK_ORDER 500 before 600, decision A78)", async () => {
+		const test = testKernel(gameOf(storyOptions("whispers"), { more: [standoffMarker()] }));
+		await test.playTicks(idleDriver, 7);
+		const tick6 = test.kernel.log.all().filter((event) => event.tick === 6 && ["mark_standoff", "whisper_duty"].includes(event.type));
+		expect(tick6.map((event) => event.type)).toEqual(["mark_standoff", "whisper_duty"]);
+	});
+});
+
 describe("standing", () => {
 	it("documents its options and resumes at every tick boundary to the straight run under the fake driver", async () => {
 		expect(checkOptionsDocumented({ id: "whispers", options: WhispersOptions })).toEqual([]);
