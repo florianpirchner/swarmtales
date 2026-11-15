@@ -4,6 +4,996 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { ToolCtxOf } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
+
+// @public
+export function busiestPair(whisperer: string, dms: readonly Dm[], since: number, until: number): {
+    readonly pair: readonly [string, string];
+    readonly dms: number;
+} | undefined;
+
+// @public
+export function countBallots(ballots: ReadonlyMap<string, string>, alive: readonly string[], inCity: (agent: string) => boolean): Counted;
+
+// @public
+export interface Counted {
+    readonly counts: readonly VoteCount[];
+    readonly voters: readonly string[];
+    readonly winners: readonly string[];
+}
+
+// @public
+export const Direction: Type.TObject<{
+    level: Type.TInteger;
+    defies: Type.TBoolean;
+}>;
+
+// @public
+export type Direction = Static<typeof Direction>;
+
+// @public
+export interface Dm {
+    readonly from: string;
+    readonly minute: number;
+    readonly text: string;
+    readonly to: string;
+}
+
+// @public
+export interface DmReceipt {
+    readonly from: string;
+    readonly id: string;
+    readonly minute: number;
+    readonly number: number;
+    readonly text: string | undefined;
+    readonly to: string;
+}
+
+// @public
+export const Duty: Type.TUnion<[Type.TObject<{
+    kind: Type.TLiteral<"every">;
+    everyMinutes: Type.TInteger;
+    fromMinute: Type.TInteger;
+    text: Type.TString;
+}>, Type.TObject<{
+    kind: Type.TLiteral<"afterVote">;
+    text: Type.TString;
+}>]>;
+
+// @public
+export function dutyDue(spec: WhispererSpec, minute: number): boolean;
+
+// @public
+export const DutyNow: Type.TObject<{
+    agent: Type.TString;
+    since: Type.TInteger;
+    nextVote: Type.TInteger;
+    whispers: Type.TInteger;
+    recipients: Type.TArray<Type.TString>;
+    needWhispers: Type.TInteger;
+    needRecipients: Type.TInteger;
+    met: Type.TBoolean;
+    busiest: Type.TOptional<Type.TObject<{
+        pair: Type.TTuple<[Type.TString, Type.TString]>;
+        dms: Type.TInteger;
+    }>>;
+}>;
+
+// @public
+export type DutyNowValue = Static<typeof DutyNow>;
+
+// @public
+export function dutyTarget(counts: readonly VoteCount[], whisperer: string): string | undefined;
+
+// @public
+export interface Forgery {
+    minute: number;
+    to: string;
+}
+
+// @public
+export function isForgeable(receipt: DmReceipt, whisperer: string): boolean;
+
+// @public
+export function namesList(names: readonly string[]): string;
+
+// @public
+export type Phase = "pending" | "open" | "closed";
+
+// @public
+export const PopularitySpec: Type.TObject<{
+    rounds: Type.TArray<Type.TObject<{
+        opensAt: Type.TInteger;
+        countsAt: Type.TInteger;
+        points: Type.TInteger;
+        label: Type.TString;
+    }>>;
+    texts: Type.TObject<{
+        announcement: Type.TString;
+        result: Type.TString;
+        noVotes: Type.TString;
+    }>;
+}>;
+
+// @public
+export function previousDuty(spec: WhispererSpec, minute: number): number;
+
+// @public
+export const Quota: Type.TObject<{
+    whispers: Type.TInteger;
+    recipients: Type.TInteger;
+    report: Type.TObject<{
+        met: Type.TString;
+        missed: Type.TString;
+        target: Type.TString;
+    }>;
+}>;
+
+// @public
+export type Quota = Static<typeof Quota>;
+
+// @public
+export function quotaMet(tally: Tally, quota: Quota): boolean;
+
+// @public
+export function quotaOf(spec: WhispererSpec | undefined, direction: Direction | undefined): Quota | undefined;
+
+// @public
+export function renderTemplate(template: string, values: Readonly<Partial<Record<string, string>>>): string;
+
+// @public
+export function roleLeaks(text: string, to: string, holder: string, nameOf: (agent: string) => string | undefined): boolean;
+
+// @public
+export const Round: Type.TObject<{
+    opensAt: Type.TInteger;
+    countsAt: Type.TInteger;
+    points: Type.TInteger;
+    label: Type.TString;
+}>;
+
+// @public
+export type Round = Static<typeof Round>;
+
+// @public
+export interface Tally {
+    readonly recipients: readonly string[];
+    readonly whispers: number;
+}
+
+// @public
+export function tallyWhispers(whisperer: string, dms: readonly Dm[], forgeries: readonly Forgery[], handover: (text: string) => boolean, since: number, until: number): Tally;
+
+// @public
+export interface VoteCount {
+    readonly agent: string;
+    readonly votes: number;
+}
+
+// @public
+export const WhispererSection: Type.TUnion<[Type.TNull, Type.TObject<{
+    whisperer: Type.TString;
+    minute: Type.TInteger;
+    duty: Type.TUnion<[Type.TObject<{
+        agent: Type.TString;
+        since: Type.TInteger;
+        nextVote: Type.TInteger;
+        whispers: Type.TInteger;
+        recipients: Type.TArray<Type.TString>;
+        needWhispers: Type.TInteger;
+        needRecipients: Type.TInteger;
+        met: Type.TBoolean;
+        busiest: Type.TOptional<Type.TObject<{
+            pair: Type.TTuple<[Type.TString, Type.TString]>;
+            dms: Type.TInteger;
+        }>>;
+    }>, Type.TNull]>;
+}>]>;
+
+// @public
+export const WhispererSpec: Type.TObject<{
+    agent: Type.TOptional<Type.TString>;
+    forgery: Type.TBoolean;
+    duty: Type.TUnion<[Type.TObject<{
+        kind: Type.TLiteral<"every">;
+        everyMinutes: Type.TInteger;
+        fromMinute: Type.TInteger;
+        text: Type.TString;
+    }>, Type.TObject<{
+        kind: Type.TLiteral<"afterVote">;
+        text: Type.TString;
+    }>]>;
+    quota: Type.TOptional<Type.TObject<{
+        whispers: Type.TInteger;
+        recipients: Type.TInteger;
+        report: Type.TObject<{
+            met: Type.TString;
+            missed: Type.TString;
+            target: Type.TString;
+        }>;
+    }>>;
+}>;
+
+// @public
+export type WhispererSpec = Static<typeof WhispererSpec>;
+
+// @public
+export const whispers: MechanicDefinition<"whispers", Type.TObject<{
+whisperer: Type.TOptional<Type.TObject<{
+agent: Type.TOptional<Type.TString>;
+forgery: Type.TBoolean;
+duty: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"every">;
+everyMinutes: Type.TInteger;
+fromMinute: Type.TInteger;
+text: Type.TString;
+}>, Type.TObject<{
+kind: Type.TLiteral<"afterVote">;
+text: Type.TString;
+}>]>;
+quota: Type.TOptional<Type.TObject<{
+whispers: Type.TInteger;
+recipients: Type.TInteger;
+report: Type.TObject<{
+met: Type.TString;
+missed: Type.TString;
+target: Type.TString;
+}>;
+}>>;
+}>>;
+popularity: Type.TOptional<Type.TObject<{
+rounds: Type.TArray<Type.TObject<{
+opensAt: Type.TInteger;
+countsAt: Type.TInteger;
+points: Type.TInteger;
+label: Type.TString;
+}>>;
+texts: Type.TObject<{
+announcement: Type.TString;
+result: Type.TString;
+noVotes: Type.TString;
+}>;
+}>>;
+control: Type.TBoolean;
+direction: Type.TOptional<Type.TObject<{
+level: Type.TInteger;
+defies: Type.TBoolean;
+}>>;
+noteTools: Type.TArray<Type.TString>;
+}>, {
+readonly whisperer_chosen: Type.TObject<{
+agent: Type.TString;
+}>;
+readonly whisper_duty: Type.TObject<{
+agent: Type.TString;
+since: Type.TInteger;
+dms: Type.TInteger;
+forgeries: Type.TInteger;
+whispers: Type.TOptional<Type.TInteger>;
+recipients: Type.TOptional<Type.TArray<Type.TString>>;
+met: Type.TOptional<Type.TBoolean>;
+target: Type.TOptional<Type.TString>;
+}>;
+readonly popularity_opened: Type.TObject<{
+round: Type.TInteger;
+until: Type.TInteger;
+points: Type.TInteger;
+}>;
+readonly popularity_ballot: Type.TObject<{
+round: Type.TInteger;
+agent: Type.TString;
+choice: Type.TString;
+}>;
+readonly popularity_result: Type.TObject<{
+round: Type.TInteger;
+counts: Type.TArray<Type.TObject<{
+agent: Type.TString;
+votes: Type.TInteger;
+}>>;
+winners: Type.TArray<Type.TString>;
+points: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+}>;
+readonly receipt_forged: Type.TObject<{
+receipt: Type.TString;
+by: Type.TString;
+to: Type.TString;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+forged: Type.TString;
+}>;
+}, "forgeReceipt" | "nameFavourite">;
+
+// @public
+export type WhispersCtx = CtxOf<typeof whispersHead>;
+
+// @public
+export const WhispersEvents: EventsDefinition<"whispers", {
+readonly whisperer_chosen: Type.TObject<{
+agent: Type.TString;
+}>;
+readonly whisper_duty: Type.TObject<{
+agent: Type.TString;
+since: Type.TInteger;
+dms: Type.TInteger;
+forgeries: Type.TInteger;
+whispers: Type.TOptional<Type.TInteger>;
+recipients: Type.TOptional<Type.TArray<Type.TString>>;
+met: Type.TOptional<Type.TBoolean>;
+target: Type.TOptional<Type.TString>;
+}>;
+readonly popularity_opened: Type.TObject<{
+round: Type.TInteger;
+until: Type.TInteger;
+points: Type.TInteger;
+}>;
+readonly popularity_ballot: Type.TObject<{
+round: Type.TInteger;
+agent: Type.TString;
+choice: Type.TString;
+}>;
+readonly popularity_result: Type.TObject<{
+round: Type.TInteger;
+counts: Type.TArray<Type.TObject<{
+agent: Type.TString;
+votes: Type.TInteger;
+}>>;
+winners: Type.TArray<Type.TString>;
+points: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+}>;
+readonly receipt_forged: Type.TObject<{
+receipt: Type.TString;
+by: Type.TString;
+to: Type.TString;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+forged: Type.TString;
+}>;
+}>;
+
+// @public
+export const whispersHead: MechanicHead<"whispers", Type.TObject<{
+whisperer: Type.TOptional<Type.TObject<{
+agent: Type.TOptional<Type.TString>;
+forgery: Type.TBoolean;
+duty: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"every">;
+everyMinutes: Type.TInteger;
+fromMinute: Type.TInteger;
+text: Type.TString;
+}>, Type.TObject<{
+kind: Type.TLiteral<"afterVote">;
+text: Type.TString;
+}>]>;
+quota: Type.TOptional<Type.TObject<{
+whispers: Type.TInteger;
+recipients: Type.TInteger;
+report: Type.TObject<{
+met: Type.TString;
+missed: Type.TString;
+target: Type.TString;
+}>;
+}>>;
+}>>;
+popularity: Type.TOptional<Type.TObject<{
+rounds: Type.TArray<Type.TObject<{
+opensAt: Type.TInteger;
+countsAt: Type.TInteger;
+points: Type.TInteger;
+label: Type.TString;
+}>>;
+texts: Type.TObject<{
+announcement: Type.TString;
+result: Type.TString;
+noVotes: Type.TString;
+}>;
+}>>;
+control: Type.TBoolean;
+direction: Type.TOptional<Type.TObject<{
+level: Type.TInteger;
+defies: Type.TBoolean;
+}>>;
+noteTools: Type.TArray<Type.TString>;
+}>, Type.TObject<{
+whisperer: Type.TUnion<[Type.TString, Type.TNull]>;
+forgeries: Type.TArray<Type.TObject<{
+minute: Type.TInteger;
+to: Type.TString;
+}>>;
+round: Type.TInteger;
+phase: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"open">, Type.TLiteral<"closed">]>;
+ballots: Type.TArray<Type.TObject<{
+agent: Type.TString;
+choice: Type.TString;
+}>>;
+}>, WhispersState, {
+readonly whisperer_chosen: Type.TObject<{
+agent: Type.TString;
+}>;
+readonly whisper_duty: Type.TObject<{
+agent: Type.TString;
+since: Type.TInteger;
+dms: Type.TInteger;
+forgeries: Type.TInteger;
+whispers: Type.TOptional<Type.TInteger>;
+recipients: Type.TOptional<Type.TArray<Type.TString>>;
+met: Type.TOptional<Type.TBoolean>;
+target: Type.TOptional<Type.TString>;
+}>;
+readonly popularity_opened: Type.TObject<{
+round: Type.TInteger;
+until: Type.TInteger;
+points: Type.TInteger;
+}>;
+readonly popularity_ballot: Type.TObject<{
+round: Type.TInteger;
+agent: Type.TString;
+choice: Type.TString;
+}>;
+readonly popularity_result: Type.TObject<{
+round: Type.TInteger;
+counts: Type.TArray<Type.TObject<{
+agent: Type.TString;
+votes: Type.TInteger;
+}>>;
+winners: Type.TArray<Type.TString>;
+points: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+}>;
+readonly receipt_forged: Type.TObject<{
+receipt: Type.TString;
+by: Type.TString;
+to: Type.TString;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+forged: Type.TString;
+}>;
+}, {
+readonly "whispers/tools/forgeReceipt": readonly [];
+readonly "whispers/tools/nameFavourite": readonly [];
+readonly "whispers/replies/receipt-shown-private": readonly ["to", "receipt"];
+readonly "whispers/replies/ballot-favourite": readonly ["choice", "until"];
+readonly "whispers/replies/locked": readonly [];
+readonly "whispers/replies/marks-left": readonly ["remaining", "budget"];
+readonly "whispers/status/popularity-nobody": readonly [];
+readonly "whispers/status/popularity-named": readonly ["ballot"];
+readonly "whispers/status/popularity-vote": readonly ["label", "countsAt", "ballot"];
+readonly "whispers/notices/receipt-forged": readonly ["by", "line"];
+readonly "whispers/records/receipt-forged-line": readonly ["id", "number", "from", "to", "minute", "quoted"];
+readonly "whispers/duty/forgeable-line": readonly ["id", "number", "from", "minute"];
+readonly "whispers/duty/forgeable-none-yet": readonly [];
+readonly "whispers/duty/forgeable-none": readonly [];
+readonly "whispers/duty/whispers-one": readonly [];
+readonly "whispers/duty/whispers-many": readonly ["count"];
+readonly "whispers/duty/residents-one": readonly [];
+readonly "whispers/duty/residents-many": readonly ["count"];
+readonly "whispers/notes/private-role": readonly [];
+}, readonly [ServiceDefinition<"channels", {
+readonly post: {
+readonly kind: "command";
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+}>;
+readonly output: Type.TObject<{
+postSeq: Type.TInteger;
+}>;
+};
+readonly notify: {
+readonly kind: "command";
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+readonly input: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly dmRecords: {
+readonly kind: "query";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+tick: Type.TInteger;
+answered: Type.TBoolean;
+deliveredTick: Type.TOptional<Type.TInteger>;
+deliveredAfter: Type.TOptional<Type.TInteger>;
+}>>;
+};
+readonly boardPost: {
+readonly kind: "query";
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly pendingDms: {
+readonly kind: "query";
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly dmWindow: {
+readonly kind: "query";
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+sent: Type.TInteger;
+limit: Type.TInteger;
+from: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly createCityGroup: {
+readonly kind: "command";
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+readonly input: Type.TObject<{
+name: Type.TString;
+members: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+};
+readonly removeCityGroup: {
+readonly kind: "command";
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly postGroupAsCity: {
+readonly kind: "command";
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly group: {
+readonly kind: "query";
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+id: Type.TString;
+name: Type.TString;
+founder: Type.TString;
+treasurer: Type.TString;
+members: Type.TArray<Type.TString>;
+removed: Type.TBoolean;
+}>, Type.TNull]>;
+};
+readonly groupPost: {
+readonly kind: "query";
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+group: Type.TString;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly couldRead: {
+readonly kind: "query";
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+readonly input: Type.TObject<{
+group: Type.TString;
+reader: Type.TString;
+number: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+}>, ServiceDefinition<"ledger", {
+readonly balance: {
+readonly kind: "query";
+readonly summary: "An account's points; 0 for an account nobody opened.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNumber;
+};
+readonly balances: {
+readonly kind: "query";
+readonly summary: "Every resident's points, for rankings and standings.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+};
+readonly open: {
+readonly kind: "command";
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly has: {
+readonly kind: "query";
+readonly summary: "Whether the account is open.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly mint: {
+readonly kind: "command";
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly burn: {
+readonly kind: "command";
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly move: {
+readonly kind: "command";
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+txId: Type.TString;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+}>]>;
+};
+}>], readonly [ServiceDefinition<"whispers", {
+readonly whisperer: {
+readonly kind: "query";
+readonly summary: "The resident the city chose as the whisperer, or null when none plays (a control run, a game without one).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+}>], readonly [ServiceDefinition<"receipt-source", {
+readonly ofTransfer: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued for the booking `txId` of the ledger, or null (old `ofTransfer` of `receipts`).";
+readonly input: Type.TObject<{
+txId: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly ofMessage: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued when the direct message `number` was delivered, or null.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly ofLevel: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued, or to be issued in the provider's listener, for the resident's correct `submission` of the level of `progression`, or null (decision A64).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly textsOf: {
+readonly kind: "query";
+readonly summary: "The texts of the receipts the resident is a party to, in the order issued (old `list` of `receipts`), for the reply of `getStatus`.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+}>, ServiceDefinition<"allowance", {
+readonly left: {
+readonly kind: "query";
+readonly summary: "The resident's marks in the current window, or null where marks do not apply (old `left` of `marks`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+remaining: Type.TNumber;
+budget: Type.TNumber;
+}>, Type.TNull]>;
+};
+readonly priceOf: {
+readonly kind: "query";
+readonly summary: "What a message on the channel costs the resident now, or null where marks do not apply (old `priceOf` of `marks`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+channel: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"dm">, Type.TLiteral<"receipt">]>;
+}>;
+readonly output: Type.TUnion<[Type.TNumber, Type.TNull]>;
+};
+}>, ServiceDefinition<"identity", {
+readonly nameOf: {
+readonly kind: "query";
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly display: {
+readonly kind: "query";
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly resolve: {
+readonly kind: "query";
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+}>, ServiceDefinition<"exile", {
+readonly banish: {
+readonly kind: "command";
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+ok: Type.TBoolean;
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+}>;
+};
+readonly toGate: {
+readonly kind: "command";
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+voters: Type.TArray<Type.TString>;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+bequestPerHeir: Type.TNumber;
+notice: Type.TString;
+texts: Type.TObject<{
+exiled: Type.TString;
+will: Type.TString;
+ransomed: Type.TString;
+}>;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly isExiled: {
+readonly kind: "query";
+readonly summary: "Says whether the resident is banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly exiled: {
+readonly kind: "query";
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly standing: {
+readonly kind: "query";
+readonly summary: "Where the resident stands (old `standingOf`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"alive">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"gate">;
+until: Type.TInteger;
+}>, Type.TObject<{
+kind: Type.TLiteral<"exiled">;
+}>]>;
+};
+readonly alive: {
+readonly kind: "query";
+readonly summary: "Every resident not banished, in the game's order.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly exiledBy: {
+readonly kind: "query";
+readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly gates: {
+readonly kind: "query";
+readonly summary: "Every open gate, in the order opened.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+since: Type.TInteger;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+paid: Type.TInteger;
+covered: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+};
+readonly ransomed: {
+readonly kind: "query";
+readonly summary: "Whether the resident was bought back from the gate once.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly bequeathed: {
+readonly kind: "query";
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+}>, ServiceDefinition<"deal", {
+readonly passwordPiece: {
+readonly kind: "query";
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly input: Type.TObject<{
+token: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly carriesSecret: {
+readonly kind: "query";
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+text: Type.TString;
+minRun: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isHandover: {
+readonly kind: "query";
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>], {
+forgeReceipt: Type.TObject<{
+to: Type.TString;
+receiptId: Type.TString;
+text: Type.TString;
+}>;
+nameFavourite: Type.TObject<{
+agent: Type.TString;
+}>;
+}>;
+
+// @public
+export const WhispersOptions: Type.TObject<{
+    whisperer: Type.TOptional<Type.TObject<{
+        agent: Type.TOptional<Type.TString>;
+        forgery: Type.TBoolean;
+        duty: Type.TUnion<[Type.TObject<{
+            kind: Type.TLiteral<"every">;
+            everyMinutes: Type.TInteger;
+            fromMinute: Type.TInteger;
+            text: Type.TString;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"afterVote">;
+            text: Type.TString;
+        }>]>;
+        quota: Type.TOptional<Type.TObject<{
+            whispers: Type.TInteger;
+            recipients: Type.TInteger;
+            report: Type.TObject<{
+                met: Type.TString;
+                missed: Type.TString;
+                target: Type.TString;
+            }>;
+        }>>;
+    }>>;
+    popularity: Type.TOptional<Type.TObject<{
+        rounds: Type.TArray<Type.TObject<{
+            opensAt: Type.TInteger;
+            countsAt: Type.TInteger;
+            points: Type.TInteger;
+            label: Type.TString;
+        }>>;
+        texts: Type.TObject<{
+            announcement: Type.TString;
+            result: Type.TString;
+            noVotes: Type.TString;
+        }>;
+    }>>;
+    control: Type.TBoolean;
+    direction: Type.TOptional<Type.TObject<{
+        level: Type.TInteger;
+        defies: Type.TBoolean;
+    }>>;
+    noteTools: Type.TArray<Type.TString>;
+}>;
+
+// @public
+export const WhispersService: ServiceDefinition<"whispers", {
+readonly whisperer: {
+readonly kind: "query";
+readonly summary: "The resident the city chose as the whisperer, or null when none plays (a control run, a game without one).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+}>;
+
+// @public
+export interface WhispersState {
+    ballots: Map<string, string>;
+    forgeries: Forgery[];
+    phase: Phase;
+    round: number;
+    whisperer: string | null;
+}
+
+// @public
+export type WhispersToolCtx = ToolCtxOf<typeof whispersHead>;
+
+// @public
+export type WhispersView = ViewOf<typeof whispersHead>;
+
 // (No @packageDocumentation comment for this package)
 
 ```

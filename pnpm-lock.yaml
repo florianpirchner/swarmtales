@@ -1378,7 +1378,42 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  mechanics/whispers: {}
+  mechanics/whispers:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-channels':
+        specifier: workspace:*
+        version: link:../channels
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:../exile
+      '@swarmtales/mechanic-ledger':
+        specifier: workspace:*
+        version: link:../ledger
+      '@swarmtales/mechanic-puzzles':
+        specifier: workspace:*
+        version: link:../puzzles
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/mechanic-marks':
+        specifier: workspace:*
+        version: link:../marks
+      '@swarmtales/mechanic-receipts':
+        specifier: workspace:*
+        version: link:../receipts
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
 
   packages/chain:
     dependencies:
