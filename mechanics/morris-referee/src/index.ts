@@ -13,19 +13,7 @@ import { Type, type Static } from "typebox";
 import { defineHead, defineMechanic } from "@swarmtales/sdk";
 import { classify, MorrisEvents, scoreTurn } from "@swarmtales/mechanic-morris/contract";
 import { applyRemove, applyStep, Cell, pass, Side, startPosition, type Position, type Step } from "@swarmtales/mechanic-morris/rules";
-
-// The payload of `move_scored`: values are from the point of view of the side that moved.
-const MOVE_SCORED = Type.Object({
-	game: Type.Integer(),
-	turnNo: Type.Integer({ description: "The scored turn's number in its game, as in move_played." }),
-	side: Side,
-	class: Type.Union([Type.Literal("best"), Type.Literal("inaccuracy"), Type.Literal("blunder"), Type.Literal("missed_win")]),
-	best: Type.Integer({ description: "The search value of the best turn, for the side that moved (100 = one piece)." }),
-	played: Type.Integer({ description: "The search value of the played turn." }),
-	depth: Type.Integer({ description: "Whole turns searched." }),
-	alternatives: Type.Integer({ description: "Legal turns in the position." }),
-	missedMill: Type.Boolean({ description: "A turn that closes a mill was legal and the played turn closed none." }),
-});
+import { refereeEvents, refereeMetrics } from "./metrics.ts";
 
 const Count = Type.Object({ X: Type.Integer(), O: Type.Integer() }, { description: "The pieces each side still has in hand." });
 const Placed = { board: Type.Array(Cell, { description: "The 24 points of the board." }), side: Side, inHand: Count };
@@ -59,7 +47,8 @@ const head = defineHead({
 	}),
 	state: RefereeState,
 	start: (): RefereeState => ({ game: 0, flying: true, ...placed(startPosition("X")) }),
-	events: { move_scored: MOVE_SCORED },
+	events: refereeEvents,
+	metrics: refereeMetrics(refereeEvents),
 	audiences: { move_scored: ["human"] },
 });
 

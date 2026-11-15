@@ -9,10 +9,13 @@
  * a fresh context; the only memory across games is each trader's private strategy brain (`brain: false`: the same
  * briefings, no brain). The mechanic scores every game against the optimal allocation, for the report only. A port of
  * the old `stories/salt-market/story.ts`: the variants are options of the factory, the id is always `salt-market`.
+ * The file exports the game family: the variants that an experiment or `--set` may choose are its params, and its
+ * defaults give the game of the old platform.
  */
 import { saltMarket } from "@swarmtales/mechanic-salt-market";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, SEATS } from "./briefing.ts";
 
 /**
@@ -82,4 +85,33 @@ export function saltMarketGame(options: SaltMarketOptions = {}) {
 	});
 }
 
-export default saltMarketGame();
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose, with the bounds of the old
+ * variant-name parser. The seed and the tick count are no params: the seed is the run's, and the tick count follows
+ * from the games and the rounds.
+ */
+const Params = Type.Object(
+	{
+		games: Type.Integer({ minimum: 1, maximum: 20, default: DEFAULTS.games, description: "Games in the match; 4 is one full rotation of the deal." }),
+		rounds: Type.Integer({ minimum: 2, maximum: 20, default: DEFAULTS.rounds, description: "Trading rounds per game." }),
+		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each trader keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)." }),
+		spoil: Type.Boolean({ default: DEFAULTS.spoil, description: "Goods spoil at the end of each round but the last." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+	},
+	{ description: "The variants of Salt Market." },
+);
+
+/**
+ * Salt Market as a game family: the default params give the registry default of the old platform (four rotated games
+ * of six rounds, spoilage, a brain per trader); `{ brain: false }` is the control arm.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: saltMarketFamily, params: { brain: false }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const saltMarketFamily = defineGameFamily(Params, (params) => saltMarketGame(params));
+
+export default saltMarketFamily;

@@ -4,6 +4,7 @@ import { Type } from "typebox";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { defineHead, inSchemaOrder, type CtxOf, type ViewOf } from "@swarmtales/sdk";
+import { saltMarketMetrics } from "./metrics.ts";
 import { Bundle, Later, MarketSlice, Offer, Pledge, Profile, Reference, type MarketState } from "./model.ts";
 
 const options = Type.Object({
@@ -86,6 +87,49 @@ const tools = {
 	},
 } as const;
 
+// The event schemas stand outside the head so that its metrics are typed by them.
+const events = {
+	market_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), profiles: Type.Record(Type.String(), Profile, { description: "Values, contracts and start bundles (sealed: audience human)." }) }),
+	market_round_started: Type.Object({ game: Type.Integer(), round: Type.Integer(), spoils: Type.String() }),
+	market_offer_made: Offer,
+	market_offer_closed: Type.Object({ game: Type.Integer(), id: Type.String(), status: Type.String(), by: Type.String(), note: Type.String() }),
+	market_offer_passed: Type.Object({ game: Type.Integer(), id: Type.String(), by: Type.String(), note: Type.String() }),
+	market_trade: Type.Object({
+		game: Type.Integer(),
+		round: Type.Integer(),
+		offer: Type.String(),
+		from: Type.String(),
+		to: Type.String(),
+		give: Bundle,
+		get: Bundle,
+		later: Type.Optional(Later),
+		tax: Type.Integer(),
+		fee: Type.Integer(),
+	}),
+	market_gift: Type.Object({ game: Type.Integer(), round: Type.Integer(), from: Type.String(), to: Type.String(), goods: Bundle, note: Type.String() }),
+	market_said: Type.Object({ game: Type.Integer(), round: Type.Integer(), from: Type.String(), to: Type.String(), text: Type.String() }),
+	market_promise_settled: Pledge,
+	market_shipment_arrived: Type.Object({ game: Type.Integer(), round: Type.Integer(), trader: Type.String(), shipment: Bundle, escrow: Bundle }),
+	market_spoiled: Type.Object({ game: Type.Integer(), round: Type.Integer(), good: Type.String(), losses: Type.Record(Type.String(), Type.Integer()) }),
+	market_game_ended: Type.Object({
+		game: Type.Integer(),
+		holdings: Type.Record(Type.String(), Bundle),
+		profiles: Type.Record(Type.String(), Profile),
+		scores: Type.Record(Type.String(), Type.Number()),
+		met: Type.Array(Type.String()),
+		totals: Type.Record(Type.String(), Type.Number()),
+	}),
+	market_game_scored: Type.Object({ game: Type.Integer(), reference: Reference }),
+	market_match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+};
+
+/**
+ * The event schemas of Salt Market, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type SaltMarketEvents = typeof events;
+
 /**
  * The head of Salt Market: everything that can be read without running a handler.
  *
@@ -127,40 +171,8 @@ export const saltMarketHead = defineHead({
 	}),
 	// A snapshot file sorts the keys: the state comes back in the order of its schema, so the events written from it equal the straight run's (A43).
 	snapshot: { save: (state: MarketState) => structuredClone(state), load: (data): MarketState => inSchemaOrder(MarketSlice, data) },
-	events: {
-		market_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), profiles: Type.Record(Type.String(), Profile, { description: "Values, contracts and start bundles (sealed: audience human)." }) }),
-		market_round_started: Type.Object({ game: Type.Integer(), round: Type.Integer(), spoils: Type.String() }),
-		market_offer_made: Offer,
-		market_offer_closed: Type.Object({ game: Type.Integer(), id: Type.String(), status: Type.String(), by: Type.String(), note: Type.String() }),
-		market_offer_passed: Type.Object({ game: Type.Integer(), id: Type.String(), by: Type.String(), note: Type.String() }),
-		market_trade: Type.Object({
-			game: Type.Integer(),
-			round: Type.Integer(),
-			offer: Type.String(),
-			from: Type.String(),
-			to: Type.String(),
-			give: Bundle,
-			get: Bundle,
-			later: Type.Optional(Later),
-			tax: Type.Integer(),
-			fee: Type.Integer(),
-		}),
-		market_gift: Type.Object({ game: Type.Integer(), round: Type.Integer(), from: Type.String(), to: Type.String(), goods: Bundle, note: Type.String() }),
-		market_said: Type.Object({ game: Type.Integer(), round: Type.Integer(), from: Type.String(), to: Type.String(), text: Type.String() }),
-		market_promise_settled: Pledge,
-		market_shipment_arrived: Type.Object({ game: Type.Integer(), round: Type.Integer(), trader: Type.String(), shipment: Bundle, escrow: Bundle }),
-		market_spoiled: Type.Object({ game: Type.Integer(), round: Type.Integer(), good: Type.String(), losses: Type.Record(Type.String(), Type.Integer()) }),
-		market_game_ended: Type.Object({
-			game: Type.Integer(),
-			holdings: Type.Record(Type.String(), Bundle),
-			profiles: Type.Record(Type.String(), Profile),
-			scores: Type.Record(Type.String(), Type.Number()),
-			met: Type.Array(Type.String()),
-			totals: Type.Record(Type.String(), Type.Number()),
-		}),
-		market_game_scored: Type.Object({ game: Type.Integer(), reference: Reference }),
-		market_match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
-	},
+	events,
+	metrics: saltMarketMetrics(events),
 	// Sealed: the deal; private messages; the reference score is for the human and the reporter only.
 	audiences: { market_game_started: ["human"], market_said: ["human"], market_game_scored: ["human"] },
 	provides: [BrainSourceService],

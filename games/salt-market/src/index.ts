@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { saltMarketGame, default, type SaltMarketOptions } from "../game.ts";
+export { default, saltMarketFamily, saltMarketGame, type SaltMarketOptions } from "../game.ts";
 export { briefings, SEATS } from "../briefing.ts";

@@ -473,7 +473,17 @@ A match of games the strategy brain can pause between games: the game's number, 
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `salt-market.gainOverIdle` | Gain over idle | - | `market_game_scored` |
+| `salt-market.efficiency` | Gains from trade realised | - | `market_game_scored` |
+| `salt-market.tablePoints` | Table points | points | `market_game_scored` |
+| `salt-market.contracts` | Contracts filled | contracts | `market_game_scored` |
+| `salt-market.trades` | Trades | trades | `market_game_started`, `market_trade` |
+| `salt-market.credit` | Trades with a later delivery | trades | `market_game_started`, `market_trade` |
+| `salt-market.brokenPromises` | Promises broken | promises | `market_game_started`, `market_promise_settled` |
 
 <!-- /generated:metrics -->
 

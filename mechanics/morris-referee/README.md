@@ -93,7 +93,14 @@ This mechanic provides no service to other mechanics.
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `morris-referee.blunders` | Blunders | turns | `move_scored` |
+| `morris-referee.blunderRate` | Blunders per 100 scored turns | - | `move_scored` |
+| `morris-referee.xBlunders` | Blunders of side X | turns | `move_scored` |
+| `morris-referee.missedWins` | Missed wins | turns | `move_scored` |
 
 <!-- /generated:metrics -->
 

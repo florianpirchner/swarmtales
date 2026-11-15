@@ -6,7 +6,7 @@
 import type { Envelope } from "@swarmtales/contracts";
 import { fakeDriver, play } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import game, { saltMarketGame } from "../game.ts";
+import { saltMarketGame } from "../game.ts";
 import { field, ofType } from "./support.ts";
 
 /** How many calls of each tool were carried out, by the tool's bare name. */
@@ -23,7 +23,7 @@ const TOOLS = ["viewMarket", "offer", "accept", "decline", "withdraw", "give", "
 
 describe("salt-market, played by the fake driver", () => {
 	it("seed 7: ends by the match limit with an accepted call of every granted tool", async () => {
-		const { end, events } = await play(game, { seed: 7, drivers: (kernel) => ({ resident: fakeDriver(kernel, 7) }) });
+		const { end, events } = await play(saltMarketGame(), { seed: 7, drivers: (kernel) => ({ resident: fakeDriver(kernel, 7) }) });
 		expect(end).toMatchObject({ reason: "limit", limit: "salt-market.match" });
 		const counts = accepted(events);
 		for (const tool of [...TOOLS, "readBrain", "writeBrain"]) expect(counts[tool] ?? 0, tool).toBeGreaterThan(0);
