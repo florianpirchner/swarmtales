@@ -9,7 +9,8 @@ import { snapshotTaker } from "../../test/helpers/host-snapshot.ts";
 import { resumedOverrides } from "../../apps/cli/src/run-options.ts";
 import { MemorySink } from "@swarmtales/chronicle";
 import { readResumePoint } from "../../apps/cli/src/host/snapshot.ts";
-import { ACT_ONE_SNAPSHOT, actTwoGamemaker, actTwoResidents, halfCity, JUDGE_SCRIPT, SNAPSHOT } from "./city-act2.ts";
+import type { FauxResponseStep } from "@earendil-works/pi-ai";
+import { ACT_ONE_SNAPSHOT, actTwoGamemaker, actTwoResidents, type City, halfCity, JUDGE_SCRIPT, SNAPSHOT } from "./city-act2.ts";
 import type { Oracle, OracleEntry, OracleSetup } from "./format.ts";
 import { assemble, OutcomeBook, plainJson, timelineOf } from "./record.ts";
 
@@ -88,14 +89,21 @@ export async function composedOracle(options: ComposedOptions): Promise<Oracle> 
  * The second act of City of Keys, continued from the published Act I checkpoint (`city-act2.ts`). The timeline starts
  * at the resume: what the checkpoint holds (the first act of a recorded live run) is the starting state, not part of the file.
  */
-export async function actTwoOracle(options: { readonly game: string; readonly variant: string; readonly definition: string; readonly note: string }): Promise<Oracle> {
+export async function actTwoOracle(options: {
+	readonly game: string;
+	readonly variant: string;
+	readonly definition: string;
+	readonly note: string;
+	/** The residents' script and where it is; `actTwoResidents` of `city-act2.ts` when omitted. */
+	readonly residents?: { readonly script: (city: City) => Record<string, FauxResponseStep[]>; readonly from: string };
+}): Promise<Oracle> {
 	const point = readResumePoint(SNAPSHOT);
 	const lines = new MemorySink();
 	const story = halfCity();
 	const run = createHostFixture({
 		story,
 		...resumedOverrides(point, { minutes: 60, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, names: true }),
-		script: (host) => actTwoResidents({ host, lines }),
+		script: (host) => (options.residents?.script ?? actTwoResidents)({ host, lines }),
 		gamemakerScript: (host) => actTwoGamemaker({ host, lines }),
 		judgeScript: JUDGE_SCRIPT,
 		sinks: [lines],
@@ -109,7 +117,7 @@ export async function actTwoOracle(options: { readonly game: string; readonly va
 		game: options.game,
 		variant: options.variant,
 		seed: run.effective.seed,
-		source: { kind: "scripted", from: "scripts/oracles/city-act2.ts#actTwoResidents", note: `${options.note}; starting state: ${ACT_ONE_SNAPSHOT}` },
+		source: { kind: "scripted", from: options.residents?.from ?? "scripts/oracles/city-act2.ts#actTwoResidents", note: `${options.note}; starting state: ${ACT_ONE_SNAPSHOT}` },
 		setup: setupOf({ story, definition: options.definition }, run, own),
 		timeline,
 		end,

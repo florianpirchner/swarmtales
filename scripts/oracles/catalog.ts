@@ -13,6 +13,7 @@ import { burnResidents, fragmentCity } from "./city-burn.ts";
 import { cityActOne, cityGamemaker, whispersGamemaker, whispersResidents } from "./city-scripts.ts";
 import { halfCity } from "./city-act2.ts";
 import { actTwoOracle, composedOracle, definitionText } from "./composed.ts";
+import { actTwoSealResidents, cityClassifier, holdoutGamemaker, whispersHoldout } from "./m5-players.ts";
 
 export interface CatalogItem {
 	readonly game: string;
@@ -267,6 +268,54 @@ const cityBurn: CatalogItem = {
 
 const CITY: readonly CatalogItem[] = [cityActOneItem(7), cityActOneItem(7, 6), cityActOneItem(11), cityActTwo, cityBurn];
 
+// Added for milestone M5 of the rewrite (decision A59): scenes that no file reached; the players are in `m5-players.ts`.
+const M5 = "scripts/oracles/m5-players.ts";
+const HOLDOUT_NOTE =
+	"26 minutes, one turn per resident and minute: everyone opens its doors with its own code, the whisperer too; the victim stops before door 3 and everyone but the favourite sends it its door-3 fragment; the gamemaker puts the favourite on trial at minute 15, the grace passes, the whisperer votes no in each of the three votes, the gamemaker announces the first failure, draws the lot after the last and strikes the one drawn";
+const M5_ITEMS: readonly CatalogItem[] = [
+	{
+		game: "whispers",
+		file: "whispers-holdout-s7.json",
+		make: () =>
+			composedOracle({
+				game: "whispers",
+				variant: "whispers",
+				story: whispers,
+				definition: "setup/whispers.story.json",
+				script: "whispersHoldout",
+				from: M5,
+				note: HOLDOUT_NOTE,
+				fixture: { seed: 7, minutes: 26, script: whispersHoldout, gamemakerScript: (host) => holdoutGamemaker(host, 26) },
+			}),
+	},
+	{
+		game: "cityofkeys",
+		file: "cityofkeys-act2-seal-s7.json",
+		make: () =>
+			actTwoOracle({
+				game: "cityofkeys",
+				variant: "cityofkeys-act2",
+				definition: "setup/cityofkeys-act2.story.json",
+				note: `${ACT_TWO_NOTE}; and the black seal: A06 and A02 bid once while the auction runs, A06 wins and breaks the seal on A04`,
+				residents: { script: actTwoSealResidents, from: `${M5}#actTwoSealResidents` },
+			}),
+	},
+	{
+		game: "cityofkeys",
+		file: "cityofkeys-act1-classifier-s7.json",
+		make: () =>
+			composedOracle({
+				game: "cityofkeys",
+				variant: "cityofkeys-act1",
+				story: cityOfKeys,
+				definition: "setup/cityofkeys.story.json",
+				script: "cityActOne",
+				note: `${ACT_ONE_NOTE}; with the statement classifier (the Confessor, ${M5}#cityClassifier): in each round with statements it labels the board's questions helpRequest and each DM's proposal offer and promise to its recipient; its third answer also names a statement that is not in the round, its fourth comes without its tool`,
+				fixture: { agents: 6, minutes: 12, seed: 7, names: true, script: cityActOne, gamemakerScript: (host) => cityGamemaker(host, 12), classifierScript: cityClassifier(12) },
+			}),
+	},
+];
+
 export const CATALOG: readonly CatalogItem[] = [
 	...TICTACTOE,
 	...QUARRY_ITEMS,
@@ -283,4 +332,5 @@ export const CATALOG: readonly CatalogItem[] = [
 	...SALT_MARKET,
 	...WHISPERS,
 	...CITY,
+	...M5_ITEMS,
 ];
