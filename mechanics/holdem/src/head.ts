@@ -4,6 +4,7 @@ import { Type } from "typebox";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { defineHead, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
+import { holdemMetrics } from "./metrics.ts";
 import { Done, HoldemSlice, Move, Result, Scored, SeatStats, Street, type HoldemState } from "./model.ts";
 
 // The seats' points in the order of the seats, as they were built: a snapshot file sorts every object's keys, and
@@ -39,6 +40,27 @@ const options = Type.Object({
 	aidSeats: Type.Optional(Type.Array(Type.String(), { description: "With `aid`: only these seats get the aid line (a mixed table); default every seat." })),
 });
 
+// The event schemas stand outside the head so that its metrics are typed by them.
+const events = {
+	game_started: Type.Object({ game: Type.Integer(), hands: Type.Integer(), seats: Type.Array(Type.String()) }),
+	hand_started: Type.Object({ game: Type.Integer(), hand: Type.Integer(), button: Type.String(), seats: Type.Array(Type.String()) }),
+	cards_dealt: Type.Object({ game: Type.Integer(), hand: Type.Integer(), holes: Type.Record(Type.String(), Type.Array(Type.String())), runout: Type.Array(Type.String()) }),
+	action_taken: Type.Object({ game: Type.Integer(), hand: Type.Integer(), seat: Type.String(), done: Done, to: Type.Number(), street: Street, pot: Type.Number(), missed: Type.Optional(Type.Boolean()) }),
+	board_dealt: Type.Object({ game: Type.Integer(), hand: Type.Integer(), street: Street, cards: Type.Array(Type.String()) }),
+	decision_scored: Type.Object({ ...Scored.properties, reason: Type.Optional(Type.String()) }),
+	hand_ended: Type.Object({ game: Type.Integer(), ...Result.properties }),
+	game_ended: Type.Object({ game: Type.Integer(), scores: Type.Record(Type.String(), Type.Number()), totals: Type.Record(Type.String(), Type.Number()) }),
+	game_scored: Type.Object({ game: Type.Integer(), stats: Type.Record(Type.String(), SeatStats) }),
+	match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+};
+
+/**
+ * The event schemas of hold'em, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type HoldemEvents = typeof events;
+
 /**
  * The head of hold'em: everything that can be read without running a handler.
  *
@@ -72,18 +94,8 @@ export const holdemHead = defineHead({
 		};
 	},
 	snapshot: { save: (state: HoldemState) => structuredClone(state), load: loadState },
-	events: {
-		game_started: Type.Object({ game: Type.Integer(), hands: Type.Integer(), seats: Type.Array(Type.String()) }),
-		hand_started: Type.Object({ game: Type.Integer(), hand: Type.Integer(), button: Type.String(), seats: Type.Array(Type.String()) }),
-		cards_dealt: Type.Object({ game: Type.Integer(), hand: Type.Integer(), holes: Type.Record(Type.String(), Type.Array(Type.String())), runout: Type.Array(Type.String()) }),
-		action_taken: Type.Object({ game: Type.Integer(), hand: Type.Integer(), seat: Type.String(), done: Done, to: Type.Number(), street: Street, pot: Type.Number(), missed: Type.Optional(Type.Boolean()) }),
-		board_dealt: Type.Object({ game: Type.Integer(), hand: Type.Integer(), street: Street, cards: Type.Array(Type.String()) }),
-		decision_scored: Type.Object({ ...Scored.properties, reason: Type.Optional(Type.String()) }),
-		hand_ended: Type.Object({ game: Type.Integer(), ...Result.properties }),
-		game_ended: Type.Object({ game: Type.Integer(), scores: Type.Record(Type.String(), Type.Number()), totals: Type.Record(Type.String(), Type.Number()) }),
-		game_scored: Type.Object({ game: Type.Integer(), stats: Type.Record(Type.String(), SeatStats) }),
-		match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
-	},
+	events,
+	metrics: holdemMetrics(events),
 	// Every hole card and every reason (a bluff's motive) is for the human and the reporter only.
 	audiences: { cards_dealt: ["human"], decision_scored: ["human"], game_scored: ["human"] },
 	provides: [BrainSourceService],

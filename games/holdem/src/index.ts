@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { default, holdemGame, type HoldemOptions } from "../game.ts";
+export { default, holdemFamily, holdemGame, type HoldemOptions } from "../game.ts";
 export { briefings, seatsOf } from "../briefing.ts";

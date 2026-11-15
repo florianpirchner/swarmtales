@@ -316,7 +316,16 @@ A match of games the strategy brain can pause between games: the game's number, 
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `trick-play.hits` | Bids hit exactly | - | `round_scored` |
+| `trick-play.zeroBids` | Bids of zero tricks | - | `round_scored` |
+| `trick-play.meanBid` | Mean bid per seat and round | tricks | `round_scored` |
+| `trick-play.points` | Points per seat and round | points | `round_scored` |
+| `trick-play.vetoes` | Leads vetoed | vetoes | `round_scored`, `lead_vetoed` |
+| `trick-play.forfeits` | Actions of the move timer | actions | `bid_placed`, `trump_named`, `card_played` |
 
 <!-- /generated:metrics -->
 

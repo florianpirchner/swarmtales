@@ -14,10 +14,10 @@
  */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
+import { readOracle, runOracle, withEndsTurn as flagged, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { holdemGame } from "../game.ts";
-import { VARIANTS } from "./support.ts";
+import { endsTurn, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "holdem");
 
@@ -25,9 +25,8 @@ const FILES = ["holdem-aid-mixed-s7.json", "holdem-hu-s13-silent.json", "holdem-
 
 const gameOf = (oracle: Oracle) => holdemGame(VARIANTS[oracle.variant]);
 
-const ENDS_TURN = /end your turn now/i;
 /** The oracle with `endsTurn: true` on every accepted call whose reply tells the caller to end its turn. */
-const withEndsTurn = (oracle: Oracle): Oracle => ({ ...oracle, timeline: oracle.timeline.map((entry) => (entry.k === "call" && entry.ok && ENDS_TURN.test(entry.reply ?? "") ? { ...entry, endsTurn: true } : entry)) });
+const withEndsTurn = (oracle: Oracle): Oracle => flagged(oracle, endsTurn);
 
 describe("holdem against its oracles", () => {
 	it("covers every oracle file of the folder, each with the options of its variant", () => {

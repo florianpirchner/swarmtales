@@ -6,12 +6,15 @@
  * deals are duplicate: every game replays the same deals with the seats moved one place, so over as many games as
  * seats every seat plays every position's cards and the match totals are free of the deal's luck. The `holdem`
  * mechanic scores every decision against a simple equity baseline for the report; the seats never see it. A port of
- * the old `stories/holdem/story.ts`: the variants are options of the factory, the id is always `holdem`.
+ * the old `stories/holdem/story.ts`: the variants are options of the factory, the id is always `holdem`. The file
+ * exports the game family: the variants that an experiment or `--set` may choose are its params, and its defaults give
+ * the game of the old platform.
  */
 import { SwtError } from "@swarmtales/contracts";
 import { holdem } from "@swarmtales/mechanic-holdem";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
-import { defineGame, paramOverride } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily, paramOverride } from "@swarmtales/sdk";
+import { Type, type Static } from "typebox";
 import { briefings, seatsOf } from "./briefing.ts";
 
 /**
@@ -116,4 +119,47 @@ export function holdemGame(options: HoldemOptions = {}) {
 	});
 }
 
-export default holdemGame();
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose. `games` and `hands` follow
+ * from the seats at 0, as the old game's defaults did; an empty `brainSeats` keeps a brain for every seat, an empty
+ * `aidSeats` gives no aid. The seed, the equity draws and the tick count are no params: the seed is the run's, the
+ * draws are a knob of the tests, and the tick count follows from the games and hands.
+ */
+const Params = Type.Object(
+	{
+		seats: Type.Integer({ minimum: 2, maximum: 6, default: DEFAULTS.seats, description: "Players at the table: 4, or 2 for heads-up." }),
+		games: Type.Integer({ minimum: 0, maximum: 20, default: 0, description: "Games in the match; 0: one per seat, the full duplicate cycle." }),
+		hands: Type.Integer({ minimum: 0, maximum: 100, default: 0, description: "Hands per game; 0: 8 four-handed, 12 heads-up." }),
+		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false is the control arm." }),
+		brainSeats: Type.Array(Type.String(), { maxItems: 6, default: [], description: "A mixed table: only these seats keep a brain (needs `brain`); empty: every seat." }),
+		aidSeats: Type.Array(Type.String(), { maxItems: 6, default: [], description: "The decision-time aid (P430) for these seats only; empty: no aid." }),
+		duplicate: Type.Boolean({ default: DEFAULTS.duplicate, description: "Replay the same deals in every game with the seats moved." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+	},
+	{ description: "The variants of hold'em." },
+);
+
+// The options of one param set: a 0 and an empty list leave the option to the game's default.
+const optionsOf = ({ games, hands, brainSeats, aidSeats, ...rest }: Static<typeof Params>): HoldemOptions => ({
+	...rest,
+	...(games === 0 ? {} : { games }),
+	...(hands === 0 ? {} : { hands }),
+	...(brainSeats.length === 0 ? {} : { brainSeats }),
+	...(aidSeats.length === 0 ? {} : { aidSeats }),
+});
+
+/**
+ * Hold'em as a game family: the default params give the registry default of the old platform (four seats, four games
+ * of eight duplicate hands, a brain per seat); `{ brain: false }` is the control arm, `seats: 2` heads-up,
+ * `brainSeats` a mixed table and `aidSeats` the decision aid.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: holdemFamily, params: { brain: false, aidSeats: ["A01", "A03"] }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const holdemFamily = defineGameFamily(Params, (params) => holdemGame(optionsOf(params)));
+
+export default holdemFamily;

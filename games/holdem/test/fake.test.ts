@@ -5,7 +5,7 @@
  */
 import { fakeDriver, play, type Played } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import game, { holdemGame } from "../game.ts";
+import { holdemGame } from "../game.ts";
 import { field, ofType } from "./support.ts";
 
 type Logged = Played["events"][number];
@@ -22,7 +22,7 @@ const refused = (events: readonly Logged[]): readonly unknown[] => [...new Set(o
 
 describe("holdem, played by the fake driver", () => {
 	it.each([7, 11])("seed %i: ends by the match limit with an accepted call of every granted tool", async (seed) => {
-		const { end, events } = await play(game, { seed, drivers: (kernel) => ({ resident: fakeDriver(kernel, seed) }) });
+		const { end, events } = await play(holdemGame(), { seed, drivers: (kernel) => ({ resident: fakeDriver(kernel, seed) }) });
 		expect(end).toMatchObject({ reason: "limit", limit: "holdem.match" });
 		const counts = accepted(events);
 		for (const tool of ["viewTable", "act", "readBrain", "writeBrain"]) expect(counts[tool] ?? 0, tool).toBeGreaterThan(0);

@@ -4,7 +4,7 @@
  * `test/stories/holdem.test.ts` (`player`, with its brain part) and the readers of the log.
  */
 import { nameOf, type ActorDriver } from "@swarmtales/contracts";
-import type { Played } from "@swarmtales/testkit";
+import type { OracleCall, Played } from "@swarmtales/testkit";
 import { holdemGame, type HoldemOptions } from "../game.ts";
 
 type Logged = Played["events"][number];
@@ -67,6 +67,13 @@ export const player: ActorDriver = async (turn) => {
 	const view = await turn.call("viewTable", {});
 	if (view.ok) await turn.call("act", { action: actionOf(resident, view.reply), reason: `script ${resident}` });
 };
+
+const ENDS_TURN = /end your turn now/i;
+/**
+ * The calls that ended their turn, for `withEndsTurn` of the testkit: every accepted call whose reply tells the caller
+ * to end its turn. No file of `oracles/` holds the flag (see `oracle.test.ts`).
+ */
+export const endsTurn = (call: OracleCall): boolean => ENDS_TURN.test(call.reply ?? "");
 
 /** The events of one type, whoever wrote them. */
 export const ofType = (events: readonly Logged[], type: string): readonly Logged[] => events.filter((event) => event.type === type);

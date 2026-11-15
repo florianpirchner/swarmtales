@@ -6,6 +6,7 @@ import { CardTableService } from "@swarmtales/mechanic-card-table/contract";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { TrickPlayEvents } from "./events.ts";
+import { trickPlayMetrics } from "./metrics.ts";
 import { Scoring, TrickSlice, type TrickState } from "./model.ts";
 import { TrickPlayService } from "./service.ts";
 
@@ -64,6 +65,7 @@ export const trickPlayHead = defineHead({
 	// A snapshot file sorts the keys: the state comes back in the order of its schema (A43); the records keyed by seat are written in seat order where an event shows them.
 	snapshot: { save: (state: TrickState) => structuredClone(state), load: (data): TrickState => inSchemaOrder(TrickSlice, data) },
 	events: TrickPlayEvents.events,
+	metrics: trickPlayMetrics(TrickPlayEvents.events),
 	provides: [TrickPlayService, BrainSourceService],
 	requires: [CardTableService],
 	uses: [StrategyBrainService],
