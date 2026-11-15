@@ -6,6 +6,7 @@ import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { Card, ClueRecord, ClueSlice, copyState, GameResult, TeamName, TeamReference, type ClueState } from "./model.ts";
+import { clueGridMetrics } from "./metrics.ts";
 
 const options = Type.Object({
 	games: Type.Integer({ minimum: 1, maximum: 20, default: 3, description: "Games in the match; the run ends after the last. The keeper rotates through each team's members, one game each." }),
@@ -119,6 +120,7 @@ export const clueGridHead = defineHead({
 	audiences: { clue_key_dealt: ["human"], clue_intent: ["human"], clue_closed: ["human"], clue_game_scored: ["human"] },
 	provides: [BrainSourceService],
 	uses: [StrategyBrainService, TeamChannelService],
+	metrics: clueGridMetrics(events),
 	prompts: {
 		"clue-grid/tools/viewGrid": [],
 		"clue-grid/tools/giveClue": [],

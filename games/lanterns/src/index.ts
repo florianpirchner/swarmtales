@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { default, lanternsGame, type LanternsOptions } from "../game.ts";
+export { default, lanternsFamily, lanternsGame, type LanternsOptions } from "../game.ts";
 export { briefings, RESIDENTS, TEAMS } from "../briefing.ts";

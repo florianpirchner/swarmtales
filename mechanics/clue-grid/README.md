@@ -311,7 +311,13 @@ A match of games the strategy brain can pause between games: the game's number, 
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `clue-grid.recall` | Recall per team and game | - | `clue_game_scored` |
+| `clue-grid.precision` | Precision per team and game | - | `clue_game_scored` |
+| `clue-grid.recallLater` | Recall per team and game, from game 2 on | - | `clue_game_scored` |
 
 <!-- /generated:metrics -->
 

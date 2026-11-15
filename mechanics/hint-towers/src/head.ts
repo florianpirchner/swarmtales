@@ -6,6 +6,7 @@ import { CardTableService } from "@swarmtales/mechanic-card-table/contract";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { HintTowersEvents } from "./events.ts";
+import { hintTowersMetrics } from "./metrics.ts";
 import { TowerGameSlice, EndReason } from "./model.ts";
 
 const options = Type.Object({
@@ -77,6 +78,7 @@ export const hintTowersHead = defineHead({
 	// The seats come from the card table when the run starts.
 	start: (): HintState => ({ seats: [], game: 0, core: null, baseline: 0, signalsGiven: 0, misfires: 0, results: [], finished: false, held: false, due: false, watch: "", idle: 0, forfeits: 0, debrief: [], discarded: [] }),
 	events: HintTowersEvents.events,
+	metrics: hintTowersMetrics(),
 	audiences: { deal_revealed: ["human"], card_drawn: ["human"], game_scored: ["human"] },
 	provides: [BrainSourceService],
 	requires: [CardTableService],

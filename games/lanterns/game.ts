@@ -8,12 +8,14 @@
  * strategy brain (`brain: false`: the same briefings, no brain), so the question is whether a team builds conventions
  * between keeper and seekers that survive a change of keeper. The mechanic scores how much of what the keeper meant
  * the seekers found, for the report only. A port of the old `stories/lanterns/story.ts`: the variants are options of
- * the factory, the id is always `lanterns`.
+ * the factory, the id is always `lanterns`. The file exports the game family: the variants that an experiment or
+ * `--set` may choose are its params, and its defaults give the game of the old platform.
  */
 import { clueGrid } from "@swarmtales/mechanic-clue-grid";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import { teamChannel } from "@swarmtales/mechanic-team-channel";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, RESIDENTS, TEAMS } from "./briefing.ts";
 
 /**
@@ -40,6 +42,8 @@ export interface LanternsOptions {
 const DEFAULT_GAMES = 4;
 /** Clues per team and game (8 in the first run; 5 since P191, so a game of clues of 1 cannot finish). */
 const DEFAULT_CLUES = 5;
+/** Words a brain may have. */
+const DEFAULT_WORDS = 200;
 const DEADLINE = 2;
 const RETRO_MINUTES = 3;
 /** Output cap per call (P94: a 4000-token cap made thinking models end turns without a tool call). */
@@ -64,7 +68,7 @@ const minutesFor = (games: number, maxClues: number): number => games * 2 * maxC
  * @public
  */
 export function lanternsGame(options: LanternsOptions = {}) {
-	const { games = DEFAULT_GAMES, brain = true, maxClues = DEFAULT_CLUES, maxWords = 200, seed = 31 } = options;
+	const { games = DEFAULT_GAMES, brain = true, maxClues = DEFAULT_CLUES, maxWords = DEFAULT_WORDS, seed = 31 } = options;
 	const teams = { amber: [...TEAMS.amber], teal: [...TEAMS.teal] };
 	return defineGame({
 		id: "lanterns",
@@ -89,4 +93,31 @@ export function lanternsGame(options: LanternsOptions = {}) {
 	});
 }
 
-export default lanternsGame();
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose. The seed and the tick count
+ * are no params: the seed is the run's, and the tick count follows from the games and the clues.
+ */
+const Params = Type.Object(
+	{
+		games: Type.Integer({ minimum: 1, maximum: 20, default: DEFAULT_GAMES, description: "Games in the match; the keeper role rotates game by game." }),
+		brain: Type.Boolean({ default: true, description: "Each team keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm of the brain experiment)." }),
+		maxClues: Type.Integer({ minimum: 1, default: DEFAULT_CLUES, description: "Clues per team and game." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULT_WORDS, description: "Words a brain may have." }),
+	},
+	{ description: "The variants of Lanterns." },
+);
+
+/**
+ * Lanterns as a game family: the default params give the registry default of the old platform (four games, a brain
+ * per team: the treatment arm of the brain experiment), `{ brain: false }` its control arm.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: lanternsFamily, params: { brain: false }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const lanternsFamily = defineGameFamily(Params, (params) => lanternsGame(params));
+
+export default lanternsFamily;

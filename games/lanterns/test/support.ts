@@ -5,8 +5,11 @@
  * inputs and tool replies, so it holds no state.
  */
 import { nameOf, type Activation, type ActorDriver, type Envelope } from "@swarmtales/contracts";
-import type { Game } from "@swarmtales/sdk";
-import { lanternsGame, type LanternsOptions } from "../game.ts";
+import { familyParams, type Game } from "@swarmtales/sdk";
+import { play, type Oracle, type PlannedCall } from "@swarmtales/testkit";
+import { Value } from "typebox/value";
+import { expect } from "vitest";
+import { lanternsFamily, lanternsGame, type LanternsOptions } from "../game.ts";
 
 /** The hidden words of a grid as a seeker sees it: every cell that is not `[word: owner]`. */
 function hiddenIn(grid: string): string[] {
@@ -77,6 +80,62 @@ export function resets(events: readonly Envelope[]): readonly { readonly residen
 		const lines = Array.isArray(inputs) ? inputs.filter((input): input is { kind: string; text: string } => typeof input === "object" && input !== null && Reflect.get(input, "kind") === "context-reset") : [];
 		return lines.map((input) => ({ resident: String(field(event, "actor")).replace(/^resident:/, ""), text: input.text }));
 	});
+}
+
+/**
+ * The game of one param set of the family, as `resolveGame` builds it. A stand-in: `play` and `runOracle` of the
+ * testkit take a game, not yet a family with its overrides.
+ *
+ * @param overrides - The overrides of the params: an arm of an experiment.
+ * @returns The game of the arm.
+ */
+export function arm(overrides: Readonly<Record<string, unknown>> = {}): Game {
+	const { params, issues } = familyParams(lanternsFamily, overrides);
+	expect(issues).toEqual([]);
+	return lanternsFamily.build(Value.Parse(lanternsFamily.params, params));
+}
+
+/**
+ * Plays a game from the inputs of an oracle file, as `runOracle` does, and gives the new log. A stand-in:
+ * `runOracle` returns the mismatches only.
+ *
+ * @param oracle - The oracle file.
+ * @param game - The game of its variant.
+ * @returns Every event of the run.
+ */
+export async function replay(oracle: Oracle, game: Game): Promise<readonly Envelope[]> {
+	const script = new Map<string, PlannedCall[][]>();
+	for (const entry of oracle.timeline) {
+		if (entry.k === "turn") script.set(entry.resident, [...(script.get(entry.resident) ?? []), []]);
+		if (entry.k === "call") script.get(entry.actor.slice(entry.actor.indexOf(":") + 1))?.at(-1)?.push({ tool: entry.tool, params: entry.params });
+	}
+	const turns = new Map<string, number>();
+	// The model of a recorded run owed an answer after every turn with a call: the replay of a live run is pending then.
+	const live = oracle.source.kind === "live-replay";
+	const resident: ActorDriver = async (activation) => {
+		const name = nameOf(activation.actor);
+		const turn = turns.get(name) ?? 0;
+		turns.set(name, turn + 1);
+		const calls = script.get(name)?.[turn] ?? [];
+		for (const call of calls) await activation.call(call.tool, call.params);
+		return { pending: live && calls.length > 0 };
+	};
+	const ticks = oracle.truncated === undefined ? oracle.setup.minutes : oracle.truncated.afterMinute + 1;
+	return (await play(game, { seed: oracle.seed, ticks, drivers: { resident } })).events;
+}
+
+/**
+ * The metrics of one mechanic of a run as a table reads them, each computed from that mechanic's own events.
+ *
+ * @param game - The game that was played.
+ * @param id - The mechanic's id.
+ * @param events - Every event of the run.
+ * @returns The metric id to the number, or `"absent"`.
+ */
+export function metricsOf(game: Game, id: string, events: readonly Envelope[]): Readonly<Record<string, number | "absent">> {
+	const mechanic = game.mechanics.find((entry) => entry.mechanic.id === id)?.mechanic;
+	const own = events.filter((event) => event.source === mechanic?.source);
+	return Object.fromEntries((mechanic?.head.metrics ?? []).map((metric) => [metric.id, metric.compute(own) ?? "absent"]));
 }
 
 /** The texts a resident was shown at each activation, joined. */

@@ -7,7 +7,7 @@
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import game from "../game.ts";
+import { lanternsGame } from "../game.ts";
 import { player, rosterGame } from "./support.ts";
 
 const fake = (seed: number): StandingDrivers => (kernel) => ({ resident: fakeDriver(kernel, seed) });
@@ -15,7 +15,7 @@ const fake = (seed: number): StandingDrivers => (kernel) => ({ resident: fakeDri
 const RUNS = [
 	...[73, 107].flatMap((seed) => [
 		{ name: `scripted, seed ${String(seed)}`, game: rosterGame(), drivers: (): { resident: typeof player } => ({ resident: player }), options: { seed } },
-		{ name: `fake, seed ${String(seed)}`, game, drivers: fake(seed), options: { seed } },
+		{ name: `fake, seed ${String(seed)}`, game: lanternsGame(), drivers: fake(seed), options: { seed } },
 	]),
 	{ name: "scripted, no brain, seed 67", game: rosterGame({ brain: false }), drivers: (): { resident: typeof player } => ({ resident: player }), options: { seed: 67 } },
 ];

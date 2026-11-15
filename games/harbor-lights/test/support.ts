@@ -4,8 +4,8 @@
  * from `test/mechanics/hint-towers/support.ts` (`towerPlayer`) of the old platform.
  */
 import { nameOf, type ActorDriver } from "@swarmtales/contracts";
-import { familyParams } from "@swarmtales/sdk";
-import type { Played } from "@swarmtales/testkit";
+import { familyParams, type Game } from "@swarmtales/sdk";
+import { play, type Oracle, type PlannedCall, type Played } from "@swarmtales/testkit";
 import { Value } from "typebox/value";
 import { expect } from "vitest";
 import { SEATS } from "../briefing.ts";
@@ -43,6 +43,49 @@ export function arm(overrides: Readonly<Record<string, unknown>> = {}) {
 	const { params, issues } = familyParams(harborLightsFamily, overrides);
 	expect(issues).toEqual([]);
 	return harborLightsFamily.build(Value.Parse(harborLightsFamily.params, params));
+}
+
+/**
+ * Plays a game from the inputs of an oracle file, as `runOracle` does, and gives the new log. A stand-in:
+ * `runOracle` returns the mismatches only.
+ *
+ * @param oracle - The oracle file.
+ * @param game - The game of its variant.
+ * @returns Every event of the run.
+ */
+export async function replay(oracle: Oracle, game: Game): Promise<Played["events"]> {
+	const script = new Map<string, PlannedCall[][]>();
+	for (const entry of oracle.timeline) {
+		if (entry.k === "turn") script.set(entry.resident, [...(script.get(entry.resident) ?? []), []]);
+		if (entry.k === "call") script.get(entry.actor.slice(entry.actor.indexOf(":") + 1))?.at(-1)?.push({ tool: entry.tool, params: entry.params });
+	}
+	const turns = new Map<string, number>();
+	// The model of a recorded run owed an answer after every turn with a call: the replay of a live run is pending then.
+	const live = oracle.source.kind === "live-replay";
+	const resident: ActorDriver = async (activation) => {
+		const name = nameOf(activation.actor);
+		const turn = turns.get(name) ?? 0;
+		turns.set(name, turn + 1);
+		const calls = script.get(name)?.[turn] ?? [];
+		for (const call of calls) await activation.call(call.tool, call.params);
+		return { pending: live && calls.length > 0 };
+	};
+	const ticks = oracle.truncated === undefined ? oracle.setup.minutes : oracle.truncated.afterMinute + 1;
+	return (await play(game, { seed: oracle.seed, ticks, drivers: { resident } })).events;
+}
+
+/**
+ * The metrics of one mechanic of a run as a table reads them, each computed from that mechanic's own events.
+ *
+ * @param game - The game that was played.
+ * @param id - The mechanic's id.
+ * @param events - Every event of the run.
+ * @returns The metric id to the number, or `"absent"`.
+ */
+export function metricsOf(game: Game, id: string, events: readonly Logged[]): Readonly<Record<string, number | "absent">> {
+	const mechanic = game.mechanics.find((entry) => entry.mechanic.id === id)?.mechanic;
+	const own = events.filter((event) => event.source === mechanic?.source);
+	return Object.fromEntries((mechanic?.head.metrics ?? []).map((metric) => [metric.id, metric.compute(own) ?? "absent"]));
 }
 
 /** The private notes a seat writes after a game. */

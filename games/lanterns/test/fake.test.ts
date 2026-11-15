@@ -5,7 +5,7 @@
  */
 import { fakeDriver, play, type Played } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import game, { lanternsGame } from "../game.ts";
+import { lanternsGame } from "../game.ts";
 
 type Logged = Played["events"][number];
 
@@ -26,7 +26,7 @@ const TOOLS = ["viewGrid", "giveClue", "guess", "endGuesses", "postTeam", "readT
 
 describe("Lanterns, played by the fake driver", () => {
 	it.each([7, 11])("seed %i: ends by the match limit with an accepted call of every resident tool", async (seed) => {
-		const { end, events } = await play(game, { seed, drivers: (kernel) => ({ resident: fakeDriver(kernel, seed) }) });
+		const { end, events } = await play(lanternsGame(), { seed, drivers: (kernel) => ({ resident: fakeDriver(kernel, seed) }) });
 		expect(end).toMatchObject({ reason: "limit", limit: "clue-grid.match" });
 		const counts = accepted(events);
 		for (const tool of TOOLS) expect(counts[tool] ?? 0, tool).toBeGreaterThan(0);
