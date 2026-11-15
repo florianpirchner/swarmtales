@@ -4,6 +4,1167 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { ToolCtxOf } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
+
+// @public
+export interface Blocker extends BlockerFact {
+    readonly since: number;
+}
+
+// @public
+export interface BlockerFact {
+    readonly blocker: string;
+    readonly door: number;
+    readonly lacking: readonly string[];
+    readonly passed: boolean;
+}
+
+// @public
+export const BlockersFact: Type.TArray<Type.TObject<{
+    door: Type.TInteger;
+    blocker: Type.TString;
+    lacking: Type.TArray<Type.TString>;
+    passed: Type.TBoolean;
+    since: Type.TInteger;
+}>>;
+
+// @public
+export interface Called {
+    readonly accused: string;
+    readonly candidates?: readonly string[];
+    readonly door: number;
+    readonly lacking: readonly string[];
+    readonly until: number;
+}
+
+// @public
+export type CallError = "NOT_NOW" | "INVALID_ACCUSED" | "NOT_A_BLOCKER";
+
+// @public
+export type Ctx = CtxOf<typeof standoffTribunalHead>;
+
+// @public
+export class HoldoutCourt {
+    constructor(rule: HoldoutRule, ports: HoldoutPorts, data: HoldoutData);
+    ballotOf(agent: string): boolean | undefined;
+    // Warning: (ae-forgotten-export) The symbol "Result" needs to be exported by the entry point index.d.ts
+    call(accused: readonly string[], announcement: string, author: string): Result<Called, CallError>;
+    canVote(agent: string): boolean;
+    exemptFromCap(from: string, to: string): boolean;
+    lackingNow(): readonly string[];
+    tick(minute: number): void;
+}
+
+// @public
+export interface HoldoutData {
+    readonly blockers: Map<string, Blocker>;
+    cooldownUntil: number;
+    readonly lotDoors: number[];
+    lots: number;
+    pending: HoldoutPending | undefined;
+    readonly reached: Map<string, number>;
+    session: Session | undefined;
+    readonly shown: Map<string, number>;
+    readonly struck: string[];
+    tribunals: number;
+}
+
+// @public
+export type HoldoutOutcome = "dropped" | "graceFailed" | "voteFailed" | "spared";
+
+// @public
+export interface HoldoutPending {
+    readonly due: number;
+    readonly facts: string;
+    readonly kind: HoldoutOutcome;
+    readonly text: string;
+    readonly tribunal: number;
+}
+
+// @public
+export const HoldoutPiecesService: ServiceDefinition<"holdout-pieces", {
+readonly openFragmentDoors: {
+readonly kind: "query";
+readonly summary: "Every level of fragments whose door is open on the clock now, ascending (old `openFragmentDoors`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TInteger>;
+};
+readonly lacking: {
+readonly kind: "query";
+readonly summary: "Who stands before the door in the holder's team without a copy of its fragment, sorted (old `lackingFragment`).";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+holder: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly inherited: {
+readonly kind: "query";
+readonly summary: "The fragments of struck or excluded teammates the resident holds on the level, in order (old `inheritedFragments`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TObject<{
+from: Type.TString;
+fragment: Type.TString;
+}>>;
+};
+}>;
+
+// @public
+export interface HoldoutPorts {
+    readonly alive: () => readonly string[];
+    readonly blockers: () => readonly BlockerFact[];
+    // Warning: (ae-forgotten-export) The symbol "Events" needs to be exported by the entry point index.d.ts
+    readonly emit: <K extends keyof Events>(type: K, payload: Static<Events[K]>) => void;
+    readonly label: (agent: string) => string;
+    readonly lacking: (door: number, holder: string) => readonly string[];
+    readonly minute: () => number;
+    readonly notify: (agent: string, author: string, text: string) => void;
+    readonly pick: (lot: number, sorted: readonly string[]) => string;
+    readonly post: (author: string, text: string) => void;
+    readonly present: () => readonly Presence[];
+}
+
+// @public
+export interface HoldoutRule {
+    readonly fallbackMinutes: number;
+    readonly graceMinutes: number;
+    readonly maxVotes: number;
+    readonly stallMinutes: number;
+    readonly texts: HoldoutTexts;
+    readonly voteMinutes: number;
+}
+
+// @public
+export type HoldoutSection = Static<typeof HoldoutSectionFact>;
+
+// @public
+export const HoldoutSectionFact: Type.TObject<{
+    minute: Type.TInteger;
+    stallMinutes: Type.TInteger;
+    alive: Type.TArray<Type.TString>;
+    blockers: Type.TArray<Type.TObject<{
+        door: Type.TInteger;
+        blocker: Type.TString;
+        lacking: Type.TArray<Type.TString>;
+        passed: Type.TBoolean;
+        since: Type.TInteger;
+    }>>;
+    session: Type.TUnion<[Type.TObject<{
+        number: Type.TInteger;
+        accused: Type.TString;
+        door: Type.TInteger;
+        stage: Type.TString;
+        until: Type.TInteger;
+        vote: Type.TInteger;
+        maxVotes: Type.TInteger;
+        lacking: Type.TArray<Type.TString>;
+        lastResult: Type.TOptional<Type.TObject<{
+            vote: Type.TInteger;
+            yes: Type.TInteger;
+            no: Type.TInteger;
+        }>>;
+        drawn: Type.TOptional<Type.TString>;
+    }>, Type.TNull]>;
+    pending: Type.TUnion<[Type.TObject<{
+        tribunal: Type.TInteger;
+        kind: Type.TString;
+        facts: Type.TString;
+        text: Type.TString;
+        due: Type.TInteger;
+    }>, Type.TNull]>;
+    cooldownUntil: Type.TInteger;
+    struck: Type.TArray<Type.TString>;
+}>;
+
+// @public
+export const HoldoutSlice: Type.TObject<{
+    holdout: Type.TObject<{
+        blockers: Type.TArray<Type.TObject<{
+            door: Type.TInteger;
+            blocker: Type.TString;
+            lacking: Type.TArray<Type.TString>;
+            passed: Type.TBoolean;
+            since: Type.TInteger;
+        }>>;
+        reached: Type.TOptional<Type.TArray<Type.TObject<{
+            door: Type.TInteger;
+            agent: Type.TString;
+            minute: Type.TInteger;
+        }>>>;
+        struck: Type.TArray<Type.TString>;
+        tribunals: Type.TInteger;
+        lots: Type.TInteger;
+        cooldownUntil: Type.TOptional<Type.TInteger>;
+        lotDoors: Type.TOptional<Type.TArray<Type.TInteger>>;
+        session: Type.TOptional<Type.TObject<{
+            number: Type.TInteger;
+            accused: Type.TString;
+            door: Type.TInteger;
+            stage: Type.TUnion<[Type.TLiteral<"grace">, Type.TLiteral<"vote">, Type.TLiteral<"banish">, Type.TLiteral<"lot">]>;
+            until: Type.TInteger;
+            vote: Type.TInteger;
+            voters: Type.TArray<Type.TString>;
+            ballots: Type.TArray<Type.TObject<{
+                agent: Type.TString;
+                yes: Type.TBoolean;
+            }>>;
+            lastResult: Type.TOptional<Type.TObject<{
+                vote: Type.TInteger;
+                yes: Type.TInteger;
+                no: Type.TInteger;
+            }>>;
+            drawn: Type.TOptional<Type.TString>;
+        }>>;
+        pending: Type.TOptional<Type.TObject<{
+            tribunal: Type.TInteger;
+            kind: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"graceFailed">, Type.TLiteral<"voteFailed">, Type.TLiteral<"spared">]>;
+            facts: Type.TString;
+            text: Type.TString;
+            due: Type.TInteger;
+        }>>;
+    }>;
+    shown: Type.TArray<Type.TObject<{
+        agent: Type.TString;
+        level: Type.TInteger;
+    }>>;
+}>;
+
+// @public
+export type HoldoutStage = "grace" | "vote" | "banish" | "lot";
+
+// @public
+export interface HoldoutState {
+    data: HoldoutData;
+}
+
+// @public
+export interface HoldoutTexts {
+    readonly accusedVote: string;
+    readonly banished: string;
+    readonly called: string;
+    readonly drawnAccused: string;
+    readonly dropped: string;
+    readonly graceFailed: string;
+    readonly lot: string;
+    readonly released: string;
+    readonly rule: string;
+    readonly spared: string;
+    readonly struck: string;
+    readonly struckNotice: string;
+    readonly voteFailed: string;
+    readonly voteOpened: string;
+}
+
+// @public
+export const PendingFact: Type.TUnion<[Type.TObject<{
+    tribunal: Type.TInteger;
+    kind: Type.TString;
+    facts: Type.TString;
+    text: Type.TString;
+    due: Type.TInteger;
+}>, Type.TNull]>;
+
+// @public
+export interface Presence {
+    readonly agent: string;
+    readonly door: number;
+}
+
+// @public
+export interface Session {
+    readonly accused: string;
+    readonly ballots: Map<string, boolean>;
+    readonly door: number;
+    drawn?: string;
+    lastResult?: VoteResult;
+    readonly number: number;
+    stage: HoldoutStage;
+    until: number;
+    vote: number;
+    voters: string[];
+}
+
+// @public
+export const SessionFact: Type.TUnion<[Type.TObject<{
+    number: Type.TInteger;
+    accused: Type.TString;
+    door: Type.TInteger;
+    stage: Type.TString;
+    until: Type.TInteger;
+    vote: Type.TInteger;
+    maxVotes: Type.TInteger;
+    lacking: Type.TArray<Type.TString>;
+    lastResult: Type.TOptional<Type.TObject<{
+        vote: Type.TInteger;
+        yes: Type.TInteger;
+        no: Type.TInteger;
+    }>>;
+    drawn: Type.TOptional<Type.TString>;
+}>, Type.TNull]>;
+
+// @public
+export const standoffTribunal: MechanicDefinition<"standoff-tribunal", Type.TObject<{
+stallMinutes: Type.TInteger;
+graceMinutes: Type.TInteger;
+voteMinutes: Type.TInteger;
+maxVotes: Type.TInteger;
+fallbackMinutes: Type.TInteger;
+author: Type.TString;
+texts: Type.TObject<{
+rule: Type.TString;
+called: Type.TString;
+drawnAccused: Type.TString;
+voteOpened: Type.TString;
+accusedVote: Type.TString;
+struck: Type.TString;
+struckNotice: Type.TString;
+released: Type.TString;
+dropped: Type.TString;
+graceFailed: Type.TString;
+voteFailed: Type.TString;
+banished: Type.TString;
+lot: Type.TString;
+spared: Type.TString;
+}>;
+}>, {
+readonly blocker_found: Type.TObject<{
+door: Type.TInteger;
+blocker: Type.TString;
+lacking: Type.TArray<Type.TString>;
+}>;
+readonly blocker_cleared: Type.TObject<{
+door: Type.TInteger;
+blocker: Type.TString;
+}>;
+readonly holdout_called: Type.TObject<{
+tribunal: Type.TInteger;
+accused: Type.TString;
+door: Type.TInteger;
+lacking: Type.TArray<Type.TString>;
+until: Type.TInteger;
+text: Type.TString;
+candidates: Type.TOptional<Type.TArray<Type.TString>>;
+}>;
+readonly lot_drawn: Type.TObject<{
+tribunal: Type.TInteger;
+purpose: Type.TUnion<[Type.TLiteral<"accused">, Type.TLiteral<"strike">]>;
+candidates: Type.TArray<Type.TString>;
+drawn: Type.TString;
+}>;
+readonly holdout_vote_opened: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+until: Type.TInteger;
+}>;
+readonly holdout_ballot: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+agent: Type.TString;
+yes: Type.TBoolean;
+}>;
+readonly holdout_vote_result: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+yes: Type.TInteger;
+no: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+unanimous: Type.TBoolean;
+}>;
+readonly holdout_announced: Type.TObject<{
+tribunal: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"graceFailed">, Type.TLiteral<"voteFailed">, Type.TLiteral<"spared">]>;
+by: Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>;
+text: Type.TString;
+}>;
+readonly holdout_ended: Type.TObject<{
+tribunal: Type.TInteger;
+outcome: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"banished">, Type.TLiteral<"lot">, Type.TLiteral<"spared">]>;
+struck: Type.TOptional<Type.TString>;
+by: Type.TOptional<Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>>;
+}>;
+}, "callTribunal">;
+
+// @public
+export const StandoffTribunalEvents: EventsDefinition<"standoff-tribunal", {
+readonly blocker_found: Type.TObject<{
+door: Type.TInteger;
+blocker: Type.TString;
+lacking: Type.TArray<Type.TString>;
+}>;
+readonly blocker_cleared: Type.TObject<{
+door: Type.TInteger;
+blocker: Type.TString;
+}>;
+readonly holdout_called: Type.TObject<{
+tribunal: Type.TInteger;
+accused: Type.TString;
+door: Type.TInteger;
+lacking: Type.TArray<Type.TString>;
+until: Type.TInteger;
+text: Type.TString;
+candidates: Type.TOptional<Type.TArray<Type.TString>>;
+}>;
+readonly lot_drawn: Type.TObject<{
+tribunal: Type.TInteger;
+purpose: Type.TUnion<[Type.TLiteral<"accused">, Type.TLiteral<"strike">]>;
+candidates: Type.TArray<Type.TString>;
+drawn: Type.TString;
+}>;
+readonly holdout_vote_opened: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+until: Type.TInteger;
+}>;
+readonly holdout_ballot: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+agent: Type.TString;
+yes: Type.TBoolean;
+}>;
+readonly holdout_vote_result: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+yes: Type.TInteger;
+no: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+unanimous: Type.TBoolean;
+}>;
+readonly holdout_announced: Type.TObject<{
+tribunal: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"graceFailed">, Type.TLiteral<"voteFailed">, Type.TLiteral<"spared">]>;
+by: Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>;
+text: Type.TString;
+}>;
+readonly holdout_ended: Type.TObject<{
+tribunal: Type.TInteger;
+outcome: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"banished">, Type.TLiteral<"lot">, Type.TLiteral<"spared">]>;
+struck: Type.TOptional<Type.TString>;
+by: Type.TOptional<Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>>;
+}>;
+}>;
+
+// @public
+export const standoffTribunalHead: MechanicHead<"standoff-tribunal", Type.TObject<{
+stallMinutes: Type.TInteger;
+graceMinutes: Type.TInteger;
+voteMinutes: Type.TInteger;
+maxVotes: Type.TInteger;
+fallbackMinutes: Type.TInteger;
+author: Type.TString;
+texts: Type.TObject<{
+rule: Type.TString;
+called: Type.TString;
+drawnAccused: Type.TString;
+voteOpened: Type.TString;
+accusedVote: Type.TString;
+struck: Type.TString;
+struckNotice: Type.TString;
+released: Type.TString;
+dropped: Type.TString;
+graceFailed: Type.TString;
+voteFailed: Type.TString;
+banished: Type.TString;
+lot: Type.TString;
+spared: Type.TString;
+}>;
+}>, Type.TObject<{
+holdout: Type.TObject<{
+blockers: Type.TArray<Type.TObject<{
+door: Type.TInteger;
+blocker: Type.TString;
+lacking: Type.TArray<Type.TString>;
+passed: Type.TBoolean;
+since: Type.TInteger;
+}>>;
+reached: Type.TOptional<Type.TArray<Type.TObject<{
+door: Type.TInteger;
+agent: Type.TString;
+minute: Type.TInteger;
+}>>>;
+struck: Type.TArray<Type.TString>;
+tribunals: Type.TInteger;
+lots: Type.TInteger;
+cooldownUntil: Type.TOptional<Type.TInteger>;
+lotDoors: Type.TOptional<Type.TArray<Type.TInteger>>;
+session: Type.TOptional<Type.TObject<{
+number: Type.TInteger;
+accused: Type.TString;
+door: Type.TInteger;
+stage: Type.TUnion<[Type.TLiteral<"grace">, Type.TLiteral<"vote">, Type.TLiteral<"banish">, Type.TLiteral<"lot">]>;
+until: Type.TInteger;
+vote: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+ballots: Type.TArray<Type.TObject<{
+agent: Type.TString;
+yes: Type.TBoolean;
+}>>;
+lastResult: Type.TOptional<Type.TObject<{
+vote: Type.TInteger;
+yes: Type.TInteger;
+no: Type.TInteger;
+}>>;
+drawn: Type.TOptional<Type.TString>;
+}>>;
+pending: Type.TOptional<Type.TObject<{
+tribunal: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"graceFailed">, Type.TLiteral<"voteFailed">, Type.TLiteral<"spared">]>;
+facts: Type.TString;
+text: Type.TString;
+due: Type.TInteger;
+}>>;
+}>;
+shown: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+}>>;
+}>, HoldoutState, {
+readonly blocker_found: Type.TObject<{
+door: Type.TInteger;
+blocker: Type.TString;
+lacking: Type.TArray<Type.TString>;
+}>;
+readonly blocker_cleared: Type.TObject<{
+door: Type.TInteger;
+blocker: Type.TString;
+}>;
+readonly holdout_called: Type.TObject<{
+tribunal: Type.TInteger;
+accused: Type.TString;
+door: Type.TInteger;
+lacking: Type.TArray<Type.TString>;
+until: Type.TInteger;
+text: Type.TString;
+candidates: Type.TOptional<Type.TArray<Type.TString>>;
+}>;
+readonly lot_drawn: Type.TObject<{
+tribunal: Type.TInteger;
+purpose: Type.TUnion<[Type.TLiteral<"accused">, Type.TLiteral<"strike">]>;
+candidates: Type.TArray<Type.TString>;
+drawn: Type.TString;
+}>;
+readonly holdout_vote_opened: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+until: Type.TInteger;
+}>;
+readonly holdout_ballot: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+agent: Type.TString;
+yes: Type.TBoolean;
+}>;
+readonly holdout_vote_result: Type.TObject<{
+tribunal: Type.TInteger;
+vote: Type.TInteger;
+yes: Type.TInteger;
+no: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+unanimous: Type.TBoolean;
+}>;
+readonly holdout_announced: Type.TObject<{
+tribunal: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"graceFailed">, Type.TLiteral<"voteFailed">, Type.TLiteral<"spared">]>;
+by: Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>;
+text: Type.TString;
+}>;
+readonly holdout_ended: Type.TObject<{
+tribunal: Type.TInteger;
+outcome: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"banished">, Type.TLiteral<"lot">, Type.TLiteral<"spared">]>;
+struck: Type.TOptional<Type.TString>;
+by: Type.TOptional<Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>>;
+}>;
+}, {
+readonly "standoff-tribunal/gamemaker/tools/callTribunal": readonly [];
+readonly "standoff-tribunal/gamemaker/replies/tribunal-called": readonly ["accused", "lot", "door", "until", "lacking"];
+readonly "standoff-tribunal/gamemaker/replies/tribunal-lot": readonly ["candidates", "accused"];
+readonly "standoff-tribunal/status/holdout-owed": readonly ["door", "lacking"];
+readonly "standoff-tribunal/status/holdout-grace": readonly ["accused", "until", "owed"];
+readonly "standoff-tribunal/status/holdout-accused": readonly ["vote", "maxVotes", "until", "owed"];
+readonly "standoff-tribunal/status/holdout-not-voted": readonly [];
+readonly "standoff-tribunal/status/holdout-ballot": readonly ["ballot"];
+readonly "standoff-tribunal/status/holdout-voter": readonly ["accused", "vote", "maxVotes", "until", "cast"];
+readonly "standoff-tribunal/status/holdout-strike": readonly ["accused"];
+}, readonly [ServiceDefinition<"holdout-pieces", {
+readonly openFragmentDoors: {
+readonly kind: "query";
+readonly summary: "Every level of fragments whose door is open on the clock now, ascending (old `openFragmentDoors`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TInteger>;
+};
+readonly lacking: {
+readonly kind: "query";
+readonly summary: "Who stands before the door in the holder's team without a copy of its fragment, sorted (old `lackingFragment`).";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+holder: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly inherited: {
+readonly kind: "query";
+readonly summary: "The fragments of struck or excluded teammates the resident holds on the level, in order (old `inheritedFragments`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TObject<{
+from: Type.TString;
+fragment: Type.TString;
+}>>;
+};
+}>, ServiceDefinition<"progression", {
+readonly levelOf: {
+readonly kind: "query";
+readonly summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly isFinished: {
+readonly kind: "query";
+readonly summary: "Whether the resident has passed the last level (old `isFinished`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly hasPassed: {
+readonly kind: "query";
+readonly summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly hasSolved: {
+readonly kind: "query";
+readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly passed: {
+readonly kind: "query";
+readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly lastProgress: {
+readonly kind: "query";
+readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly currentAct: {
+readonly kind: "query";
+readonly summary: "The first level of the latest act that has begun.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly actStart: {
+readonly kind: "query";
+readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly door: {
+readonly kind: "query";
+readonly summary: "The level whose door is shut, or null.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly doorShut: {
+readonly kind: "query";
+readonly summary: "Whether a door holds residents back now.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly openDoor: {
+readonly kind: "command";
+readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly releaseDoor: {
+readonly kind: "command";
+readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+readonly unlock: {
+readonly kind: "command";
+readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly ranking: {
+readonly kind: "query";
+readonly summary: "The ranking: the banished last, then by points, by level and by id.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+rank: Type.TInteger;
+points: Type.TInteger;
+level: Type.TInteger;
+}>>;
+};
+readonly holdersBehind: {
+readonly kind: "query";
+readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TObject<{
+holder: Type.TString;
+level: Type.TInteger;
+piece: Type.TString;
+}>>;
+};
+readonly nextPenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next wrong code costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly nextBlamePenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next lost blame costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly chargeBlame: {
+readonly kind: "command";
+readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly endAct: {
+readonly kind: "command";
+readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isOpenOnClock: {
+readonly kind: "query";
+readonly summary: "Whether the level's door is open on the door clock now.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly opensAt: {
+readonly kind: "query";
+readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TInteger;
+};
+readonly bounds: {
+readonly kind: "query";
+readonly summary: "The start level, the last playable level and the seats at the end.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+startLevel: Type.TInteger;
+lastLevel: Type.TInteger;
+survivors: Type.TInteger;
+}>;
+};
+}>, ServiceDefinition<"exile", {
+readonly banish: {
+readonly kind: "command";
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+ok: Type.TBoolean;
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+}>;
+};
+readonly toGate: {
+readonly kind: "command";
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+voters: Type.TArray<Type.TString>;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+bequestPerHeir: Type.TNumber;
+notice: Type.TString;
+texts: Type.TObject<{
+exiled: Type.TString;
+will: Type.TString;
+ransomed: Type.TString;
+}>;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly isExiled: {
+readonly kind: "query";
+readonly summary: "Says whether the resident is banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly exiled: {
+readonly kind: "query";
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly standing: {
+readonly kind: "query";
+readonly summary: "Where the resident stands (old `standingOf`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"alive">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"gate">;
+until: Type.TInteger;
+}>, Type.TObject<{
+kind: Type.TLiteral<"exiled">;
+}>]>;
+};
+readonly alive: {
+readonly kind: "query";
+readonly summary: "Every resident not banished, in the game's order.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly exiledBy: {
+readonly kind: "query";
+readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly gates: {
+readonly kind: "query";
+readonly summary: "Every open gate, in the order opened.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+since: Type.TInteger;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+paid: Type.TInteger;
+covered: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+};
+readonly ransomed: {
+readonly kind: "query";
+readonly summary: "Whether the resident was bought back from the gate once.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly bequeathed: {
+readonly kind: "query";
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+}>, ServiceDefinition<"channels", {
+readonly post: {
+readonly kind: "command";
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+}>;
+readonly output: Type.TObject<{
+postSeq: Type.TInteger;
+}>;
+};
+readonly notify: {
+readonly kind: "command";
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+readonly input: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly dmRecords: {
+readonly kind: "query";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+tick: Type.TInteger;
+answered: Type.TBoolean;
+deliveredTick: Type.TOptional<Type.TInteger>;
+deliveredAfter: Type.TOptional<Type.TInteger>;
+}>>;
+};
+readonly boardPost: {
+readonly kind: "query";
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly pendingDms: {
+readonly kind: "query";
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly dmWindow: {
+readonly kind: "query";
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+sent: Type.TInteger;
+limit: Type.TInteger;
+from: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly createCityGroup: {
+readonly kind: "command";
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+readonly input: Type.TObject<{
+name: Type.TString;
+members: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+};
+readonly removeCityGroup: {
+readonly kind: "command";
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly postGroupAsCity: {
+readonly kind: "command";
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly group: {
+readonly kind: "query";
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+id: Type.TString;
+name: Type.TString;
+founder: Type.TString;
+treasurer: Type.TString;
+members: Type.TArray<Type.TString>;
+removed: Type.TBoolean;
+}>, Type.TNull]>;
+};
+readonly groupPost: {
+readonly kind: "query";
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+group: Type.TString;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly couldRead: {
+readonly kind: "query";
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+readonly input: Type.TObject<{
+group: Type.TString;
+reader: Type.TString;
+number: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+}>, ServiceDefinition<"notes", {
+readonly check: {
+readonly kind: "query";
+readonly summary: "Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; for `tribunal` only with the same numbers).";
+readonly input: Type.TObject<{
+text: Type.TString;
+to: Type.TString;
+as: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+text: Type.TString;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TString;
+detail: Type.TString;
+}>]>;
+};
+readonly budget: {
+readonly kind: "query";
+readonly summary: "The notes to `to` within the current sliding window and the limit: `boardPosts` for the board, `notesPerAgent` for any other reader.";
+readonly input: Type.TObject<{
+to: Type.TString;
+}>;
+readonly output: Type.TObject<{
+used: Type.TInteger;
+limit: Type.TInteger;
+}>;
+};
+readonly record: {
+readonly kind: "command";
+readonly summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a tribunal).";
+readonly input: Type.TObject<{
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+shown: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+}>], [], readonly [ServiceDefinition<"identity", {
+readonly nameOf: {
+readonly kind: "query";
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly display: {
+readonly kind: "query";
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly resolve: {
+readonly kind: "query";
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+}>], {
+callTribunal: Type.TObject<{
+accused: Type.TArray<Type.TString>;
+reason: Type.TString;
+}>;
+}>;
+
+// @public
+export const StandoffTribunalOptions: Type.TObject<{
+    stallMinutes: Type.TInteger;
+    graceMinutes: Type.TInteger;
+    voteMinutes: Type.TInteger;
+    maxVotes: Type.TInteger;
+    fallbackMinutes: Type.TInteger;
+    author: Type.TString;
+    texts: Type.TObject<{
+        rule: Type.TString;
+        called: Type.TString;
+        drawnAccused: Type.TString;
+        voteOpened: Type.TString;
+        accusedVote: Type.TString;
+        struck: Type.TString;
+        struckNotice: Type.TString;
+        released: Type.TString;
+        dropped: Type.TString;
+        graceFailed: Type.TString;
+        voteFailed: Type.TString;
+        banished: Type.TString;
+        lot: Type.TString;
+        spared: Type.TString;
+    }>;
+}>;
+
+// @public
+export type ToolCtx = ToolCtxOf<typeof standoffTribunalHead>;
+
+// @public
+export type View = ViewOf<typeof standoffTribunalHead>;
+
+// @public
+export interface VoteResult {
+    readonly no: number;
+    readonly vote: number;
+    readonly yes: number;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```
