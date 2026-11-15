@@ -41,6 +41,8 @@ export const ALLOWED_IDENTIFIERS: ReadonlySet<string> = new Set<string>();
 export const CARRIED_TEXTS: readonly string[] = [
 	// mechanics/channels/prompts/channels/tools/addGroupMember.md, M5-13
 	"Adds a competitor to a group you founded.",
+	// The condition kind of the City's rules (`oracles/cityofkeys/setup/*.story.json`), in mechanics/script/mechanic-script.api.md, M5-31
+	"competitorsAtLevel",
 ];
 
 const use = (word: string): string => RETIRED.find((entry) => entry.word === word)?.use ?? "";
