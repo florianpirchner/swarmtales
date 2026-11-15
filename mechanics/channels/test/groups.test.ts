@@ -28,7 +28,7 @@ const receipts = defineMechanic(
 		provides: [ReceiptSourceService],
 	}),
 	{
-		services: { "receipt-source": { ofTransfer: (_input, ctx) => receiptId(ctx.state.issued + 1), ofMessage: () => null } },
+		services: { "receipt-source": { ofTransfer: (_input, ctx) => receiptId(ctx.state.issued + 1), ofMessage: () => null, ofLevel: () => null, textsOf: () => [] } },
 		listeners: (kit) => [
 			kit.listen(ChannelsEvents, "treasury_deposit", (_payload, ctx) => {
 				ctx.state.issued += 1;

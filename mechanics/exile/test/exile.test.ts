@@ -102,7 +102,7 @@ describe("the head", () => {
 	it("names no game mechanic: no option, nothing required, and only the keeper of the points, the names and the city's voice used", () => {
 		expect(exileHead.id).toBe(ExileService.name);
 		expect([exileHead.requires, exileHead.options]).toEqual([undefined, undefined]);
-		expect(exileHead.uses?.map((service) => service.name)).toEqual(["exile-purse", "identity", "channels"]);
+		expect(exileHead.uses?.map((service) => service.name)).toEqual(["exile-purse", "identity", "notices"]);
 		expect(Object.keys(exileHead.events ?? {})).toEqual(["exiled", "exile_gate", "ransom_paid", "ransomed", "last_will"]);
 		expect(ExileService.methods.banish.output).toBe(BanishResult);
 	});

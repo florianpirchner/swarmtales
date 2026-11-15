@@ -36,6 +36,13 @@ const samples = groupSamples();
  */
 export const channels = defineMechanic(channelsHead, {
 	services: {
+		notices: {
+			post: (input, ctx) => ({ postSeq: postToBoard(ctx, input.author, input.text, "city").seq }),
+			notify: (input, ctx) => {
+				notify(ctx, input.to, input.author, input.text);
+				return null;
+			},
+		},
 		channels: {
 			post: (input, ctx) => ({ postSeq: postToBoard(ctx, input.author, input.text, input.kind ?? "city").seq }),
 			notify: (input, ctx) => {

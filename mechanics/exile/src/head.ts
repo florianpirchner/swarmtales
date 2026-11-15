@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of the `exile` mechanic: its state with the snapshot, its events, services, prompts and tools. */
 import { Type, type Static } from "typebox";
-import { IdentityService } from "@swarmtales/mechanic-contracts";
-import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
+import { IdentityService, NoticesService } from "@swarmtales/mechanic-contracts";
 import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { ExileEvents, ExilePurseService, ExileService, ToGate } from "./contract.ts";
 
@@ -87,7 +86,7 @@ export const exileHead = defineHead({
 	events: ExileEvents.events,
 	provides: [ExileService],
 	// The points a ransom burns and a will moves; a name in place of an id; the city's posts and notices. All optional.
-	uses: [ExilePurseService, IdentityService, ChannelsService],
+	uses: [ExilePurseService, IdentityService, NoticesService],
 	prompts: {
 		"exile/tools/payRansom": [],
 		"exile/tools/lastWill": [],

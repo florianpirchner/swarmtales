@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of `channels`: its state with the snapshot, its events, its services, its prompts and its tools. */
 import { Type } from "typebox";
-import { ReceiptSourceService } from "@swarmtales/mechanic-contracts";
+import { NoticesService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { defineHead, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { MAX_BOARD_POST_LENGTH } from "./board.ts";
@@ -26,7 +26,7 @@ export const channelsHead = defineHead({
 	version: 2,
 	migrations: { 1: withoutGroups },
 	events: ChannelsEvents.events,
-	provides: [ChannelsService],
+	provides: [ChannelsService, NoticesService],
 	uses: [LedgerService, ReceiptSourceService],
 	prompts: {
 		"channels/tools/readBoard": [],

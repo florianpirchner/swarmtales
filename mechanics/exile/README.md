@@ -18,7 +18,7 @@ away itself.
 | Id | `exile` |
 | Summary | Banishing a resident: the gate, the ransom, the last will, one event and one suspension. |
 | Requires | none |
-| Uses when loaded | `exile-purse` (from [ledger](../ledger/README.md)), `identity`, `channels` (from [channels](../channels/README.md)) |
+| Uses when loaded | `exile-purse` (from [ledger](../ledger/README.md)), `identity`, `notices` (from [channels](../channels/README.md)) |
 | Provides | `exile` |
 | State | kept, snapshot slice version 1 |
 | Games | [city-slice](../../games/city-slice/README.md) |

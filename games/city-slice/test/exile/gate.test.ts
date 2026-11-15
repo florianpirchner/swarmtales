@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { idleDriver } from "@swarmtales/testkit";
-import { clearsAway, KEEPING_STRIKE } from "../src/contract.ts";
+import { clearsAway, KEEPING_STRIKE } from "@swarmtales/mechanic-exile/contract";
 import { answer, names, start, written } from "./support.ts";
 
 const RANSOM = { resident: "A05", until: 41, price: 26, selfPrice: 39 };

@@ -290,6 +290,23 @@ number: Type.TInteger;
 }>;
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
 };
+readonly ofLevel: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued, or to be issued in the provider's listener, for the resident's correct `submission` of the level of `progression`, or null (decision A64).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly textsOf: {
+readonly kind: "query";
+readonly summary: "The texts of the receipts the resident is a party to, in the order issued (old `list` of `receipts`), for the reply of `getStatus`.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
 }>], {
 transferPoints: Type.TObject<{
 target: Type.TString;

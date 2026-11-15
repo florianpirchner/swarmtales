@@ -7,8 +7,7 @@
  */
 import type { Static } from "typebox";
 import type { ToolOutcome } from "@swarmtales/contracts";
-import { IdentityService } from "@swarmtales/mechanic-contracts";
-import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
+import { IdentityService, NoticesService } from "@swarmtales/mechanic-contracts";
 import { refuse } from "@swarmtales/sdk";
 import { EXILE_SUSPENSION, ExilePurseService, KEEPING_STRIKE, type BanishResult, type GateView, type ToGate } from "./contract.ts";
 import type { ExileCtx, ExileState, ExileToolCtx, GateState } from "./head.ts";
@@ -122,7 +121,7 @@ export function filled(template: string, values: Readonly<Partial<Record<"exiled
  * @param text - The text.
  */
 export function post(ctx: ExileCtx, text: string): void {
-	ctx.tryCall(ChannelsService, "post", { author: CITY, text });
+	ctx.tryCall(NoticesService, "post", { author: CITY, text });
 }
 
 /**
@@ -133,7 +132,7 @@ export function post(ctx: ExileCtx, text: string): void {
  * @param text - The text.
  */
 export function notify(ctx: ExileCtx, to: string, text: string): void {
-	ctx.tryCall(ChannelsService, "notify", { to, author: CITY, text });
+	ctx.tryCall(NoticesService, "notify", { to, author: CITY, text });
 }
 
 /**

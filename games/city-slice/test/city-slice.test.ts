@@ -168,6 +168,6 @@ describe("the load order of the city slice (done-when 5)", () => {
 		expect(late).toEqual([]);
 		// The exile requires nothing; since M5-15 it asks, when they are loaded, a keeper of the points, the names and the city's voice.
 		const exile = order.find((entry) => entry.id === "exile");
-		expect([exile?.requires, exile?.uses.map((service) => service.name)]).toEqual([[], ["exile-purse", "identity", "channels"]]);
+		expect([exile?.requires, exile?.uses.map((service) => service.name)]).toEqual([[], ["exile-purse", "identity", "notices"]]);
 	});
 });

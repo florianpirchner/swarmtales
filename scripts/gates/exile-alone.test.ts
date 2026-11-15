@@ -6,10 +6,10 @@
  * the code. The head has an empty `requires`. Comments are prose and are not read.
  *
  * Since M5-15 (12-m5-spec.md, row 15: "the names in its texts through `identity`") the exile asks, through `uses`
- * only, three services and no mechanic: `identity` of `mechanics/contracts`, the city's voice of the base mechanic
- * `channels` through its `/contract`, and `exile-purse`, which its own contract defines and the ledger provides (the
- * ledger imports the exile, so the exile cannot import the ledger). These two imports and three names are the only
- * ones let through.
+ * only, three services and no mechanic: `identity` and `notices` of `mechanics/contracts` (`channels` provides
+ * `notices`; the exile cannot import `channels`, which imports the ledger, which imports the exile, erratum J36), and
+ * `exile-purse`, which its own contract defines and the ledger provides (the ledger imports the exile, so the exile
+ * cannot import the ledger). This one import and these three names are the only ones let through.
  */
 import { cpSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -25,11 +25,11 @@ import { loadMechanics, readManifest } from "../mechanic-docs/head.ts";
 
 const EXILE = "mechanics/exile";
 /** The imports the exile may make of packages under `mechanics/` (M5-15). */
-const ALLOWED_IMPORTS: ReadonlySet<string> = new Set(["@swarmtales/mechanic-channels/contract", "@swarmtales/mechanic-contracts"]);
+const ALLOWED_IMPORTS: ReadonlySet<string> = new Set(["@swarmtales/mechanic-contracts"]);
 /** The packages of those imports, which its manifest may name. */
-const ALLOWED_PACKAGES: ReadonlySet<string> = new Set(["@swarmtales/mechanic-channels", "@swarmtales/mechanic-contracts"]);
-/** The services the exile may list in `uses`: the purse its own contract defines, identity and the city's voice. */
-const ALLOWED_USES: ReadonlySet<string> = new Set(["ExilePurseService", "IdentityService", "ChannelsService"]);
+const ALLOWED_PACKAGES: ReadonlySet<string> = new Set(["@swarmtales/mechanic-contracts"]);
+/** The services the exile may list in `uses`: the purse its own contract defines, identity and notices. */
+const ALLOWED_USES: ReadonlySet<string> = new Set(["ExilePurseService", "IdentityService", "NoticesService"]);
 /** The names of the services the contract of the exile defines: its own, even when another mechanic provides one. */
 const OWN_SERVICES: ReadonlySet<string> = new Set(Object.values(exileContract).flatMap((value) => (typeof value === "object" && "methods" in value && typeof value.name === "string" ? [value.name] : [])));
 const Names = Type.Optional(Type.Record(Type.String(), Type.String()));
@@ -163,7 +163,7 @@ describe("exile names no other mechanic (M3, done-when 4)", () => {
 		const head = (await loadMechanics(REPO_ROOT)).find((mechanic) => mechanic.folder === "exile")?.head;
 		expect(head?.id).toBe("exile");
 		expect(head?.requires).toEqual([]);
-		expect(head?.uses.map((service) => service.name)).toEqual(["exile-purse", "identity", "channels"]);
+		expect(head?.uses.map((service) => service.name)).toEqual(["exile-purse", "identity", "notices"]);
 		expect([...OWN_SERVICES]).toEqual(["exile", "exile-purse"]);
 	});
 

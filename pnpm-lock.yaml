@@ -204,6 +204,9 @@ importers:
       '@swarmtales/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../../mechanics/contracts
       '@swarmtales/models':
         specifier: workspace:*
         version: link:../../packages/models
@@ -729,9 +732,6 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@swarmtales/mechanic-channels':
-        specifier: workspace:*
-        version: link:../channels
       '@swarmtales/mechanic-contracts':
         specifier: workspace:*
         version: link:../contracts

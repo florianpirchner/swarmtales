@@ -18,7 +18,7 @@ mechanic without its privacy rules, the Director's note desk, `defy` and the unr
 | Summary | Talk in the city: the public board, direct messages, private notices and groups with a treasury. |
 | Requires | none |
 | Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` |
-| Provides | `channels` |
+| Provides | `channels`, `notices` |
 | State | kept, snapshot slice version 2 |
 | Games | [city-slice](../../games/city-slice/README.md) |
 
@@ -417,6 +417,15 @@ The city's voice (posts on the public board, private notices, its own groups), t
 | `group` | query | group: string | { id: string, name: string, founder: string, treasurer: string, members: string[], removed: boolean } or null | One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id. |
 | `groupPost` | query | number: integer | { number: integer, group: string, author: string, text: string, tick: integer } or null | The group post with the city's message number `number`, removed groups included; null when no group post has it. |
 | `couldRead` | query | group: string, reader: string, number: integer | boolean | Whether the resident was a member of the group before the post `number`, so it could read it. |
+
+### `notices`
+
+A post on the public board and a private notice to one resident, for the mechanics that cannot import `channels`.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `post` | command | author: string, text: string | { postSeq: integer } | Writes a post of the city on the public board, as `channels.post` does. |
+| `notify` | command | to: string, author: string, text: string | null | Leaves a private notice for a resident, as `channels.notify` does; the resident reads it at its next activation. |
 
 <!-- /generated:services -->
 

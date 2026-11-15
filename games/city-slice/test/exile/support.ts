@@ -9,8 +9,8 @@ import { channels } from "@swarmtales/mechanic-channels";
 import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { defineEvents, defineGame, defineHead, defineMechanic, type Game, type MechanicUse } from "@swarmtales/sdk";
 import { testKernel, type TestKernel } from "@swarmtales/testkit";
-import { ExilePurseService, ExileService } from "../src/contract.ts";
-import { exile } from "../src/index.ts";
+import { ExilePurseService, ExileService } from "@swarmtales/mechanic-exile/contract";
+import { exile } from "@swarmtales/mechanic-exile";
 
 /** The residents of the tests. */
 export const IDS = ["A01", "A02", "A03", "A04", "A05", "A06"] as const;

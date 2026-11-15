@@ -23,6 +23,7 @@
 	"devDependencies": {
 		"@swarmtales/contracts": "workspace:*",
 		"@swarmtales/engine": "workspace:*",
+		"@swarmtales/mechanic-contracts": "workspace:*",
 		"@swarmtales/models": "workspace:*",
 		"@swarmtales/testkit": "workspace:*"
 	}

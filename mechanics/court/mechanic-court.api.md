@@ -106,7 +106,7 @@ deadline: Type.TInteger;
 }>, ServiceDefinition<"exile", {
 readonly banish: {
 readonly kind: "command";
-readonly summary: "Banishes a resident: writes `exiled`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
 readonly input: Type.TObject<{
 resident: Type.TString;
 by: Type.TOptional<Type.TString>;
@@ -115,6 +115,27 @@ readonly output: Type.TObject<{
 ok: Type.TBoolean;
 code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
 }>;
+};
+readonly toGate: {
+readonly kind: "command";
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+voters: Type.TArray<Type.TString>;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+bequestPerHeir: Type.TNumber;
+notice: Type.TString;
+texts: Type.TObject<{
+exiled: Type.TString;
+will: Type.TString;
+ransomed: Type.TString;
+}>;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
 };
 readonly isExiled: {
 readonly kind: "query";
@@ -126,8 +147,69 @@ readonly output: Type.TBoolean;
 };
 readonly exiled: {
 readonly kind: "query";
-readonly summary: "Every banished resident, in the order they were banished.";
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
 readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly standing: {
+readonly kind: "query";
+readonly summary: "Where the resident stands (old `standingOf`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"alive">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"gate">;
+until: Type.TInteger;
+}>, Type.TObject<{
+kind: Type.TLiteral<"exiled">;
+}>]>;
+};
+readonly alive: {
+readonly kind: "query";
+readonly summary: "Every resident not banished, in the game's order.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly exiledBy: {
+readonly kind: "query";
+readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly gates: {
+readonly kind: "query";
+readonly summary: "Every open gate, in the order opened.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+since: Type.TInteger;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+paid: Type.TInteger;
+covered: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+};
+readonly ransomed: {
+readonly kind: "query";
+readonly summary: "Whether the resident was bought back from the gate once.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly bequeathed: {
+readonly kind: "query";
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
 readonly output: Type.TArray<Type.TString>;
 };
 }>, ServiceDefinition<"channels", {

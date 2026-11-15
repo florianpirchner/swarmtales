@@ -104,6 +104,7 @@ will?: {
 text: string;
 factors: string[];
 };
+resident: string;
 by: string;
 until: number;
 ransomable: boolean;
@@ -111,7 +112,6 @@ voters: string[];
 price: number;
 selfPrice: number;
 since: number;
-resident: string;
 bequestPerHeir: number;
 texts: {
 exiled: string;
@@ -124,8 +124,8 @@ amount: number;
 }[];
 }[];
 gone: {
-by: string;
 resident: string;
+by: string;
 bequeathed: string[];
 tick: number;
 }[];
@@ -343,14 +343,13 @@ text: Type.TString;
 }>;
 readonly output: Type.TString;
 };
-}>, ServiceDefinition<"channels", {
+}>, ServiceDefinition<"notices", {
 readonly post: {
 readonly kind: "command";
-readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly summary: "Writes a post of the city on the public board, as `channels.post` does.";
 readonly input: Type.TObject<{
 author: Type.TString;
 text: Type.TString;
-kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
 }>;
 readonly output: Type.TObject<{
 postSeq: Type.TInteger;
@@ -358,24 +357,13 @@ postSeq: Type.TInteger;
 };
 readonly notify: {
 readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+readonly summary: "Leaves a private notice for a resident, as `channels.notify` does; the resident reads it at its next activation.";
 readonly input: Type.TObject<{
 to: Type.TString;
 author: Type.TString;
 text: Type.TString;
 }>;
 readonly output: Type.TNull;
-};
-readonly dmRecords: {
-readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-}>>;
 };
 }>], {
 payRansom: Type.TObject<{

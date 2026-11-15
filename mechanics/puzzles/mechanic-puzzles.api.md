@@ -16,6 +16,7 @@ import { TBoolean } from 'typebox';
 import { TInteger } from 'typebox';
 import { TLiteral } from 'typebox';
 import { TNull } from 'typebox';
+import { TNumber } from 'typebox';
 import { TObject } from 'typebox';
 import { TOptional } from 'typebox';
 import { TRecord } from 'typebox';
@@ -203,7 +204,7 @@ excluded: TArray<TString>;
 }, Readonly<Record<symbol, never>>, [], [], readonly [ServiceDefinition<"exile", {
 readonly banish: {
 readonly kind: "command";
-readonly summary: "Banishes a resident: writes `exiled`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
 readonly input: TObject<    {
 resident: TString;
 by: TOptional<TString>;
@@ -212,6 +213,27 @@ readonly output: TObject<    {
 ok: TBoolean;
 code: TOptional<TUnion<[TLiteral<"UNKNOWN_RESIDENT">, TLiteral<"ALREADY_EXILED">]>>;
 }>;
+};
+readonly toGate: {
+readonly kind: "command";
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
+readonly input: TObject<    {
+resident: TString;
+until: TInteger;
+ransomable: TBoolean;
+voters: TArray<TString>;
+price: TInteger;
+selfPrice: TInteger;
+bequestPerHeir: TNumber;
+notice: TString;
+texts: TObject<    {
+exiled: TString;
+will: TString;
+ransomed: TString;
+}>;
+by: TOptional<TString>;
+}>;
+readonly output: TNull;
 };
 readonly isExiled: {
 readonly kind: "query";
@@ -223,8 +245,69 @@ readonly output: TBoolean;
 };
 readonly exiled: {
 readonly kind: "query";
-readonly summary: "Every banished resident, in the order they were banished.";
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
 readonly input: TObject<    {}>;
+readonly output: TArray<TString>;
+};
+readonly standing: {
+readonly kind: "query";
+readonly summary: "Where the resident stands (old `standingOf`).";
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly output: TUnion<[TObject<    {
+kind: TLiteral<"alive">;
+}>, TObject<    {
+kind: TLiteral<"gate">;
+until: TInteger;
+}>, TObject<    {
+kind: TLiteral<"exiled">;
+}>]>;
+};
+readonly alive: {
+readonly kind: "query";
+readonly summary: "Every resident not banished, in the game's order.";
+readonly input: TObject<    {}>;
+readonly output: TArray<TString>;
+};
+readonly exiledBy: {
+readonly kind: "query";
+readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly output: TUnion<[TString, TNull]>;
+};
+readonly gates: {
+readonly kind: "query";
+readonly summary: "Every open gate, in the order opened.";
+readonly input: TObject<    {}>;
+readonly output: TArray<TObject<    {
+agent: TString;
+since: TInteger;
+until: TInteger;
+ransomable: TBoolean;
+price: TInteger;
+selfPrice: TInteger;
+paid: TInteger;
+covered: TInteger;
+willDone: TBoolean;
+}>>;
+};
+readonly ransomed: {
+readonly kind: "query";
+readonly summary: "Whether the resident was bought back from the gate once.";
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly output: TBoolean;
+};
+readonly bequeathed: {
+readonly kind: "query";
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
+readonly input: TObject<    {
+resident: TString;
+}>;
 readonly output: TArray<TString>;
 };
 }>, ServiceDefinition<"channels", {

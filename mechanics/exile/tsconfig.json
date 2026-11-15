@@ -19,9 +19,6 @@
 			"path": "../../packages/sdk"
 		},
 		{
-			"path": "../channels"
-		},
-		{
 			"path": "../contracts"
 		},
 		{

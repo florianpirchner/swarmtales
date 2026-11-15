@@ -120,6 +120,31 @@ readonly output: Type.TString;
 }>;
 
 // @public
+export const NoticesService: ServiceDefinition<"notices", {
+readonly post: {
+readonly kind: "command";
+readonly summary: "Writes a post of the city on the public board, as `channels.post` does.";
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TObject<{
+postSeq: Type.TInteger;
+}>;
+};
+readonly notify: {
+readonly kind: "command";
+readonly summary: "Leaves a private notice for a resident, as `channels.notify` does; the resident reads it at its next activation.";
+readonly input: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+}>;
+
+// @public
 export const ReceiptSourceService: ServiceDefinition<"receipt-source", {
 readonly ofTransfer: {
 readonly kind: "query";
