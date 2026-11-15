@@ -38,7 +38,7 @@ describe("the views", () => {
 		expect(page).toContain("<dt>seed</dt><dd>7</dd>");
 		expect(page).toContain(">unsigned<");
 		const shown = replay(model, 2);
-		expect(shown).toContain("#2 of 2 · minute 1 of 1");
+		expect(shown).toContain("#2 of 2 · tick 1 of 1");
 		expect(shown).toContain('<span class="type">move_played</span><span class="who">A01</span>');
 		expect(shown).toContain("&quot;cell&quot;: 4");
 		expect(renderToStaticMarkup(createElement(Charts, { run: loaded(model) }))).toContain("Events by type");

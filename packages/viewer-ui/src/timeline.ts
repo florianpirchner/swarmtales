@@ -82,7 +82,8 @@ export function actsOf(activation: Activation): readonly Call[] {
 }
 
 /**
- * One line for the row of an activation: what a Director was woken for, what the actor called, how it went.
+ * One line for the row of an activation: what a Director was woken for, what the actor called, how it went, and
+ * how many activations were open beside it.
  *
  * @param activation - The activation.
  * @returns The line.
@@ -93,6 +94,7 @@ export function activationLine(activation: Activation): string {
 		...(activation.firings.length === 0 ? [] : [`woken by ${activation.firings.map((firing) => `${firing.event} #${String(firing.seq)}`).join(", ")}`]),
 		acts.length === 0 ? "no call" : `${activation.kind === "director" ? "acts" : "calls"}: ${acts.join(", ")}`,
 		...(activation.outcome === "error" ? ["error"] : []),
+		...(activation.overlaps.length === 0 ? [] : [`open beside ${String(activation.overlaps.length)}`]),
 	];
 	return parts.join(" · ");
 }

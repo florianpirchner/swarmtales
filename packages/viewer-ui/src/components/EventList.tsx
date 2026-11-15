@@ -48,7 +48,7 @@ function Row({ row, position, selected, starred, onPick }: { readonly row: Timel
 	return (
 		<div role="option" aria-selected={selected} className={`stv-vrow${kind}${markClasses(row)}${selected ? " current" : ""}${starred ? " marked" : ""}`} style={{ top: position * ROW }} onClick={() => { onPick(row.seq); }}>
 			<span className="seq">{starred ? "★" : ""}{row.seq}</span>
-			<span className="min">m{row.event.minute}</span>
+			<span className="min" title="tick">t{row.event.minute}</span>
 			<Cells row={row} />
 		</div>
 	);

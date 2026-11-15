@@ -2,7 +2,7 @@
 /**
  * The projection of an envelope log: what the views draw beside the plain list of events. It attaches every line
  * of an activation (its calls, their answers, the records of its driver) to the activation, reads a Director's
- * firings and finds the line that fired each (by the rule of `findFirings` in `@swarmtales/runlog`), folds the three events of `decisions` into one item, marks the calls of the actor `human`, and finds
+ * firings and finds the line that fired each (by the rule of `findFirings` in `@swarmtales/runlog`), notes which activations were open at the same time and the `basis` of each call, folds the three events of `decisions` into one item, marks the calls of the actor `human`, and finds
  * the pauses, the resume markers and the suspended actors. It reads only the log; a line of an old run (no
  * payload) projects to nothing.
  */
@@ -60,7 +60,9 @@ type Mutable<Shape> = { -readonly [Key in keyof Shape]: Shape[Key] };
 
 /** What the projection collects while it reads the log. */
 interface Draft {
-	readonly activations: Map<number, Mutable<Activation> & { calls: Call[]; records: RunEvent[] }>;
+	readonly activations: Map<number, Mutable<Activation> & { calls: Call[]; records: RunEvent[]; overlaps: number[] }>;
+	/** The seqs of the activations open at the current line, in the order they opened. */
+	readonly open: Set<number>;
 	readonly calls: Map<number, Mutable<Call>>;
 	readonly decisions: Map<string, Mutable<Decision> & { amendments: Decision["amendments"][number][] }>;
 	readonly humanCalls: Call[];
@@ -80,6 +82,12 @@ type Read<Schema extends TSchema> = (draft: Draft, event: RunEvent, payload: Sta
 function cause(event: RunEvent): number | undefined {
 	const { causedBy } = event.data;
 	return typeof causedBy === "number" ? causedBy : undefined;
+}
+
+// The envelope's `basis`, as a field to spread: absent when the line has none.
+function basisOf(event: RunEvent): { readonly basis?: number } {
+	const { basis } = event.data;
+	return typeof basis === "number" ? { basis } : {};
 }
 
 // The kind and the name of an actor id (`director:warden`); an id without a kind (`human`) is both.
@@ -114,13 +122,17 @@ function firingsOf(draft: Draft, actor: string, reply: string, answer: number): 
 	});
 }
 
+// An activation that opens while others are open overlaps each of them, and each of them overlaps it.
 const opened: Read<typeof KERNEL_EVENTS.activation_opened> = (draft, event, payload) => {
-	draft.activations.set(event.seq, { seq: event.seq, tick: event.minute, actor: payload.actor, ...parts(payload.actor), calls: [], records: [], firings: [] });
+	for (const seq of draft.open) draft.activations.get(seq)?.overlaps.push(event.seq);
+	draft.activations.set(event.seq, { seq: event.seq, tick: event.minute, actor: payload.actor, ...parts(payload.actor), ...basisOf(event), overlaps: [...draft.open], calls: [], records: [], firings: [] });
+	draft.open.add(event.seq);
 };
 
 const closed: Read<typeof KERNEL_EVENTS.activation_closed> = (draft, event, payload) => {
 	const activation = draft.activations.get(cause(event) ?? -1);
 	if (activation === undefined) return;
+	draft.open.delete(activation.seq);
 	activation.closedSeq = event.seq;
 	activation.outcome = payload.outcome;
 	draft.attached.set(event.seq, activation.seq);
@@ -130,7 +142,7 @@ const called: Read<typeof KERNEL_EVENTS.tool_called> = (draft, event, payload) =
 	const actor = event.actorId ?? "";
 	const activation = draft.activations.get(cause(event) ?? -1);
 	const tool = typeof event.data.tool === "string" ? event.data.tool : payload.as;
-	const call: Mutable<Call> = { seq: event.seq, tick: event.minute, actor, as: payload.as, tool, params: payload.params, human: actor === HUMAN, take: tool === TAKE_TOOL, ...(activation === undefined ? {} : { activation: activation.seq }) };
+	const call: Mutable<Call> = { seq: event.seq, tick: event.minute, actor, as: payload.as, tool, params: payload.params, human: actor === HUMAN, take: tool === TAKE_TOOL, ...(activation === undefined ? {} : { activation: activation.seq }), ...basisOf(event) };
 	draft.calls.set(event.seq, call);
 	if (call.human) draft.humanCalls.push(call);
 	if (activation === undefined) return;
@@ -241,7 +253,7 @@ function record(draft: Draft, event: RunEvent, source: string): void {
  * @public
  */
 export function projectRun(events: readonly RunEvent[]): RunProjection {
-	const draft: Draft = { activations: new Map(), calls: new Map(), decisions: new Map(), humanCalls: [], pauses: [], resumes: [], suspensions: [], attached: new Map(), lines: new Map(), used: new Map() };
+	const draft: Draft = { activations: new Map(), open: new Set(), calls: new Map(), decisions: new Map(), humanCalls: [], pauses: [], resumes: [], suspensions: [], attached: new Map(), lines: new Map(), used: new Map() };
 	for (const event of events) {
 		const source = event.data.source;
 		if (event.actorId === undefined || typeof source !== "string") continue;

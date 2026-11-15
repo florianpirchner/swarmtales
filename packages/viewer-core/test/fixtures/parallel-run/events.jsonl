@@ -1,0 +1,153 @@
+{"seq":1,"tick":0,"source":"kernel","type":"run_started","actor":"kernel","payload":{"game":"race","seed":7,"maxTicks":4,"actors":["resident:A01","resident:A02","resident:A03","resident:A04"],"plugins":["board","roster"]}}
+{"seq":2,"tick":0,"source":"kernel","type":"tick_started","actor":"kernel","payload":{}}
+{"seq":3,"tick":0,"source":"kernel","type":"activation_opened","actor":"resident:A01","basis":2,"payload":{"actor":"resident:A01","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":4,"tick":0,"source":"kernel","type":"activation_opened","actor":"resident:A02","basis":2,"payload":{"actor":"resident:A02","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":5,"tick":0,"source":"kernel","type":"activation_opened","actor":"resident:A03","basis":2,"payload":{"actor":"resident:A03","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":6,"tick":0,"source":"kernel","type":"activation_opened","actor":"resident:A04","basis":2,"payload":{"actor":"resident:A04","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":7,"tick":0,"source":"kernel","type":"tool_called","actor":"resident:A03","causedBy":5,"basis":2,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":8,"tick":0,"source":"@test/board/board","type":"posted","actor":"resident:A03","causedBy":7,"tool":"@test/board/board/post","payload":{"by":"A03","n":1}}
+{"seq":9,"tick":0,"source":"kernel","type":"tool_result","actor":"resident:A03","causedBy":7,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 1."}}
+{"seq":10,"tick":0,"source":"kernel","type":"activation_closed","actor":"resident:A04","causedBy":6,"payload":{"actor":"resident:A04","calls":0,"outcome":"no-call"}}
+{"seq":11,"tick":0,"source":"kernel","type":"activation_opened","actor":"resident:A04","basis":10,"payload":{"actor":"resident:A04","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":12,"tick":0,"source":"kernel","type":"activation_closed","actor":"resident:A01","causedBy":3,"payload":{"actor":"resident:A01","calls":0,"outcome":"no-call"}}
+{"seq":13,"tick":0,"source":"kernel","type":"activation_opened","actor":"resident:A01","basis":12,"payload":{"actor":"resident:A01","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":14,"tick":0,"source":"kernel","type":"tool_called","actor":"resident:A02","causedBy":4,"basis":2,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":15,"tick":0,"source":"@test/board/board","type":"posted","actor":"resident:A02","causedBy":14,"tool":"@test/board/board/post","payload":{"by":"A02","n":2}}
+{"seq":16,"tick":0,"source":"kernel","type":"tool_result","actor":"resident:A02","causedBy":14,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 2."}}
+{"seq":17,"tick":0,"source":"kernel","type":"activation_closed","actor":"resident:A03","causedBy":5,"payload":{"actor":"resident:A03","calls":1,"outcome":"acted"}}
+{"seq":18,"tick":0,"source":"kernel","type":"activation_opened","actor":"resident:A03","basis":17,"payload":{"actor":"resident:A03","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":19,"tick":0,"source":"kernel","type":"activation_closed","actor":"resident:A04","causedBy":11,"payload":{"actor":"resident:A04","calls":0,"outcome":"no-call"}}
+{"seq":20,"tick":0,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":13,"basis":12,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":21,"tick":0,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":20,"tool":"@test/board/board/post","payload":{"by":"A01","n":3}}
+{"seq":22,"tick":0,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":20,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 3."}}
+{"seq":23,"tick":0,"source":"kernel","type":"tool_called","actor":"resident:A02","causedBy":4,"basis":16,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":24,"tick":0,"source":"@test/board/board","type":"posted","actor":"resident:A02","causedBy":23,"tool":"@test/board/board/post","payload":{"by":"A02","n":4}}
+{"seq":25,"tick":0,"source":"kernel","type":"tool_result","actor":"resident:A02","causedBy":23,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 4."}}
+{"seq":26,"tick":0,"source":"kernel","type":"activation_closed","actor":"resident:A01","causedBy":13,"payload":{"actor":"resident:A01","calls":1,"outcome":"acted"}}
+{"seq":27,"tick":0,"source":"kernel","type":"activation_closed","actor":"resident:A02","causedBy":4,"payload":{"actor":"resident:A02","calls":2,"outcome":"acted"}}
+{"seq":28,"tick":0,"source":"kernel","type":"tool_called","actor":"resident:A03","causedBy":18,"basis":17,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":29,"tick":0,"source":"@test/board/board","type":"posted","actor":"resident:A03","causedBy":28,"tool":"@test/board/board/post","payload":{"by":"A03","n":5}}
+{"seq":30,"tick":0,"source":"kernel","type":"tool_result","actor":"resident:A03","causedBy":28,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 5."}}
+{"seq":31,"tick":0,"source":"kernel","type":"activation_closed","actor":"resident:A03","causedBy":18,"payload":{"actor":"resident:A03","calls":1,"outcome":"acted"}}
+{"seq":32,"tick":0,"source":"kernel","type":"activation_opened","actor":"resident:A02","basis":31,"payload":{"actor":"resident:A02","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":33,"tick":0,"source":"kernel","type":"tool_called","actor":"resident:A02","causedBy":32,"basis":31,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":34,"tick":0,"source":"@test/board/board","type":"posted","actor":"resident:A02","causedBy":33,"tool":"@test/board/board/post","payload":{"by":"A02","n":6}}
+{"seq":35,"tick":0,"source":"kernel","type":"tool_result","actor":"resident:A02","causedBy":33,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 6."}}
+{"seq":36,"tick":0,"source":"kernel","type":"activation_closed","actor":"resident:A02","causedBy":32,"payload":{"actor":"resident:A02","calls":1,"outcome":"acted"}}
+{"seq":37,"tick":0,"source":"kernel","type":"tick_ended","actor":"kernel","payload":{}}
+{"seq":38,"tick":1,"source":"kernel","type":"tick_started","actor":"kernel","payload":{}}
+{"seq":39,"tick":1,"source":"kernel","type":"activation_opened","actor":"resident:A01","basis":38,"payload":{"actor":"resident:A01","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":40,"tick":1,"source":"kernel","type":"activation_opened","actor":"resident:A03","basis":38,"payload":{"actor":"resident:A03","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":41,"tick":1,"source":"kernel","type":"activation_opened","actor":"resident:A04","basis":38,"payload":{"actor":"resident:A04","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":42,"tick":1,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":39,"basis":38,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":43,"tick":1,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":42,"tool":"@test/board/board/post","payload":{"by":"A01","n":7}}
+{"seq":44,"tick":1,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":42,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 7."}}
+{"seq":45,"tick":1,"source":"kernel","type":"activation_closed","actor":"resident:A03","causedBy":40,"payload":{"actor":"resident:A03","calls":0,"outcome":"no-call"}}
+{"seq":46,"tick":1,"source":"kernel","type":"activation_opened","actor":"resident:A02","basis":45,"payload":{"actor":"resident:A02","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":47,"tick":1,"source":"kernel","type":"activation_opened","actor":"resident:A03","basis":45,"payload":{"actor":"resident:A03","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":48,"tick":1,"source":"kernel","type":"activation_closed","actor":"resident:A04","causedBy":41,"payload":{"actor":"resident:A04","calls":0,"outcome":"no-call"}}
+{"seq":49,"tick":1,"source":"kernel","type":"activation_opened","actor":"resident:A04","basis":48,"payload":{"actor":"resident:A04","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":50,"tick":1,"source":"kernel","type":"activation_closed","actor":"resident:A01","causedBy":39,"payload":{"actor":"resident:A01","calls":1,"outcome":"acted"}}
+{"seq":51,"tick":1,"source":"kernel","type":"activation_opened","actor":"resident:A01","basis":50,"payload":{"actor":"resident:A01","inputs":[],"detail":{"reason":"answer","n":2}}}
+{"seq":52,"tick":1,"source":"kernel","type":"tool_called","actor":"resident:A02","causedBy":46,"basis":45,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":53,"tick":1,"source":"@test/board/board","type":"posted","actor":"resident:A02","causedBy":52,"tool":"@test/board/board/post","payload":{"by":"A02","n":8}}
+{"seq":54,"tick":1,"source":"kernel","type":"tool_result","actor":"resident:A02","causedBy":52,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 8."}}
+{"seq":55,"tick":1,"source":"kernel","type":"activation_closed","actor":"resident:A03","causedBy":47,"payload":{"actor":"resident:A03","calls":0,"outcome":"no-call"}}
+{"seq":56,"tick":1,"source":"kernel","type":"activation_closed","actor":"resident:A04","causedBy":49,"payload":{"actor":"resident:A04","calls":0,"outcome":"no-call"}}
+{"seq":57,"tick":1,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":51,"basis":50,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":58,"tick":1,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":57,"tool":"@test/board/board/post","payload":{"by":"A01","n":9}}
+{"seq":59,"tick":1,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":57,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 9."}}
+{"seq":60,"tick":1,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":51,"basis":59,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":61,"tick":1,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":60,"tool":"@test/board/board/post","payload":{"by":"A01","n":10}}
+{"seq":62,"tick":1,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":60,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 10."}}
+{"seq":63,"tick":1,"source":"kernel","type":"tool_called","actor":"resident:A02","causedBy":46,"basis":54,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":64,"tick":1,"source":"@test/board/board","type":"posted","actor":"resident:A02","causedBy":63,"tool":"@test/board/board/post","payload":{"by":"A02","n":11}}
+{"seq":65,"tick":1,"source":"kernel","type":"tool_result","actor":"resident:A02","causedBy":63,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 11."}}
+{"seq":66,"tick":1,"source":"kernel","type":"activation_closed","actor":"resident:A01","causedBy":51,"payload":{"actor":"resident:A01","calls":2,"outcome":"acted"}}
+{"seq":67,"tick":1,"source":"kernel","type":"activation_closed","actor":"resident:A02","causedBy":46,"payload":{"actor":"resident:A02","calls":2,"outcome":"acted"}}
+{"seq":68,"tick":1,"source":"kernel","type":"tick_ended","actor":"kernel","payload":{}}
+{"seq":69,"tick":2,"source":"kernel","type":"tick_started","actor":"kernel","payload":{}}
+{"seq":70,"tick":2,"source":"kernel","type":"activation_opened","actor":"resident:A01","basis":69,"payload":{"actor":"resident:A01","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":71,"tick":2,"source":"kernel","type":"activation_opened","actor":"resident:A03","basis":69,"payload":{"actor":"resident:A03","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":72,"tick":2,"source":"kernel","type":"activation_opened","actor":"resident:A04","basis":69,"payload":{"actor":"resident:A04","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":73,"tick":2,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":70,"basis":69,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":74,"tick":2,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":73,"tool":"@test/board/board/post","payload":{"by":"A01","n":12}}
+{"seq":75,"tick":2,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":73,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 12."}}
+{"seq":76,"tick":2,"source":"kernel","type":"activation_closed","actor":"resident:A04","causedBy":72,"payload":{"actor":"resident:A04","calls":0,"outcome":"no-call"}}
+{"seq":77,"tick":2,"source":"kernel","type":"activation_opened","actor":"resident:A02","basis":76,"payload":{"actor":"resident:A02","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":78,"tick":2,"source":"kernel","type":"activation_opened","actor":"resident:A04","basis":76,"payload":{"actor":"resident:A04","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":79,"tick":2,"source":"kernel","type":"activation_closed","actor":"resident:A03","causedBy":71,"payload":{"actor":"resident:A03","calls":0,"outcome":"no-call"}}
+{"seq":80,"tick":2,"source":"kernel","type":"activation_opened","actor":"resident:A03","basis":79,"payload":{"actor":"resident:A03","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":81,"tick":2,"source":"kernel","type":"tool_called","actor":"resident:A02","causedBy":77,"basis":76,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":82,"tick":2,"source":"@test/board/board","type":"posted","actor":"resident:A02","causedBy":81,"tool":"@test/board/board/post","payload":{"by":"A02","n":13}}
+{"seq":83,"tick":2,"source":"kernel","type":"tool_result","actor":"resident:A02","causedBy":81,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 13."}}
+{"seq":84,"tick":2,"source":"kernel","type":"tool_called","actor":"resident:A04","causedBy":78,"basis":76,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":85,"tick":2,"source":"@test/board/board","type":"posted","actor":"resident:A04","causedBy":84,"tool":"@test/board/board/post","payload":{"by":"A04","n":14}}
+{"seq":86,"tick":2,"source":"kernel","type":"tool_result","actor":"resident:A04","causedBy":84,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 14."}}
+{"seq":87,"tick":2,"source":"kernel","type":"activation_closed","actor":"resident:A03","causedBy":80,"payload":{"actor":"resident:A03","calls":0,"outcome":"no-call"}}
+{"seq":88,"tick":2,"source":"kernel","type":"activation_closed","actor":"resident:A01","causedBy":70,"payload":{"actor":"resident:A01","calls":1,"outcome":"acted"}}
+{"seq":89,"tick":2,"source":"kernel","type":"activation_opened","actor":"resident:A01","basis":88,"payload":{"actor":"resident:A01","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":90,"tick":2,"source":"kernel","type":"activation_closed","actor":"resident:A02","causedBy":77,"payload":{"actor":"resident:A02","calls":1,"outcome":"acted"}}
+{"seq":91,"tick":2,"source":"kernel","type":"activation_opened","actor":"resident:A02","basis":90,"payload":{"actor":"resident:A02","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":92,"tick":2,"source":"kernel","type":"tool_called","actor":"resident:A04","causedBy":78,"basis":86,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":93,"tick":2,"source":"@test/board/board","type":"posted","actor":"resident:A04","causedBy":92,"tool":"@test/board/board/post","payload":{"by":"A04","n":15}}
+{"seq":94,"tick":2,"source":"kernel","type":"tool_result","actor":"resident:A04","causedBy":92,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 15."}}
+{"seq":95,"tick":2,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":89,"basis":88,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":96,"tick":2,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":95,"tool":"@test/board/board/post","payload":{"by":"A01","n":16}}
+{"seq":97,"tick":2,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":95,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 16."}}
+{"seq":98,"tick":2,"source":"kernel","type":"activation_closed","actor":"resident:A02","causedBy":91,"payload":{"actor":"resident:A02","calls":0,"outcome":"no-call"}}
+{"seq":99,"tick":2,"source":"kernel","type":"activation_closed","actor":"resident:A04","causedBy":78,"payload":{"actor":"resident:A04","calls":2,"outcome":"acted"}}
+{"seq":100,"tick":2,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":89,"basis":97,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":101,"tick":2,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":100,"tool":"@test/board/board/post","payload":{"by":"A01","n":17}}
+{"seq":102,"tick":2,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":100,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 17."}}
+{"seq":103,"tick":2,"source":"kernel","type":"activation_closed","actor":"resident:A01","causedBy":89,"payload":{"actor":"resident:A01","calls":2,"outcome":"acted"}}
+{"seq":104,"tick":2,"source":"kernel","type":"tick_ended","actor":"kernel","payload":{}}
+{"seq":105,"tick":3,"source":"kernel","type":"tick_started","actor":"kernel","payload":{}}
+{"seq":106,"tick":3,"source":"kernel","type":"activation_opened","actor":"resident:A01","basis":105,"payload":{"actor":"resident:A01","inputs":[],"detail":{"reason":"answer","n":1}}}
+{"seq":107,"tick":3,"source":"kernel","type":"activation_opened","actor":"resident:A02","basis":105,"payload":{"actor":"resident:A02","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":108,"tick":3,"source":"kernel","type":"activation_opened","actor":"resident:A03","basis":105,"payload":{"actor":"resident:A03","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":109,"tick":3,"source":"kernel","type":"activation_opened","actor":"resident:A04","basis":105,"payload":{"actor":"resident:A04","inputs":[],"detail":{"reason":"news","n":1}}}
+{"seq":110,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":106,"basis":105,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":111,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":110,"tool":"@test/board/board/post","payload":{"by":"A01","n":18}}
+{"seq":112,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":110,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 18."}}
+{"seq":113,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A03","causedBy":108,"basis":105,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":114,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A03","causedBy":113,"tool":"@test/board/board/post","payload":{"by":"A03","n":19}}
+{"seq":115,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A03","causedBy":113,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 19."}}
+{"seq":116,"tick":3,"source":"kernel","type":"activation_closed","actor":"resident:A04","causedBy":109,"payload":{"actor":"resident:A04","calls":0,"outcome":"no-call"}}
+{"seq":117,"tick":3,"source":"kernel","type":"activation_opened","actor":"resident:A04","basis":116,"payload":{"actor":"resident:A04","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":118,"tick":3,"source":"kernel","type":"activation_closed","actor":"resident:A02","causedBy":107,"payload":{"actor":"resident:A02","calls":0,"outcome":"no-call"}}
+{"seq":119,"tick":3,"source":"kernel","type":"activation_opened","actor":"resident:A02","basis":118,"payload":{"actor":"resident:A02","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":120,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A03","causedBy":108,"basis":115,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":121,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A03","causedBy":120,"tool":"@test/board/board/post","payload":{"by":"A03","n":20}}
+{"seq":122,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A03","causedBy":120,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 20."}}
+{"seq":123,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A02","causedBy":119,"basis":118,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":124,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A02","causedBy":123,"tool":"@test/board/board/post","payload":{"by":"A02","n":21}}
+{"seq":125,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A02","causedBy":123,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 21."}}
+{"seq":126,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A04","causedBy":117,"basis":116,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":127,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A04","causedBy":126,"tool":"@test/board/board/post","payload":{"by":"A04","n":22}}
+{"seq":128,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A04","causedBy":126,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 22."}}
+{"seq":129,"tick":3,"source":"kernel","type":"activation_closed","actor":"resident:A01","causedBy":106,"payload":{"actor":"resident:A01","calls":1,"outcome":"acted"}}
+{"seq":130,"tick":3,"source":"kernel","type":"activation_opened","actor":"resident:A01","basis":129,"payload":{"actor":"resident:A01","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":131,"tick":3,"source":"kernel","type":"activation_closed","actor":"resident:A03","causedBy":108,"payload":{"actor":"resident:A03","calls":2,"outcome":"acted"}}
+{"seq":132,"tick":3,"source":"kernel","type":"activation_opened","actor":"resident:A03","basis":131,"payload":{"actor":"resident:A03","inputs":[],"detail":{"reason":"news","n":2}}}
+{"seq":133,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A02","causedBy":119,"basis":125,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":134,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A02","causedBy":133,"tool":"@test/board/board/post","payload":{"by":"A02","n":23}}
+{"seq":135,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A02","causedBy":133,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 23."}}
+{"seq":136,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A04","causedBy":117,"basis":128,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":137,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A04","causedBy":136,"tool":"@test/board/board/post","payload":{"by":"A04","n":24}}
+{"seq":138,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A04","causedBy":136,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 24."}}
+{"seq":139,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":130,"basis":129,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":140,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":139,"tool":"@test/board/board/post","payload":{"by":"A01","n":25}}
+{"seq":141,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":139,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 25."}}
+{"seq":142,"tick":3,"source":"kernel","type":"activation_closed","actor":"resident:A04","causedBy":117,"payload":{"actor":"resident:A04","calls":2,"outcome":"acted"}}
+{"seq":143,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A03","causedBy":132,"basis":131,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":144,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A03","causedBy":143,"tool":"@test/board/board/post","payload":{"by":"A03","n":26}}
+{"seq":145,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A03","causedBy":143,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 26."}}
+{"seq":146,"tick":3,"source":"kernel","type":"activation_closed","actor":"resident:A02","causedBy":119,"payload":{"actor":"resident:A02","calls":2,"outcome":"acted"}}
+{"seq":147,"tick":3,"source":"kernel","type":"tool_called","actor":"resident:A01","causedBy":130,"basis":141,"tool":"@test/board/board/post","payload":{"as":"post","params":{}}}
+{"seq":148,"tick":3,"source":"@test/board/board","type":"posted","actor":"resident:A01","causedBy":147,"tool":"@test/board/board/post","payload":{"by":"A01","n":27}}
+{"seq":149,"tick":3,"source":"kernel","type":"tool_result","actor":"resident:A01","causedBy":147,"tool":"@test/board/board/post","payload":{"as":"post","reply":"Post 27."}}
+{"seq":150,"tick":3,"source":"kernel","type":"activation_closed","actor":"resident:A03","causedBy":132,"payload":{"actor":"resident:A03","calls":1,"outcome":"acted"}}
+{"seq":151,"tick":3,"source":"kernel","type":"activation_closed","actor":"resident:A01","causedBy":130,"payload":{"actor":"resident:A01","calls":2,"outcome":"acted"}}
+{"seq":152,"tick":3,"source":"kernel","type":"tick_ended","actor":"kernel","payload":{}}
+{"seq":153,"tick":4,"source":"kernel","type":"run_ended","actor":"kernel","payload":{"reason":"ticks"}}

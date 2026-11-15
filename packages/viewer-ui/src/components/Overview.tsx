@@ -82,7 +82,7 @@ function RunCard({ model }: { readonly model: RunModel }) {
 				<dt>started</dt><dd>{model.meta?.startedAt ?? "-"}</dd>
 				<dt>seed</dt><dd>{seed}</dd>
 				<dt>agents</dt><dd>{actors}</dd>
-				<dt>events</dt><dd>{model.events.length.toLocaleString("en-US")} (last minute {model.events.at(-1)?.minute ?? 0})</dd>
+				<dt>events</dt><dd>{model.events.length.toLocaleString("en-US")} (last tick {model.events.at(-1)?.minute ?? 0})</dd>
 				<dt>result</dt><dd>{resultOf(model)}</dd>
 			</dl>
 		</div>

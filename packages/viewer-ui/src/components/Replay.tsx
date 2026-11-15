@@ -81,10 +81,10 @@ interface ControlsProps {
 	readonly index: LoadedRun["index"];
 	readonly highlights: readonly Highlight[];
 	readonly onSeq: (seq: number) => void;
-	readonly onMinute: (minute: number) => void;
+	readonly onTick: (tick: number) => void;
 }
 
-function Controls({ playback, position, current, index, highlights, onSeq, onMinute }: ControlsProps) {
+function Controls({ playback, position, current, index, highlights, onSeq, onTick }: ControlsProps) {
 	const { playing, speed, setPlaying, setSpeed, goto } = playback;
 	const nextHighlight = highlights.find((highlight) => highlight.seq > current.seq);
 	const previousHighlight = [...highlights].reverse().find((highlight) => highlight.seq < current.seq);
@@ -98,9 +98,9 @@ function Controls({ playback, position, current, index, highlights, onSeq, onMin
 			<select aria-label="Speed" value={speed} onChange={(event) => { setSpeed(Number(event.target.value)); }}>
 				{SPEEDS.map((value) => <option key={value} value={value}>{value} events/s</option>)}
 			</select>
-			<span className="stv-pos">#{current.seq} of {index.lastSeq} · minute {current.minute} of {index.lastMinute}</span>
+			<span className="stv-pos">#{current.seq} of {index.lastSeq} · tick {current.minute} of {index.lastMinute}</span>
 			<label>event <input type="range" aria-label="Event position" min={0} max={index.events.length - 1} value={position} onChange={(event) => { goto(Number(event.target.value)); }} /></label>
-			<label>minute <input type="range" aria-label="Minute" min={0} max={index.lastMinute} value={current.minute} onChange={(event) => { onMinute(Number(event.target.value)); }} /></label>
+			<label>tick <input type="range" aria-label="Tick" min={0} max={index.lastMinute} value={current.minute} onChange={(event) => { onTick(Number(event.target.value)); }} /></label>
 		</div>
 	);
 }
@@ -138,9 +138,10 @@ function Detail({ current, highlight, onSeq, box }: { readonly current: RunEvent
 // What the projection knows about the current line: the activation it belongs to and the decisions proposed up to it; then the Human Hand over the whole run.
 function ProjectionCards({ projection, seq, onSeq }: { readonly projection: RunProjection; readonly seq: number; readonly onSeq: (seq: number) => void }) {
 	const activation = projection.activations.find((entry) => entry.seq === (projection.attached.get(seq) ?? seq));
+	const beside = projection.activations.filter((entry) => activation?.overlaps.includes(entry.seq) === true);
 	return (
 		<>
-			{activation !== undefined && <ActivationCard activation={activation} seq={seq} onSeq={onSeq} />}
+			{activation !== undefined && <ActivationCard activation={activation} seq={seq} onSeq={onSeq} beside={beside} />}
 			{projection.decisions.filter((decision) => decision.seq <= seq).map((decision) => <DecisionCard key={decision.id} decision={decision} seq={seq} onSeq={onSeq} />)}
 			<HumanCard projection={projection} seq={seq} onSeq={onSeq} />
 		</>
@@ -173,18 +174,18 @@ export function Replay(props: Props) {
 	const graph = useMemo(() => messageGraph(events, current?.seq, vocabulary.messages), [events, current?.seq, vocabulary.messages]);
 	const rows = useMemo(() => timelineOf(events, projection), [events, projection]);
 	if (current === undefined) return <div className="stv-empty">This run has no events.</div>;
-	const toMinute = (minute: number) => {
-		const target = index.seqAtMinute(minute);
+	const toTick = (tick: number) => {
+		const target = index.seqAtMinute(tick);
 		if (target !== undefined) onSeq(target);
 	};
 	return (
 		<div className="stv-replay">
 			<div>
-				<Controls playback={playback} position={position} current={current} index={index} highlights={highlights} onSeq={onSeq} onMinute={toMinute} />
+				<Controls playback={playback} position={position} current={current} index={index} highlights={highlights} onSeq={onSeq} onTick={toTick} />
 				{highlights.length > 0 && <Highlights highlights={highlights} current={current.seq} onSeq={pickHighlight} index={index} />}
 				<div className="stv-card">
 					<h3>Actors</h3>
-					<Lanes lanes={lanes} index={index} minute={current.minute} onMinute={toMinute} projection={projection} />
+					<Lanes lanes={lanes} index={index} tick={current.minute} onTick={toTick} projection={projection} />
 				</div>
 				<div className="stv-card">
 					<h3>Events</h3>
@@ -207,7 +208,7 @@ export function Replay(props: Props) {
 
 function HighlightRow({ highlight, current, onSeq, index }: { readonly highlight: Highlight; readonly current: number; readonly onSeq: (seq: number) => void; readonly index: LoadedRun["index"] }) {
 	const event = index.bySeq(highlight.seq);
-	const where = event === undefined ? "" : `${event.type}${event.actor === undefined ? "" : ` · ${event.actor}`} · m${String(event.minute)}`;
+	const where = event === undefined ? "" : `${event.type}${event.actor === undefined ? "" : ` · ${event.actor}`} · t${String(event.minute)}`;
 	const thought = highlight.thought?.text;
 	return (
 		<li className={highlight.seq === current ? "current" : undefined}>

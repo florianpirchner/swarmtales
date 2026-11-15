@@ -23,14 +23,14 @@ const nothing = (): void => undefined;
 const text = (html: string): string => html.replace(/<!-- -->|<[^>]+>/g, "").replaceAll("&quot;", '"');
 // The rows of the event list from one seq to another, as markup.
 const list = (from: number, to: number, events = rows): string => renderToStaticMarkup(createElement(EventList, { rows: events.filter((row) => row.seq >= from && row.seq <= to), current: -1, onPick: nothing }));
-const lanes = (events: readonly RunEvent[], marks = projectRun(events)): string => renderToStaticMarkup(createElement(Lanes, { lanes: actorLanes(events), index: indexRun(events), minute: 0, onMinute: nothing, projection: marks }));
+const lanes = (events: readonly RunEvent[], marks = projectRun(events)): string => renderToStaticMarkup(createElement(Lanes, { lanes: actorLanes(events), index: indexRun(events), tick: 0, onTick: nothing, projection: marks }));
 
 describe("row 4: the calls of the human", () => {
 	it("are marked rows that carry the answer, listed on a card, and the header has the badge", () => {
 		expect(rows.filter((row) => row.human !== undefined).map((row) => row.seq)).toEqual([160, 164, 182]);
 		const shown = list(182, 185);
 		expect(shown).toContain('class="stv-vrow human"');
-		expect(text(shown)).toContain('182m8humanamendDecision{"decision":"D1","proposal":{"exiled":"A02"},"reason":"A02 paid for its votes"} → amended decision D1');
+		expect(text(shown)).toContain('182t8humanamendDecision{"decision":"D1","proposal":{"exiled":"A02"},"reason":"A02 paid for its votes"} → amended decision D1');
 		// The answer (#184) is no row of its own: it shows the row of its call.
 		expect(shown).not.toContain("tool_result");
 		expect(rows[rowAt(rows, projection, 184)]?.seq).toBe(182);
@@ -57,8 +57,8 @@ describe("row 5: a pause", () => {
 		expect(rows.filter((row) => row.pause !== undefined).map((row) => row.seq)).toEqual([161, 163, 164, 165]);
 		const shown = list(159, 167);
 		expect(shown.match(/class="stv-vrow[^"]* paused/g)).toHaveLength(4);
-		expect(text(shown)).toContain("161m7pausehumanbefore tick 7 · “the court has a verdict” · until #165");
-		expect(text(shown)).toContain("165m7resumedhumanthe pause of #161 ends");
+		expect(text(shown)).toContain("161t7pausehumanbefore tick 7 · “the court has a verdict” · until #165");
+		expect(text(shown)).toContain("165t7resumedhumanthe pause of #161 ends");
 		expect(lanes(model.events)).toMatch(/<rect class="pause"[^>]*><title>pause before tick 7 · “the court has a verdict” · until #165<\/title>/);
 	});
 
@@ -74,7 +74,7 @@ describe("row 6: the resume marker", () => {
 	it("is a line across the event list and the lanes that names the run it came from", () => {
 		const shown = list(163, 163);
 		expect(shown).toContain('class="stv-vrow paused resume"');
-		expect(text(shown)).toBe("163m7run resumedfrom city-slice-001 at tick 7 · snapshot a15c30916b22…");
+		expect(text(shown)).toBe("163t7run resumedfrom city-slice-001 at tick 7 · snapshot a15c30916b22…");
 		expect(lanes(model.events)).toMatch(/<line class="resume"[^>]*><title>run resumed from city-slice-001 at tick 7/);
 		expect(text(renderToStaticMarkup(createElement(HumanCard, { projection, seq: 163, onSeq: nothing })))).toContain("#163 run resumed  from city-slice-001 at tick 7");
 	});
@@ -83,7 +83,7 @@ describe("row 6: the resume marker", () => {
 describe("row 7: a banished resident", () => {
 	it("is greyed from its suspension on: its lane, and each later row of it", () => {
 		expect(list(192, 192)).toContain('class="stv-vrow suspension"');
-		expect(text(list(192, 192))).toBe("192m8suspendedA02by exile · exiled · greyed from here on");
+		expect(text(list(192, 192))).toBe("192t8suspendedA02by exile · exiled · greyed from here on");
 		const shown = lanes(model.events);
 		expect(shown).toContain('class="suspended">A02</text>');
 		expect(shown).toMatch(/<rect class="suspended"[^>]*><title>A02 suspended by exile at tick 8 \(exiled\)<\/title>/);

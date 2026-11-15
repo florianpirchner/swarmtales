@@ -35,7 +35,7 @@ export function Charts(props: Props) {
 						<button type="button" aria-pressed={by === "model"} onClick={() => { setBy("model"); }}>per model</button>
 					</div>
 				</div>
-				{points.length === 0 ? <p className="muted">This log has no usage lines.</p> : <LineChart title={`Cumulative cost per ${by}`} series={series} xLabel="minute" yLabel="cost (USD, cumulative)" yFormat={(value) => usd(value)} />}
+				{points.length === 0 ? <p className="muted">This log has no usage lines.</p> : <LineChart title={`Cumulative cost per ${by}`} series={series} xLabel="tick" yLabel="cost (USD, cumulative)" yFormat={(value) => usd(value)} />}
 			</div>
 			<div className="stv-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))" }}>
 				<div className="stv-card"><BarChart title="Events by type" bars={types} valueLabel="events" /></div>

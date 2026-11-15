@@ -41,7 +41,7 @@ describe("row 1: the records of a driver", () => {
 
 	it("a resident's card lists its calls with their answers, a refusal with its code", () => {
 		const call = { seq: 252, tick: 9, actor: "resident:A01", as: "transferPoints", tool: "pkg/ledger/transferPoints", params: { to: "A04", amount: 5 }, human: false, take: false, activation: 251 };
-		const activation: Activation = { seq: 251, tick: 9, actor: "resident:A01", kind: "resident", name: "A01", closedSeq: 254, outcome: "acted", calls: [{ ...call, answer: { seq: 253, ok: false, text: "A04 was exiled", code: "EXILED" } }], records: [], firings: [] };
+		const activation: Activation = { seq: 251, tick: 9, actor: "resident:A01", kind: "resident", name: "A01", closedSeq: 254, outcome: "acted", calls: [{ ...call, answer: { seq: 253, ok: false, text: "A04 was exiled", code: "EXILED" } }], records: [], firings: [], overlaps: [] };
 		const card = renderToStaticMarkup(createElement(ActivationCard, { activation, seq: 252, onSeq: nothing }));
 		expect(text(card)).toBe('Activation of A01tick 9 · #251 to #254 · acted#252 transferPoints {"to":"A04","amount":5} → EXILED: A04 was exiled');
 		expect(card).toContain('<span class="stv-answer refused">');
@@ -53,7 +53,7 @@ describe("row 2: a Director's activation", () => {
 		const at = rowAt(rows, projection, 138);
 		const list = renderToStaticMarkup(createElement(EventList, { rows: rows.slice(at - 1, at + 3), current: 1, onPick: nothing }));
 		expect(list).toContain('class="stv-vrow activation director current"');
-		expect(text(list)).toContain("138m6Directorwardenwoken by decisions.decision_proposed #136 · acts: postBoard");
+		expect(text(list)).toContain("138t6Directorwardenwoken by decisions.decision_proposed #136 · acts: postBoard");
 		// The board post the act caused stays an event of its own, right below.
 		expect(list).toContain('<span class="type">board_post</span><span class="who">warden</span>');
 		expect(renderToStaticMarkup(createElement(EventList, { rows: rows.filter((row) => row.activation?.kind === "resident").slice(0, 1), current: 0, onPick: nothing }))).toMatch(/class="stv-vrow activation resident current".*<span class="type">activation<\/span>/);
@@ -61,7 +61,7 @@ describe("row 2: a Director's activation", () => {
 
 	it("has a card with the firing (the answer of `take`) and the act with its answer; `take` is not listed as an act", () => {
 		const card = text(replay(138));
-		expect(card).toContain("Director wardentick 6 · #138 to #146 · actedWoken by#136 decisions.decision_proposed at tick 6 {\"decision\":\"D1\"");
+		expect(card).toContain("Director wardentick 6 · #138 to #146 · acted · saw #137Woken by#136 decisions.decision_proposed at tick 6 {\"decision\":\"D1\"");
 		expect(card).toContain('What it did#141 asked');
 		expect(card).toContain('#143 postBoard {"message":"The warden has seen the proposal. The city waits for the deadline."} → posted · #3');
 		expect(card).not.toContain("#139 take");

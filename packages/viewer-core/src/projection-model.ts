@@ -26,6 +26,8 @@ export interface Call {
 	readonly take: boolean;
 	/** The seq of the activation the call was made in; a call of the human between two ticks has none. */
 	readonly activation?: number;
+	/** The envelope's `basis`: the highest seq the caller had seen when it decided. A line of another actor after it was not known to the caller. */
+	readonly basis?: number;
 	/** The answer: `tool_result` (`ok`, the reply as `text`) or `tool_refused` (the refusal `code`, its detail as `text`). Absent while the log has none. */
 	readonly answer?: { readonly seq: number; readonly ok: boolean; readonly text: string; readonly code?: string };
 }
@@ -66,6 +68,10 @@ export interface Activation {
 	readonly name: string;
 	/** The seq of `activation_closed`; absent when the log ends inside the activation. */
 	readonly closedSeq?: number;
+	/** The envelope's `basis`: the log length when the inputs of the activation were built. */
+	readonly basis?: number;
+	/** The seqs of the other activations that were open at some line of this one (a scheduler such as `parallel` opens several at once), in the order of the log; empty under `turns`. */
+	readonly overlaps: readonly number[];
 	/** How the activation went: `acted`, `no-call` or `error`. */
 	readonly outcome?: string;
 	/** The calls of the activation, in order; a Director's first call is its `take`. */

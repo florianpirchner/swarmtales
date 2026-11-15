@@ -15,12 +15,14 @@ import { Type } from 'typebox';
 // @public
 export interface Activation {
     readonly actor: string;
+    readonly basis?: number;
     readonly calls: readonly Call[];
     readonly closedSeq?: number;
     readonly firings: readonly Firing[];
     readonly kind: string;
     readonly name: string;
     readonly outcome?: string;
+    readonly overlaps: readonly number[];
     readonly records: readonly RunEvent[];
     readonly seq: number;
     readonly tick: number;
@@ -51,6 +53,7 @@ export interface Call {
         readonly code?: string;
     };
     readonly as: string;
+    readonly basis?: number;
     readonly human: boolean;
     readonly params: unknown;
     readonly seq: number;
