@@ -2,10 +2,13 @@
 
 Four solo seats (A01-A04) play a match of drafting games. In each game every seat opens packs of cards, keeps one
 card per pick and passes the rest around the table; at the end every quarry scores the square of each resource it
-holds and a bonus for strictly the most of a resource. Every game starts from a fresh context, and a seat's only
-memory is a short private "strategy brain" it rewrites before the first game and after each game. The mechanic
-scores every pick against the greedy pick and every game against four greedy seats on the same deal, for the report
-only; residents never see it.
+holds and a bonus for strictly the most of a resource, and then a place bonus: by that score the best quarry of the
+game gets 10 more points and the second 5, and tied seats share the better place (two seats tied for second get 5
+each). Every game starts from a fresh context. A seat carries two things into the next game: a short private
+"strategy brain" it rewrites before the first game and after each game but the last (the run ends with the last
+pick, so a match of three games has three brain writes per seat), and by default the line "Results so far" of the
+briefing of a later game (see below). The mechanic scores every pick against the greedy pick and every game against
+four greedy seats on the same deal, for the report only; residents never see it.
 
 The game is a port of `stories/quarry` of the old platform (tag `v0-final`): the prompts, the tool names, the
 options and their defaults are the same, and the briefings are byte-identical. Its rules are the mechanic
@@ -38,10 +41,29 @@ The id is always `quarry`; a variant is a set of options of `quarryGame`, not a 
 | `brain` | true | false is the control arm: the same briefings without the brain paragraph, no brain, no retro | `quarry-nobrain` |
 | `openHands` | false | every seat sees every quarry during the game | `quarry-open` |
 | `frozenHands` | false | with `openHands`: the quarries a seat is shown are those at the start of the running pick (see below) | |
-| `burns` | false | a seat may destroy a card of the pack it passes on, two a game | `quarry-burn` |
+| `burns` | false | a seat may destroy a card of the pack it passes on, two a game (see below for the tool text when off) | `quarry-burn` |
 | `maxWords` | 150 | the size of a brain | |
+| `showResults` | true | false: a later game shows nothing of the earlier games (see below) | |
 | `seed` | 29 | the seed of the run | |
 | `ticks` | 84 | the length of the run: an upper bound from the picks; the match ends the run earlier | |
+
+The place bonus is an option of the mechanic (`placeBonus`, default `[10, 5]`), not of the game; the rules a seat
+reads state it ("a tie shares the better place"), and the scores of the match include it, so the metric
+`tablePoints` (their sum) changes with a tie: two seats at place 2 add 10 instead of 5.
+
+## Without burns, the tool text still speaks of them
+
+The default game has no burns (`burns: false` sets `maxBurns: 0` of the mechanic): the rules say "There are no burns
+in this game." and the pick request asks only for a card. The description of the tool `pick`, which a seat sees in
+every game, still offers to "burn a second card of the pack"; a pick that names one is refused with `NO_BURNS_LEFT`.
+The tool text is carried from the old platform and stays until the owner allows a prompt change (P456).
+
+## Two cures, off by default (A29)
+
+Two carried loopholes are cured on this platform by an option each, both off by default, so that the rules of the
+M2 gate stay playable byte for byte and the oracle files and the gate's result stay as recorded (decision A29):
+`frozenHands` for the open arm (LH18, M2-28) and `showResults: false` for the second memory beside the brain (LH19,
+M2-29). Each got a small series on Haiku through Anthropic, reported in [`docs/M2-CURES.md`](../../docs/M2-CURES.md).
 
 ## Open quarries, live and frozen (LH18)
 

@@ -62,7 +62,7 @@ Last update: 2026-11-14, about 20:35 UTC, by the gate issue of M3 (M3-31). Read 
 4. The switch: `main` becomes the new platform (root `rewrite/root`), `develop` from `rewrite/develop`. **It waits
    for the tag `v0-final` on the remote**, which only the owner can push (see above); `main` is not cleared before
    the tag is verified there.
-5. M4 is specified next (the remaining tabletop games, the scheduler `match`); it gets its issue number by A19.
+5. M4 is specified next (the remaining tabletop games, the scheduler sample `parallel`); it gets its issue number by A19.
 
 ## Open follow-ups (not blocking)
 
@@ -71,5 +71,8 @@ Leftovers of M1: swap the local conformance stand-ins of the mechanic tests for 
 (decision A3). Viewer: views for the M1 event types, the game tab. Editor-completion budget (A9). The one
 recalibration of D4 after the tenth merged issue. Restate the chess baseline numbers in paper 02 (new engine:
 default 91, lists 54, lists and coach 40). `games/quarry/game.ts` carries a claim about model behaviour from the
-old platform in a comment. From M3: the open points P1 to P4 of `10-m3-spec-errata.md` (the wrapper in `decisions`,
-data games with a Director, log positions in a `take` reply after a resume, the stale README of the sdk package).
+old platform in a comment. From M3, the open points of `10-m3-spec-errata.md`: P2 (a data game with a Director,
+goes to M5) and P5 (a tool context without the log position of its call; decision A36 keeps it so, since with A34
+no payload holds a position). P1
+and P4 are closed by M3-34, P3 (log positions in a `take` reply after a resume) by M4-02. The erratum G28 (the
+report does not say "human-influenced", P452) goes to M4-09.

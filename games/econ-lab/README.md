@@ -4,9 +4,17 @@ Four solo seats (A01-A04) play a match of three classic experimental-economics g
 several rounds: a split offer (the ultimatum game), a shared fund (the public goods game) and an A-or-B choice (the
 prisoner's dilemma, in rotating pairs). The framing is neutral: no game is named. Decisions are sealed until a round
 resolves; a seat that does not decide in time takes the default (nothing put in, no offer, reject, B). Every game
-starts from a fresh context, and a seat's only memory is a short private "strategy brain" it rewrites before the
-first game and after each game. The mechanic scores each game against Nash play and the social optimum, for the
-report only; residents never see it.
+starts from a fresh context. A seat carries two things into the next game: a short private "strategy brain" it
+rewrites before the first game and after each game but the last (the run ends when the last game resolves), and by
+default the line "Results so far" of the briefing of a later game (see below). The mechanic scores each game against
+Nash play and the social optimum, for the report only; residents never see it.
+
+What a seat knows of the match ahead: its tool list holds all four decision tools (`contribute`, `offer`, `respond`,
+`choose`) with their descriptions from its first turn, so already in game 1 it can read that a shared fund, a split
+offer and an A-or-B choice exist. Only the tool the running round asks for succeeds; the others are refused with
+`WRONG_DECISION`. The round count of a game is not told (`showHorizon: false`), and no seat sees a partner's sealed
+choice before its own. The tool texts are carried from the old platform and stay until the owner allows a prompt
+change (P456).
 
 The game is a port of `stories/econ-lab` of the old platform (tag `v0-final`): the prompts, the tool names, the
 options and their defaults are the same, and the briefings are byte-identical. Its rules are the mechanic
@@ -41,6 +49,13 @@ The id is always `econ-lab`; a variant is a set of options of `econLabGame`, not
 | `showResults` | true | false: a later game shows nothing of the earlier games (see below) | |
 | `seed` | 23 | the seed of the run | |
 | `ticks` | 60 | the length of the run: an upper bound from the rounds; the match ends the run earlier | |
+
+## The cure of A29, off by default
+
+The carried loophole LH19 (a second memory beside the brain) is cured on this platform by the option `showResults`,
+off by default (decision A29, issue M2-29): the default keeps the rules of the M2 gate playable byte for byte, and
+the oracle files and the gate's result stay as recorded. Quarry got the second cure of A29 (`frozenHands`, LH18);
+Econ Lab has no open arm. Both series are reported in [`docs/M2-CURES.md`](../../docs/M2-CURES.md).
 
 ## Without the results of earlier games (`showResults: false`)
 
