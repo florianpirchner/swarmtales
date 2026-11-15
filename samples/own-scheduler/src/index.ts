@@ -7,3 +7,4 @@
  */
 export { ParallelOptions } from "./options.ts";
 export { parallel } from "./parallel.ts";
+export { sealed } from "./sealed.ts";
