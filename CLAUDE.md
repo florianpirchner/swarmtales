@@ -147,6 +147,8 @@ Machines enforce them; a limit is never met by moving code next door.
 - A workflow uses only the actions on the list in `scripts/licences/allowlist.ts`, pinned by a full commit id, and
   no container image.
 - A copied file lives under `third_party/<name>/` with its licence text and a row in `third_party/manifest.json`.
+- The gate runs as its own CI job `licence gate` on every pull request and push; the owner makes it a required
+  check of `main` and `develop` (decision A69, `docs/LICENCE-POLICY.md` "In CI").
 - If there is doubt about a licence, the answer is no.
 
 ## Working with Flo

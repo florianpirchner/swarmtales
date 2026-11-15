@@ -3,7 +3,7 @@
  * `pnpm check:licences` (`--check`) and `pnpm licences:write` (`--write`): the licence gate of DECISIONS.md 5.3.
  *
  * It judges every package of the lockfile (all platforms), every vendored folder and every action against the
- * allowlist, checks the SPDX header of every source file, the licence and the exact versions of every
+ * allowlist, checks the SPDX header of every source file, that a binary or model file is only vendored, the licence and the exact versions of every
  * `package.json`, the actions of every workflow, and that `THIRD-PARTY-LICENSES.md` is up to date.
  */
 import { execFileSync } from "node:child_process";
@@ -15,7 +15,7 @@ import { isSourceFile, listFiles, readText, REPO_ROOT } from "./lib/files.ts";
 import {
 	declaredByInstalled, judgePackages, lockedPackages, Overrides, PnpmLicences, recordedRows, renderInventory, ThirdParty, type Declared,
 } from "./licences/inventory.ts";
-import { checkHeaders, checkManifests, checkVendored, checkWorkflows, usedActions, type TextFile, type VendoredEntry } from "./licences/repo-files.ts";
+import { checkBinaries, checkHeaders, checkManifests, checkVendored, checkWorkflows, usedActions, type TextFile, type VendoredEntry } from "./licences/repo-files.ts";
 
 const INVENTORY = "THIRD-PARTY-LICENSES.md";
 
@@ -27,7 +27,10 @@ function parse<Schema extends TSchema>(schema: Schema, text: string, what: strin
 }
 
 const pnpm = (...args: readonly string[]): string => execFileSync("pnpm", args, { cwd: REPO_ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
-const filesWith = (keep: (path: string) => boolean): readonly TextFile[] => listFiles(".", keep).map((path) => ({ path, text: readText(path) }));
+/** Every file that git tracks, so that a binary in a folder the file walk skips is seen too. */
+const tracked = (): readonly string[] =>
+	execFileSync("git", ["ls-files", "-z"], { cwd: REPO_ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }).split("\0").filter((path) => path !== "");
+const filesWith =(keep: (path: string) => boolean): readonly TextFile[] => listFiles(".", keep).map((path) => ({ path, text: readText(path) }));
 
 function vendoredEntries(): readonly VendoredEntry[] {
 	return readdirSync(join(REPO_ROOT, "third_party"), { withFileTypes: true }).map((entry) => ({
@@ -86,6 +89,7 @@ function main(mode: string): number {
 		...checkManifests(filesWith((path) => path === "package.json" || path.endsWith("/package.json"))),
 		...checkWorkflows(workflows),
 		...checkVendored(vendoredEntries(), vendored.map((row) => row.name)),
+		...checkBinaries(tracked(), vendored.map((row) => row.name)),
 		...(stale ? [`${INVENTORY} is stale; run pnpm licences:write and commit it`] : []),
 	];
 	for (const offence of offences) console.error(`licences: ${offence}`);

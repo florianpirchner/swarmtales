@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ALLOWED_LICENCES, PROJECT_LICENCE } from "./allowlist.ts";
 import { readText } from "../lib/files.ts";
 import { declaredByInstalled, judgePackages, lockedPackages, recordedRows, renderInventory, type JudgementInput } from "./inventory.ts";
-import { checkHeaders, checkManifests, checkVendored, checkWorkflows, usedActions } from "./repo-files.ts";
+import { checkBinaries, checkHeaders, checkManifests, checkVendored, checkWorkflows, usedActions } from "./repo-files.ts";
 import { judge, parseExpression } from "./spdx.ts";
 
 function verdict(text: string): string {
@@ -236,5 +236,35 @@ describe("repository files", () => {
 		expect(checkVendored([folder("a", false)], ["b"])).toHaveLength(3);
 		expect(checkVendored([file("engine.js")], [])[0]).toContain("third_party/engine.js");
 		expect(checkVendored([folder("a", true)], ["a", "a"])).toHaveLength(1);
+	});
+
+	it("refuses a binary or model file outside a vendored folder with a manifest row", () => {
+		const loose = ["games/x/model.onnx", "weights.SAFETENSORS", "a/b.gguf", "m.pt", "data.bin", "lite.tflite", "addon.node", "pkg/core.wasm", "runs/r/blob.zip"];
+		const offences = checkBinaries(["README.md", "src/a.ts", ...loose], ["garbochess"]);
+		expect(offences).toHaveLength(loose.length);
+		expect(offences[0]).toBe("games/x/model.onnx: a binary or model file carries no SPDX header; it lives in third_party/<name>/ with a LICENSE and a manifest row, or not at all");
+		expect(checkBinaries(["third_party/garbochess/engine.wasm", "docs/a.png", "games/x/notes.md"], ["garbochess"])).toEqual([]);
+		expect(checkBinaries(["third_party/other/engine.wasm", "third_party/engine.wasm"], ["garbochess"])).toHaveLength(2);
+	});
+
+	it("fails when git tracks no file, so the binary check does not pass on nothing", () => {
+		expect(checkBinaries([], [])).toEqual(["git ls-files: no tracked file found; the binary check must read the repository"]);
+	});
+});
+
+describe("the licence gate in CI", () => {
+	const workflow = readText(".github/workflows/licences.yml");
+
+	it("runs the gate as its own job on every pull request and on pushes to the long-lived branches", () => {
+		expect(workflow.split("\n")[0]).toBe("# SPDX-License-Identifier: LicenseRef-SUL-1.0");
+		expect(workflow).toMatch(/^on:\n {2}pull_request:\n {2}push:\n {4}branches: \[main, develop, rewrite\/develop\]$/m);
+		expect(workflow).toMatch(/^ {2}licences:\n {4}name: licence gate$/m);
+		expect(workflow).toContain("run: pnpm install --frozen-lockfile");
+		expect(workflow).toContain("run: pnpm check:licences");
+		expect(workflow).not.toContain("continue-on-error");
+	});
+
+	it("checks pushes to rewrite/develop in the full check too", () => {
+		expect(readText(".github/workflows/check.yml")).toMatch(/^ {4}branches: \[main, develop, rewrite\/develop\]$/m);
 	});
 });

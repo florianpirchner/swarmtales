@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
+# The licence gate as its own job on every pull request and on every push to the long-lived branches (DECISIONS.md,
+# A69; docs/LICENCE-POLICY.md, "In CI"). It judges every package of the lockfile, vendored and binary files, actions,
+# headers and manifests, and fails on anything outside the allowlist. The check needs no network beyond the install:
+# packages of other platforms are judged by their rows in THIRD-PARTY-LICENSES.md. The owner makes the job
+# "licence gate" a required status check of `main` and `develop`.
+name: licences
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop, rewrite/develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: licences-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  licences:
+    name: licence gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up pnpm (version from package.json)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - name: Set up Node (version from .node-version)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Licence gate
+        run: pnpm check:licences

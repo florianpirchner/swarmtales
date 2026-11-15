@@ -56,12 +56,30 @@ A package passes when its SPDX licence expression is satisfied by these ids alon
    there is no workflow at all;
 6. a folder under `third_party/` has no row in `third_party/manifest.json`, no `LICENSE` file, or a licence outside
    the allowlist, or a file lies loose in `third_party/`;
-7. `THIRD-PARTY-LICENSES.md` is stale. `pnpm licences:write` rewrites it; only this command uses the network.
+7. a file that git tracks is a binary or model file (`.wasm`, `.node`, `.so`, `.dll`, `.exe`, `.jar`, `.onnx`,
+   `.safetensors`, `.gguf`, `.pt`, `.bin`, `.tflite`, `.pkl`, `.npy`, an archive and more; the list is
+   `BINARY_SUFFIXES` in `scripts/licences/repo-files.ts`) and does not lie in a folder `third_party/<name>/` with a
+   manifest row. Such a file carries no SPDX header, so no other check would see it;
+8. `THIRD-PARTY-LICENSES.md` is stale. `pnpm licences:write` rewrites it; only this command uses the network.
 
 The inventory lists the packages of the lockfile, the vendored folders and the actions with their pinned commits.
 It is the same on every machine. The licence of an action is the one of its repository, read by hand from the
 licence file at the pinned commit when the action is put on the list; the code that an action bundles is not
 judged package by package.
+
+## In CI
+
+The workflow `.github/workflows/licences.yml` runs the gate as its own job, `licence gate`, on every pull request
+(to any branch) and on every push to `main`, `develop` and, until the switch of decision A5, `rewrite/develop`
+(decision A69). It installs with `pnpm install --frozen-lockfile` and runs `pnpm check:licences`, which exits
+non-zero on any offence above; it needs no network beyond the install, because the packages of other platforms are
+judged by their rows in `THIRD-PARTY-LICENSES.md`. The job takes a few minutes, so a pull request learns of a refused
+licence long before the full check of `check.yml` (which runs the gate too) is done.
+
+The job blocks a merge only once it is a required status check. **The owner sets this by hand**: on GitHub,
+Settings, Branches, the protection rule of `main` and of `develop` (and of `rewrite/develop` until the switch),
+"Require status checks to pass before merging", with the check `licence gate` (and `check`). A build session
+cannot set branch protection.
 
 ## Exceptions
 

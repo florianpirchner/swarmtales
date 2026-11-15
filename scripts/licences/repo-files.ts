@@ -144,3 +144,32 @@ export function checkVendored(entries: readonly VendoredEntry[], rows: readonly 
 		...rows.filter((name, index) => rows.indexOf(name) !== index).map((name) => `third_party/manifest.json: two rows for ${name}`),
 	];
 }
+
+/**
+ * The suffixes of binary and model files: they carry no SPDX header, so the header check never sees them. Native
+ * addons, WebAssembly, executables, model weights, serialised data and archives.
+ */
+export const BINARY_SUFFIXES: readonly string[] = [
+	".wasm", ".node", ".so", ".dylib", ".dll", ".exe", ".jar",
+	".onnx", ".safetensors", ".gguf", ".ggml", ".pt", ".pth", ".ckpt", ".bin", ".tflite", ".pb", ".h5", ".keras", ".mlmodel",
+	".pkl", ".pickle", ".npy", ".npz", ".zip", ".tar", ".tgz", ".gz", ".7z",
+];
+
+/**
+ * Checks that a binary or model file is tracked only inside a vendored folder `third_party/<name>/` with a row in the
+ * manifest; {@link checkVendored} and the inventory judge that folder's licence text and licence.
+ *
+ * @param tracked - The paths of every file that git tracks.
+ * @param rows - The names in `third_party/manifest.json`.
+ * @returns One offence per binary file outside a vendored folder with a row, and one when no file is tracked at all.
+ */
+export function checkBinaries(tracked: readonly string[], rows: readonly string[]): readonly string[] {
+	if (tracked.length === 0) return ["git ls-files: no tracked file found; the binary check must read the repository"];
+	return tracked
+		.filter((path) => BINARY_SUFFIXES.some((suffix) => path.toLowerCase().endsWith(suffix)))
+		.filter((path) => {
+			const vendor = /^third_party\/([^/]+)\/./.exec(path)?.[1];
+			return vendor === undefined || !rows.includes(vendor);
+		})
+		.map((path) => `${path}: a binary or model file carries no SPDX header; it lives in third_party/<name>/ with a LICENSE and a manifest row, or not at all`);
+}

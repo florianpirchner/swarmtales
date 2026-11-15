@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: LicenseRef-SUL-1.0
-# The full check on every pull request and on every push to `main` and `develop` (DECISIONS.md, D3).
-# Budget: `pnpm check` itself fails above 10 minutes or 6 GB. Actions are pinned by commit; the licence gate
-# checks that (scripts/licences/allowlist.ts).
+# The full check on every pull request and on every push to `main`, `develop` and, until the switch (A5),
+# `rewrite/develop` (DECISIONS.md, D3, A69). Budget: `pnpm check` itself fails above 10 minutes or 6 GB. Actions are
+# pinned by commit; the licence gate checks that (scripts/licences/allowlist.ts). The licence gate also runs on its
+# own, fast, in licences.yml.
 name: check
 
 on:
   pull_request:
   push:
-    branches: [main, develop]
+    branches: [main, develop, rewrite/develop]
 
 permissions:
   contents: read
