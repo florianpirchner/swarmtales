@@ -5,7 +5,7 @@ import { posix } from "node:path";
 import { isTestFile } from "../lib/files.ts";
 import {
 	CONTRACT_IMPORTS, FOLDER_RULES, FORBIDDEN_PACKAGES, LAYER_TITLES, MAX_LIBRARY_PACKAGES, PACKAGE_RULES, PLUGIN_LAYER,
-	PLUGIN_SUBPATHS, RULES_IMPORTS, SHARED_CONTRACTS, TEST_ONLY_PACKAGES, TOP_LAYER, type ImportRule,
+	PLUGIN_CLASSES, PLUGIN_SUBPATHS, RULES_IMPORTS, SHARED_CONTRACTS, TEST_ONLY_PACKAGES, TOP_LAYER, type ImportRule,
 } from "./table.ts";
 
 /** One import of a source file: `import`, `export ... from`, `import()` or `require()`. */
@@ -26,7 +26,7 @@ export interface WorkspacePackage {
 	readonly folder: string;
 	/** The layer id (`L0` to `L6`), from the number declared in `package.json` under `swarmtales.layer`. */
 	readonly layer: string | undefined;
-	/** For a mechanic: `base` or `game`, declared under `swarmtales.class`. */
+	/** For a package under `mechanics/`: `base`, `game` or `director`, declared under `swarmtales.class`. */
 	readonly mechanicClass: string | undefined;
 	/** Workspace and external packages under `dependencies` and `peerDependencies`. */
 	readonly dependencies: readonly string[];
@@ -72,8 +72,8 @@ function declarationOffences(pack: WorkspacePackage): readonly string[] {
 	if (pack.layer !== rule.layer) {
 		offences.push(`${pack.name}: declares layer ${pack.layer ?? "none"}, but ${pack.folder} must declare "swarmtales": { "layer": "${rule.layer}" }`);
 	}
-	if (isPlugin(pack) && pack.mechanicClass !== "base" && pack.mechanicClass !== "game") {
-		offences.push(`${pack.name}: a mechanic declares "swarmtales": { "class": "base" or "game" }`);
+	if (isPlugin(pack) && !PLUGIN_CLASSES.some((name) => name === pack.mechanicClass)) {
+		offences.push(`${pack.name}: a package under mechanics/ declares "swarmtales": { "class": "base", "game" or "director" }`);
 	}
 	return offences;
 }
@@ -81,6 +81,7 @@ function declarationOffences(pack: WorkspacePackage): readonly string[] {
 /** Says why one plugin may not use another, or `undefined` when it may. */
 function pluginRefusal(source: WorkspacePackage, target: WorkspacePackage, subpath: string | undefined): string | undefined {
 	if (source.mechanicClass === "base" && target.mechanicClass === "game") return `a base mechanic may not use the game mechanic ${target.name}`;
+	if (source.mechanicClass === "base" && target.mechanicClass === "director") return `a base mechanic may not use the director package ${target.name}`;
 	if (subpath !== undefined && !PLUGIN_SUBPATHS.some((allowed) => subpath === allowed || subpath.startsWith(`${allowed}/`))) {
 		return `a mechanic imports another mechanic only through ${PLUGIN_SUBPATHS.map((path) => `/${path}`).join(" and ")}`;
 	}

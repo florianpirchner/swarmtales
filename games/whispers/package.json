@@ -1,0 +1,12 @@
+{
+	"name": "@swarmtales/game-whispers",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Game: the hidden whisperer among six residents, with the variants whispers and whispers-rumours",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	}
+}

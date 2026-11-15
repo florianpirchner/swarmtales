@@ -1,0 +1,12 @@
+{
+	"name": "@swarmtales/game-city",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Game: the City of Keys, Act I and Act II at six residents",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	}
+}

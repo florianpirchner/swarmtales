@@ -7,7 +7,8 @@ declared dependencies and on actual imports. The decisions behind it are D8 and 
 ## The layers
 
 A package declares its layer in `package.json`: `"swarmtales": { "layer": "L0" }`. A mechanic also declares
-`"class": "base"` or `"class": "game"`. Every package under `packages/` has its own row in the table; a package
+`"class": "base"`, `"class": "game"` or `"class": "director"` (a package of Directors, held to the rules of a game
+mechanic; a base mechanic may not use one, M5-00). Every package under `packages/` has its own row in the table; a package
 there without a row fails the check.
 
 | Layer | Package | May import (workspace) | Node modules in source files |

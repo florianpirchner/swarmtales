@@ -145,8 +145,9 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
   slice at M3 tests whether that suffices), its contracts move to their providers.
 - **Recut of the City cluster** (19 mechanics, about 15,900 lines) follows paper 03's direction (one ballot instead
   of six vote implementations, one talk mechanic instead of five chats, removal without knowledge of pieces) but
-  under the rule of two: a general mechanic is created only when two real users exist. It happens after the
-  tabletop games, with the M3 slice as the early proof.
+  under the rule of two: a general mechanic is created only when two real users exist. At M5 the recut changes
+  ownership and dependencies only; mechanics with new model-facing names wait until after 1.0 (A50). It happens
+  after the tabletop games, with the M3 slice as the early proof.
 - **Game frame:** paper 03's `match` mechanic plus pure `Ruleset` objects would remove 13 copies of the same frame
   (turn order, deadline and forfeit, fresh context, hidden score), where seven turn bugs were fixed one game at a
   time. It is unproven on Salt Market, Convoy and Harbor Lights. It is earned (D9): tic-tac-toe, quarry, econ-lab
@@ -180,8 +181,8 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
 ### 3.6 Directors and Human Hand
 
 - `defineDirector` with triggers, a structured answer and code that acts on it (paper 04's shape; testable
-  offline); model-driven tool use is the declared exception. One generic Director runtime instead of one model
-  runtime file per Director as today.
+  offline); model-driven tool use is the declared exception. The gamemaker is that exception (`acts: "tools"`,
+  A58). One generic Director runtime instead of one model runtime file per Director as today.
 - Human Hand is a plugin over external input at safe points. A post-game judge is an analysis step that reads a
   finished log, not a Director.
 
@@ -254,7 +255,7 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
 | Carry as is | `packages/chain` (extended to envelopes), viewer including the read-only legacy log reader so old runs stay readable, `packages/prompts`, `random.ts` bit for bit, pure rule code of the 13 games, mechanic README generator, conformance checks, mutation harness with its gate for kernel and sdk (E7) |
 | Port | models, tool pipeline, turn loop, testkit, reporter, the 19 newer mechanics (about 13,300 lines) each with its test file from `test/mechanics` |
 | Recut | the City cluster and the four Directors |
-| Drop | old game format and its validator, legacy log writer, `mechanics/shared` order tables, old-engine goldens, `arena`, `stockfish.js` and `lab/chess-engine.ts` in their present form, `LICENSE-FAQ.md`, the contributor agreement |
+| Drop | old game format and its validator, legacy log writer, `mechanics/shared` order tables, old-engine goldens, the run-frame duties of `arena` (budget and snapshot; its game rules stay a mechanic, A57), `stockfish.js` and `lab/chess-engine.ts` in their present form, `LICENSE-FAQ.md`, the contributor agreement |
 
 ## 4. Migration steps
 
@@ -265,7 +266,7 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
 | M2 | Live and measured | models with key broker and canary test; computed facts table; quarry and econ-lab ported as they are; noise floor and the two paired series; the first findings block and the recorded moment enter the README; the data repository `swarmtales-runs` receives the runs | both firm effects keep their sign at 12 seeds (about 2 USD); no key canary in any artefact. **Kill criterion checked here** |
 | M3 | City slice | six scripted residents, talk, ledger, exile that knows nothing about pieces, one piece-owning mechanic that listens to the exile event, one decision, one Director, a pause by the human, snapshot and resume | the slice replays exactly from its log and resumes from a snapshot; `exile` names no other game mechanic; no service cycle |
 | M4 | The bulk | the remaining ten tabletop games ported as they are; the parallel spike of at most three issues and its sample; harbor-lights and lanterns rerun; `GAMES.md` complete for the tabletop games | every tabletop game matches its oracle or a registered change; four firm effects reproduced in sign |
-| M5 | City and Whispers | a tabletop game that M4 cut, first; recut of the City cluster, Whispers first; Act I and Act II at six residents; API freeze after this, not before (the scheduler port was tried by a second scheduler at M4) | City plays Act I and II; a new Act I base snapshot is recorded |
+| M5 | City and Whispers | recut of the City cluster, Whispers first (M4 cut no tabletop game, A49); Act I and Act II at six residents; API freeze after this, not before (the scheduler port was tried by a second scheduler at M4) | City plays Act I and II; a new Act I base snapshot is recorded |
 | M6 | Release | samples 2 to 4, a mechanic and a Director installed from outside the repository, the rename of original games, `swt doctor --online`, names and publishing | the 1.0 list of section 5 holds |
 
 **State of the milestones** (added while building; the table above is the plan as decided). M1: done. M2: done;

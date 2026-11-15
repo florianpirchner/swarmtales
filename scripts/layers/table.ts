@@ -78,6 +78,12 @@ export const TOP_LAYER = "L6";
 /** The layer of plugins. A plugin imports another plugin only through the sub-paths in {@link PLUGIN_SUBPATHS}. */
 export const PLUGIN_LAYER = "L3";
 
+/**
+ * The classes of a package under `mechanics/` (`swarmtales.class`): a base mechanic, a game mechanic, or a package of
+ * Directors (A58), which imports a game mechanic only through {@link PLUGIN_SUBPATHS}, like a game mechanic does.
+ */
+export const PLUGIN_CLASSES = ["base", "game", "director"] as const;
+
 /** The sub-paths one mechanic may import from another: its service contract and its pure rule code. */
 export const PLUGIN_SUBPATHS = ["contract", "rules"] as const;
 

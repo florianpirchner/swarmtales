@@ -1,0 +1,30 @@
+{
+	"name": "@swarmtales/mechanic-script",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Mechanic: the story's rules on time and events, acting through other mechanics as the actor script",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"class": "game",
+		"layer": "L3",
+		"mechanics": []
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	}
+}

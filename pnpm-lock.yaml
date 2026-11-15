@@ -166,6 +166,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  games/city: {}
+
   games/city-slice:
     dependencies:
       '@swarmtales/mechanic-channels':
@@ -485,6 +487,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  games/whispers: {}
+
+  mechanics/arena: {}
+
   mechanics/card-table:
     dependencies:
       '@swarmtales/contracts':
@@ -500,6 +506,8 @@ importers:
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit
+
+  mechanics/cast: {}
 
   mechanics/channels:
     dependencies:
@@ -544,6 +552,8 @@ importers:
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit
+
+  mechanics/city-directors: {}
 
   mechanics/clue-grid:
     dependencies:
@@ -724,6 +734,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/goals: {}
+
   mechanics/grid-game:
     dependencies:
       '@swarmtales/contracts':
@@ -853,6 +865,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/marks: {}
+
   mechanics/morris:
     dependencies:
       '@swarmtales/contracts':
@@ -909,6 +923,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/motives: {}
+
+  mechanics/names: {}
+
   mechanics/optimal-referee:
     dependencies:
       '@swarmtales/contracts':
@@ -927,6 +945,10 @@ importers:
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit
+
+  mechanics/petitions: {}
+
+  mechanics/progression: {}
 
   mechanics/puzzles:
     dependencies:
@@ -950,6 +972,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/receipts: {}
+
   mechanics/salt-market:
     dependencies:
       '@swarmtales/contracts':
@@ -972,6 +996,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/script: {}
+
+  mechanics/seal: {}
+
   mechanics/sealed-auction:
     dependencies:
       '@swarmtales/contracts':
@@ -993,6 +1021,10 @@ importers:
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit
+
+  mechanics/standoff: {}
+
+  mechanics/standoff-tribunal: {}
 
   mechanics/strategy-brain:
     dependencies:
@@ -1035,6 +1067,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/tribunal: {}
+
   mechanics/trick-play:
     dependencies:
       '@swarmtales/contracts':
@@ -1059,6 +1093,8 @@ importers:
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit
+
+  mechanics/whispers: {}
 
   packages/chain:
     dependencies:

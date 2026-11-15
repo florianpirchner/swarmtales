@@ -91,7 +91,22 @@ describe("layer check", () => {
 		const puzzles = mechanic("puzzles", "game");
 		const exile = mechanic("exile", "base", uses("mechanics/exile", "@swarmtales/mechanic-puzzles/contract"));
 		expect(checkLayers([...base, puzzles, exile]).join("\n")).toContain("a base mechanic may not use the game mechanic");
-		expect(checkLayers([mechanic("exile", "plugin")])[0]).toContain('"class": "base" or "game"');
+		expect(checkLayers([mechanic("exile", "plugin")])[0]).toContain('"class": "base", "game" or "director"');
+	});
+
+	it("holds a package of class director to the rules of a game mechanic (M5, 4.6), and keeps base mechanics off it", () => {
+		const puzzles = mechanic("puzzles", "game");
+		const plain = pack("city-directors", "mechanics/city-directors", "L3", { mechanicClass: "director" });
+		const directors = (specifier: string): WorkspacePackage => ({ ...plain, ...uses(plain.folder, specifier) });
+		expect(checkLayers([...base, puzzles, directors("@swarmtales/sdk")])).toEqual([]);
+		expect(checkLayers([...base, puzzles, directors("@swarmtales/mechanic-puzzles/contract")])).toEqual([]);
+		expect(checkLayers([...base, puzzles, directors("@swarmtales/mechanic-puzzles/rules")])).toEqual([]);
+		expect(checkLayers([...base, puzzles, directors("@swarmtales/mechanic-puzzles")]).join("\n")).toContain("only through /contract and /rules");
+		expect(checkLayers([...base, directors("@swarmtales/kernel")]).join("\n")).toContain("not @swarmtales/kernel");
+		const city = pack("game-city", "games/city", "L6");
+		expect(checkLayers([...base, city, directors("@swarmtales/game-city")]).join("\n")).toContain("not @swarmtales/game-city");
+		const ledger = mechanic("ledger", "base", uses("mechanics/ledger", "@swarmtales/city-directors/contract"));
+		expect(checkLayers([...base, plain, ledger]).join("\n")).toContain("a base mechanic may not use the director package @swarmtales/city-directors");
 	});
 
 	it("rejects a hub package (D8)", () => {
@@ -222,6 +237,7 @@ describe("workspace reader", () => {
 
 	it("reads this repository without an offence", () => {
 		expect(readWorkspace().length).toBeGreaterThan(0);
+		expect(readWorkspace().filter((entry) => entry.mechanicClass === "director").map((entry) => entry.folder)).toEqual(["mechanics/city-directors"]);
 		expect(checkLayers(readWorkspace(), readRootTools())).toEqual([]);
 	});
 });

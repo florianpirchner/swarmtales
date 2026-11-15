@@ -1,0 +1,30 @@
+{
+	"name": "@swarmtales/mechanic-receipts",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Mechanic: numbered proof of a delivered message or a transfer, showReceipt, and blame with a judge; provides the contract receipt-source",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"class": "game",
+		"layer": "L3",
+		"mechanics": []
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	}
+}

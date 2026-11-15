@@ -1,0 +1,30 @@
+{
+	"name": "@swarmtales/mechanic-marks",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Mechanic: an allowance of messages per level or run, and the prices on tools of other mechanics; provides the contract allowance",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"class": "game",
+		"layer": "L3",
+		"mechanics": []
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	}
+}

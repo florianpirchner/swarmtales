@@ -8,6 +8,30 @@ import { ServiceDefinition } from '@swarmtales/contracts';
 import { Type } from 'typebox';
 
 // @public
+export const AllowanceService: ServiceDefinition<"allowance", {
+readonly left: {
+readonly kind: "query";
+readonly summary: "The resident's marks in the current window, or null where marks do not apply (old `left` of `marks`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+remaining: Type.TNumber;
+budget: Type.TNumber;
+}>, Type.TNull]>;
+};
+readonly priceOf: {
+readonly kind: "query";
+readonly summary: "What a message on the channel costs the resident now, or null where marks do not apply (old `priceOf` of `marks`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+channel: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"dm">, Type.TLiteral<"receipt">]>;
+}>;
+readonly output: Type.TUnion<[Type.TNumber, Type.TNull]>;
+};
+}>;
+
+// @public
 export const BrainSourceService: ServiceDefinition<"brain-source", {
 readonly game: {
 readonly kind: "query";
@@ -64,6 +88,54 @@ readonly input: Type.TObject<{
 reason: Type.TString;
 }>;
 readonly output: Type.TBoolean;
+};
+}>;
+
+// @public
+export const IdentityService: ServiceDefinition<"identity", {
+readonly nameOf: {
+readonly kind: "query";
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly display: {
+readonly kind: "query";
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly resolve: {
+readonly kind: "query";
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+}>;
+
+// @public
+export const ReceiptSourceService: ServiceDefinition<"receipt-source", {
+readonly ofTransfer: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued for the booking `txId` of the ledger, or null (old `ofTransfer` of `receipts`).";
+readonly input: Type.TObject<{
+txId: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly ofMessage: {
+readonly kind: "query";
+readonly summary: "The id of the receipt issued when the direct message `number` was delivered, or null.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
 };
 }>;
 

@@ -57,10 +57,11 @@ What the numbers of this table can and cannot say:
   viewer, the ported mechanics, the chain) is not told apart from new source.
 - **Cost is a dash in every row:** the sessions are not billed per token.
 
-The merges of the rows 1 to 163 are of 2026-11-14, those of the rows 164 to 231 of 2026-11-15; the times are UTC.
-The table is complete up to commit `cfa3676` of `rewrite/develop` (M4-59) and the gate's own squash commit (row 231);
-the rows 85 to 129 were written from the history by issue M3-31, the rows 130 to 132 by issue M2-27, the rows 133 to
-135 by issue M3-34, the rows 136 to 143 by issue M4-00, and the rows 144 to 231 by issue M4-63 (its two parts). The
+The merges of the rows 1 to 163 are of 2026-11-14, those of the rows 164 to 237 of 2026-11-15; the times are UTC.
+The table is complete up to commit `c5daac3` of `rewrite/develop` (the specification of M5, row 237); the rows 85 to
+129 were written from the history by issue M3-31, the rows 130 to 132 by issue M2-27, the rows 133 to 135 by issue
+M3-34, the rows 136 to 143 by issue M4-00, the rows 144 to 231 by issue M4-63 (its two parts), and the rows 236 and
+237 (with the commit of row 235) by issue M5-00, whose own row is owed (the integrator adds it with the merge). The
 commit id and the merge time of row 231 are those of the integrator's squash commit, which this row cannot name; the
 integrator fills them with the merge, as the rows of M3-31, M2-27, M3-34 and M4-00 were filled.
 
@@ -310,7 +311,9 @@ row of M4: a builder's branch is removed after the merge, so its first commit is
 | 232 | M4-63 | Follow-up: the commit id of row 231 | M4 | `4de7a92` | 14:03 | in row 231 | - | - | - | +1 -1 | 0 | 0 | 1 | integrator's follow-up, folded into row 231's work |
 | 233 | - | M4 review: the challenger's findings, one held as a failing test | M4 | `020f73c` | 14:20 | 0.34 | - | - | 0.36 | +267 -0 | 0 | 75 | 192 | one challenger session (342518 tokens); no blocker, no port difference from `legacy`; `docs/M4-REVIEW.md` |
 | 234 | - | Decision A47: the review of M4, issue M4-72 | M4 | `e3792ac` | 14:21 | not recorded | - | - | not recorded | +1 -0 | 0 | 0 | 1 | integrator's commit, no issue id; decision A47 adds M4-72 |
-| 235 | M4-72 | Close the review of M4: a closed meter is logged, the cap's limits named, the definition frozen | M4 | the squash commit | - | 0.16 | - | - | 0.24 | +117 -37 | 62 | 32 | 29 | one builder session (161813 tokens); runtime revision 6 (the tag `runtime-r6` is owed); added by decision A47, beside the plan; sdk 2107 lines |
+| 235 | M4-72 | Close the review of M4: a closed meter is logged, the cap's limits named, the definition frozen | M4 | `390448d` | 14:37 | 0.16 | - | - | 0.24 | +117 -37 | 62 | 32 | 29 | one builder session (161813 tokens); runtime revision 6 (the tag `runtime-r6` is owed); added by decision A47, beside the plan; sdk 2107 lines |
+| 236 | - | Resume note: M4 closed, the tag runtime-r6 owed | M4 | `17a33a4` | 14:38 | not recorded | - | - | not recorded | +2 -2 | 0 | 0 | 4 | integrator's commit, no issue id; row written by M5-00 |
+| 237 | M5 specification | M5 build specification, challenged: Whispers and the City of Keys, 58 issues; decisions A48 to A63 | M5 | `c5daac3` | 14:59 | not recorded | - | - | not recorded | +1263 -0 | 0 | 0 | 1263 | specification commit, its sessions not recorded; row written by M5-00 |
 
 ## Sessions without a row
 
@@ -348,6 +351,7 @@ of the second integrator session, and row 231 waits for its notice.
 | Sum of M0 to M2 | 76 | 62 planned issues of M1 and M2, plus the 3 rows of M0. With the issues beside the plan (M1-37 to M1-40, M2-25 to M2-27): **72**, the number of kill check 1; with M2-28 to M2-30 (A29, merged after the gate): 75 | kill line 150. Every row with the milestone M0, M1 or M2 (reviews, the specification, follow-up and integrator commits included): 91 |
 | M3 | 32 (A19), 33 with M3-32 (A24) | 33 | M3-00 to M3-32 (rows 130 and 131 are the live smoke M3-30 and the gate M3-31). Beside the plan: M3-33 (A26, row 137) and M3-34 (row 138), which closes the milestone review (row 135). M3 is closed by decision A28 (row 139). Stop line of A19: above 64 |
 | M4 | 64 (A32), 72 with M4-64 to M4-71 (A42, A43, A45, A46) | 72 | M4-00 to M4-71 (rows 144 to 231); M4-44 has no commit of its own and is inside M4-45 (row 167, errata H32); M4-59, the three series, is row 230; M4-63, the gate, has two rows (229 and 231). The specification is row 143. The cut list is applied at 90 issues merged or open, and M4 is stopped and planned again above 128 (A32): 72 stand, nothing was cut. Open after the gate: the milestone review of M4 |
+| M5 | 58 (A48) | 0 | M5-00 to M5-57; the specification is row 237. The cut list of its section 10.2 is applied at 80 issues merged or open, and M5 is stopped and planned again above 116 (A48) |
 
 Rows beside the plan: 69. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
 milestone), the specifications of M2, M3 and M4, the reviews A and B and the milestone review of M2, the six
@@ -377,6 +381,21 @@ bound of what the work used. The median of the 70 rows up to row 82 with a numbe
 row 0.64 million. The one recalibration of D4 (the median of the first ten merged issues replaces the 6 million per
 issue) is not done and is closed without being done: the budget it would recalibrate ended with M2, and the rows 83 to
 170 hold no token number (specification of M4, section 5.3; written by issue M4-00).
+
+## The budgets at the start of M5
+
+Measured by issue M5-00 with the counter of the budget gate (`scripts/lib/budget.ts`) at `c5daac3`, the head of
+`rewrite/develop` after M4-72 (`390448d`) and the specification of M5; the specification measured the same numbers on
+`e3792ac` and, in its challenge, on `390448d` (`12-m5-spec.md`, section 1.3).
+
+| Package | Code lines | M5 may add | After M5, at most | Limit |
+|---|---:|---:|---:|---|
+| `kernel` | 1402 | 88 (M5-01, M5-02, M5-04 only) | 1490 | gate 1420 (`packages/kernel/test/budget.test.ts`), raised by M5-05 to the measured count, at most 1490 (A20, A51); hard 1500 |
+| `sdk` | 2107 (2099 before M4-72, which took 8) | 80 (M5-01, -03, -04, -06, -07) | 2187 | |
+| `engine` | 360 | 25 (M5-04, -07, -09) | 385 | |
+| kernel + sdk + engine | 3869 | 193 | 4062 | 4100 (A20): 231 left now, 38 after M5 |
+| `contracts` | 993 | about 40 | | none |
+| `mechanics/contracts` | 135 (with the three contracts of M5-00: `identity`, `allowance`, `receipt-source`) | | | none |
 
 ## The gate of M3
 

@@ -22,6 +22,9 @@
 			"path": "games/chess"
 		},
 		{
+			"path": "games/city"
+		},
+		{
 			"path": "games/city-slice"
 		},
 		{
@@ -61,13 +64,25 @@
 			"path": "games/tictactoe-teams"
 		},
 		{
+			"path": "games/whispers"
+		},
+		{
+			"path": "mechanics/arena"
+		},
+		{
 			"path": "mechanics/card-table"
+		},
+		{
+			"path": "mechanics/cast"
 		},
 		{
 			"path": "mechanics/channels"
 		},
 		{
 			"path": "mechanics/chess"
+		},
+		{
+			"path": "mechanics/city-directors"
 		},
 		{
 			"path": "mechanics/clue-grid"
@@ -97,6 +112,9 @@
 			"path": "mechanics/exile"
 		},
 		{
+			"path": "mechanics/goals"
+		},
+		{
 			"path": "mechanics/grid-game"
 		},
 		{
@@ -115,22 +133,52 @@
 			"path": "mechanics/liars-dice"
 		},
 		{
+			"path": "mechanics/marks"
+		},
+		{
 			"path": "mechanics/morris"
 		},
 		{
 			"path": "mechanics/morris-referee"
 		},
 		{
+			"path": "mechanics/motives"
+		},
+		{
+			"path": "mechanics/names"
+		},
+		{
 			"path": "mechanics/optimal-referee"
+		},
+		{
+			"path": "mechanics/petitions"
+		},
+		{
+			"path": "mechanics/progression"
 		},
 		{
 			"path": "mechanics/puzzles"
 		},
 		{
+			"path": "mechanics/receipts"
+		},
+		{
 			"path": "mechanics/salt-market"
 		},
 		{
+			"path": "mechanics/script"
+		},
+		{
+			"path": "mechanics/seal"
+		},
+		{
 			"path": "mechanics/sealed-auction"
+		},
+		{
+			"path": "mechanics/standoff"
+		},
+		{
+			"path": "mechanics/standoff-tribunal"
 		},
 		{
 			"path": "mechanics/strategy-brain"
@@ -139,7 +187,13 @@
 			"path": "mechanics/team-channel"
 		},
 		{
+			"path": "mechanics/tribunal"
+		},
+		{
 			"path": "mechanics/trick-play"
+		},
+		{
+			"path": "mechanics/whispers"
 		},
 		{
 			"path": "packages/chain"

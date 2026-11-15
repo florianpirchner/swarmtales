@@ -14,7 +14,7 @@ import { findWords, namesAndStrings, wordsOf } from "../lib/words.ts";
 /**
  * Words the kernel must not know. `actor`, `kind`, `grant`, `tool`, `service`, `event`, `tick`, `job`, `plugin`,
  * `human`, `script` and `game` are the kernel's own words and are not listed. Extend the list when a review finds a
- * game word that it misses.
+ * game word that it misses. `guard` is a name of the kernel's stages since M1 and is not listed either.
  */
 const GAME_WORDS = new Set([
 	// roles
@@ -28,6 +28,9 @@ const GAME_WORDS = new Set([
 	// brought by the mechanics and games of M3 and M4 (11-m4-spec.md, section 4.2)
 	"banish", "pause", "holder", "amend", "verdict", "court", "channel", "fragment", "transfer", "bid", "trick", "pawn",
 	"lantern", "convoy", "market",
+	// brought by the City cluster and Whispers (12-m5-spec.md, section 4.6); not "guard", a stage name of the kernel
+	"petition", "receipt", "ransom", "seal", "faction", "standoff", "ultimatum", "door", "motive", "goal", "feast",
+	"identity", "allowance",
 	// what belongs to drivers and reports
 	"briefing", "prompt", "model", "cost", "usd",
 ]);
@@ -62,6 +65,14 @@ describe("kernel word list", () => {
 		expect(findWords(text, GAME_WORDS).map((hit) => `${String(hit.line)}:${hit.word}`)).toEqual([
 			"1:banish", "1:pause", "2:holder", "2:amend", "3:verdict", "3:court", "3:channel", "4:fragment", "4:transfer", "4:bid",
 			"5:trick", "5:pawn", "5:lantern", "6:convoy", "6:market", "6:deal",
+		]);
+	});
+
+	it("knows the words that M5 brings, in every form a kernel file could hold them, and leaves the stage guard alone", () => {
+		const text = ["const petitions = receiptOf(ransoms);", 'emit("seal_factions");', "type StandoffUltimatum = DoorOf;", "// motives, goals, feasts", "const identities = allowanceOf(guard);"].join("\n");
+		expect(findWords(text, GAME_WORDS).map((hit) => `${String(hit.line)}:${hit.word}`)).toEqual([
+			"1:petition", "1:receipt", "1:ransom", "2:seal", "2:faction", "3:standoff", "3:ultimatum", "3:door", "4:motive", "4:goal", "4:feast",
+			"5:identity", "5:allowance",
 		]);
 	});
 

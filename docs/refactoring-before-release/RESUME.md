@@ -1,6 +1,28 @@
 # Resume note of the rewrite (kept by the integrator)
 
-## State at the end of M4, 2026-11-15, about 14:00 UTC (read this part first)
+## M5 started, 2026-11-15 (read this part first)
+
+Written by the scaffold of M5 (M5-00). The specification is `12-m5-spec.md` (58 issues, A48; decisions A48 to A63),
+its errata `12-m5-spec-errata.md` (rows J1 onward). The scaffold holds the fifteen mechanic packages and
+`mechanics/city-directors` (class `director`) with empty barrels, `games/whispers` and `games/city` with README stubs,
+the contracts `identity`, `allowance` and `receipt-source` in `mechanics/contracts`, the gate
+`scripts/gates/service-cycles.test.ts`, the class `director` in the layer rules and the words of the cluster in the
+kernel word list. The budgets at the start (kernel 1402, sdk 2107, engine 360, together 3869 of 4100) are in
+`docs/ISSUE-RECORD.md`, "The budgets at the start of M5". The section on M4 below still holds for what it says.
+
+**Open questions of the specification** (`12-m5-spec.md`, section 17), each with the issue that meets it first:
+
+| # | Question | Leaning | Settled by |
+|---|---|---|---|
+| 1 | Should the gamemaker run on DeepSeek via OpenRouter rather than Haiku? | closed: Haiku through Anthropic for every M5 run (A52); a DeepSeek gamemaker is an arm after 1.0 | decided with the challenge |
+| 2 | Does the review stage fit 15 kernel lines, and if not, may the hard limit be met exactly (1500) with the `afford`/`settle` handlers too? | no: way out 2 of section 1.3 stops the issue | M5-04's count; the integrator by a decision row |
+| 3 | Is the precedence of a marks refusal kept in `rule`, or does the game need the kernel's `afford`? (No oracle file holds a marks refusal.) | `rule`, with registered changes | M5-17's first test, from the carried tests |
+| 4 | Does the seeded order of `turns` equal the old story host's order? | yes (the stream is carried bit for bit, M1) | M5-38's first test |
+| 5 | Can `act2-s7` be projected without its old start state? | yes for tribunals, votes and exiles; not for balances | M5-47 |
+| 6 | Is the City's level 3 reachable, or does the order between sources need more registered changes than M3 listed? | reachable, with the rows of M3 and one per moved listener | M5-45 and M5-46 |
+| 7 | What a resident session's saved context holds when the provider caches it, and whether a resumed live run's first request is a cache miss | a miss, paid once | M5-08 |
+
+## State at the end of M4, 2026-11-15, about 14:00 UTC
 
 Written by the gate issue of M4 (M4-63). The older sections below are kept as they were; where they differ, this
 one holds.

@@ -1,0 +1,30 @@
+{
+	"name": "@swarmtales/mechanic-standoff",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Mechanic: pieces held for others, hand-overs, the ultimatum, the city's shop of the pieces of the exiled",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"class": "game",
+		"layer": "L3",
+		"mechanics": []
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	}
+}
