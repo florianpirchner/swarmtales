@@ -61,13 +61,14 @@ and writes the run folder with the signed, hash-chained log. A live model plays 
 A seed fixes everything random in the world, a snapshot saves a run at a tick so it can be resumed, and a dial (an
 integer from 0 to 10) sets how strongly a Director or a mechanic acts.
 
-## What we found (2026-11-14)
+## What we found (2026-11-15)
 
-Two firm effects of the old platform were measured again on this one, 12 seeds each
-([`docs/M2-GATE.md`](docs/M2-GATE.md)); every other result is still an "old platform" row of [`docs/FINDINGS.md`](docs/FINDINGS.md).
+Four effects of the old platform were measured again on this one, 12 seeds each ([`docs/M2-GATE.md`](docs/M2-GATE.md), [`docs/M4-GATE.md`](docs/M4-GATE.md)); every other result is still an "old platform" row of [`docs/FINDINGS.md`](docs/FINDINGS.md).
 
 - **Open quarries raise the table's points:** +84.5 (n 12 pairs, standard error 22.0, 95 % interval 36 to 133). The size agrees with the old +77. Caveat: a seat also sees picks of the same step (LH18 in [`docs/LESSONS-LEARNED.md`](docs/LESSONS-LEARNED.md)). [Series](https://github.com/florianpirchner/swarmtales/tree/data/runs/quarry/quarry-open-quarries)
 - **A strategy brain lowers cooperation in the dilemma:** -0.771 (n 12 runs per arm, standard error 0.084, 95 % interval -0.954 to -0.588). Sign kept, larger than the old estimate of -0.40. [Series](https://github.com/florianpirchner/swarmtales/tree/data/runs/econ-lab/econ-lab-brain)
+- **A team brain raises recall in Lanterns:** +0.058 (n 12 pairs, standard error 0.022, 95 % interval +0.010 to +0.106). The size agrees with the old +0.08; more of it is in game 1 than before. [Series](https://github.com/florianpirchner/swarmtales/tree/data/runs/lanterns/lanterns-team-brain)
+- **Private notes before a Harbor Lights game:** +1.58 points (n 12 pairs, standard error 1.37, 95 % interval -1.44 to +4.61). Sign kept, size not reproduced: the old +3.2 was twice as large. [Series](https://github.com/florianpirchner/swarmtales/tree/data/runs/harbor-lights/harbor-lights-private-notes)
 
 ## One recorded moment
 

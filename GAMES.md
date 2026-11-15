@@ -122,7 +122,7 @@ games, private notes, or nothing. A crew of reference bots plays every deal too,
 - Proof: all eight oracle files match at level 3 (the three arms, the aid, hard strikes and the silent file; one up
   to its cut); the briefings and the retro question are byte-identical.
 - Links: [folder](games/harbor-lights/), [README](games/harbor-lights/README.md),
-  [oracle files](oracles/harbor-lights/).
+  [oracle files](oracles/harbor-lights/), [runs](games/harbor-lights/RUNS.md).
 
 ## Lanterns
 
@@ -138,7 +138,8 @@ what the keeper meant the seekers found, for the report only.
   `maxWords` (the size of a brain). The defaults give the game of the old platform, with its output cap of 16000 tokens.
 - Proof: the four oracle files match at level 3, three of them replays of a live run of the old platform up to their
   cut; the briefings are byte-identical.
-- Links: [folder](games/lanterns/), [README](games/lanterns/README.md), [oracle files](oracles/lanterns/).
+- Links: [folder](games/lanterns/), [README](games/lanterns/README.md), [oracle files](oracles/lanterns/),
+  [runs](games/lanterns/RUNS.md).
 
 ## The city slice
 
@@ -190,7 +191,8 @@ baseline, for the report only.
 - Proof: the twelve oracle files match at level 3, three of them up to their cut, with one declared mapping (the
   files lack the flag `endsTurn`, which every accepted move sets); the briefings of all four branches are
   byte-identical.
-- Links: [folder](games/chess/), [README](games/chess/README.md), [oracle files](oracles/chess/).
+- Links: [folder](games/chess/), [README](games/chess/README.md), [oracle files](oracles/chess/),
+  [runs](games/chess/RUNS.md).
 
 ## Hold'em
 
