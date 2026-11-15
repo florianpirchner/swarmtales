@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { default, morrisGame, ticksFor, type MorrisOptions } from "../game.ts";
+export { default, morrisFamily, morrisGame, ticksFor, type MorrisOptions } from "../game.ts";
 export { briefings, type BriefingInput, type Teams } from "../briefing.ts";

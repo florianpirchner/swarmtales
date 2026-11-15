@@ -9,11 +9,13 @@
  * memory across games is each seat's private strategy brain (`brain: false`: the same briefings, no brain). The
  * mechanic scores every loyal seat's accusations and votes against a Bayesian tracker of the public record, for the
  * report only. A port of the old `stories/convoy/story.ts`: the variants are options of the factory, the id is
- * always `convoy`.
+ * always `convoy`. The file exports the game family: the variants that an experiment or `--set` may choose are its
+ * params, and its defaults give the game of the old platform.
  */
 import { convoy } from "@swarmtales/mechanic-convoy";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, SEATS } from "./briefing.ts";
 
 /**
@@ -86,4 +88,34 @@ export function convoyGame(options: ConvoyOptions = {}) {
 	});
 }
 
-export default convoyGame();
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose, with the bounds of the old
+ * variant-name parser and of the mechanic. The seed and the tick count are no params: the seed is the run's, and the
+ * tick count follows from the games and the stages.
+ */
+const Params = Type.Object(
+	{
+		games: Type.Integer({ minimum: 1, maximum: 20, default: DEFAULTS.games, description: "Games in the match; the roles are dealt anew for each." }),
+		crews: Type.Array(Type.Integer({ minimum: 1 }), { minItems: 1, default: [...DEFAULTS.crews], description: "The crew size of each stage; its length is the number of stages." }),
+		damageToLose: Type.Integer({ minimum: 1, maximum: 8, default: DEFAULTS.damageToLose, description: "Damaged stages that stop the convoy." }),
+		cooldown: Type.Integer({ minimum: 1, maximum: 8, default: DEFAULTS.cooldown, description: "Stages after a saboteur's damage card until it may play damage again." }),
+		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+	},
+	{ description: "The variants of Convoy." },
+);
+
+/**
+ * Convoy as a game family: the default params give the registry default of the old platform (three games of eight
+ * stages, three damaged stages to lose, a brain per seat); `{ brain: false }` is the control arm.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: convoyFamily, params: { brain: false }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const convoyFamily = defineGameFamily(Params, (params) => convoyGame(params));
+
+export default convoyFamily;

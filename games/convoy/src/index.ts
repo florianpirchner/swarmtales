@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { convoyGame, default, type ConvoyOptions } from "../game.ts";
+export { convoyFamily, convoyGame, default, type ConvoyOptions } from "../game.ts";
 export { briefings, SEATS } from "../briefing.ts";

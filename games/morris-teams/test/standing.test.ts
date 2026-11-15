@@ -8,7 +8,7 @@
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import game, { morrisGame } from "../game.ts";
+import { morrisGame } from "../game.ts";
 import { morrisPlayer } from "./support.ts";
 
 const fake = (seed: number): StandingDrivers => (kernel) => ({ resident: fakeDriver(kernel, seed) });
@@ -18,7 +18,7 @@ const RUNS = [
 	{ name: "scripted against the search", game: morrisGame({ games: 1, maxTurns: 30, refereeDepth: 2, teamSize: 1, engineDepth: 2 }), drivers: scripted, options: {} },
 	// A match of one game: every boundary of the game file's three games would take the fake run more than a minute.
 	{ name: "fake, one game, seed 13", game: morrisGame({ games: 1 }), drivers: fake(13), options: { seed: 13 } },
-	...[13, 31].map((seed) => ({ name: `fake, seed ${String(seed)}`, game, drivers: fake(seed), options: { seed } })),
+	...[13, 31].map((seed) => ({ name: `fake, seed ${String(seed)}`, game: morrisGame(), drivers: fake(seed), options: { seed } })),
 ];
 
 describe("nine men's morris: the standing checks", () => {

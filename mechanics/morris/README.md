@@ -200,7 +200,16 @@ A match of games the strategy brain can pause between games: the game's number, 
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `morris.games` | Games played | games | `game_ended` |
+| `morris.xWinShare` | Games won by X | - | `game_ended` |
+| `morris.drawShare` | Games drawn | - | `game_ended` |
+| `morris.blockedShare` | Games ended by a blockade | - | `game_ended` |
+| `morris.turns` | Turns per game | turns | `game_ended` |
+| `morris.forfeits` | Moves played by the move timer | moves | `move_played` |
 
 <!-- /generated:metrics -->
 

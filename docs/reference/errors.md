@@ -274,7 +274,7 @@ The actor {id} has no driver in the run manifest.
 
 - **Why:** Every actor needs a driver, by its id or by its kind, and the manifest names it.
 - **Fix:** Add a driver id for "{id}" or for the kind "{kind}" to the drivers of the run.
-- **Named in:** `packages/engine`
+- **Named in:** `packages/engine`, `samples/own-scheduler`
 
 ### SWT-R013
 
@@ -290,7 +290,7 @@ The activation is toAct, but no loaded plugin names who is to act.
 
 - **Why:** With the activation toAct, one plugin's toAct hook says who is woken.
 - **Fix:** Load a mechanic with a toAct hook, or set the activation to always or onNews.
-- **Named in:** `packages/engine`
+- **Named in:** `packages/engine`, `samples/own-scheduler`
 
 ### SWT-R015
 

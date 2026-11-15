@@ -7,6 +7,7 @@ import { BrainSourceService, ConsensusSourceService } from "@swarmtales/mechanic
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { MorrisEvents } from "./events.ts";
+import { morrisMetrics } from "./metrics.ts";
 import { copyOf, MorrisSlice, type MorrisState } from "./model.ts";
 import { emptyBoard } from "./rules.ts";
 
@@ -107,6 +108,7 @@ export const morrisHead = defineHead({
 	},
 	snapshot: { save: (state: MorrisState) => copyOf(state), load: (data): MorrisState => copyOf(data) },
 	events: MorrisEvents.events,
+	metrics: morrisMetrics(MorrisEvents.events),
 	provides: [ConsensusSourceService, BrainSourceService],
 	uses: [ConsensusService, ConsensusAgreedService, TeamChannelService, StrategyBrainService],
 	prompts: {

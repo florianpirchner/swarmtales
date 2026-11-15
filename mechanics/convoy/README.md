@@ -342,7 +342,16 @@ A match of games the strategy brain can pause between games: the game's number, 
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `convoy.saboteurWins` | Games won by the saboteurs | - | `convoy_game_ended` |
+| `convoy.damaged` | Damaged stages per game | stages | `convoy_game_ended` |
+| `convoy.damagePerChance` | Saboteur damage cards per chance | - | `convoy_game_scored` |
+| `convoy.loyalHits` | Loyal accusation hits | - | `convoy_game_scored` |
+| `convoy.rightVotes` | Loyal votes that matched the crew | - | `convoy_game_scored` |
+| `convoy.crewsDown` | Crews voted down | crews | `convoy_votes_revealed` |
 
 <!-- /generated:metrics -->
 

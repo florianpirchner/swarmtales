@@ -7,14 +7,16 @@
  * across games is the team's strategy brain (`brain: false`: the same briefings, no brain). The Referee scores every
  * turn against an alpha-beta search for the report; residents never see it. With `engineDepth` side O is the built-in
  * search. A port of the old `stories/morris-teams/story.ts`: the variants are options of the factory, the id is always
- * `morris-teams`.
+ * `morris-teams`. The file exports the game family: the variants that an experiment or `--set` may choose are its
+ * params, and its defaults give the game of the old platform.
  */
 import { consensus } from "@swarmtales/mechanic-consensus";
 import { morris } from "@swarmtales/mechanic-morris";
 import { morrisReferee } from "@swarmtales/mechanic-morris-referee";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import { teamChannel } from "@swarmtales/mechanic-team-channel";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, type Teams } from "./briefing.ts";
 
 /**
@@ -124,4 +126,39 @@ export function morrisGame(options: MorrisOptions = {}) {
 	});
 }
 
-export default morrisGame();
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose, with the bounds of the old
+ * variant-name parser and of the mechanics. The seed and the tick count are no params: the seed is the run's, and the
+ * tick count follows from the games and the turn limit.
+ */
+const Params = Type.Object(
+	{
+		games: Type.Integer({ minimum: 1, maximum: 20, default: DEFAULTS.games, description: "Games in the match." }),
+		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each team keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)." }),
+		maxTurns: Type.Integer({ minimum: 10, maximum: 400, default: DEFAULTS.maxTurns, description: "Whole turns after which a game is a draw." }),
+		maxQuietTurns: Type.Integer({ minimum: 1, default: DEFAULTS.maxQuietTurns, description: "Turns without a mill (after the placing) after which a game is a draw." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+		maxRounds: Type.Integer({ minimum: 1, maximum: 20, default: DEFAULTS.maxRounds, description: "Rounds of proposal and vote per move before a random legal move is played." }),
+		teamSize: Type.Union([Type.Literal(1), Type.Literal(3)], { default: DEFAULTS.teamSize, description: "Residents per team: 3, or 1 who decides alone." }),
+		fixedCaptain: Type.Boolean({ default: DEFAULTS.fixedCaptain, description: "The first member of each team is captain for the whole match." }),
+		refereeDepth: Type.Integer({ minimum: 1, maximum: 6, default: DEFAULTS.refereeDepth, description: "Whole turns the Referee's search looks ahead." }),
+		engineDepth: Type.Integer({ minimum: 0, maximum: 6, default: 0, description: "Side O is the morris search at this depth; 0: two sides of residents (a param needs a default)." }),
+	},
+	{ description: "The variants of nine men's morris." },
+);
+
+/**
+ * Nine men's morris as a game family: the default params give the registry default of the old platform (two teams of
+ * three, three games, a brain per team); `{ teamSize: 1, engineDepth: 3 }` is one resident against the search, and
+ * `engineDepth: 0` (the default) stands for the option left out.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: morrisFamily, params: { teamSize: 1, engineDepth: 3 }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const morrisFamily = defineGameFamily(Params, ({ engineDepth, ...params }) => morrisGame({ ...params, ...(engineDepth === 0 ? {} : { engineDepth }) }));
+
+export default morrisFamily;

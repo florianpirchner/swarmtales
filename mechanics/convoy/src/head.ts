@@ -4,6 +4,7 @@ import { Type } from "typebox";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { defineHead, inSchemaOrder, type CtxOf, type ViewOf } from "@swarmtales/sdk";
+import { convoyMetrics } from "./metrics.ts";
 import { CardKind, ConvoySlice, PlayRecord, Role, SeatReference, StageRecord, Vote, type ConvoyState } from "./model.ts";
 
 const Seat = Type.String({ minLength: 1, maxLength: 8 });
@@ -26,6 +27,42 @@ function tableProblem(seats: number, saboteurs: number, crews: readonly number[]
 	if (saboteurs * 2 >= seats) return "convoy: the saboteurs must be fewer than half the table";
 	return damageToLose > crews.length ? "convoy: damageToLose is more than the stages" : undefined;
 }
+
+// The event schemas stand outside the head so that its metrics are typed by them.
+const events = {
+	convoy_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), roles: Type.Record(Type.String(), Role, { description: "The secret deal (audience human)." }) }),
+	convoy_crew_proposed: Type.Object({ game: Type.Integer(), stage: Type.Integer(), lead: Type.String(), crew: Type.Array(Type.String()), proposal: Type.Integer(), missed: Type.Boolean() }),
+	convoy_spoken: Type.Object({ game: Type.Integer(), stage: Type.Integer(), from: Type.String(), text: Type.String() }),
+	convoy_votes_revealed: Type.Object({ game: Type.Integer(), stage: Type.Integer(), lead: Type.String(), crew: Type.Array(Type.String()), votes: Type.Record(Type.String(), Vote), missed: Type.Array(Type.String()), confidence: Type.Boolean() }),
+	convoy_card_played: PlayRecord,
+	convoy_stage_revealed: StageRecord,
+	convoy_audited: Type.Object({ game: Type.Integer(), stage: Type.Integer(), seat: Type.String(), card: CardKind, by: Type.String() }),
+	convoy_accused: Type.Object({ game: Type.Integer(), seat: Type.String(), accused: Type.Array(Type.String()), missed: Type.Boolean() }),
+	convoy_game_ended: Type.Object({
+		game: Type.Integer(),
+		winner: Type.Union([Type.Literal("convoy"), Type.Literal("saboteurs")]),
+		roles: Type.Record(Type.String(), Role),
+		damaged: Type.Integer(),
+		stages: Type.Integer(),
+		cards: Type.Array(PlayRecord),
+		totals: Type.Record(Type.String(), Type.Number()),
+	}),
+	convoy_game_scored: Type.Object({
+		game: Type.Integer(),
+		seats: Type.Record(Type.String(), SeatReference),
+		/** The tracker's top suspects from the public record alone, and their posteriors. */
+		tracker: Type.Array(Type.String()),
+		posterior: Type.Record(Type.String(), Type.Number()),
+	}),
+	convoy_match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+};
+
+/**
+ * The event schemas of Convoy, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type ConvoyEvents = typeof events;
 
 /**
  * The head of Convoy: everything that can be read without running a handler.
@@ -78,33 +115,8 @@ export const convoyHead = defineHead({
 	},
 	// A snapshot file sorts the keys: the state comes back in the order of its schema, so the events written from it equal the straight run's (A43).
 	snapshot: { save: (state: ConvoyState) => structuredClone(state), load: (data): ConvoyState => inSchemaOrder(ConvoySlice, data) },
-	events: {
-		convoy_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), roles: Type.Record(Type.String(), Role, { description: "The secret deal (audience human)." }) }),
-		convoy_crew_proposed: Type.Object({ game: Type.Integer(), stage: Type.Integer(), lead: Type.String(), crew: Type.Array(Type.String()), proposal: Type.Integer(), missed: Type.Boolean() }),
-		convoy_spoken: Type.Object({ game: Type.Integer(), stage: Type.Integer(), from: Type.String(), text: Type.String() }),
-		convoy_votes_revealed: Type.Object({ game: Type.Integer(), stage: Type.Integer(), lead: Type.String(), crew: Type.Array(Type.String()), votes: Type.Record(Type.String(), Vote), missed: Type.Array(Type.String()), confidence: Type.Boolean() }),
-		convoy_card_played: PlayRecord,
-		convoy_stage_revealed: StageRecord,
-		convoy_audited: Type.Object({ game: Type.Integer(), stage: Type.Integer(), seat: Type.String(), card: CardKind, by: Type.String() }),
-		convoy_accused: Type.Object({ game: Type.Integer(), seat: Type.String(), accused: Type.Array(Type.String()), missed: Type.Boolean() }),
-		convoy_game_ended: Type.Object({
-			game: Type.Integer(),
-			winner: Type.Union([Type.Literal("convoy"), Type.Literal("saboteurs")]),
-			roles: Type.Record(Type.String(), Role),
-			damaged: Type.Integer(),
-			stages: Type.Integer(),
-			cards: Type.Array(PlayRecord),
-			totals: Type.Record(Type.String(), Type.Number()),
-		}),
-		convoy_game_scored: Type.Object({
-			game: Type.Integer(),
-			seats: Type.Record(Type.String(), SeatReference),
-			/** The tracker's top suspects from the public record alone, and their posteriors. */
-			tracker: Type.Array(Type.String()),
-			posterior: Type.Record(Type.String(), Type.Number()),
-		}),
-		convoy_match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
-	},
+	events,
+	metrics: convoyMetrics(events),
 	// Sealed: the deal, every card and the accusations; the reference is for the human and the reporter only.
 	audiences: { convoy_game_started: ["human"], convoy_card_played: ["human"], convoy_accused: ["human"], convoy_game_scored: ["human"] },
 	provides: [BrainSourceService],
