@@ -82,6 +82,32 @@ describe("replay", () => {
 		await expect(replay({ game, log })).resolves.toMatchObject({ equal: false, firstDifference: { line: 2 } });
 	});
 
+	it("resumes from the snapshot of every boundary and plays only the rest, with the call between two ticks made once", async () => {
+		const test = testKernel(game, { records: [MODEL] });
+		const cuts: { readonly snapshot: unknown; readonly lines: number }[] = [];
+		const cut = (): void => void cuts.push({ snapshot: JSON.parse(JSON.stringify(test.kernel.snapshot())), lines: test.kernel.log.length });
+		cut();
+		await test.playTicks(model, 1);
+		cut();
+		await test.call("A02", "guess", { value: 500 });
+		cut();
+		await test.playTicks(model, 2);
+		const log = test.kernel.log.all();
+		for (const { snapshot, lines } of cuts) {
+			const again = await replay({ game, log, records: [MODEL], resume: { snapshot, log: log.slice(0, lines) } });
+			expect([lines, again.equal, again.firstDifference]).toEqual([lines, true, undefined]);
+		}
+	});
+
+	it("resolves the game's scheduler id in the table `schedulers`, and in `{ turns }` without one", async () => {
+		const named = { ...game, scheduler: { id: "own", options: { order: "roster", blockSize: 2 } } };
+		const schedulers = { own: { ...turns, id: "@test/own" } };
+		const { events } = await play(named, { script, schedulers });
+		expect((await replay({ game: named, log: events, schedulers })).equal).toBe(true);
+		const error: unknown = await replay({ game: named, log: events }).catch((thrown: unknown) => thrown);
+		expect(error instanceof SwtError ? error.code : error).toBe("SWT-G020");
+	});
+
 	it("refuses a call outside an activation inside a tick with SWT-T004", async () => {
 		const { events } = await play(game, { script });
 		const call = where(events, "tool_called", "resident:A01");

@@ -382,6 +382,8 @@ export interface ReplayInput {
     readonly game: ResolvedGame | Game | GameData;
     readonly log: readonly Envelope[];
     readonly records?: readonly RecordSource[];
+    readonly resume?: ResumeInput;
+    readonly schedulers?: Readonly<Record<string, SchedulerDefinition>>;
 }
 
 // @public

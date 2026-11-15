@@ -4,7 +4,7 @@
  * replay are the tool calls and the events of the record sources; everything else is produced again. No model, no
  * asker and no script takes part.
  */
-import { SwtError, type ActorDriver, type Envelope, type GameData, type Kernel, type RecordSource, type SwtIssue } from "@swarmtales/contracts";
+import { SwtError, type Activation, type ActorDriver, type Envelope, type GameData, type Kernel, type RecordSource, type ResumeInput, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
 import { turns } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
@@ -17,12 +17,19 @@ import { Value } from "typebox/value";
  * @public
  */
 export interface ReplayInput {
-	/** The game of the run: resolved, or in its builder or data form. An unresolved game is resolved with the seed of the log's `run_started`, the scheduler `turns`, the prompts of the repository and `records`. */
+	/** The game of the run: resolved, or in its builder or data form. An unresolved game is resolved with the seed of the log's `run_started`, the table `schedulers`, the prompts of the repository and `records`. */
 	readonly game: ResolvedGame | Game | GameData;
 	/** The log of the run, as the kernel wrote it or as `events.jsonl` holds it (the stamp `at` is ignored). */
 	readonly log: readonly Envelope[];
 	/** Record sources whose events are inputs, not results; default: every declared record source. */
 	readonly records?: readonly RecordSource[];
+	/** The schedulers by id that an unresolved game's `scheduler.id` may name; `{ turns }` when absent. */
+	readonly schedulers?: Readonly<Record<string, SchedulerDefinition>>;
+	/**
+	 * A snapshot of the run and the lines of `log` up to it: the replay resumes a kernel there and plays only the
+	 * rest of `log` again; the replayed log is the given lines followed by the lines the resumed kernel wrote.
+	 */
+	readonly resume?: ResumeInput;
 }
 
 /**
@@ -41,10 +48,12 @@ export interface ReplayResult {
 	readonly issue?: SwtIssue;
 }
 
-// The inputs of one logged activation, in log order, and whether its driver was pending at its end.
+// The inputs of one logged activation, in log order, whether its driver was pending at its end, and the line of
+// its `activation_closed` (0 while it is open).
 interface Turn {
 	readonly steps: Envelope[];
 	pending: boolean;
+	closed: number;
 }
 
 // The inputs of a log: the activations of each actor, the inputs between the ticks (index: ticks ended before), the tick count.
@@ -101,7 +110,7 @@ function cutOff(log: readonly Envelope[]): SwtError | undefined {
 
 // An activation opens: the actor's next turn. The reason `answer` says that the driver was pending after the turn before.
 function opened(plan: Plan, open: Map<number, Turn>, event: Envelope): void {
-	const turn: Turn = { steps: [], pending: false };
+	const turn: Turn = { steps: [], pending: false, closed: 0 };
 	const earlier = plan.turns.get(event.actor) ?? [];
 	const last = earlier.at(-1);
 	if (last !== undefined && field(field(event.payload, "detail"), "reason") === "answer") last.pending = true;
@@ -131,7 +140,11 @@ function planOf(log: readonly Envelope[], sources: ReadonlySet<string>): Plan {
 			inTick = false;
 		},
 		activation_opened: (event) => { opened(plan, open, event); },
-		activation_closed: (event) => open.delete(event.causedBy ?? 0),
+		activation_closed: (event) => {
+			const turn = open.get(event.causedBy ?? 0);
+			if (turn !== undefined) turn.closed = event.seq;
+			open.delete(event.causedBy ?? 0);
+		},
 		tool_called: (event) => { place(plan, open.get(event.causedBy ?? 0), event, inTick); },
 	};
 	for (const event of log) {
@@ -154,21 +167,28 @@ async function reach(kernel: Kernel, seq: number): Promise<void> {
 	}
 }
 
-// The driver of every actor: it makes the calls and writes the records of the actor's next logged activation.
-function driverOf(kernel: Kernel, plan: Plan): ActorDriver {
-	const played = new Map<string, number>();
+// The driver of every actor: it makes the calls and writes the records of the actor's next logged activation,
+// then returns when the replayed log is one line short of that activation's `activation_closed`. The close line is
+// an input too: under a scheduler that does not wait for one actor before the next (`parallel` of the sample), the
+// order of the closes decides when a scan runs. `played` holds the activations each actor had before the replay.
+function driverOf(kernel: Kernel, plan: Plan, played: Map<string, number>): ActorDriver {
 	return async (activation) => {
 		const index = played.get(activation.actor) ?? 0;
 		played.set(activation.actor, index + 1);
 		const turn = plan.turns.get(activation.actor)?.[index];
-		for (const event of turn?.steps ?? []) {
-			// No await when the line is due: what a driver wrote before its first await stays before the next member's opening.
-			if (kernel.log.length < event.seq - 1) await reach(kernel, event.seq);
-			if (event.source === "kernel") await activation.call(String(field(event.payload, "as")), field(event.payload, "params"));
-			else activation.record(event.source, event.type, event.payload);
-		}
-		return { pending: turn?.pending ?? false };
+		if (turn === undefined) return { pending: false };
+		for (const event of turn.steps) await repeat(kernel, activation, event);
+		if (kernel.log.length < turn.closed - 1) await reach(kernel, turn.closed);
+		return { pending: turn.pending };
 	};
+}
+
+// One input of an activation at its line: a call, or a record.
+async function repeat(kernel: Kernel, activation: Activation, event: Envelope): Promise<void> {
+	// No await when the line is due: what a driver wrote before its first await stays before the next member's opening.
+	if (kernel.log.length < event.seq - 1) await reach(kernel, event.seq);
+	if (event.source === "kernel") await activation.call(String(field(event.payload, "as")), field(event.payload, "params"));
+	else activation.record(event.source, event.type, event.payload);
 }
 
 // One input between two ticks: a call through `submit`, a record through `Kernel.record`.
@@ -181,13 +201,33 @@ async function outside(kernel: Kernel, event: Envelope): Promise<void> {
 	await kernel.submit({ actor: event.actor, as: String(field(event.payload, "as")), params: field(event.payload, "params"), ...links });
 }
 
-// Plays tick by tick, with the inputs of each boundary before the tick that follows it.
-async function playAgain(kernel: Kernel, plan: Plan, actors: readonly string[]): Promise<void> {
-	const driver = driverOf(kernel, plan);
+// Where a replay starts: the lines already in the kernel, the ticks they ended and each actor's activations in them.
+interface Start {
+	readonly lines: number;
+	readonly ticks: number;
+	readonly played: Map<string, number>;
+}
+
+// The start after the first `lines` lines of the log; 0 lines is a replay from the beginning.
+function startOf(log: readonly Envelope[], lines: number): Start {
+	const played = new Map<string, number>();
+	let ticks = 0;
+	for (const event of log.slice(0, lines)) {
+		if (event.source !== "kernel") continue;
+		if (event.type === "tick_ended") ticks += 1;
+		if (event.type === "activation_opened") played.set(event.actor, (played.get(event.actor) ?? 0) + 1);
+	}
+	return { lines, ticks, played };
+}
+
+// Plays tick by tick from the start, with the inputs of each boundary before the tick that follows it; an input
+// already among the start's lines is not made again.
+async function playAgain(kernel: Kernel, plan: Plan, actors: readonly string[], start: Start): Promise<void> {
+	const driver = driverOf(kernel, plan, start.played);
 	const drivers = Object.fromEntries(actors.map((id) => [id, driver]));
-	kernel.start();
-	for (let tick = 0; ; tick++) {
-		for (const event of plan.between[tick] ?? []) await outside(kernel, event);
+	if (start.lines === 0) kernel.start();
+	for (let tick = start.ticks; ; tick++) {
+		for (const event of plan.between[tick] ?? []) if (event.seq > start.lines) await outside(kernel, event);
 		if (tick >= plan.ticks || kernel.ended !== undefined) return;
 		await kernel.run(drivers, { ticks: 1 });
 	}
@@ -195,17 +235,20 @@ async function playAgain(kernel: Kernel, plan: Plan, actors: readonly string[]):
 
 // The resolved game: as given, or resolved like `play` does, with the seed the log started with.
 function resolved(input: ReplayInput): ResolvedGame {
-	const { game, log, records } = input;
+	const { game, log, records, schedulers } = input;
 	if ("definition" in game) return game;
 	const seed = field(log[0]?.payload, "seed");
-	return resolveGame({ game, schedulers: { turns }, prompts: createPromptLookup(), ...(typeof seed === "number" ? { seed } : {}), ...(records === undefined ? {} : { records }) });
+	return resolveGame({ game, schedulers: schedulers ?? { turns }, prompts: createPromptLookup(), ...(typeof seed === "number" ? { seed } : {}), ...(records === undefined ? {} : { records }) });
 }
 
 /**
  * Plays a run again from its log and compares. Inputs are taken from the log: a `tool_called` inside an activation
  * is called again by a replay driver, in the order and at the line of the log; a `tool_called` between two ticks is
- * submitted at the same boundary; an event of a record source is recorded again at the same place. Every other
- * line (kernel, scheduler, mechanics) is a result. A resumed log is replayed as one log.
+ * submitted at the same boundary; an event of a record source is recorded again at the same place. The line of each
+ * `activation_closed` is an input too: a replay driver returns only when the replayed log has reached the line before
+ * it, so the closes, and the scans a scheduler runs at them, come at the lines of the log under any scheduler. Every
+ * other line (kernel, scheduler, mechanics) is a result. A resumed log is replayed as one log; with `resume` the
+ * replay starts at a snapshot instead and plays only the rest.
  *
  * A failure of the replayed run (as of the run itself) ends its log with `run_ended`; it is not thrown, the
  * comparison shows it. Not repeated at M3: a driver that failed (the outcome `error` of an activation) and a run
@@ -230,8 +273,9 @@ export async function replay(input: ReplayInput): Promise<ReplayResult> {
 	const { definition } = resolved(input);
 	const sources = new Set((input.records ?? definition.records ?? []).map((source) => source.id));
 	const plan = planOf(input.log, sources);
-	const kernel = createKernel(definition, { redact: (text) => text });
-	await playAgain(kernel, plan, definition.actors.map((actor) => actor.id)).catch(() => undefined);
+	const kernel = createKernel(definition, { redact: (text) => text }, input.resume);
+	const start = startOf(input.log, input.resume === undefined ? 0 : kernel.log.length);
+	await playAgain(kernel, plan, definition.actors.map((actor) => actor.id), start).catch(() => undefined);
 	const log = kernel.log.all();
 	for (let index = 0; index < Math.max(log.length, input.log.length); index++) {
 		const [expected, got] = [input.log[index], log[index]];
