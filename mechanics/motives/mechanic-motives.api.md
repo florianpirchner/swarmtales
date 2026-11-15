@@ -144,6 +144,9 @@ intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Typ
 }>>;
 figure: Type.TOptional<Type.TString>;
 }>>;
+whisperer: Type.TOptional<Type.TObject<{
+agent: Type.TOptional<Type.TString>;
+}>>;
 noteTools: Type.TArray<Type.TString>;
 }>, {
 readonly motive_dealt: Type.TObject<{
@@ -235,6 +238,9 @@ drive: Type.TString;
 intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Type.TLiteral<"atTimes">]>;
 }>>;
 figure: Type.TOptional<Type.TString>;
+}>>;
+whisperer: Type.TOptional<Type.TObject<{
+agent: Type.TOptional<Type.TString>;
 }>>;
 noteTools: Type.TArray<Type.TString>;
 }>, Type.TArray<Type.TObject<{
@@ -370,6 +376,9 @@ export const MotivesOptions: Type.TObject<{
             intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Type.TLiteral<"atTimes">]>;
         }>>;
         figure: Type.TOptional<Type.TString>;
+    }>>;
+    whisperer: Type.TOptional<Type.TObject<{
+        agent: Type.TOptional<Type.TString>;
     }>>;
     noteTools: Type.TArray<Type.TString>;
 }>;

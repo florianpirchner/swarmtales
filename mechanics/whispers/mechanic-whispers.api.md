@@ -109,6 +109,14 @@ export function namesList(names: readonly string[]): string;
 export type Phase = "closed" | "open" | "pending";
 
 // @public
+export type PickStreams = (label: string) => {
+    pick<T>(items: readonly T[]): T;
+};
+
+// @public
+export function pickWhisperer(residents: readonly string[], rng: PickStreams, agent?: string): string | null;
+
+// @public
 export const PopularitySpec: Type.TObject<{
     rounds: Type.TArray<Type.TObject<{
         opensAt: Type.TInteger;

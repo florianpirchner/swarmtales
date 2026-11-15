@@ -2,7 +2,7 @@
 /**
  * `swt run` without `--fake`: a game file to a verified run folder, played by models under a cost cap. The order is
  * fixed, because the manifest must exist before the first event: the key broker and the cap; the resolved game and
- * its model; the system prompts, the kernel (created, not started: the manifest holds its tool specs), the manifest
+ * its model; the kernel (created, not started: the manifest holds its tool specs), the system prompts (A86), the manifest
  * and the run folder; the start, the model drivers and `prompt_fixed`; the run; the verification, the leak scan and
  * the result. With a spend ledger the run's cap is reserved before the folder is opened and settled after the scan.
  * The key broker is created here and handed to `createModelSource` only; everything else gets `broker.redact`.
@@ -14,11 +14,11 @@ import { jsonHash } from "@swarmtales/chain";
 import { formatIssue, redactSecrets, redactValue, SwtError, type AskModel, type DriverTable, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import { createDirectorDrivers, createReviewPort, DIRECTOR_RECORDS, REVIEW_RECORDS } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
-import { createAsker, createCostMeter, createKeyBroker, createModelDrivers, createToolDirector, DIRECTOR_MODEL_RECORDS, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, parseSavedSessions, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type SavedSessions, type Spend } from "@swarmtales/models";
+import { createAsker, createCostMeter, createKeyBroker, createModelDrivers, createToolDirector, DIRECTOR_MODEL_RECORDS, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, parseSavedSessions, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type SavedSessions, type Spend } from "@swarmtales/models";
 import { nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
-import { DIRECTOR_TAKE, RESIDENT_KIND, type ResolvedGame } from "@swarmtales/sdk";
+import { DIRECTOR_TAKE, type ResolvedGame } from "@swarmtales/sdk";
 import { Type } from "typebox";
-import { Check, Parse } from "typebox/value";
+import { Parse } from "typebox/value";
 import { loopOf, pauseEvent, runManifest, type LoopOptions } from "./assembly.ts";
 import { actorModels, type ActorModels } from "./director-models.ts";
 import type { LiveFlags } from "./flags.ts";
@@ -29,11 +29,11 @@ import type { HandSource, LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
 import type { LiveResume } from "./live-resume.ts";
 import { RUN_RECORDS } from "./records.ts";
+import { residentPrompts } from "./resident-prompts.ts";
 import { folderTexts, played, resolveFile, runFacts, whyOf, type RunInput } from "./run.ts";
 import { handLine, type HandCount } from "./watch.ts";
 import { confirmatoryDirty, readSourceTree, type SourceTree } from "./tree.ts";
 
-const Passes = Type.Object({ passes: Type.Integer({ minimum: 1, description: "Passes per tick" }) }, { description: "The option of the turn scheduler that the system prompt names" });
 const Pinned = Type.Object(
 	{ dependencies: Type.Object({ "@earendil-works/pi-ai": Type.String({ description: "The exact version of the provider library" }) }, { description: "The dependencies of the models package" }) },
 	{ description: "The `package.json` of the models package, as far as the price table is named from it" },
@@ -107,13 +107,6 @@ export function confirmatoryAlone(): SwtIssue {
 function pricing(): string {
 	const raw: unknown = JSON.parse(readFileSync(findPackageJSON("@swarmtales/models", import.meta.url) ?? "", "utf8"));
 	return `pi-ai@${Parse(Pinned, raw).dependencies["@earendil-works/pi-ai"]}`;
-}
-
-// The system prompt of every resident (a Director has its own, and the human none): a pure function of the resolved game, so its hash is in the manifest before the kernel starts.
-function promptsOf(game: ResolvedGame, texts: PromptLookup): Readonly<Record<string, string>> {
-	const { actors, scheduler } = game.definition;
-	const passes = Check(Passes, scheduler.options) ? scheduler.options.passes : 1;
-	return Object.fromEntries(actors.filter((actor) => actor.kind === RESIDENT_KIND).map((actor) => [actor.id, systemPrompt({ id: actor.id.slice(actor.kind.length + 1), passes, briefing: game.briefings[actor.id] ?? "" }, texts)]));
 }
 
 function modelOf(settings: ModelSettings): ManifestModel {
@@ -209,7 +202,6 @@ interface Prepared {
 	readonly source: ModelSource;
 	readonly actors: ActorModels;
 	readonly ask: AskModel;
-	readonly systemPrompts: Readonly<Record<string, string>>;
 	readonly meter: CostMeter;
 	readonly redact: Redact;
 	readonly tree: SourceTree;
@@ -221,7 +213,7 @@ interface Prepared {
 // The limits of a Director's use; none for another actor.
 const limitsOf = (game: ResolvedGame, actor: string): { readonly maxCostUsd?: number; readonly maxRequests?: number } => (game.directors ?? []).find((director) => director.actor === actor)?.limits ?? {};
 
-// Steps one and two: the cap, the source tree (a confirmatory run needs an experiment and a clean tree), the resolved game, its model with the key check, the system prompts.
+// Steps one and two: the cap, the source tree (a confirmatory run needs an experiment and a clean tree), the resolved game, its model with the key check.
 async function prepared(input: LiveInput, io: CliIo, broker: KeyBroker): Promise<Prepared> {
 	const meter = createCostMeter(input.budget ?? 0);
 	if (input.purpose === "confirmatory" && input.experiment === undefined) throw new SwtError(confirmatoryAlone());
@@ -231,7 +223,7 @@ async function prepared(input: LiveInput, io: CliIo, broker: KeyBroker): Promise
 	const models = settingsOf(input, game, broker);
 	// A Director asks its model; its cost counts on the meter of the run, under its own `maxCostUsd`.
 	const ask = createAsker(models.source, meter, (actor) => limitsOf(game, actor));
-	return { game, texts, ...models, ask, systemPrompts: promptsOf(game, texts), meter, redact: broker.redact, tree, ...loopParts(input, game, io, broker.redact) };
+	return { game, texts, ...models, ask, meter, redact: broker.redact, tree, ...loopParts(input, game, io, broker.redact) };
 }
 
 // The Human Hand (without the lines a resumed run had applied), the event of `--pause-on`, and a resume's saved sessions.
@@ -240,9 +232,9 @@ function loopParts(input: LiveInput, game: ResolvedGame, io: CliIo, redact: Reda
 	return { hand: handOf(input.hand, game, io, resumed?.hand), pauseOn: input.pauseOn === undefined ? undefined : pauseEvent(game, input.pauseOn), saved: resumed === undefined ? undefined : parseSavedSessions(resumed.sessions, redact) };
 }
 
-// Steps three and four: the kernel is created (the manifest holds its tool specs), then the manifest is written with the folder. Nothing is started.
-function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): { readonly kernel: Kernel; readonly folder: RunFolder } {
-	const { game, systemPrompts, meter, redact } = run;
+// Steps three and four: the kernel is created (the manifest holds its tool specs), the system prompts are built from it (it answers the character fact before it starts), then the manifest is written with the folder. Nothing is started.
+function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): { readonly kernel: Kernel; readonly folder: RunFolder; readonly systemPrompts: Readonly<Record<string, string>> } {
+	const { game, meter, redact } = run;
 	const { actors } = game.definition;
 	const folders: RunFolder[] = [];
 	const sink: EventSink = {
@@ -259,6 +251,7 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 	const { resumed } = input;
 	const kernel: Kernel = createKernel(game.definition, { sinks: [sink, ...(input.sinks ?? [])], limits: [meter.limit], redact, review: createReviewPort({ game, ask: run.ask, facts: (key) => kernel.fact(key) }) }, resumed?.input);
 	if (game.win !== undefined) kernel.fact(game.win);
+	const systemPrompts = residentPrompts(game, run.texts, kernel);
 	const facts = {
 		...runFacts(directory, io.now),
 		...run.tree,
@@ -274,7 +267,7 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 	const folder = openRunFolder(directory, resumed === undefined ? manifest : { ...manifest, resumedFrom: { snapshotHash: resumed.snapshotHash } }, { now: io.now, game: game.data, texts: folderTexts(game), redact, ...resumed?.folder });
 	folders.push(folder);
 	resumed?.began(kernel, facts.models);
-	return { kernel, folder };
+	return { kernel, folder, systemPrompts };
 }
 
 // The leak scan of the run folder, for the caller that catches a throw of the run: absent until the folder is open.
@@ -308,10 +301,10 @@ function codeOf(leak: boolean, end: RunEnd | undefined, verified: boolean, cappe
 // A throw after the start leaves the reservation in the ledger: a crashed run keeps its whole cap, and so does a run whose cost is not known.
 async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace): Promise<LiveResult> {
 	const run = await prepared(input, io, broker);
-	const { game, settings, source, systemPrompts, meter, redact, texts, ask } = run;
+	const { game, settings, source, meter, redact, texts, ask } = run;
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
 	const name = runName(input, directory);
-	const { kernel, folder, settle } = reserved(input, io, name, meter.capUsd, () => opened(input, io, run, directory));
+	const { kernel, folder, systemPrompts, settle } = reserved(input, io, name, meter.capUsd, () => opened(input, io, run, directory));
 	trace.scan = () => scanFolder(directory, (text) => broker.leaks(text));
 	const play = async (): Promise<Awaited<ReturnType<typeof played>>> => {
 		// A resumed kernel has started; its residents go on from their saved conversations, whose prompts were fixed before.

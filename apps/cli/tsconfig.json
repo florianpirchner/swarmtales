@@ -41,6 +41,18 @@
 		},
 		{
 			"path": "../../packages/testkit"
+		},
+		{
+			"path": "../../mechanics/channels"
+		},
+		{
+			"path": "../../mechanics/ledger"
+		},
+		{
+			"path": "../../mechanics/motives"
+		},
+		{
+			"path": "../../mechanics/whispers"
 		}
 	]
 }

@@ -95,6 +95,12 @@ export const MotivesOptions = Type.Object(
 				{ description: "The character the story gives its whisperer (the story's `whisperer.coreMotive`) instead of the drawn one." },
 			),
 		),
+		whisperer: Type.Optional(
+			Type.Object(
+				{ agent: Type.Optional(Type.String({ description: "The resident the game names as its whisperer (the whispers' `whisperer.agent`)." })) },
+				{ description: "The game's whisperer plays (the whispers' `whisperer`, in a run that is no control run): the resident it names, else the seeded pick of `pickWhisperer` of the whispers' `/rules`. Without it nobody plays `whispererCoreMotive`." },
+			),
+		),
 		noteTools: Type.Array(Type.String({ description: "The bare name of a tool" }), {
 			default: ["notify", "boardNote"],
 			description: "The tools of a Director's note whose `text` (or `reason`) is checked for a resident's core motive (`PRIVATE_BLOCKED`); `notify` is read by its `agent`, the others by the board.",

@@ -9,6 +9,7 @@ import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { defineHead, inSchemaOrder, type CtxOf, type StateSetup, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { WhispersEvents, WhispersService } from "./contract.ts";
 import { Direction, WhispererSpec, type Forgery } from "./duty.ts";
+import { pickWhisperer } from "./rules.ts";
 import { PopularitySpec, type Phase } from "./vote.ts";
 
 /** The longest forged text, as the longest direct message.
@@ -82,12 +83,10 @@ function load(data: Static<typeof WhispersSlice>): WhispersState {
 	return { whisperer: slice.whisperer, forgeries: slice.forgeries.map(({ minute, to }) => ({ minute, to })), round: slice.round, phase: slice.phase, ballots: new Map(slice.ballots.map(({ agent, choice }) => [agent, choice])) };
 }
 
-// The whisperer of a fresh run: the game's pick, or a seeded one among the residents (old `pickWhisperer`); none in a control run.
+// The whisperer of a fresh run: the game's pick, or a seeded one among the residents (`pickWhisperer` of `/rules`); none in a control run.
 function start(setup: StateSetup<typeof WhispersOptions>): WhispersState {
 	const { whisperer: spec, control } = setup.options;
-	const ids = setup.residents;
-	let whisperer: string | null = null;
-	if (spec !== undefined && !control && ids.length > 0) whisperer = spec.agent !== undefined && ids.includes(spec.agent) ? spec.agent : setup.rng("whisperer").pick([...ids].sort((a, b) => a.localeCompare(b)));
+	const whisperer = spec === undefined || control ? null : pickWhisperer(setup.residents, setup.rng, spec.agent);
 	return { whisperer, forgeries: [], round: 0, phase: "pending", ballots: new Map() };
 }
 

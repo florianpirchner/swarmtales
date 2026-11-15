@@ -3,9 +3,10 @@
 import { Type, type Static } from "typebox";
 import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { WhispersService } from "@swarmtales/mechanic-whispers/contract";
+import { pickWhisperer } from "@swarmtales/mechanic-whispers/rules";
 import { defineHead, inSchemaOrder, type CtxOf, type StateSetup, type ViewOf } from "@swarmtales/sdk";
 import { MotivesEvents, MotivesService } from "./contract.ts";
-import { namedCast, type Motive } from "./deal.ts";
+import { dealMotives, namedCast, type Motive } from "./deal.ts";
 import { MotiveRecord, MotivesOptions } from "./spec.ts";
 
 /**
@@ -14,7 +15,7 @@ import { MotiveRecord, MotivesOptions } from "./spec.ts";
  * @public
  */
 export interface MotivesState {
-	/** Dealt once at the start of the run, kept for good; in roster order. */
+	/** Dealt once when a fresh run is set up, kept for good; in roster order. */
 	readonly coreMotives: Map<string, Motive>;
 }
 
@@ -30,10 +31,15 @@ function load(data: Static<typeof Slice>, setup: StateSetup<typeof MotivesOption
 	return { coreMotives: new Map(slice.filter((entry) => setup.residents.includes(entry.agent)).map(({ agent, ...coreMotive }) => [agent, coreMotive])) };
 }
 
-// Nothing is dealt before the run starts; a wrong cast is refused when the run is set up (old: at the deal).
+// The deal of a fresh run, from the run's streams before it starts, so that the system prompt can read the fact
+// `prose` (A86); a wrong cast is refused when the run is set up. The whisperer, picked as `whispers` picks it, plays
+// the character the game gives it.
 function start(setup: StateSetup<typeof MotivesOptions>): MotivesState {
-	namedCast(setup.options, setup.residents.length);
-	return { coreMotives: new Map() };
+	const { options, residents, rng } = setup;
+	namedCast(options, residents.length);
+	const own = options.whispererCoreMotive;
+	const whisperer = own === undefined || options.whisperer === undefined ? null : pickWhisperer(residents, rng, options.whisperer.agent);
+	return { coreMotives: new Map([...dealMotives(options, residents, rng)].map(([agent, drawn]) => [agent, own !== undefined && agent === whisperer ? own : drawn])) };
 }
 
 /**
@@ -51,7 +57,8 @@ export const motivesHead = defineHead({
 	snapshot: { save, load },
 	events: MotivesEvents.events,
 	prompts: { "motives/notes/private-core-motive": ["who"] },
-	// The whisperer plays the character the game gives it; the names of residents in a Director's note.
+	// Loaded after `whispers`, so that `motive_dealt` follows `whisperer_chosen` as in the oracle files (the deal asks
+	// it nothing: it picks the whisperer with the whispers' `/rules`); the names of residents in a Director's note.
 	uses: [WhispersService, IdentityService],
 	provides: [MotivesService],
 });

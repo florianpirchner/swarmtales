@@ -24,6 +24,7 @@ export { busiestPair, Direction, Duty, dutyDue, isForgeable, previousDuty, Quota
 export { DutyNow, renderTemplate, type DutyNowValue } from "./duty-notice.ts";
 export { whispersHead, WhispersOptions, type WhispersCtx, type WhispersState, type WhispersToolCtx, type WhispersView } from "./head.ts";
 export { roleLeaks } from "./role.ts";
+export { pickWhisperer, type PickStreams } from "./rules.ts";
 export { countBallots, dutyTarget, namesList, PopularitySpec, Round, type Counted, type Phase, type VoteCount } from "./vote.ts";
 
 /** The order of the vote's part of the status line (old `STATUS_ORDER.popularity`). */

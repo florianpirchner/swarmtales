@@ -145,6 +145,17 @@ export const GameDefinitionSchema = Type.Object(
 			),
 		),
 		model: Type.Optional(Type.Union([Type.String(text("The id alone, as `<provider>/<model id or alias>`; the settings take their defaults")), ModelChoiceSchema], text("The model the residents run on"))),
+		prompt: Type.Optional(
+			Type.Object(
+				{
+					frame: Type.Optional(Type.String(text("The frame said first in the system prompt of every resident with a character: what it plays and how seriously"))),
+					character: Type.Optional(
+						Type.String(text("The key of the fact, `<plugin id>.<fact>`, whose value holds each resident's character by resident id (`motives.prose`), read once before the run starts")),
+					),
+				},
+				closed("What the game adds to a resident's system prompt"),
+			),
+		),
 	},
 	{ additionalProperties: false, description: "A game definition, version 1" },
 );

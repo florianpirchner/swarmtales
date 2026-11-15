@@ -49,6 +49,15 @@ export const BUILTIN_PROVIDERS: readonly ProviderSpec[];
 export function callOutsideActivation(actor: string): SwtIssue;
 
 // @public
+export interface CityPromptFacts {
+    readonly name: string;
+    readonly namesUntil?: number;
+    readonly residents: number;
+    readonly survivors: number;
+    readonly tools: "all" | "story";
+}
+
+// @public
 export function closedModels(): MutableModels;
 
 // @public
@@ -256,9 +265,21 @@ export function parseSavedSessions(value: unknown, redact: Redact): SavedSession
 
 // @public
 export interface PromptFacts {
+    readonly brief?: string;
     readonly briefing: string;
+    readonly character?: string;
+    readonly city?: CityPromptFacts;
+    readonly frame?: string;
     readonly id: string;
     readonly passes: number;
+    readonly persona?: PromptPersona;
+}
+
+// @public
+export interface PromptPersona {
+    readonly temperament: string;
+    readonly values: string;
+    readonly voice: string;
 }
 
 // @public

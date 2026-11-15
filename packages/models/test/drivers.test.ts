@@ -137,6 +137,16 @@ describe("the carried resident prompts", () => {
 		["resident/system/steps", "049598a2740a9f47d2d438532392be893614db837deb149b4a18affa121fe328"],
 		["resident/system/tools-neutral", "3f088fc2fc3c0ba27852a1a9eb79f70a71c6a463c634f8b9145a5e29136f77d5"],
 		["resident/system/speak", "8a32c2459c92b91f2466b0a8d5d953762a1614112d646288c929ec8fce14f252"],
+		// The nine files of the City order (M5-70, decision A86).
+		["resident/system/header-id", "e51ccbcb17abbcc8979bf6975ef41b6daf4d38523718fee08b8d0b78652046d2"],
+		["resident/system/header-named", "b29ed31b6f05aefd9148b2cf729551306818a061b0758902a25e3af88df46ddc"],
+		["resident/system/ranking", "62680b888a982847ff81dcfcbdae438839290eac6391462501d100c26f4e14cd"],
+		["resident/system/points", "1b5e8b15c72797fda701d565d1510758755e7a33effefb35058049a8765a0ff1"],
+		["resident/system/claims", "423058c344668fda7fddb6827614f9d5261af09a3d4e42bd842cbea3d58c7be5"],
+		["resident/system/tools-story", "5de2061a1db475f010da24089e3aba46ecd8c061adac19f40e5906211f127e90"],
+		["resident/system/tools-all", "5edb59720d18dd23e3c3d86ba167184b781122d7bc77b71ec8ad60ffcb000c56"],
+		["resident/system/names", "d75c1a7e76082e2a93ed0d2128108c3422170f8a79b88ff58c9de59b96d10b24"],
+		["resident/system/persona", "6abd9257516f7466c25150a65173bef1493438d575397899363aa3c3bde3f559"],
 		["resident/input/tools-notice", "8208b4497daaa6a44deb0d2a0ba3c25f61517807687e8c7dc64b534cf6a8d590"],
 	])("%s has the body of v0-final under its new id", (id, hash) => {
 		expect(promptFile(id).id).toBe(id);

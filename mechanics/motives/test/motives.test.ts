@@ -54,8 +54,22 @@ describe("the deals of the oracle files", () => {
 		const test = testKernel(gameOf(setup));
 		expect(test.fact("whispers.whisperer")).toBe("A06");
 		expect(dealt(test).find((entry) => entry.agent === "A06")).toMatchObject({ bigFive: setup.motives.whispererCoreMotive?.bigFive, drives: setup.motives.whispererCoreMotive?.drives });
-		const alone = testKernel(gameOf({ motives: setup.motives }));
+		// Without the option `whisperer` nobody plays the game's whisperer (a control run, or a game without `whispers`).
+		const control = { ...setup.motives };
+		delete control.whisperer;
+		const alone = testKernel(gameOf({ motives: control }));
 		expect(dealt(alone).find((entry) => entry.agent === "A06")?.drives).not.toEqual(setup.motives.whispererCoreMotive?.drives);
+	});
+
+	it("picks the whisperer in `start` as the whispers pick it (A86), at other seeds and with a named one", () => {
+		const setup = setupOf("whispers", "whispers");
+		const named: Setup = { motives: { ...setup.motives, whisperer: { agent: "A02" } }, ...(setup.whispers?.whisperer === undefined ? {} : { whispers: { ...setup.whispers, whisperer: { ...setup.whispers.whisperer, agent: "A02" } } }) };
+		for (const [test, seed] of [1, 7, 11, 23].map((seed) => [testKernel(gameOf(setup, { seed })), seed] as const)) {
+			const chosen = test.fact("whispers.whisperer");
+			expect([seed, dealt(test).filter((entry) => JSON.stringify(entry.drives) === JSON.stringify(setup.motives.whispererCoreMotive?.drives)).map((entry) => entry.agent)]).toEqual([seed, [chosen]]);
+		}
+		const test = testKernel(gameOf(named));
+		expect([test.fact("whispers.whisperer"), dealt(test).find((entry) => entry.agent === "A02")?.drives]).toEqual(["A02", setup.motives.whispererCoreMotive?.drives]);
 	});
 });
 

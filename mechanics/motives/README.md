@@ -139,6 +139,8 @@ Audience: everyone
 | `whispererCoreMotive.drives[].drive` | string | required | The drive id, e.g. pride. |
 | `whispererCoreMotive.drives[].intensity` | "aboveAll" or "clearly" or "atTimes" | required | How strongly a drive drives. |
 | `whispererCoreMotive.figure` | string | unset | The id of the figure the whisperer plays, when it plays one. |
+| `whisperer` | object | unset | The game's whisperer plays (the whispers' `whisperer`, in a run that is no control run): the resident it names, else the seeded pick of `pickWhisperer` of the whispers' `/rules`. Without it nobody plays `whispererCoreMotive`. |
+| `whisperer.agent` | string | unset | The resident the game names as its whisperer (the whispers' `whisperer.agent`). |
 | `noteTools` | string[] | `["notify","boardNote"]` | The tools of a Director's note whose `text` (or `reason`) is checked for a resident's core motive (`PRIVATE_BLOCKED`); `notify` is read by its `agent`, the others by the board. |
 
 <!-- /generated:options -->

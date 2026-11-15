@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `motives` mechanic: every resident gets a core motive once, seeded, and keeps it. Carried from the old
- * `mechanics/motives`. The deal writes `motive_dealt` per resident in roster order at the start of the run; the
- * whisperer, asked of `whispers` through its `/contract` when it is loaded, plays the character the game gives it.
+ * `mechanics/motives`. The deal is made when a fresh run is set up (`start`, decision A86), so that the system prompt
+ * reads it before the run starts, and written as `motive_dealt` per resident in roster order when the run starts; the
+ * whisperer, picked with `pickWhisperer` of the whispers' `/rules`, plays the character the game gives it.
  * Nobody in the game reads a core motive: the facts `coreMotives`, `prose` and `lines` are for the system prompt, the
  * gamemaker and the reports; `goals` reads the drives through the service `motives`. A Director's note that gives a
  * core motive away is refused by its `rule` handler on the note tools.
@@ -10,9 +11,8 @@
  * @packageDocumentation
  */
 import { Type } from "typebox";
-import { WhispersService } from "@swarmtales/mechanic-whispers/contract";
 import { defineMechanic } from "@swarmtales/sdk";
-import { motiveLine, dealMotives, renderMotive } from "./deal.ts";
+import { motiveLine, renderMotive } from "./deal.ts";
 import { motivesHead, type MotivesCtx, type MotivesView } from "./head.ts";
 import { checkMotive, cuesOf } from "./note.ts";
 
@@ -23,14 +23,9 @@ export { checkMotive } from "./note.ts";
 export { characterLeaks, type CharacterFacts } from "./rules.ts";
 export { MOTIVE_LEVELS, MotiveRecord, MotivesOptions } from "./spec.ts";
 
-// Deals every resident's core motive once; the whisperer plays the character the game gives it.
+// Writes the deal of `start` when the run starts, one `motive_dealt` per resident in roster order.
 function deal(ctx: MotivesCtx): void {
-	if (ctx.state.coreMotives.size > 0) return;
-	const whisperer = ctx.tryCall(WhispersService, "whisperer", {}) ?? undefined;
-	const own = ctx.options.whispererCoreMotive;
-	for (const [agent, drawn] of dealMotives(ctx.options, ctx.residents.ids, ctx.rng)) {
-		const coreMotive = own !== undefined && agent === whisperer ? own : drawn;
-		ctx.state.coreMotives.set(agent, coreMotive);
+	for (const [agent, coreMotive] of ctx.state.coreMotives) {
 		ctx.emit("motive_dealt", { agent, bigFive: coreMotive.bigFive, drives: coreMotive.drives, ...(coreMotive.figure === undefined ? {} : { figure: coreMotive.figure }) });
 	}
 }
@@ -77,7 +72,7 @@ export const motives = defineMechanic(motivesHead, {
 		},
 	},
 	pipeline: { rule: checkMotive },
-	// With the first tick, after the whisperer is chosen (load `whispers` before `motives`).
+	// After `whisperer_chosen` when `whispers` is loaded before `motives`, as in the oracle files.
 	hooks: { runStarted: deal },
 	facts,
 });

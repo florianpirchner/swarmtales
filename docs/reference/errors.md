@@ -692,6 +692,14 @@ The replayed log of a run folder differs from its log.
 - **Fix:** The game file is the run's, so a mechanic, the scheduler or the kernel changed since the run: replay with the commit the manifest names (`kernel.commit`).
 - **Named in:** `apps/cli`
 
+### SWT-C032
+
+The fact that the game's `prompt.character` names does not hold a text per resident.
+
+- **Why:** The character of a resident is a text of its system prompt, read from the fact by resident id before the run starts.
+- **Fix:** Name a fact whose value is a record of resident id to text, such as `motives.prose`.
+- **Named in:** `apps/cli`
+
 ## E: Experiments and the lab
 
 ### SWT-E001

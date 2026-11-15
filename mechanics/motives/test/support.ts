@@ -42,9 +42,12 @@ export interface Setup {
 export function setupOf(game: string, file: string, cast?: readonly string[]): Setup {
 	const story = Value.Parse(Story, JSON.parse(readFileSync(resolve(ORACLES, game, "setup", `${file}.story.json`), "utf8")));
 	const own = story.whisperer?.coreMotive;
-	const options = Value.Parse(MotivesOptions, { noteTools: ["notify", "boardNote"], ...story.coreMotives, ...(own === undefined ? {} : { whispererCoreMotive: own }), ...(cast === undefined ? {} : { cast: [...cast] }) });
+	const agent = story.whisperer?.agent;
+	// The game's whisperer plays: `motives` picks it as `whispers` does (A86).
+	const plays = story.whisperer === undefined ? {} : { whisperer: agent === undefined ? {} : { agent } };
+	const options = Value.Parse(MotivesOptions, { noteTools: ["notify", "boardNote"], ...story.coreMotives, ...(own === undefined ? {} : { whispererCoreMotive: own }), ...plays, ...(cast === undefined ? {} : { cast: [...cast] }) });
 	if (story.whisperer === undefined) return { motives: options };
-	const { agent, forgery, duty } = story.whisperer;
+	const { forgery, duty } = story.whisperer;
 	const whisperer = Value.Parse(WhispererSpec, { ...(agent === undefined ? {} : { agent }), forgery, duty });
 	return { motives: options, whispers: Value.Parse(WhispersOptions, { whisperer, control: false, noteTools: ["notify", "boardNote"] }) };
 }

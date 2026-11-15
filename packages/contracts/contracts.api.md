@@ -220,6 +220,10 @@ export const GameDefinitionSchema: Type.TObject<{
         thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
         maxOutputTokens: Type.TOptional<Type.TInteger>;
     }>]>>;
+    prompt: Type.TOptional<Type.TObject<{
+        frame: Type.TOptional<Type.TString>;
+        character: Type.TOptional<Type.TString>;
+    }>>;
 }>;
 
 // @public
