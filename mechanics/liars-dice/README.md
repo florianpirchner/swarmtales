@@ -269,7 +269,16 @@ A match of games the strategy brain can pause between games: the game's number, 
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `liars-dice.rounds` | Rounds | rounds | `dice_called` |
+| `liars-dice.bluffShare` | Bids under 0.5 from the own dice | - | `dice_decision_scored` |
+| `liars-dice.callsLost` | Liar calls lost by the caller | - | `dice_called` |
+| `liars-dice.remarkShare` | Bids with a public remark | - | `dice_bid` |
+| `liars-dice.agreement` | Decisions of the baseline's kind | - | `dice_decision_scored` |
+| `liars-dice.missed` | Decisions missed | decisions | `dice_decision_scored` |
 
 <!-- /generated:metrics -->
 

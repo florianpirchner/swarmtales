@@ -108,6 +108,9 @@ value: Type.TInteger;
 export const idleDriver: ActorDriver;
 
 // @public
+export function metricsOf(game: Game, id: string, events: readonly Envelope[]): Readonly<Record<string, number | "absent">>;
+
+// @public
 export type Oracle = Static<typeof OracleSchema>;
 
 // @public
@@ -322,6 +325,9 @@ export interface PlayOptions {
 }
 
 // @public
+export function playOracle(oracle: Oracle, game: Game | GameData, options?: Pick<PlayOptions, "installed" | "prompts">): Promise<Played>;
+
+// @public
 export function projectCalls(timeline: readonly OracleEntry[], tools: readonly string[], rewrite?: (text: string) => string): readonly ProjectedEvent[];
 
 // @public
@@ -419,6 +425,9 @@ export function testKernel(game: Game | GameData, options?: PlayOptions): TestKe
 
 // @public
 export function timelineOf(events: readonly Envelope[]): readonly OracleEntry[];
+
+// @public
+export function withEndsTurn(oracle: Oracle, ends: (call: OracleCall) => boolean): Oracle;
 
 // (No @packageDocumentation comment for this package)
 

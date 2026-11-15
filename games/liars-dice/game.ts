@@ -8,12 +8,14 @@
  * (`brain: false`: the same briefings, no brain). Bids may carry public table talk (`talk: false`: none), so
  * bluffing has a voice. The mechanic scores every decision against a simple probability baseline for the report;
  * the seats never see it. A port of the old `stories/liars-dice/story.ts`: the variants are options of the factory,
- * the id is always `liars-dice`.
+ * the id is always `liars-dice`. The file exports the game family: the variants that an experiment or `--set` may
+ * choose are its params, and its defaults give the game of the old platform.
  */
 import { SwtError } from "@swarmtales/contracts";
 import { liarsDice } from "@swarmtales/mechanic-liars-dice";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
-import { defineGame, paramOverride } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily, paramOverride } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, seatsOf } from "./briefing.ts";
 
 /**
@@ -96,4 +98,35 @@ export function liarsDiceGame(options: LiarsDiceOptions = {}) {
 	});
 }
 
-export default liarsDiceGame();
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose, with the bounds of the
+ * mechanic's options and of the factory. The seed and the tick count are no params: the seed is the run's, and the
+ * tick count follows from the games, the seats and the dice.
+ */
+const Params = Type.Object(
+	{
+		seats: Type.Integer({ minimum: 2, maximum: 6, default: DEFAULTS.seats, description: "Players at the table; 2 is heads-up." }),
+		games: Type.Integer({ minimum: 1, maximum: 20, default: DEFAULTS.games, description: "Games in the match." }),
+		dice: Type.Integer({ minimum: 1, maximum: 10, default: DEFAULTS.dice, description: "Dice per seat at the start of a game." }),
+		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)." }),
+		talk: Type.Boolean({ default: DEFAULTS.talk, description: "Public table talk with bids and calls." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+	},
+	{ description: "The variants of liar's dice." },
+);
+
+/**
+ * Liar's dice as a game family: the default params give the registry default of the old platform (four seats, three
+ * games of four dice each, table talk and a brain per seat); `{ seats: 2, talk: false, games: 2, dice: 5 }` is the
+ * quiet heads-up table.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: liarsDiceFamily, params: { brain: false }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const liarsDiceFamily = defineGameFamily(Params, (params) => liarsDiceGame(params));
+
+export default liarsDiceFamily;

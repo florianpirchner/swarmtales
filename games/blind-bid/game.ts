@@ -6,11 +6,13 @@
  * fresh context, a full purse and fresh lots, and the only memory across games is each seat's private strategy brain
  * (`brain: false`: the same briefings, no brain). The `sealed-auction` mechanic scores each game against closed-form
  * single-lot references for the report; the seats never see it. A port of the old `stories/blind-bid/story.ts`: the
- * variants are options of the factory, the id is always `blind-bid`.
+ * variants are options of the factory, the id is always `blind-bid`. The file exports the game family: the variants
+ * that an experiment or `--set` may choose are its params, and its defaults give the game of the old platform.
  */
-import { sealedAuction, type LotKind } from "@swarmtales/mechanic-sealed-auction";
+import { LotKind, sealedAuction } from "@swarmtales/mechanic-sealed-auction";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, SEATS } from "./briefing.ts";
 
 /**
@@ -86,4 +88,33 @@ export function blindBidGame(options: BlindBidOptions = {}) {
 	});
 }
 
-export default blindBidGame();
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose, with the bounds of the
+ * mechanic's options. The seed and the tick count are no params: the seed is the run's, and the tick count follows
+ * from the games and the lots.
+ */
+const Params = Type.Object(
+	{
+		games: Type.Integer({ minimum: 1, maximum: 20, default: DEFAULTS.games, description: "Games of the match; every game deals fresh lots and a full purse." }),
+		lots: Type.Array(LotKind, { minItems: 1, maxItems: 20, default: [...DEFAULT_LOTS], description: "The kinds of each game's lots, in order." }),
+		purse: Type.Integer({ minimum: 1, default: DEFAULTS.purse, description: "Coins per seat and game." }),
+		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+	},
+	{ description: "The variants of Blind Bid." },
+);
+
+/**
+ * Blind Bid as a game family: the default params give the registry default of the old platform (three games of six
+ * lots, two of each kind, a purse of 100 and a brain per seat); `{ brain: false }` is the control arm.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: blindBidFamily, params: { brain: false }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const blindBidFamily = defineGameFamily(Params, (params) => blindBidGame(params));
+
+export default blindBidFamily;

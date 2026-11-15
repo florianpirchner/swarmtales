@@ -312,68 +312,42 @@ standing?: {
 quantity: number;
 face: number;
 };
-round: number;
-counts: Record<string, number>;
-bidder: string;
 dice: Record<string, number[]>;
-out: string[];
-game: number;
-decisions: {
-bid?: {
-quantity: number;
-face: number;
-};
-standing?: {
-quantity: number;
-face: number;
-};
-standingTruth?: number;
-baselineBid?: {
-quantity: number;
-face: number;
-};
-kind: "bid" | "liar";
-round: number;
-missed: boolean;
-dice: number[];
-game: number;
-resident: string;
-unseen: number;
-truth: number;
-baseline: "bid" | "liar";
-agree: boolean;
-bluff: boolean;
-}[];
 seats: string[];
-toAct: string;
-log: ({
-kind: "round";
+game: number;
 round: number;
-starter: string;
 counts: Record<string, number>;
-} | {
-say?: string;
-missed?: boolean;
-bid: {
-quantity: number;
-face: number;
-};
-kind: "bid";
-round: number;
-seat: string;
-} | {
-say?: string;
-missed?: boolean;
-bid: {
-quantity: number;
-face: number;
-};
-kind: "liar";
-round: number;
-seat: string;
 bidder: string;
-count: number;
+toAct: string;
+out: string[];
+log: ({
+round: number;
+counts: Record<string, number>;
+kind: "round";
+starter: string;
+} | {
+say?: string;
+missed?: boolean;
+round: number;
+kind: "bid";
+bid: {
+quantity: number;
+face: number;
+};
+seat: string;
+} | {
+say?: string;
+missed?: boolean;
 dice: Record<string, number[]>;
+round: number;
+bidder: string;
+kind: "liar";
+bid: {
+quantity: number;
+face: number;
+};
+seat: string;
+count: number;
 loser: string;
 } | {
 kind: "out";
@@ -384,6 +358,32 @@ seenLog: Record<string, number>;
 briefed: string[];
 told: boolean;
 opened: number;
+decisions: {
+standing?: {
+quantity: number;
+face: number;
+};
+bid?: {
+quantity: number;
+face: number;
+};
+standingTruth?: number;
+baselineBid?: {
+quantity: number;
+face: number;
+};
+dice: number[];
+game: number;
+round: number;
+kind: "bid" | "liar";
+missed: boolean;
+resident: string;
+unseen: number;
+truth: number;
+baseline: "bid" | "liar";
+agree: boolean;
+bluff: boolean;
+}[];
 scores: Record<string, number>;
 gameScores: Record<string, number>;
 running: boolean;

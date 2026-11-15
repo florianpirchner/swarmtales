@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { default, blindBidGame, DEFAULT_LOTS, type BlindBidOptions } from "../game.ts";
+export { blindBidFamily, blindBidGame, default, DEFAULT_LOTS, type BlindBidOptions } from "../game.ts";
 export { briefings, SEATS } from "../briefing.ts";

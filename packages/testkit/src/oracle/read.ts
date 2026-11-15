@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { SwtError } from "@swarmtales/contracts";
 import { Value } from "typebox/value";
-import { OracleSchema, type Oracle, type OracleEntry } from "./format.ts";
+import { OracleSchema, type Oracle, type OracleCall, type OracleEntry } from "./format.ts";
 
 /**
  * Builds the error of the oracle runner. The code is a stand-in: the testkit has no letter in the code pattern yet.
@@ -34,6 +34,26 @@ export function countsOf(timeline: readonly OracleEntry[]): Oracle["counts"] {
 		return Object.fromEntries([...counted].sort(([a], [b]) => (a < b ? -1 : 1)));
 	};
 	return { entries: tally(timeline.map((entry) => entry.k)), events: tally(timeline.flatMap((entry) => (entry.k === "event" ? [`${entry.source}.${entry.type}`] : []))) };
+}
+
+/**
+ * Writes the flag `endsTurn: true` into the accepted calls of a file that ended their caller's turn. No file of
+ * `oracles/` holds the flag, although the old mechanics set it; a game's oracle test names the calls that ended a
+ * turn (by tool, or by the reply) and registers the mapping in the README of its oracle folder.
+ *
+ * @param oracle - The oracle, as `readOracle` gave it.
+ * @param ends - Whether an accepted call ended its caller's turn.
+ * @returns The oracle with `endsTurn: true` on every accepted call for which `ends` holds; every other entry, and the
+ * counts, as they were.
+ * @example
+ * ```ts
+ * const flagged = withEndsTurn(oracle, (call) => ["playMove", "resign"].includes(call.tool));
+ * ```
+ *
+ * @public
+ */
+export function withEndsTurn(oracle: Oracle, ends: (call: OracleCall) => boolean): Oracle {
+	return { ...oracle, timeline: oracle.timeline.map((entry) => (entry.k === "call" && entry.ok && ends(entry) ? { ...entry, endsTurn: true } : entry)) };
 }
 
 /**

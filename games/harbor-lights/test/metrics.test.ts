@@ -4,9 +4,9 @@
  * number computed by hand from the same oracle file, and a metric without its event is absent, never 0.
  */
 import { join } from "node:path";
-import { readOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
+import { metricsOf, playOracle, readOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import { arm, metricsOf, replay, VARIANTS } from "./support.ts";
+import { arm, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "harbor-lights");
 
@@ -36,7 +36,7 @@ describe("the metrics of hint-towers over an oracle replay", () => {
 	it.each(HAND)("%s: every metric equals the number read by hand in the file", async (file, scores, misfires) => {
 		const oracle = readOracle(join(ORACLES, file));
 		const game = arm(VARIANTS[oracle.variant]);
-		const events = await replay(oracle, game);
+		const { events } = await playOracle(oracle, game);
 		// The replay is the run of the file: its timeline is the file's (the cut file up to its cut).
 		expect(timelineOf(events).slice(0, oracle.timeline.length)).toEqual(oracle.timeline);
 		expect([numbersIn(oracle, "game_scored", "score"), numbersIn(oracle, "game_ended", "misfires")]).toEqual([scores, misfires]);
@@ -50,7 +50,7 @@ describe("the metrics of hint-towers over an oracle replay", () => {
 		const game = arm({ games: 1 });
 		const oracle = readOracle(join(ORACLES, "harbor-lights-g1-s103.json"));
 		// The same run stopped before its first tick: no game was played.
-		const events = await replay({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game);
+		const { events } = await playOracle({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game);
 		expect(events.length).toBeGreaterThan(0);
 		expect(metricsOf(game, "hint-towers", events)).toEqual({ score: "absent", misfires: "absent" });
 	});

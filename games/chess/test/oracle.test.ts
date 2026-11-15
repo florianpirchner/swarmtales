@@ -13,10 +13,10 @@
  */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
+import { readOracle, runOracle, withEndsTurn, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { chessGame } from "../game.ts";
-import { VARIANTS, withEndsTurn } from "./support.ts";
+import { endsTurn, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "chess");
 
@@ -47,7 +47,7 @@ describe("chess against its oracles", () => {
 	it.each(FILES)("%s: runOracle at level 3 finds no mismatch", async (file) => {
 		const oracle = readOracle(join(ORACLES, file));
 		expect(oracle.timeline.some((entry) => entry.k === "call" && entry.endsTurn === true)).toBe(false);
-		expect(await runOracle(withEndsTurn(oracle), gameOf(oracle), 3)).toEqual([]);
+		expect(await runOracle(withEndsTurn(oracle, endsTurn), gameOf(oracle), 3)).toEqual([]);
 	});
 
 	it("needs the mapping only for the flag: without it the first difference is a call that ends its turn", async () => {

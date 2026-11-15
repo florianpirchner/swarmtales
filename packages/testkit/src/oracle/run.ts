@@ -9,7 +9,7 @@ import { createPromptLookup } from "@swarmtales/prompts";
 import { definitionsOf, resolveGame, RESIDENT_KIND, type Game, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
 import { Value } from "typebox/value";
 import { scriptedDriver, type Plan, type PlannedCall } from "../drivers.ts";
-import { play, type PlayOptions } from "../play.ts";
+import { play, type Played, type PlayOptions } from "../play.ts";
 import type { Oracle, OracleEntry } from "./format.ts";
 import { oracleError } from "./read.ts";
 import { timelineOf } from "./timeline.ts";
@@ -198,6 +198,33 @@ function endOf(end: RunEnd | undefined): unknown {
 }
 
 /**
+ * Plays `game` from the oracle's inputs, as {@link runOracle} does, and gives the played run instead of the
+ * differences: for a test that reads the new log, such as the metrics of a mechanic over the replay of a file. The
+ * game is played by its own scheduler with the seed of the oracle, for `setup.minutes` ticks (a file with `truncated`:
+ * for `truncated.afterMinute + 1` ticks); at its n-th activation a resident makes the calls that follow its n-th
+ * `turn` entry in the file, and the replay of a live run is pending after a turn with a call.
+ *
+ * @param oracle - The oracle, as `readOracle` gave it.
+ * @param game - The game, in its builder form or its data form.
+ * @param options - The installed mechanics of a game in its data form, and the prompt lookup.
+ * @returns The played run: the kernel, the end, and every event of the new log.
+ * @throws SwtError `SWT-T002` for an oracle the runner does not play (as {@link runOracle}). Also what `play` throws.
+ * @example
+ * ```ts
+ * const { events } = await playOracle(readOracle("oracles/liars-dice/liars-dice-s7.json"), liarsDiceGame());
+ * ```
+ *
+ * @public
+ */
+export async function playOracle(oracle: Oracle, game: Game | GameData, options: Pick<PlayOptions, "installed" | "prompts"> = {}): Promise<Played> {
+	const reason = unsupported(oracle);
+	if (reason !== undefined) throw oracleError("SWT-T002", `the oracle \`${oracle.variant}\` with the seed ${String(oracle.seed)} ${reason}`, "Compare this file once the game that needs it is ported; the oracle runner is extended in that issue.");
+	// A cut file is played to the end of the tick of its cut.
+	const ticks = oracle.truncated === undefined ? oracle.setup.minutes : oracle.truncated.afterMinute + 1;
+	return play(game, { ...options, seed: oracle.seed, ticks, drivers: { [RESIDENT_KIND]: driverOf(oracle) } });
+}
+
+/**
  * Plays `game` from the oracle's inputs and compares up to `level`. The game is played by its own scheduler with
  * the seed of the oracle, for `setup.minutes` ticks (a file with `truncated`: for `truncated.afterMinute + 1` ticks,
  * compared up to the file's last entry and without the end); at its n-th activation a resident makes the calls that follow
@@ -224,15 +251,12 @@ function endOf(end: RunEnd | undefined): unknown {
  * @public
  */
 export async function runOracle(oracle: Oracle, game: Game | GameData, level: OracleLevel = 3, options: Pick<PlayOptions, "installed" | "prompts"> = {}): Promise<readonly OracleMismatch[]> {
-	const reason = unsupported(oracle);
-	if (reason !== undefined) throw oracleError("SWT-T002", `the oracle \`${oracle.variant}\` with the seed ${String(oracle.seed)} ${reason}`, "Compare this file once the game that needs it is ported; the oracle runner is extended in that issue.");
 	const prompts = options.prompts ?? createPromptLookup();
 	const installed = options.installed === undefined ? {} : { installed: options.installed };
+	const played = await playOracle(oracle, game, { ...installed, prompts });
 	const resolved = resolveGame({ game, schedulers: { turns }, prompts, seed: oracle.seed, ...installed });
-	// A cut file is played to the end of the tick of its cut; what the run wrote after the file's last entry is not compared, nor is the end.
+	// What the run wrote after the last entry of a cut file is not compared, nor is the end.
 	const cut = oracle.truncated;
-	const ticks = cut === undefined ? oracle.setup.minutes : cut.afterMinute + 1;
-	const played = await play(game, { ...installed, prompts, seed: oracle.seed, ticks, drivers: { [RESIDENT_KIND]: driverOf(oracle) } });
 	const timeline = timelineOf(played.events);
 	const end = endOf(played.end);
 	return [

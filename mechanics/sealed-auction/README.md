@@ -229,7 +229,16 @@ A match of games the strategy brain can pause between games: the game's number, 
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `sealed-auction.shading` | Bid over value, pay-your-bid | - | `game_scored` |
+| `sealed-auction.truthfulness` | Truthfulness, pay-the-runner-up | - | `game_scored` |
+| `sealed-auction.bidToEstimate` | Bid over estimate, shared worth | - | `game_scored` |
+| `sealed-auction.cursed` | Shared-worth lots sold at a loss | lots | `game_scored` |
+| `sealed-auction.unspent` | Purse left unspent | - | `game_scored` |
+| `sealed-auction.missed` | Bids missed | bids | `game_scored` |
 
 <!-- /generated:metrics -->
 

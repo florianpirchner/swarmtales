@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { default, liarsDiceGame, type LiarsDiceOptions } from "../game.ts";
+export { default, liarsDiceFamily, liarsDiceGame, type LiarsDiceOptions } from "../game.ts";
 export { briefings, seatsOf } from "../briefing.ts";

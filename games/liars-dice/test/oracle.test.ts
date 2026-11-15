@@ -12,20 +12,16 @@
  */
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
+import { readOracle, runOracle, withEndsTurn, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { liarsDiceGame } from "../game.ts";
-import { VARIANTS } from "./support.ts";
+import { endsTurn, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "liars-dice");
 
 const FILES = ["liars-dice-g1-s13-probes.json", "liars-dice-g1-s13-silent.json", "liars-dice-hu-quiet-g2-d5-s7.json", "liars-dice-nobrain-s7.json", "liars-dice-s11.json", "liars-dice-s7.json"];
 
 const gameOf = (oracle: Oracle) => liarsDiceGame(VARIANTS[oracle.variant]);
-
-const ENDS_TURN = /end your turn now/i;
-/** The oracle with `endsTurn: true` on every accepted call whose reply tells the caller to end its turn. */
-const withEndsTurn = (oracle: Oracle): Oracle => ({ ...oracle, timeline: oracle.timeline.map((entry) => (entry.k === "call" && entry.ok && ENDS_TURN.test(entry.reply ?? "") ? { ...entry, endsTurn: true } : entry)) });
 
 describe("liars-dice against its oracles", () => {
 	it("covers every oracle file of the folder, each with the options of its variant", () => {
@@ -35,7 +31,7 @@ describe("liars-dice against its oracles", () => {
 
 	it.each(FILES)("%s: runOracle at level 3 finds no mismatch", async (file) => {
 		const oracle = readOracle(join(ORACLES, file));
-		expect(await runOracle(withEndsTurn(oracle), gameOf(oracle), 3)).toEqual([]);
+		expect(await runOracle(withEndsTurn(oracle, endsTurn), gameOf(oracle), 3)).toEqual([]);
 	});
 
 	it("needs the mapping only for the flag: without it the first difference is a call that ends its turn", async () => {

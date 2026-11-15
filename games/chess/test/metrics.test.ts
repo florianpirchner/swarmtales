@@ -4,10 +4,10 @@
  * computed by hand from the same oracle file, and a metric without its events is absent, never 0.
  */
 import { join } from "node:path";
-import { readOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
+import { metricsOf, playOracle, readOracle, timelineOf, withEndsTurn, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { chessGame } from "../game.ts";
-import { metricsOf, replay, VARIANTS, withEndsTurn } from "./support.ts";
+import { endsTurn, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "chess");
 
@@ -41,9 +41,9 @@ describe("the metrics of chess over an oracle replay", () => {
 	it.each(HAND)("%s: every metric equals the number read by hand in the file", async (file, plies, refused) => {
 		const oracle = readOracle(join(ORACLES, file));
 		const game = chessGame({ ...VARIANTS[oracle.variant], seed: oracle.seed });
-		const events = await replay(oracle, game);
+		const { events } = await playOracle(oracle, game);
 		// The replay is the run of the file: its timeline is the file's (a cut file up to its cut).
-		expect(timelineOf(events).slice(0, oracle.timeline.length)).toEqual(withEndsTurn(oracle).timeline);
+		expect(timelineOf(events).slice(0, oracle.timeline.length)).toEqual(withEndsTurn(oracle, endsTurn).timeline);
 		expect([eventsIn(oracle, "move_played").length, eventsIn(oracle, "move_refused").length, endedPlies(oracle)]).toEqual([plies, refused, plies]);
 		expect(metricsOf(game, "chess", events)).toEqual({ plies, refusedMoves: refused });
 	});
@@ -52,7 +52,7 @@ describe("the metrics of chess over an oracle replay", () => {
 		const oracle = readOracle(join(ORACLES, "chess-s13.json"));
 		const game = chessGame({ seed: oracle.seed });
 		// The same run stopped before its first tick: no move was played.
-		const events = await replay({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game);
+		const { events } = await playOracle({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game);
 		expect(events.length).toBeGreaterThan(0);
 		expect(metricsOf(game, "chess", events)).toEqual({ plies: "absent", refusedMoves: "absent" });
 	});

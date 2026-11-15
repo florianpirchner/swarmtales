@@ -4,6 +4,7 @@ import { Type } from "typebox";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { defineHead, inSchemaOrder, type CtxOf, type ViewOf } from "@swarmtales/sdk";
+import { sealedAuctionMetrics } from "./metrics.ts";
 import { AuctionSlice, type AuctionState } from "./model.ts";
 import { Reference } from "./reference.ts";
 import { Lot, LotKind, LotResult } from "./rules.ts";
@@ -25,6 +26,25 @@ const options = Type.Object({
 	reserve: Type.Integer({ minimum: 1, default: 1, description: "The least bid that counts, and the least price." }),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes a lot stays open before missing bids count as a pass." }),
 });
+
+// The event schemas stand outside the head so that its metrics are typed by them.
+const events = {
+	game_started: Type.Object({ game: Type.Integer(), lots: Type.Array(LotKind), purse: Type.Integer(), seats: Type.Array(Type.String()) }),
+	lots_dealt: Type.Object({ game: Type.Integer(), lots: Type.Array(Lot) }),
+	lot_opened: Type.Object({ game: Type.Integer(), lot: Type.Integer(), kind: LotKind }),
+	bid_placed: Type.Object({ game: Type.Integer(), lot: Type.Integer(), resident: Type.String(), amount: Type.Integer(), reason: Type.Optional(Type.String()) }),
+	lot_resolved: Type.Object({ game: Type.Integer(), ...LotResult.properties, worth: Type.Optional(Type.Integer()) }),
+	game_ended: Type.Object({ game: Type.Integer(), scores: Type.Record(Type.String(), Type.Number()), totals: Type.Record(Type.String(), Type.Number()), coins: Type.Record(Type.String(), Type.Number()) }),
+	game_scored: Type.Object({ game: Type.Integer(), reference: Reference }),
+	match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+};
+
+/**
+ * The event schemas of the sealed auction, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type SealedAuctionEvents = typeof events;
 
 /**
  * The head of the sealed auction: everything that can be read without running a handler.
@@ -59,16 +79,8 @@ export const sealedAuctionHead = defineHead({
 		due: false,
 	}),
 	snapshot: { save: (state: AuctionState) => structuredClone(state), load: (data): AuctionState => inSchemaOrder(AuctionSlice, data) },
-	events: {
-		game_started: Type.Object({ game: Type.Integer(), lots: Type.Array(LotKind), purse: Type.Integer(), seats: Type.Array(Type.String()) }),
-		lots_dealt: Type.Object({ game: Type.Integer(), lots: Type.Array(Lot) }),
-		lot_opened: Type.Object({ game: Type.Integer(), lot: Type.Integer(), kind: LotKind }),
-		bid_placed: Type.Object({ game: Type.Integer(), lot: Type.Integer(), resident: Type.String(), amount: Type.Integer(), reason: Type.Optional(Type.String()) }),
-		lot_resolved: Type.Object({ game: Type.Integer(), ...LotResult.properties, worth: Type.Optional(Type.Integer()) }),
-		game_ended: Type.Object({ game: Type.Integer(), scores: Type.Record(Type.String(), Type.Number()), totals: Type.Record(Type.String(), Type.Number()), coins: Type.Record(Type.String(), Type.Number()) }),
-		game_scored: Type.Object({ game: Type.Integer(), reference: Reference }),
-		match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
-	},
+	events,
+	metrics: sealedAuctionMetrics(events),
 	// The deal and the bids are sealed; the reference is for the human and the reporter only.
 	audiences: { lots_dealt: ["human"], bid_placed: ["human"], game_scored: ["human"] },
 	provides: [BrainSourceService],

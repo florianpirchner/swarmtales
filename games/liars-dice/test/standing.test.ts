@@ -8,14 +8,14 @@
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import game from "../game.ts";
+import { liarsDiceGame } from "../game.ts";
 import { player, rosterGame } from "./support.ts";
 
 const fake = (seed: number): StandingDrivers => (kernel) => ({ resident: fakeDriver(kernel, seed) });
 /** The scripted seats of the carried test on one game, and the fake driver on the game file, with the seeds of the games list. */
 const RUNS = [7, 11].flatMap((seed) => [
 	{ name: `scripted, seed ${String(seed)}`, game: rosterGame({ games: 1 }), drivers: (): { resident: typeof player } => ({ resident: player }), options: { seed } },
-	{ name: `fake, seed ${String(seed)}`, game, drivers: fake(seed), options: { seed } },
+	{ name: `fake, seed ${String(seed)}`, game: liarsDiceGame(), drivers: fake(seed), options: { seed } },
 ]);
 
 describe("liar's dice: the standing checks", () => {

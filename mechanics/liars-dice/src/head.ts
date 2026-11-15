@@ -4,6 +4,7 @@ import { Type } from "typebox";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { defineHead, type CtxOf, type ViewOf } from "@swarmtales/sdk";
+import { liarsDiceMetrics } from "./metrics.ts";
 import { Bid, DiceSlice, Scored, SeatStats, type DiceState } from "./model.ts";
 
 const Say = Type.Optional(Type.String({ maxLength: 160, description: "Optional table talk: a short remark every seat reads (true or not)." }));
@@ -18,6 +19,38 @@ const options = Type.Object({
 	talk: Type.Boolean({ default: true, description: "A bid or a call may carry a short public remark (table talk)." }),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes the seat to act has before it calls liar, or opens with the lowest bid." }),
 });
+
+// The event schemas stand outside the head so that its metrics are typed by them.
+const events = {
+	dice_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), dice: Type.Integer() }),
+	dice_rolled: Type.Object({ game: Type.Integer(), round: Type.Integer(), dice: Type.Record(Type.String(), Type.Array(Type.Integer())) }),
+	dice_round_started: Type.Object({ game: Type.Integer(), round: Type.Integer(), starter: Type.String(), counts: Type.Record(Type.String(), Type.Integer()) }),
+	dice_bid: Type.Object({ game: Type.Integer(), round: Type.Integer(), seat: Type.String(), quantity: Type.Integer(), face: Type.Integer(), say: Type.Optional(Type.String()), missed: Type.Optional(Type.Boolean()) }),
+	dice_called: Type.Object({
+		game: Type.Integer(),
+		round: Type.Integer(),
+		seat: Type.String(),
+		bidder: Type.String(),
+		bid: Bid,
+		count: Type.Integer(),
+		dice: Type.Record(Type.String(), Type.Array(Type.Integer())),
+		loser: Type.String(),
+		say: Type.Optional(Type.String()),
+		missed: Type.Optional(Type.Boolean()),
+	}),
+	dice_seat_out: Type.Object({ game: Type.Integer(), seat: Type.String(), place: Type.Integer() }),
+	dice_decision_scored: Type.Object({ ...Scored.properties, reason: Type.Optional(Type.String()) }),
+	dice_game_ended: Type.Object({ game: Type.Integer(), places: Type.Record(Type.String(), Type.Integer()), points: Type.Record(Type.String(), Type.Number()), totals: Type.Record(Type.String(), Type.Number()) }),
+	dice_game_scored: Type.Object({ game: Type.Integer(), stats: Type.Record(Type.String(), SeatStats) }),
+	dice_match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+};
+
+/**
+ * The event schemas of liar's dice, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type LiarsDiceEvents = typeof events;
 
 /**
  * The head of liar's dice: everything that can be read without running a handler.
@@ -56,29 +89,8 @@ export const liarsDiceHead = defineHead({
 		};
 	},
 	snapshot: { save: (state: DiceState) => structuredClone(state), load: (data): DiceState => structuredClone(data) },
-	events: {
-		dice_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), dice: Type.Integer() }),
-		dice_rolled: Type.Object({ game: Type.Integer(), round: Type.Integer(), dice: Type.Record(Type.String(), Type.Array(Type.Integer())) }),
-		dice_round_started: Type.Object({ game: Type.Integer(), round: Type.Integer(), starter: Type.String(), counts: Type.Record(Type.String(), Type.Integer()) }),
-		dice_bid: Type.Object({ game: Type.Integer(), round: Type.Integer(), seat: Type.String(), quantity: Type.Integer(), face: Type.Integer(), say: Type.Optional(Type.String()), missed: Type.Optional(Type.Boolean()) }),
-		dice_called: Type.Object({
-			game: Type.Integer(),
-			round: Type.Integer(),
-			seat: Type.String(),
-			bidder: Type.String(),
-			bid: Bid,
-			count: Type.Integer(),
-			dice: Type.Record(Type.String(), Type.Array(Type.Integer())),
-			loser: Type.String(),
-			say: Type.Optional(Type.String()),
-			missed: Type.Optional(Type.Boolean()),
-		}),
-		dice_seat_out: Type.Object({ game: Type.Integer(), seat: Type.String(), place: Type.Integer() }),
-		dice_decision_scored: Type.Object({ ...Scored.properties, reason: Type.Optional(Type.String()) }),
-		dice_game_ended: Type.Object({ game: Type.Integer(), places: Type.Record(Type.String(), Type.Integer()), points: Type.Record(Type.String(), Type.Number()), totals: Type.Record(Type.String(), Type.Number()) }),
-		dice_game_scored: Type.Object({ game: Type.Integer(), stats: Type.Record(Type.String(), SeatStats) }),
-		dice_match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
-	},
+	events,
+	metrics: liarsDiceMetrics(events),
 	// Every roll and every reason (a bluff's motive) is for the human and the reporter only.
 	audiences: { dice_rolled: ["human"], dice_decision_scored: ["human"], dice_game_scored: ["human"] },
 	provides: [BrainSourceService],
