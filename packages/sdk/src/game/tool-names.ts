@@ -17,7 +17,7 @@ export interface ToolSource {
 	readonly mechanic: {
 		readonly id: string;
 		readonly package: string;
-		readonly head: { readonly tools: readonly { readonly name: string; readonly for: readonly string[] }[] };
+		readonly head: { readonly tools: readonly { readonly name: string; readonly for: readonly string[]; readonly reviewed?: boolean }[]; readonly stages?: readonly string[] | undefined };
 	};
 	/** Bare tool name to the name a model sees. */
 	readonly as?: Readonly<Record<string, string>> | undefined;

@@ -5,7 +5,7 @@
  * own tools under their bare names.
  */
 import type { Static, TSchema } from "typebox";
-import type { ActorId, ActorsView, EventSchemas, RandomLabel, RandomSource, SchedulePort, ServiceDefinition, ToolRef } from "@swarmtales/contracts";
+import type { ActorId, ActorsView, EventSchemas, RandomLabel, RandomSource, SchedulePort, ServiceDefinition, StageOptions, ToolRef } from "@swarmtales/contracts";
 
 /**
  * The prompts a mechanic declares: prompt id to the names of its variables.
@@ -208,6 +208,12 @@ export interface MechanicContext<M extends MechanicShape> {
 	has(service: M["requires"][number] | M["uses"][number]): boolean;
 	/** Calls a method of a used service; undefined when no loaded mechanic provides it. */
 	tryCall<A extends M["uses"][number], K extends ServiceMethodName<A>>(service: A, method: K, input: ServiceInput<A, K>): ServiceOutput<A, K> | undefined;
+	/**
+	 * Stages a call of a tool by its declared name (a `ToolRef` names a tool of this mechanic, a bare name another's, as
+	 * for `access`): the kernel makes it as the actor `script` after the step that staged it, and runs the job `then`
+	 * with its outcome (`onStaged`). The head lists the tool in `stages`, and the game grants it to `script`.
+	 */
+	stage<P extends TSchema>(tool: ToolRef<string, P> | string, params: Static<P>, options?: StageOptions): void;
 	/** Renders one of the mechanic's own prompts. */
 	prompt<K extends keyof M["prompts"] & string>(id: K, variables: PromptVariables<M["prompts"][K]>): string;
 	/** The seeded random stream of the labels: the same numbers wherever it is called. A property, so it can be destructured. */

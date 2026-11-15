@@ -66,9 +66,9 @@ function parseOptions(head: PluginHead, raw: unknown): JsonValue {
 }
 
 // The instance of one run: the state of a fresh run, then every entry of the head and the body through the kit.
-function create(head: AnyHead, erased: PluginHead, body: ErasedBody, options: unknown, texts: PromptLookup, port: PluginPort, tools: ReadonlyMap<string, CanonicalTool>): PluginInstance {
+function create(head: AnyHead, erased: PluginHead, body: ErasedBody, options: unknown, texts: PromptLookup, port: PluginPort, game: Pick<InstanceParts<MechanicShape>, "tools" | "names">): PluginInstance {
 	const setup = { options, residents: port.actors.ofKind(RESIDENT_KIND).map(nameOf), actors: port.actors.ids, seed: port.seed, rng: port.rng.bind(port) };
-	const parts: InstanceParts<MechanicShape> = { port, head: erased, options, state: { value: head.start?.(setup) }, setup, texts, tools };
+	const parts: InstanceParts<MechanicShape> = { port, head: erased, options, state: { value: head.start?.(setup) }, setup, texts, ...game };
 	const kit = createKit(parts, { contextFor, viewFor, convertArguments });
 	const ctx = contextFor(parts);
 	const { snapshot, migrations } = head;
@@ -144,9 +144,9 @@ export function defineMechanic(head: AnyHead, body: ErasedBody): MechanicDefinit
 		options: erased.options,
 		events: erased.events,
 		// What a reader of the definition sees of the body without running it: which tools the fake driver can call.
-		head: frozenHead({ ...erased, tools: erased.tools.map((tool) => ({ ...tool, sampled: body.tools?.[tool.name]?.sample !== undefined })), answerers: [...Object.values(body.tools ?? {}), body.pipeline ?? {}].flatMap((handlers) => (handlers.review === undefined ? [] : [handlers.review.answerer])) }),
+		head: frozenHead({ ...erased, tools: erased.tools.map((tool) => ({ ...tool, sampled: body.tools?.[tool.name]?.sample !== undefined, reviewed: body.tools?.[tool.name]?.review !== undefined })), answerers: [...Object.values(body.tools ?? {}), body.pipeline ?? {}].flatMap((handlers) => (handlers.review === undefined ? [] : [handlers.review.answerer])) }),
 		parseOptions: (raw: unknown): unknown => parseOptions(erased, raw),
-		resolve(options: unknown, texts: PromptLookup, version: string, tools: ReadonlyMap<string, CanonicalTool> = new Map()): ResolvedPlugin {
+		resolve(options: unknown, texts: PromptLookup, version: string, tools: ReadonlyMap<string, CanonicalTool> = new Map(), names: Readonly<Record<string, string>> = {}): ResolvedPlugin {
 			if (!isJson(options)) throw new SwtError(optionMismatch({ owner: erased.id, package: erased.package, path: "options", message: "must be plain JSON data" }));
 			return {
 				id: erased.id,
@@ -157,7 +157,7 @@ export function defineMechanic(head: AnyHead, body: ErasedBody): MechanicDefinit
 				events: erased.events,
 				audiences: erased.audiences,
 				options,
-				create: (port) => create(head, erased, body, options, texts, port, tools),
+				create: (port) => create(head, erased, body, options, texts, port, { tools, names }),
 			};
 		},
 	});

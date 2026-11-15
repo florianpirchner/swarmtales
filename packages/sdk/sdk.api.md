@@ -39,7 +39,9 @@ import { SchedulerDefinition } from '@swarmtales/contracts';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { ServiceMethods } from '@swarmtales/contracts';
 import { SnapshotSlice } from '@swarmtales/contracts';
+import { StagedOutcome } from '@swarmtales/contracts';
 import { StageHandlers } from '@swarmtales/contracts';
+import { StageOptions } from '@swarmtales/contracts';
 import { Static } from 'typebox';
 import { SwtIssue } from '@swarmtales/contracts';
 import { TObject } from 'typebox';
@@ -133,6 +135,7 @@ export interface DeclaredTool {
     readonly free: boolean;
     readonly name: string;
     readonly parameters: TSchema;
+    readonly reviewed?: boolean;
     readonly sampled?: boolean;
 }
 
@@ -389,6 +392,7 @@ export function inSchemaOrder<T extends TSchema>(schema: T, value: Static<T>): S
 // @public
 export interface InstanceParts<M extends MechanicShape> {
     readonly head: PluginHead;
+    readonly names?: Readonly<Record<string, string>>;
     readonly options: M["options"];
     readonly port: PluginPort;
     readonly setup: Setup<M["options"]>;
@@ -469,6 +473,7 @@ export interface MechanicContext<M extends MechanicShape> {
     readonly rng: (...labels: readonly RandomLabel[]) => RandomSource;
     readonly schedule: SchedulePort;
     readonly seed: number;
+    stage<P extends TSchema>(tool: ToolRef<string, P> | string, params: Static<P>, options?: StageOptions): void;
     readonly state: M["state"];
     readonly tick: number;
     readonly ticks: number;
@@ -484,7 +489,7 @@ export interface MechanicDefinition<Id extends string = string, O extends TSchem
     readonly options: O;
     readonly package: string;
     parseOptions(raw: unknown): Static<O>;
-    resolve(options: Static<O>, texts: PromptLookup, version: string, tools?: ReadonlyMap<string, CanonicalTool>): ResolvedPlugin;
+    resolve(options: Static<O>, texts: PromptLookup, version: string, tools?: ReadonlyMap<string, CanonicalTool>, names?: Readonly<Record<string, string>>): ResolvedPlugin;
     readonly source: string;
     readonly toolNames?: Tools;
 }
@@ -502,6 +507,7 @@ export interface MechanicHead<Id extends string, O extends TSchema, Snap extends
     readonly provides?: Pv;
     readonly requires?: R;
     readonly snapshot?: SnapshotSpec<C, Static<Snap>, Static<O>>;
+    readonly stages?: readonly string[];
     start?(setup: StateSetup<O>): NoInfer<StateOf<Snap, C>>;
     readonly state?: Snap;
     readonly summary: string;
@@ -651,6 +657,9 @@ export function noProvider(input: {
 export const NOT_A_DIRECTOR = "NOT_A_DIRECTOR";
 
 // @public
+export const onStaged: <M extends MechanicShape>(job: (ctx: MechanicContext<M>, outcome: StagedOutcome) => void) => ((ctx: MechanicContext<M>, data: JsonValue | undefined) => void);
+
+// @public
 export function optionMismatch(input: {
     readonly owner: string;
     readonly kind?: "mechanic" | "scheduler" | "director";
@@ -707,6 +716,7 @@ export interface PluginHead {
     readonly prompts: PromptKeys;
     readonly provides: readonly ServiceDefinition[];
     readonly requires: readonly ServiceDefinition[];
+    readonly stages?: readonly string[] | undefined;
     readonly state: TSchema | undefined;
     readonly summary: string;
     readonly tools: readonly DeclaredTool[];
@@ -900,6 +910,7 @@ export const SDK_ERRORS: {
     readonly "SWT-G012": "a tool is granted or locked but not defined";
     readonly "SWT-G013": "two tools of one grant share a shown name";
     readonly "SWT-G014": "a shown tool name does not match the pattern";
+    readonly "SWT-G015": "a mechanic stages a tool that the game does not grant to `script`, or the grant `script` holds a tool with a review";
     readonly "SWT-G020": "an option does not match its schema";
     readonly "SWT-G021": "a mechanic is listed twice";
     readonly "SWT-G022": "a data game names a mechanic that is not installed";
@@ -1033,6 +1044,24 @@ export interface StageCall {
 }
 
 // @public
+export function stagedNotGranted(input: {
+    readonly mechanic: string;
+    readonly tool: string;
+    readonly path: string;
+    readonly reviewed?: boolean;
+}): SwtIssue;
+
+// @public
+export const StagedOutcomeSchema: Type.TUnion<[Type.TObject<{
+    ok: Type.TLiteral<true>;
+    reply: Type.TString;
+}>, Type.TObject<{
+    ok: Type.TLiteral<false>;
+    code: Type.TString;
+    detail: Type.TOptional<Type.TString>;
+}>]>;
+
+// @public
 export type StateOf<Snap extends TSchema, C> = [C] extends [never] ? Static<Snap> : C;
 
 // @public
@@ -1139,7 +1168,9 @@ export interface ToolSource {
             readonly tools: readonly {
                 readonly name: string;
                 readonly for: readonly string[];
+                readonly reviewed?: boolean;
             }[];
+            readonly stages?: readonly string[] | undefined;
         };
     };
     readonly path: string;
@@ -1158,6 +1189,9 @@ export function twoProviders(input: {
     readonly service: string;
     readonly providers: readonly string[];
 }): SwtIssue;
+
+// @public
+export function unstagedTools(sources: readonly ToolSource[], tools: readonly NamedTool[], grants: Readonly<Record<string, readonly CanonicalTool[]>>): readonly SwtIssue[];
 
 // @public
 export interface UsedMechanic {

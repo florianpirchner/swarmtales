@@ -15,7 +15,7 @@ import { appendRoster } from "../roster/index.ts";
 import { gameData } from "./define-game.ts";
 import { DIRECTOR_TAKE, directorGrants, DIRECTORS_PLUGIN, resolveDirectors } from "./directors.ts";
 import { familyParams, isGameFamily, isJson } from "./family.ts";
-import { resolveGrants } from "./grants.ts";
+import { resolveGrants, unstagedTools } from "./grants.ts";
 import { loadOrder } from "./load-order.ts";
 import { collectTexts } from "./texts.ts";
 import { shownNameClashes, toolNames, type NamedTool } from "./tool-names.ts";
@@ -133,7 +133,7 @@ function mechanicSteps(data: GameData, definitions: Definitions, input: ResolveI
 	const names = toolNames(sources);
 	const grants = resolveGrants({ tools: names.tools, grants: data.grants, locked: data.locked });
 	const texts = collectTexts(sources, input.prompts);
-	const issues = [...found.issues.filter((issue) => !(issue.code === "SWT-G022" && own.has(issue.where?.path ?? ""))), ...placed, ...names.issues, ...grants.issues, ...texts.issues];
+	const issues = [...found.issues.filter((issue) => !(issue.code === "SWT-G022" && own.has(issue.where?.path ?? ""))), ...placed, ...names.issues, ...grants.issues, ...unstagedTools(sources, names.tools, grants.grants), ...texts.issues];
 	return { used: found.used, order, tools: names.tools, names: names.names, grants, texts, issues };
 }
 
@@ -184,7 +184,7 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
 	const version = versionOf(input.versions ?? {});
 	// A bare name that two mechanics declare stands for the tool of the one loaded first.
 	const tools = new Map(steps.tools.toReversed().map((tool) => [tool.name, tool.canonical]));
-	const loaded = steps.order.map((entry) => entry.definition.resolve(entry.options, input.prompts, version(entry.definition.package), tools));
+	const loaded = steps.order.map((entry) => entry.definition.resolve(entry.options, input.prompts, version(entry.definition.package), tools, steps.names));
 	const rostered = appendRoster(loaded, version(SDK));
 	// The plugin `directors` is the last plugin, and only a game with a Director has it.
 	const plugins = parts.directors.length === 0 ? rostered : [...rostered, directorsPlugin(parts.directors, rostered, version(SDK))];

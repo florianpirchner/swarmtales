@@ -91,6 +91,7 @@ export function erasedHead(head: AnyHead): PluginHead {
 		provides: head.provides ?? [],
 		uses: head.uses ?? [],
 		tools: declaredTools(head),
+		stages: head.stages,
 		metrics: head.metrics ?? [],
 	};
 }

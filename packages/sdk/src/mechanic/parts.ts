@@ -29,6 +29,8 @@ export interface InstanceParts<M extends MechanicShape> {
 	readonly texts: PromptLookup;
 	/** The tools of the game, bare name to canonical name: a lock names another mechanic's tool by it. */
 	readonly tools?: ReadonlyMap<string, CanonicalTool>;
+	/** Canonical name to shown name, from the game: `ctx.stage` names a tool as the grant of `script` shows it. */
+	readonly names?: Readonly<Record<string, string>>;
 }
 
 /**

@@ -138,8 +138,9 @@ function place(plan: Plan, turn: Turn | undefined, event: Envelope, inTick: bool
 }
 
 // Sorts the inputs of a log by where they are made again. A record caused by a call is a record of the stage
-// `review`: the replay's answerer port writes it again inside that call.
-function planOf(log: readonly Envelope[], sources: ReadonlySet<string>): Plan {
+// `review`: the replay's answerer port writes it again inside that call. In a game that stages calls (it has the
+// actor `script`), a call of `script` is a result: the mechanic that staged it stages it again.
+function planOf(log: readonly Envelope[], sources: ReadonlySet<string>, staged: boolean): Plan {
 	const plan: Plan = { turns: new Map(), between: [[]], ticks: 0 };
 	const open = new Map<number, Turn>();
 	const calls = new Set<number>();
@@ -161,7 +162,7 @@ function planOf(log: readonly Envelope[], sources: ReadonlySet<string>): Plan {
 		},
 		tool_called: (event) => {
 			calls.add(event.seq);
-			place(plan, open.get(event.causedBy ?? 0), event, inTick);
+			if (!staged || event.actor !== "script") place(plan, open.get(event.causedBy ?? 0), event, inTick);
 		},
 	};
 	for (const event of log) {
@@ -285,7 +286,8 @@ function resolved(input: ReplayInput): ResolvedGame {
 /**
  * Plays a run again from its log and compares. Inputs are taken from the log: a `tool_called` inside an activation
  * is called again by a replay driver, in the order and at the line of the log; a `tool_called` between two ticks is
- * submitted at the same boundary; an event of a record source is recorded again at the same place. The line of each
+ * submitted at the same boundary; an event of a record source is recorded again at the same place. A call of the
+ * actor `script` in a game that has it is staged again by its mechanic, so it is a result. The line of each
  * `activation_closed` is an input too: a replay driver returns only when the replayed log has reached the line before
  * it, so the closes, and the scans a scheduler runs at them, come at the lines of the log under any scheduler. Every
  * other line (kernel, scheduler, mechanics) is a result. A resumed log is replayed as one log; with `resume` the
@@ -314,7 +316,7 @@ export async function replay(input: ReplayInput): Promise<ReplayResult> {
 	const game = resolved(input);
 	const { definition } = game;
 	const sources = new Set((input.records ?? definition.records ?? []).map((source) => source.id));
-	const plan = planOf(input.log, sources);
+	const plan = planOf(input.log, sources, definition.actors.some((actor) => actor.id === "script"));
 	const answerers = input.answerers ?? (game.directors ?? []).flatMap((director) => (director.definition.answers === undefined ? [] : [director.definition.answers]));
 	const made: { kernel?: Kernel } = {};
 	const review = reviewsOf(input.log, sources, answerers, () => made.kernel);

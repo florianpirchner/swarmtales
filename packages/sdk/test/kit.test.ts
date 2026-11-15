@@ -68,6 +68,7 @@ function setup(): { readonly parts: InstanceParts<M>; readonly bind: KitBinding;
 				call: () => raise("stand-in"),
 				has: () => false,
 				tryCall: () => undefined,
+				stage: () => undefined,
 				prompt: () => "",
 				rng: () => random,
 				actor,

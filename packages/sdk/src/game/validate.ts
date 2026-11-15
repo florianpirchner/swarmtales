@@ -104,9 +104,10 @@ export function directorsOf(data: GameData): { readonly names: readonly string[]
 /**
  * Step 3: the actors of a game. Each resident becomes the actor `resident:<id>` of kind and grant `resident`; its
  * team and its role are written into `shared` (`team`, `role`), where the `roster` plugin reads them. After the
- * residents come the actor `director:<name>` (kind `director`, grant `<name>`) of each Director, and last the actor
- * `human` (kind and grant `human`) when the grant `human` holds a tool. No scheduler option activates the human:
- * its calls are submitted between two ticks.
+ * residents come the actor `director:<name>` (kind `director`, grant `<name>`) of each Director, the actor
+ * `human` (kind and grant `human`) when the grant `human` holds a tool, and last the actor `script` (kind and grant
+ * `script`) when the grant `script` holds one: it makes the staged calls. No scheduler option activates the human
+ * or `script`: the human's calls are submitted between two ticks, and the kernel makes the staged calls.
  *
  * @param data - The game.
  * @param ids - The resident ids of step 2.
@@ -131,8 +132,8 @@ export function actorsOf(data: GameData, ids: readonly string[], directors: read
 	}
 	const residents = ids.map((id): ActorSpec => ({ id: actorId(KIND, id), kind: KIND, grant: KIND, shared: shared.get(id) ?? {} }));
 	const others = directors.map((name): ActorSpec => ({ id: actorId(DIRECTOR, name), kind: DIRECTOR, grant: name, shared: {} }));
-	const human: readonly ActorSpec[] = (Object.hasOwn(grants, HUMAN) ? (grants[HUMAN] ?? []) : []).length > 0 ? [{ id: HUMAN, kind: HUMAN, grant: HUMAN, shared: {} }] : [];
-	return { actors: [...residents, ...others, ...human], issues };
+	const holds = (grant: "human" | "script"): readonly ActorSpec[] => ((Object.hasOwn(grants, grant) ? grants[grant] : undefined) ?? []).length > 0 ? [{ id: grant, kind: grant, grant, shared: {} }] : [];
+	return { actors: [...residents, ...others, ...holds(HUMAN), ...holds("script")], issues };
 }
 
 /**

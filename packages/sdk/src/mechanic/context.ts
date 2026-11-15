@@ -3,13 +3,13 @@
  * The contexts of one mechanic instance over the kernel's untyped `PluginPort`. Author words become kernel words
  * here, once: a resident id (`A01`) is the actor `resident:A01`, and a mechanic's own tool (`playMove`) is the
  * canonical `<package>/<id>/playMove`. What crosses the port is checked against its schema, so no value needs a
- * type assertion.
+ * type assertion. The typed `then` job of a staged call (`onStaged`) lives here too: it checks what the kernel hands it.
  */
-import type { TSchema } from "typebox";
+import { Type, type TSchema } from "typebox";
 import { Check, Errors } from "typebox/value";
-import { actorId, kindOf, nameOf, SwtError, type ActorId, type ActorsView, type CanonicalTool, type ServiceDefinition } from "@swarmtales/contracts";
+import { actorId, kindOf, nameOf, SwtError, type ActorId, type ActorsView, type CanonicalTool, type JsonValue, type ServiceDefinition, type StagedOutcome } from "@swarmtales/contracts";
 import { commandInView, payloadMismatch, serviceMismatch } from "../errors.ts";
-import type { FactView, MechanicShape, ResidentAccess, ResidentsPort, ResidentsView, ServiceMethodName, ServiceOutput, ToolContext, ToolName } from "./context-types.ts";
+import type { FactView, MechanicContext, MechanicShape, ResidentAccess, ResidentsPort, ResidentsView, ServiceMethodName, ServiceOutput, ToolContext, ToolName } from "./context-types.ts";
 import type { InstanceParts } from "./parts.ts";
 
 /**
@@ -110,23 +110,24 @@ function actorsView(actors: ActorsView): ActorsView {
 	};
 }
 
-function accessOf<M extends MechanicShape>({ port, head, tools }: InstanceParts<M>): ResidentAccess {
-	// A `ToolRef` holds no package, so it names a tool of this mechanic; so does a bare name the mechanic declares.
-	// Any other bare name is the tool of another mechanic of the game, as on the old platform.
-	const canonical = (tool: ToolName): CanonicalTool => {
-		const name = typeof tool === "string" ? tool : tool.name;
-		const other = typeof tool === "string" && !head.tools.some((declared) => declared.name === name) ? tools?.get(name) : undefined;
-		return other ?? `${port.source}/${name}`;
-	};
+// A `ToolRef` holds no package, so it names a tool of this mechanic; so does a bare name the mechanic declares.
+// Any other bare name is the tool of another mechanic of the game, as on the old platform.
+function canonicalOf<M extends MechanicShape>({ port, head, tools }: InstanceParts<M>, tool: ToolName): CanonicalTool {
+	const name = typeof tool === "string" ? tool : tool.name;
+	const other = typeof tool === "string" && !head.tools.some((declared) => declared.name === name) ? tools?.get(name) : undefined;
+	return other ?? `${port.source}/${name}`;
+}
+
+function accessOf<M extends MechanicShape>(parts: InstanceParts<M>): ResidentAccess {
 	return {
 		lock(resident, tool) {
-			port.access.lock(actorOf(resident), canonical(tool));
+			parts.port.access.lock(actorOf(resident), canonicalOf(parts, tool));
 		},
 		unlock(resident, tool) {
-			port.access.unlock(actorOf(resident), canonical(tool));
+			parts.port.access.unlock(actorOf(resident), canonicalOf(parts, tool));
 		},
-		isLocked: (resident, tool) => port.access.isLocked(actorOf(resident), canonical(tool)),
-		isOpen: (resident, tool) => port.access.isOpen(actorOf(resident), canonical(tool)),
+		isLocked: (resident, tool) => parts.port.access.isLocked(actorOf(resident), canonicalOf(parts, tool)),
+		isOpen: (resident, tool) => parts.port.access.isOpen(actorOf(resident), canonicalOf(parts, tool)),
 	};
 }
 
@@ -170,6 +171,8 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 		call: (service, method, input) => callChecked(parts, service, method, input),
 		has: (service) => port.has(service.name),
 		tryCall: (service, method, input) => (port.has(service.name) ? callChecked(parts, service, method, input) : undefined),
+		// The kernel finds a staged tool by the name the grant of `script` shows it by.
+		stage: (tool, params, options) => { port.stage(parts.names?.[canonicalOf(parts, tool)] ?? (typeof tool === "string" ? tool : tool.name), params, options); },
 		prompt: (id, variables) => parts.texts.render(port.id, id, variables, head.prompts[id] ?? []),
 		rng: (...labels) => port.rng(...labels),
 	};
@@ -200,3 +203,25 @@ export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactV
 		tryCall: (service, method, input) => (queryOnly(parts, service, method), port.has(service.name) ? callChecked(parts, service, method, input) : undefined),
 	};
 }
+
+/**
+ * The outcome of a staged call as its `then` job gets it: the contracts type `StagedOutcome` as a schema.
+ *
+ * @public
+ */
+export const StagedOutcomeSchema = Type.Union([Type.Object({ ok: Type.Literal(true), reply: Type.String({ description: "The reply of the call" }) }, { additionalProperties: false, description: "The staged call ran" }), Type.Object({ ok: Type.Literal(false), code: Type.String({ description: "The refusal code" }), detail: Type.Optional(Type.String({ description: "The refusal text" })) }, { additionalProperties: false, description: "The staged call was refused" })], { description: "The outcome of a staged call" });
+
+/**
+ * The typed form of a job that a staged call names as its `then` (`ctx.stage(tool, params, { then })`).
+ *
+ * @param job - Gets the context and the outcome of the staged call.
+ * @returns The job, for the body's `jobs`. It checks its data against {@link StagedOutcomeSchema}: data that is no
+ * outcome (the job was scheduled with other data) throws a `RangeError`, and the kernel ends the run with `SWT-R003`.
+ * @example
+ * ```ts
+ * jobs: { minuteRan: onStaged((ctx, outcome) => { if (!outcome.ok) ctx.emit("skipped", { code: outcome.code }); }) },
+ * ```
+ *
+ * @public
+ */
+export const onStaged = <M extends MechanicShape>(job: (ctx: MechanicContext<M>, outcome: StagedOutcome) => void): ((ctx: MechanicContext<M>, data: JsonValue | undefined) => void) => (ctx, data) => { if (!Check(StagedOutcomeSchema, data)) throw new RangeError(`a \`then\` job of "${ctx.mechanic}" got ${JSON.stringify(data)}, which is no outcome of a staged call`); job(ctx, data); };

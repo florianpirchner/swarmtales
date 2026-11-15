@@ -5,8 +5,8 @@
  * that, a tweak changes it. The game writes bare tool names, as the old platform did; the result holds canonical ones.
  */
 import type { CanonicalTool, GameData, SwtIssue } from "@swarmtales/contracts";
-import { toolNotDefined } from "../errors.ts";
-import { shownNameClashes, type NamedTool } from "./tool-names.ts";
+import { stagedNotGranted, toolNotDefined } from "../errors.ts";
+import { shownNameClashes, type NamedTool, type ToolSource } from "./tool-names.ts";
 
 /**
  * What {@link resolveGrants} takes.
@@ -106,4 +106,23 @@ export function resolveGrants(input: GrantsInput): ResolvedGrants {
 		startLocks: locked.length === 0 ? {} : { resident: locked },
 		issues: [...lookup.issues, ...shownNameClashes(resolved, input.tools)],
 	};
+}
+
+/**
+ * The load check of staged calls: every tool a mechanic's head lists in `stages` must be in the grant `script`, and
+ * no tool with a review may be (a staged call is not awaited). A bare name is the mechanic's own tool when it declares
+ * one by that name, else the tool of the mechanic loaded first that does, as `ctx.stage` names it.
+ *
+ * @param sources - The mechanics in load order.
+ * @param tools - The tools of the game, from `toolNames`.
+ * @param grants - The resolved grants.
+ * @returns One `SWT-G015` per staged tool that the grant `script` does not hold, then one per tool with a review it holds.
+ *
+ * @public
+ */
+export function unstagedTools(sources: readonly ToolSource[], tools: readonly NamedTool[], grants: Readonly<Record<string, readonly CanonicalTool[]>>): readonly SwtIssue[] {
+	const script = (Object.hasOwn(grants, "script") ? grants.script : undefined) ?? [];
+	const granted = (owner: string, name: string): boolean => [tools.find((tool) => tool.name === name && tool.owner === owner) ?? tools.find((tool) => tool.name === name)].some((tool) => tool !== undefined && script.includes(tool.canonical));
+	const reviewed = sources.flatMap(({ mechanic, path }) => mechanic.head.tools.filter((tool) => tool.reviewed === true && script.includes(`${mechanic.package}/${mechanic.id}/${tool.name}`)).map((tool) => stagedNotGranted({ mechanic: mechanic.id, tool: tool.name, path, reviewed: true })));
+	return [...sources.flatMap(({ mechanic, path }) => (mechanic.head.stages ?? []).filter((name) => !granted(mechanic.id, name)).map((name) => stagedNotGranted({ mechanic: mechanic.id, tool: name, path }))), ...reviewed];
 }

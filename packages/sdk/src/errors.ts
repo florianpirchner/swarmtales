@@ -20,6 +20,7 @@ export const SDK_ERRORS = {
 	"SWT-G012": "a tool is granted or locked but not defined",
 	"SWT-G013": "two tools of one grant share a shown name",
 	"SWT-G014": "a shown tool name does not match the pattern",
+	"SWT-G015": "a mechanic stages a tool that the game does not grant to `script`, or the grant `script` holds a tool with a review",
 	"SWT-G020": "an option does not match its schema",
 	"SWT-G021": "a mechanic is listed twice",
 	"SWT-G022": "a data game names a mechanic that is not installed",
@@ -275,6 +276,24 @@ export function shownNameClash(input: { readonly shown: string; readonly grant: 
  */
 export function shownNameMalformed(input: { readonly shown: string; readonly tool: string; readonly path: string }): SwtIssue {
 	return issue("SWT-G014", `tool "${input.tool}" would be shown as "${input.shown}", which is no valid tool name`, `A shown tool name matches ${TOOL_NAME_PATTERN}: model providers accept nothing else.`, "Give the tool a name of 1 to 64 letters, digits, `_` or `-`, with `as` on its mechanic in the game or in the mechanic itself.", { path: input.path });
+}
+
+/**
+ * `SWT-G015`: a mechanic stages a tool that the game does not grant to `script`, or the grant `script` holds a tool
+ * with a review.
+ *
+ * @param input - The mechanic, the tool and where.
+ * @param input.mechanic - The id of the mechanic whose head lists the tool in `stages`, or that has the reviewed tool.
+ * @param input.tool - The bare name of the tool.
+ * @param input.path - The data path of the mechanic in the game.
+ * @param input.reviewed - True for a tool with a review in the grant `script`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function stagedNotGranted(input: { readonly mechanic: string; readonly tool: string; readonly path: string; readonly reviewed?: boolean }): SwtIssue {
+	if (input.reviewed !== true) return issue("SWT-G015", `mechanic "${input.mechanic}" stages the tool "${input.tool}", which the grant \`script\` does not hold`, "A staged call is made as the actor `script` and passes the whole pipeline, so the game must grant `script` every tool its mechanics stage.", `Add "${input.tool}" to \`grants.script\`, or give the tool \`for: ["script"]\` in its head.`, { path: input.path });
+	return issue("SWT-G015", `the grant \`script\` holds the tool "${input.tool}" of mechanic "${input.mechanic}", which has a review`, "A staged call runs at once after the step that staged it and is not awaited, so the actor `script` cannot wait for the answer of a review.", `Drop "${input.tool}" from \`grants.script\`, or from the \`for\` of the tool in its head.`, { path: input.path });
 }
 
 /**

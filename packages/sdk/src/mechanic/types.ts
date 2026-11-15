@@ -121,6 +121,8 @@ export interface MechanicHead<
 	readonly uses?: U;
 	/** The tools, by bare name, in the order a caller sees them; the body's `tools` holds their handlers. */
 	readonly tools?: { readonly [K in keyof TP]: ToolDeclaration<TP[K]> };
+	/** The bare names of the tools it stages (`ctx.stage`), its own or another mechanic's: a game grants each to `script` (SWT-G015). */
+	readonly stages?: readonly string[];
 	/** The numbers the mechanic exports about a finished run, each computed from its own events (`defineMetric`). They are no part of a game's hash. */
 	readonly metrics?: readonly MetricDefinition[];
 }
@@ -185,6 +187,8 @@ export interface DeclaredTool {
 	readonly free: boolean;
 	/** Whether the body gives the tool a `sample`, so the fake driver can call it. `defineMechanic` sets it; a head alone does not say. */
 	readonly sampled?: boolean;
+	/** Whether the body gives the tool a review; `defineMechanic` sets it. Such a tool cannot be staged (SWT-G015). */
+	readonly reviewed?: boolean;
 }
 
 /**
@@ -221,6 +225,8 @@ export interface PluginHead {
 	readonly uses: readonly ServiceDefinition[];
 	/** The tools, in the order a caller sees them. */
 	readonly tools: readonly DeclaredTool[];
+	/** The bare names of the tools it stages; left out: none. */
+	readonly stages?: readonly string[] | undefined;
 	/** The metrics it exports about a finished run; empty when it declares none. */
 	readonly metrics: readonly MetricDefinition[];
 }
@@ -464,9 +470,10 @@ export interface MechanicDefinition<Id extends string = string, O extends TSchem
 	parseOptions(raw: unknown): Static<O>;
 	/**
 	 * Binds parsed options and the texts and returns the plugin the kernel loads; `tools` (bare name to canonical
-	 * name, from the game) lets `ctx.access` lock a tool of another mechanic by its bare name.
+	 * name, from the game) lets `ctx.access` lock a tool of another mechanic by its bare name; `names` (canonical name
+	 * to shown name, from the game) gives `ctx.stage` the name the grant of `script` shows a tool by.
 	 */
-	resolve(options: Static<O>, texts: PromptLookup, version: string, tools?: ReadonlyMap<string, CanonicalTool>): ResolvedPlugin;
+	resolve(options: Static<O>, texts: PromptLookup, version: string, tools?: ReadonlyMap<string, CanonicalTool>, names?: Readonly<Record<string, string>>): ResolvedPlugin;
 }
 
 /**

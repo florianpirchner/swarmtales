@@ -13,7 +13,7 @@ export type * from "./mechanic/types.ts";
 export type * from "./mechanic/parts.ts";
 export type * from "./game/types.ts";
 
-export { actorOf, contextFor, residentOf, viewFor, RESIDENT_KIND } from "./mechanic/context.ts";
+export { actorOf, contextFor, onStaged, residentOf, viewFor, RESIDENT_KIND, StagedOutcomeSchema } from "./mechanic/context.ts";
 export { bindHooks, bindStages } from "./mechanic/hooks.ts";
 export { convertArguments } from "./mechanic/arguments.ts";
 export { inSchemaOrder } from "./mechanic/schema-order.ts";
@@ -21,7 +21,7 @@ export { inSchemaOrder } from "./mechanic/schema-order.ts";
 export { createKit, type KitBinding } from "./mechanic/kit.ts";
 
 export { defineGame, definitionsOf, gameData } from "./game/define-game.ts";
-export { resolveGrants, type GrantsInput, type ResolvedGrants } from "./game/grants.ts";
+export { resolveGrants, unstagedTools, type GrantsInput, type ResolvedGrants } from "./game/grants.ts";
 export { shownNameClashes, toolNames, type NamedTool, type ToolNames, type ToolSource } from "./game/tool-names.ts";
 
 export { actorsOf, checkSchema, directorsOf, mechanicsOf, residentsOf, type UsedMechanic } from "./game/validate.ts";

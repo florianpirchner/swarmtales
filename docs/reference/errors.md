@@ -70,6 +70,14 @@ A shown tool name does not match the pattern.
 - **Fix:** Give the tool a name of 1 to 64 letters, digits, `_` or `-`, with `as` on its mechanic in the game or in the mechanic itself.
 - **Named in:** `packages/sdk`
 
+### SWT-G015
+
+A mechanic stages a tool that the game does not grant to `script`, or the grant `script` holds a tool with a review.
+
+- **Why:** A staged call is made as the actor `script` and passes the whole pipeline, so the game must grant `script` every tool its mechanics stage.
+- **Fix:** Add "{tool}" to `grants.script`, or give the tool `for: ["script"]` in its head.
+- **Named in:** `packages/sdk`
+
 ### SWT-G020
 
 An option does not match its schema.
