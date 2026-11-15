@@ -8,7 +8,8 @@
  * direct messages and memos of a window (`dmLimit`), let residents refuse a Director's order (`defy`) and end each
  * activation with the line of unread posts (`digest`). A Director leaves a resident a numbered note (`notify`) or posts
  * on the board (`boardNote`) within a budget per reader, and other mechanics check and record their Director's texts
- * through `NotesService`; a repeat and a long text are refused, the facts of a game by their owners. With a provider of `identity` residents read names and may
+ * through `NotesService`; a repeat and a long text are refused, the facts of a game by their owners. The fact `notes`
+ * gives every note for a Director to read. With a provider of `identity` residents read names and may
  * write them where an id goes; with a provider of `allowance` a message's reply says the marks left.
  *
  * @packageDocumentation
@@ -30,7 +31,7 @@ import { checkNote, noteBudget, recordNote } from "./notes.ts";
 import { resolved, shownOutcome, shownRefusal } from "./shown.ts";
 import { createCityGroup, depositGroup, postGroupAsCity, removeCityGroup, settleTreasuries, withdrawGroup } from "./treasury.ts";
 import { dmWindow, memoCap } from "./window.ts";
-import type { DmRecord } from "./state.ts";
+import { NoteSchema, type DmRecord } from "./state.ts";
 
 export { ChannelsEvents, ChannelsService, NotesService };
 
@@ -148,5 +149,6 @@ export const channels = defineMechanic(channelsHead, {
 	facts: {
 		messages: { output: Type.Integer({ description: "The city's last message number" }), compute: (view) => view.state.numbers.last },
 		boardPosts: { output: Type.Integer({ description: "The posts on the board" }), compute: (view) => view.state.board.all().length },
+		notes: { output: Type.Array(NoteSchema, { description: "Every note of a Director, oldest first" }), compute: (view) => view.state.notes.map((note) => ({ tick: note.tick, to: note.to, text: note.text })) },
 	},
 });

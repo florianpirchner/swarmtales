@@ -2,7 +2,7 @@
 /**
  * The `roster` plugin: who plays, in which team and in which role. Game resolution adds it to every game that
  * lists no provider of the service `roster`. It is written by hand as a `ResolvedPlugin`, not with
- * `defineMechanic`: it has no options, no state, no tools and no events. It speaks in resident ids (`A01`), as an
+ * `defineMechanic`: it has no options, no state, no tools and no events. Its fact `residents` holds the resident ids in roster order (A74). It speaks in resident ids (`A01`), as an
  * author does, and reads what resolution wrote into `ActorSpec.shared` (`team`, `role`).
  */
 import { actorId, SwtError, type ActorsView, type PluginPort, type ResolvedPlugin, type ServiceMethods } from "@swarmtales/contracts";
@@ -89,7 +89,7 @@ function call(port: PluginPort, method: string, input: unknown, caller: string):
  * The `roster` plugin of a game.
  *
  * @param version - The version of the sdk package, for the manifest.
- * @returns The plugin: it provides `roster` and nothing else.
+ * @returns The plugin: it provides `roster` and computes the fact `residents`.
  *
  * @public
  */
@@ -111,7 +111,7 @@ export function rosterPlugin(version: string): ResolvedPlugin {
 			stages: {},
 			jobs: {},
 			limits: [],
-			facts: {},
+			facts: { residents: { output: residents("The resident ids, in the game's order"), compute: () => answer(port.actors, "ids", "") } },
 			slice: undefined,
 		}),
 	};

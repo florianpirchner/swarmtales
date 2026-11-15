@@ -118,7 +118,8 @@ const NoticeSlice = Type.Object(
 	{ author: Type.String({ description: "The name it is signed with" }), text: Text, number: Type.Optional(Type.Integer({ description: "The message number of a Director's note" })) },
 	{ description: "A notice that waits" },
 );
-const Note = Type.Object({ tick: Type.Integer({ description: "The tick it was written in" }), to: Type.String({ description: "Whom it was recorded under" }), text: Text }, { description: "A note of a Director" });
+/** A note of a Director as the slice and the fact `notes` hold it. */
+export const NoteSchema = Type.Object({ tick: Type.Integer({ description: "The tick it was written in" }), to: Type.String({ description: "Whom it was recorded under" }), text: Text }, { description: "A note of a Director" });
 const Tick = Type.Integer({ description: "The tick it was sent in" });
 const Mail = Type.Object({ from: Type.String({ description: "Who sent it" }), text: Text, tick: Tick, number: Seq }, { description: "An unread direct message" });
 const Dm = Type.Object(
@@ -163,7 +164,7 @@ export const ChannelsSlice = Type.Object(
 		seen: Type.Array(Type.Object({ resident: Id, seq: Seq }, { description: "A seen mark" }), { description: "The newest player post each resident has seen" }),
 		groups: GroupsSlice,
 		memos: Type.Array(Memo, { description: "Every transfer with a memo, oldest first" }),
-		notes: Type.Array(Note, { description: "Every note of a Director, oldest first" }),
+		notes: Type.Array(NoteSchema, { description: "Every note of a Director, oldest first" }),
 	},
 	{ description: "The board, the message counter, the direct messages, the inboxes, the seen markers, the groups, the memos and the notes" },
 );

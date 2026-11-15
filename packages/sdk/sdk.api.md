@@ -304,6 +304,7 @@ export function directorsReserved(input: {
 // @public
 export interface DirectorTrigger {
     readonly event: string;
+    readonly quiet?: boolean;
     readonly where?: (payload: unknown) => boolean;
 }
 
@@ -357,6 +358,7 @@ export interface Firing {
     readonly event: string;
     readonly n: number;
     readonly payload: unknown;
+    readonly quiet?: true;
     readonly tick: number;
 }
 
@@ -1099,6 +1101,7 @@ export const TakeAnswerSchema: Type.TObject<{
         tick: Type.TInteger;
         event: Type.TString;
         payload: Type.TUnknown;
+        quiet: Type.TOptional<Type.TLiteral<true>>;
     }>>;
     calls: Type.TInteger;
 }>;

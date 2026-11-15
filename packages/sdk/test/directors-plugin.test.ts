@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
-import { SwtError, type ActorId, type Envelope, type GameData, type PluginInstance, type PluginPort, type SchedulerDefinition } from "@swarmtales/contracts";
+import { SwtError, type ActorId, type ToolCall, type Envelope, type GameData, type PluginInstance, type PluginPort, type SchedulerDefinition } from "@swarmtales/contracts";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { defineDirector } from "../src/director/define.ts";
@@ -15,6 +15,10 @@ const Line = Type.Object({ line: text("The line") }, { description: "A line" });
 const body = { system: () => "s", input: () => "i", act: () => Promise.resolve() };
 const isLoud = (payload: unknown): boolean => typeof payload === "object" && payload !== null && "line" in payload && payload.line !== "hush";
 const warden = defineDirector({ id: "warden", summary: "Hears proposals that are not hushed, and closings.", on: [{ event: "votes.proposed", where: isLoud }, { event: "votes.closed" }], output: Line, limits: { maxCalls: 2 } }, body);
+const scribe = defineDirector(
+	{ id: "scribe", summary: "Wakes on a closing; takes proposals, loud counts and posts along.", on: [{ event: "votes.closed" }, { event: "votes.proposed", quiet: true }, { event: "votes.counted", quiet: true }, { event: "votes.counted", where: isLoud }, { event: "tool_called", tool: "post", quiet: true }], output: Line },
+	body,
+);
 const clerk = defineDirector({ id: "clerk", summary: "Hears every proposal.", on: [{ event: "votes.proposed" }], output: Line }, body);
 const votes = defineMechanic(
 	defineHead({ id: "votes", package: "@test/votes", summary: "Votes.", events: { proposed: Line, closed: Line, counted: Line }, tools: { post: { description: "Posts a line.", params: Line, for: ["resident", "warden"] } } }),
@@ -22,7 +26,7 @@ const votes = defineMechanic(
 );
 const turns: SchedulerDefinition = { id: "@test/turns", revision: 1, determinism: "seeded", options: Type.Object({ afterBlocks: Type.Optional(Type.Array(text("A kind"), { description: "Kinds" })) }, { description: "Turns" }), events: {}, create: () => ({ run: () => Promise.resolve(undefined) }) };
 const data = (changes: Partial<GameData> = {}): GameData => ({ schema: 1, id: "demo", residents: 2, mechanics: [{ use: "votes" }], directors: [{ use: "warden" }, { use: "clerk" }], scheduler: { id: "turns", options: { afterBlocks: ["director"] } }, end: { ticks: 5 }, ...changes });
-const resolved = (changes: Partial<GameData> = {}) => resolveGame({ game: data(changes), installed: { votes }, directors: { warden, clerk }, schedulers: { turns }, prompts: { render: (_owner, id) => id } });
+const resolved = (changes: Partial<GameData> = {}) => resolveGame({ game: data(changes), installed: { votes }, directors: { warden, clerk, scribe }, schedulers: { turns }, prompts: { render: (_owner, id) => id } });
 
 const unused = (): never => {
 	throw new Error("the plugin `directors` does not use this part of the port");
@@ -31,13 +35,14 @@ const unused = (): never => {
 /** One instance of the plugin over a stub port: `fire` plays an event to its listeners, `take` is a Director's call. */
 function started(changes: Partial<GameData> = {}) {
 	const emitted: unknown[] = [];
+	let now = 0;
 	const port: PluginPort = {
 		stage: () => undefined,
 		id: DIRECTORS_PLUGIN,
 		source: "@swarmtales/sdk/directors",
 		seed: 1,
 		maxTicks: 5,
-		tick: () => 0,
+		tick: () => now,
 		emit: (type, payload) => void emitted.push([type, payload]),
 		call: unused,
 		has: () => false,
@@ -59,7 +64,13 @@ function started(changes: Partial<GameData> = {}) {
 		const outcome = call(actor)?.execute();
 		return outcome?.ok === true ? parseTake(outcome.reply) : undefined;
 	};
-	return { instance, plugins, emitted, fire, call, take, news: (actor: ActorId) => instance.hooks.news?.(actor) };
+	// A call that reached `execute`, as the kernel hands it to the stage handler `after`, at tick `tick`.
+	const after = (actor: ActorId, tick: number): void => {
+		now = tick;
+		const done: ToolCall = { tool: "@test/votes/votes/post", name: "post", as: "post", owner: "votes", actor, params: { line: "x" }, seq: 1 };
+		instance.stages.after?.(done, { ok: true, reply: "ok" });
+	};
+	return { instance, plugins, emitted, fire, call, take, after, news: (actor: ActorId) => instance.hooks.news?.(actor), active: () => instance.facts.active?.compute() };
 }
 
 describe("the plugin `directors`", () => {
@@ -99,7 +110,7 @@ describe("the plugin `directors`", () => {
 		first.fire("closed");
 		first.fire("proposed");
 		const saved: unknown = JSON.parse(JSON.stringify(first.instance.slice?.save()));
-		expect(saved).toEqual({ queue: { warden: [{ n: 2, tick: 1, event: "votes.closed", payload: { line: "x" } }, { n: 3, tick: 1, event: "votes.proposed", payload: { line: "x" } }], clerk: [{ n: 1, tick: 1, event: "votes.proposed", payload: { line: "x" } }] }, calls: { warden: 1, clerk: 0 }, skipped: [], fired: { warden: 3, clerk: 1 } });
+		expect(saved).toEqual({ queue: { warden: [{ n: 2, tick: 1, event: "votes.closed", payload: { line: "x" } }, { n: 3, tick: 1, event: "votes.proposed", payload: { line: "x" } }], clerk: [{ n: 1, tick: 1, event: "votes.proposed", payload: { line: "x" } }] }, calls: { warden: 1, clerk: 0 }, skipped: [], fired: { warden: 3, clerk: 1 }, active: {} });
 		const second = started();
 		second.instance.slice?.load(saved, 2);
 		for (const run of [first, second]) {
@@ -140,5 +151,57 @@ describe("the plugin `directors`", () => {
 		expect(clash("take", [{ use: "warden" }, { use: "clerk" }])).toBe(`SWT-G013 mechanics[0] {"tools":["${DIRECTOR_TAKE}","@test/votes/votes/post"]}`);
 		// `clerk` does not hold `post`, and a resident holds no `take` of the plugin: no clash.
 		expect([clash("take", [{ use: "clerk" }]), clash("say", [{ use: "warden" }])]).toEqual(["resolved", "resolved"]);
+	});
+
+	it("queues the firings of a `quiet` trigger as no news; the next woken activation takes them along (A74)", () => {
+		const { instance, fire, take, news, after } = started({ directors: [{ use: "scribe" }] });
+		fire("proposed");
+		fire("counted", "hush");
+		after("resident:A02", 1);
+		after("director:scribe", 1);
+		expect(news("director:scribe")).toBe(false);
+		// A firing that a loud trigger keeps too is news.
+		fire("counted", "loud");
+		expect(news("director:scribe")).toBe(true);
+		fire("closed");
+		expect(take("director:scribe")).toEqual({
+			firings: [
+				{ n: 1, tick: 1, event: "votes.proposed", payload: { line: "x" }, quiet: true },
+				{ n: 2, tick: 1, event: "votes.counted", payload: { line: "hush" }, quiet: true },
+				{ n: 3, tick: 1, event: "tool_called", payload: { actor: "resident:A02", as: "post", params: { line: "x" } }, quiet: true },
+				{ n: 4, tick: 1, event: "votes.counted", payload: { line: "loud" } },
+				{ n: 5, tick: 1, event: "votes.closed", payload: { line: "x" } },
+			],
+			calls: 1,
+		});
+		// Quiet firings alone wake nobody, also after a snapshot; the queue and its marks survive it.
+		fire("proposed");
+		const resumed = started({ directors: [{ use: "scribe" }] });
+		resumed.instance.slice?.load(JSON.parse(JSON.stringify(instance.slice?.save())), 2);
+		expect([news("director:scribe"), resumed.news("director:scribe")]).toEqual([false, false]);
+		resumed.fire("closed");
+		expect(resumed.take("director:scribe")?.firings.map((firing) => [firing.n, firing.event, firing.quiet])).toEqual([[6, "votes.proposed", true], [7, "votes.closed", undefined]]);
+	});
+
+	it("computes the fact `active`: each resident's tick of its last call that reached `execute`, kept by a snapshot (A74)", () => {
+		const first = started();
+		expect(first.active()).toEqual({});
+		first.after("resident:A02", 1);
+		first.after("resident:A01", 2);
+		first.after("director:warden", 3);
+		first.after("resident:A02", 4);
+		expect(first.active()).toEqual({ A01: 2, A02: 4 });
+		// In id order, whatever order the calls came in, so a resumed run reads the same value.
+		expect(JSON.stringify(first.active())).toBe('{"A01":2,"A02":4}');
+		const saved: unknown = JSON.parse(JSON.stringify(first.instance.slice?.save()));
+		expect(Reflect.get(Object(saved), "active")).toEqual({ A02: 4, A01: 2 });
+		const second = started();
+		second.instance.slice?.load(saved, 2);
+		second.after("resident:A01", 5);
+		expect(second.active()).toEqual({ A01: 5, A02: 4 });
+		// A slice saved before the fact existed loads with no resident active.
+		const older = started();
+		older.instance.slice?.load({ queue: {}, calls: {}, skipped: [], fired: {} }, 2);
+		expect(older.active()).toEqual({});
 	});
 });

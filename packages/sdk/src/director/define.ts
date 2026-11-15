@@ -24,6 +24,8 @@ export interface DirectorTrigger {
 	readonly event: string;
 	/** Keeps a firing; left out: every event of the type fires. Pure. */
 	readonly where?: (payload: unknown) => boolean;
+	/** Queues its firings without waking the Director (decision A74): they are no news, and the next activation, woken by another trigger, takes them along. */
+	readonly quiet?: boolean;
 }
 
 /**
@@ -68,6 +70,8 @@ export interface Firing {
 	readonly event: string;
 	/** The payload of the event. */
 	readonly payload: unknown;
+	/** Set when only triggers with `quiet` kept the firing: it waits for an activation that another trigger wakes. */
+	readonly quiet?: true;
 }
 
 /**

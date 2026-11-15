@@ -46,11 +46,11 @@ function ask(method: string, input: unknown = {}, port: PluginPort = stubPort(ac
 }
 
 describe("the roster plugin", () => {
-	it("is a plugin of the sdk that provides `roster` and nothing else", () => {
+	it("is a plugin of the sdk that provides `roster` and computes one fact", () => {
 		const plugin = rosterPlugin("1.2.3");
 		expect({ ...plugin, create: undefined }).toEqual({ id: "roster", package: "@swarmtales/sdk", version: "1.2.3", requires: [], provides: ["roster"], events: {}, audiences: {}, options: {}, create: undefined });
 		const instance = plugin.create(stubPort(actors));
-		expect({ ...instance, services: [] }).toEqual({ tools: [], services: [], listeners: [], hooks: {}, stages: {}, jobs: {}, limits: [], facts: {}, slice: undefined });
+		expect({ ...instance, services: [], facts: Object.keys(instance.facts) }).toEqual({ tools: [], services: [], listeners: [], hooks: {}, stages: {}, jobs: {}, limits: [], facts: ["residents"], slice: undefined });
 		expect(instance.services.map((service) => service.service)).toEqual([RosterService]);
 		expect(Object.values(RosterService.methods).map((method) => method.kind)).toEqual(Array.from({ length: 6 }, () => "query"));
 	});
@@ -61,6 +61,11 @@ describe("the roster plugin", () => {
 		expect(ask("roles")).toEqual({ scout: ["A03"] });
 		expect([ask("teamOf", { resident: "A02" }), ask("teamOf", { resident: "A04" }), ask("teamOf", { resident: "host" })]).toEqual(["O", null, null]);
 		expect([ask("roleOf", { resident: "A03" }), ask("roleOf", { resident: "A01" })]).toEqual(["scout", null]);
+	});
+
+	it("computes the fact `residents`: the resident ids in roster order, a suspended one too (A74)", () => {
+		const facts = rosterPlugin("1.2.3").create(stubPort(actors, ["resident:A02"])).facts;
+		expect([facts.residents?.compute(), Reflect.get(Object(facts.residents?.output), "description")]).toEqual([["A01", "A02", "A03", "A04"], "The resident ids, in the game's order"]);
 	});
 
 	it("says who may act", () => {

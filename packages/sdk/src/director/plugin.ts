@@ -5,15 +5,17 @@
  * Director that keeps the event, at the start of every n-th tick for a trigger `every`, and in its stage handler
  * `after` for a trigger on a resident's call of a tool; `news` says that a Director has something queued; with the
  * tool `take` a Director (its driver) takes its queue and is counted. A firing has a number of its own, from 1 per Director, and no place
- * on the log (decision A34). Queue, counts and numbers are the plugin's slice, so a resumed run goes on with them. It is written by hand as a `ResolvedPlugin`, like `roster`: it asks no model and calls no body
+ * on the log (decision A34); a firing that only `quiet` triggers kept is no news (A74). The fact `active` holds each
+ * resident's tick of its last call that reached `execute`. Queue, counts and numbers are the plugin's slice, so a resumed run goes on with them. It is written by hand as a `ResolvedPlugin`, like `roster`: it asks no model and calls no body
  * function of a Director but `where`.
  */
-import { kindOf, SwtError, type Envelope, type KernelTool, type Listener, type PluginInstance, type PluginPort, type ResolvedPlugin, type ToolCall } from "@swarmtales/contracts";
-import { Type, type Static } from "typebox";
+import { SwtError, type Envelope, type KernelTool, type Listener, type PluginInstance, type PluginPort, type ResolvedPlugin, type ToolCall } from "@swarmtales/contracts";
+import { Type, type Static, type TSchema } from "typebox";
 import { Value } from "typebox/value";
 import { sliceMismatch } from "../errors.ts";
 import type { ResolvedDirector } from "../game/types.ts";
-import { RESIDENT_KIND } from "../mechanic/context.ts";
+import { residentOf } from "../mechanic/context.ts";
+import { inSchemaOrder } from "../mechanic/schema-order.ts";
 
 const ID = "directors";
 const PACKAGE = "@swarmtales/sdk";
@@ -33,6 +35,7 @@ const FiringSchema = Type.Object(
 		tick: Type.Integer({ description: "The tick of the event" }),
 		event: Type.String({ description: "`<mechanic>.<event>`, as the trigger names it" }),
 		payload: Type.Unknown({ description: "The payload of the event" }),
+		quiet: Type.Optional(Type.Literal(true, { description: "Only triggers with `quiet` kept it: it is no news" })),
 	},
 	{ additionalProperties: false, description: "One event that fired a trigger of a Director" },
 );
@@ -57,6 +60,7 @@ const SkippedSchema = Type.Object(
 	{ director: Type.String({ description: "The name of the Director" }), reason: Type.Literal("maxCalls", { description: "The Director has been asked as often as its `maxCalls` allows" }) },
 	{ additionalProperties: false, description: "A firing of a Director was dropped; written once per Director and reason" },
 );
+const ActiveSchema = Type.Record(Type.String({ description: "A resident id" }), Type.Integer({ description: "The tick" }), { description: "Each resident's tick of its last call that reached `execute`, by resident id in id order" });
 const NoParams = Type.Object({}, { additionalProperties: false, description: "No arguments" });
 const StateSchema = Type.Object(
 	{
@@ -64,6 +68,7 @@ const StateSchema = Type.Object(
 		calls: Type.Record(Type.String({ description: "The name of a Director" }), count, { description: "The count of each Director" }),
 		skipped: Type.Array(Type.String({ description: "The name of a Director" }), { description: "The Directors whose `skipped` event is written" }),
 		fired: Type.Record(Type.String({ description: "The name of a Director" }), Type.Integer({ minimum: 0, description: "The number of its last firing" }), { description: "How many firings each Director has had" }),
+		active: Type.Optional(ActiveSchema),
 	},
 	{ additionalProperties: false, description: "The slice of the plugin `directors`" },
 );
@@ -87,10 +92,10 @@ export function parseTake(reply: string): TakeAnswer | undefined {
 }
 
 // The state of the run: an own entry per Director, so a name like `constructor` reads no inherited value.
-const emptyState = (directors: readonly ResolvedDirector[]): State => ({ queue: Object.fromEntries(directors.map((director) => [director.name, []])), calls: Object.fromEntries(directors.map((director) => [director.name, 0])), skipped: [], fired: Object.fromEntries(directors.map((director) => [director.name, 0])) });
+const emptyState = (directors: readonly ResolvedDirector[]): State => ({ queue: Object.fromEntries(directors.map((director) => [director.name, []])), calls: Object.fromEntries(directors.map((director) => [director.name, 0])), skipped: [], fired: Object.fromEntries(directors.map((director) => [director.name, 0])), active: {} });
 
 // The saved state as the slice of a run with these Directors; a slice of another form is `SWT-M024`.
-function loaded(data: unknown, directors: readonly ResolvedDirector[]): State {
+function loaded(data: unknown, directors: readonly ResolvedDirector[], events: ReadonlyMap<string, TSchema>): State {
 	if (!Value.Check(StateSchema, data)) {
 		const wrong = Value.Errors(StateSchema, data)[0];
 		throw new SwtError(sliceMismatch({ mechanic: ID, package: PACKAGE, problem: "loaded", path: wrong?.instancePath ?? "", message: wrong?.message ?? "does not match its schema" }));
@@ -98,23 +103,27 @@ function loaded(data: unknown, directors: readonly ResolvedDirector[]): State {
 	const fresh = emptyState(directors);
 	const own = <T>(record: Readonly<Record<string, T>>, name: string): T | undefined => (Object.hasOwn(record, name) ? record[name] : undefined);
 	return {
-		queue: Object.fromEntries(directors.map((director) => [director.name, [...(own(data.queue, director.name) ?? [])]])),
+		// A firing in the key order of the straight run (A43): its keys as its schema has them, its payload as its event's
+		// schema has them (the payloads of `every` and `tool_called` have sorted keys already).
+		queue: Object.fromEntries(directors.map((director) => [director.name, (own(data.queue, director.name) ?? []).map((firing) => ({ ...inSchemaOrder(FiringSchema, firing), payload: inSchemaOrder(events.get(firing.event) ?? FiringSchema.properties.payload, firing.payload) }))])),
 		calls: Object.fromEntries(directors.map((director) => [director.name, own(data.calls, director.name) ?? 0])),
 		skipped: data.skipped.filter((name) => Object.hasOwn(fresh.queue, name)),
 		fired: Object.fromEntries(directors.map((director) => [director.name, own(data.fired, director.name) ?? 0])),
+		active: { ...data.active },
 	};
 }
 
 // One run of the plugin: its state and what reads and changes it.
-function createRun(port: PluginPort, directors: readonly ResolvedDirector[]) {
+function createRun(port: PluginPort, directors: readonly ResolvedDirector[], plugins: readonly ResolvedPlugin[]) {
 	let state = emptyState(directors);
+	const events = new Map(plugins.flatMap((plugin) => Object.entries(plugin.events).map(([type, schema]) => [`${plugin.id}.${type}`, schema] as const)));
 	const byActor = new Map<string, string>(directors.map((director) => [director.actor, director.name]));
 	const queueOf = (name: string) => state.queue[name] ?? [];
 	const callsOf = (name: string): number => state.calls[name] ?? 0;
-	// `kept` says whether a trigger of the Director keeps the firing.
-	const fire = (director: ResolvedDirector, kept: boolean, event: string, envelope: Pick<Envelope, "tick" | "payload">): void => {
+	// `kept` are the triggers of the Director that keep the firing; it is quiet when each of them is.
+	const fire = (director: ResolvedDirector, kept: ResolvedDirector["definition"]["on"], event: string, envelope: Pick<Envelope, "tick" | "payload">): void => {
 		const { name, limits } = director;
-		if (!kept) return;
+		if (kept.length === 0) return;
 		if (limits.maxCalls !== undefined && callsOf(name) >= limits.maxCalls) {
 			if (state.skipped.includes(name)) return;
 			state.skipped.push(name);
@@ -123,7 +132,7 @@ function createRun(port: PluginPort, directors: readonly ResolvedDirector[]) {
 		}
 		const n = (state.fired[name] ?? 0) + 1;
 		state.fired[name] = n;
-		state.queue[name] = [...queueOf(name), { n, tick: envelope.tick, event, payload: envelope.payload }];
+		state.queue[name] = [...queueOf(name), kept.every((trigger) => "event" in trigger && trigger.quiet === true) ? { n, tick: envelope.tick, event, payload: envelope.payload, quiet: true } : { n, tick: envelope.tick, event, payload: envelope.payload }];
 	};
 	const take = (name: string): TakeAnswer => {
 		const firings = queueOf(name);
@@ -137,10 +146,12 @@ function createRun(port: PluginPort, directors: readonly ResolvedDirector[]) {
 		byActor,
 		fire,
 		take,
-		waiting: (actor: string): boolean => queueOf(byActor.get(actor) ?? "").length > 0,
+		waiting: (actor: string): boolean => queueOf(byActor.get(actor) ?? "").some((firing) => firing.quiet !== true),
+		// Kept in id order, as a snapshot file gives it back, so the fact reads the same after a resume.
+		active: (resident: string, tick: number): void => void (state.active = Object.fromEntries(Object.entries({ ...state.active, [resident]: tick }).sort(([a], [b]) => (a < b ? -1 : 1)))),
 		save: (): State => Value.Clone(state),
 		load: (data: unknown): void => {
-			state = loaded(data, directors);
+			state = loaded(data, directors, events);
 		},
 	};
 }
@@ -154,14 +165,16 @@ const keeps = (trigger: ResolvedDirector["definition"]["on"][number], event: str
 function ticked(run: Run, port: PluginPort, directors: readonly ResolvedDirector[]): void {
 	for (const director of directors) {
 		const every = director.definition.on.flatMap((trigger) => ("every" in trigger && port.tick() % trigger.every === 0 ? [trigger.every] : []))[0];
-		run.fire(director, every !== undefined, "every", { tick: port.tick(), payload: { every } });
+		run.fire(director, every === undefined ? [] : [{ every }], "every", { tick: port.tick(), payload: { every } });
 	}
 }
 
 // The stage handler `after`: a firing of `tool_called` for each Director with a trigger on the tool of a resident's call.
 function called(run: Run, port: PluginPort, directors: readonly ResolvedDirector[], call: ToolCall): void {
 	const payload = { actor: call.actor, as: call.as, params: call.params };
-	for (const director of directors) run.fire(director, kindOf(call.actor) === RESIDENT_KIND && director.definition.on.some((trigger) => keeps(trigger, "tool_called", payload, [call.name, call.tool])), "tool_called", { tick: port.tick(), payload });
+	const resident = residentOf(call.actor);
+	if (resident !== undefined) run.active(resident, port.tick());
+	for (const director of directors) run.fire(director, resident === undefined ? [] : director.definition.on.filter((trigger) => keeps(trigger, "tool_called", payload, [call.name, call.tool])), "tool_called", { tick: port.tick(), payload });
 }
 
 const takeTool = (run: Run): KernelTool => ({
@@ -188,7 +201,7 @@ function listenersOf(run: Run, directors: readonly ResolvedDirector[], plugins: 
 			const event = `${plugin.id}.${type}`;
 			if (!named.has(event)) return [];
 			const fireAll = (envelope: Envelope): void => {
-				for (const director of directors) run.fire(director, director.definition.on.some((trigger) => keeps(trigger, event, envelope.payload)), event, envelope);
+				for (const director of directors) run.fire(director, director.definition.on.filter((trigger) => keeps(trigger, event, envelope.payload)), event, envelope);
 			};
 			return [{ source: plugin.id, type, schema, run: fireAll }];
 		}),
@@ -196,7 +209,7 @@ function listenersOf(run: Run, directors: readonly ResolvedDirector[], plugins: 
 }
 
 function instanceOf(port: PluginPort, directors: readonly ResolvedDirector[], plugins: readonly ResolvedPlugin[]): PluginInstance {
-	const run = createRun(port, directors);
+	const run = createRun(port, directors, plugins);
 	return {
 		tools: [takeTool(run)],
 		services: [],
@@ -205,7 +218,7 @@ function instanceOf(port: PluginPort, directors: readonly ResolvedDirector[], pl
 		stages: { after: (call) => { called(run, port, directors, call); } },
 		jobs: {},
 		limits: [],
-		facts: {},
+		facts: { active: { output: ActiveSchema, compute: () => run.save().active } },
 		slice: { version: 2, save: run.save, load: run.load },
 	};
 }
@@ -217,7 +230,7 @@ function instanceOf(port: PluginPort, directors: readonly ResolvedDirector[], pl
  * @param plugins - The other plugins of the game: an event a trigger names is found here, by `<plugin id>.<event type>`.
  * @param version - The version of the sdk package, for the manifest.
  * @returns The plugin: the tool `take`, the event `skipped`, a listener per trigger event, the hooks `news` and
- * `tickStarted`, the stage handler `after` and a slice.
+ * `tickStarted`, the stage handler `after`, the fact `active` and a slice.
  * At load nothing is checked; in a run, `load` of its slice throws `SWT-M024` for saved state of another form.
  *
  * @public

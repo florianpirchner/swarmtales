@@ -424,6 +424,17 @@ and 4.2 of `12-m5-spec.md` say staged calls and their events land before `run_en
 open petitions there, and `script` (M5-31, M5-32) reacts at the end the same way. A mechanic cannot run a staged
 call itself, so the line is the kernel's. The hard limit is now 27 lines away.
 
+**M5-67 (+11 sdk, 2187 to 2198; way out 3 of section 1.3, decision A74).** The sdk lines that 1.3 did not book, measured
+with the counter of the budget gate (`scripts/lib/budget.ts`) on the parent `7e2efd29`: sdk 2187 to 2198, kernel 1473
+and engine 384 unchanged, kernel + sdk + engine 4044 to 4055 of 4100 (45 left). The missing extension points, all in
+the plugins of the sdk because a mechanic cannot reach them: the trigger option `quiet` (a firing that only quiet
+triggers keep is queued but is no news for `news`; 2 lines in `define.ts`, 1 in `plugin.ts`), the fact
+`directors.active` (each resident's tick of its last call that reached `execute`, from the stage handler `after`, kept
+in the slice; 6 lines), the fact `roster.residents` (0 net: the `facts` line of the roster plugin), and the key order of
+a queued firing after a resume (2 lines, erratum J159: the firings of a look on `arena.round_end` wait across a
+tick boundary). The fact `channels.notes` is mechanic code (`mechanics/channels/`) and outside the budget. Another
+builder books about 2 sdk lines for `SWT-D004` (M5-64, A71) in parallel; the integrator measured after both merges (`e86573cd` and this one): sdk 2198, kernel 1473, engine 384, total 4055 of 4100 (M5-64 net 0 sdk lines).
+
 ## The gate of M3
 
 The six done-whens of `refactoring-before-release/10-m3-spec.md` and the test that proves each. All of them run

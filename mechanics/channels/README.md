@@ -95,7 +95,8 @@ mechanics check and record their Director's texts through the service `notes`.
     of `allowance` the replies of `postBoard`, `sendDM` and `postGroup` end with ` · marks 7/8 left`: what the
     resident has left once the message is paid (`marks` charges in its own `after` handler, so the price of
     `priceOf` is taken off here; a post in a group of the city is free).
-13. **Facts.** `channels.messages` is the last message number, `channels.boardPosts` the count of posts.
+13. **Facts.** `channels.messages` is the last message number, `channels.boardPosts` the count of posts, `channels.notes`
+    every note of a Director (`tick`, `to`, `text`), oldest first, for the gamemaker's look (decision A74).
 
 **The checks of `postBoard` and `sendDM` run in `execute`**, where the old platform logged their refusals (the slice's
 timelines hold `EXILED` at stage `execute`). A `rule` handler of another mechanic on these tools (the price of
