@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The city slice: the smallest part of the City of Keys that needs talk, a ledger, an exile that knows nothing of
  * points or pieces, a decision with a window, a Director and the Human Hand. Six residents talk and pay each

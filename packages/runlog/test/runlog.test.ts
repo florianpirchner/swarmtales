@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The run folder: what is written, that it verifies, and the L code each tampering gives. */
 import { generateKeyPairSync } from "node:crypto";
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";

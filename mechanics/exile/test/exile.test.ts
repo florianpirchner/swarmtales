@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The `exile` mechanic: `banish`, the event, the suspension and the slice (offline, a test mechanic banishes). */
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";

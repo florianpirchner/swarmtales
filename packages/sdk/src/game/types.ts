@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game types: the builder form of a game (`defineGame`), and what game resolution takes and gives. A game is
  * plain data; the builder form differs from the data form only in naming its mechanics by typed uses instead of ids.

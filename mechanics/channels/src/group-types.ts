@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The words of the groups of `channels`: the limits, the shapes a group is read and saved in, and its ledger account. */
 
 /** The founder and treasurer of the city's own groups, and the name its notices are signed with. */

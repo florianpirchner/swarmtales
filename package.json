@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"description": "Swarm Tales: a laboratory for AI agents. Games and societies on one engine, every word and every private thought on record",
 	"packageManager": "pnpm@10.28.0",
 	"engines": {

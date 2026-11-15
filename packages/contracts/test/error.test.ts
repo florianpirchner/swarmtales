@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { closest, formatIssue, SWT_CODE, SwtError, SwtIssueSchema, type SwtIssue } from "../src/error.ts";

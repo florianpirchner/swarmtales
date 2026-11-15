@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The morris mechanic where no oracle file reaches (`oracles/morris-teams/README.md`: a fixed captain, the turn
  * limit, the engine as X) and what is new with the port: the `sample` functions for the fake driver, and a snapshot.

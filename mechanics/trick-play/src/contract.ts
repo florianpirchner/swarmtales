@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The service contract of the mechanic `trick-play`: the only file another mechanic imports. It holds the service
  * `trick-play`, the events, the rules of a trick as pure functions and the Monte Carlo worth of a hand, which a

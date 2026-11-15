@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The recorder of the viewer's fixture `packages/viewer-core/test/fixtures/resumed-run`: the city slice, seed 7,
  * in the variant `amended`, played by `swt run` and `swt resume` with the residents' script the fixture was first

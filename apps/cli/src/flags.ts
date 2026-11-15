@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The flags of `swt`: the table of the flags and of the commands (`swt --help` is written from it), the flags read
  * once from the arguments, and checked into what a fake run and a live run take.

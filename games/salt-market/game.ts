@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Salt Market: four solo traders play a match of negotiation games. In each game every trader holds a bundle of five
  * goods, values them privately and has a secret contract (a bundle that pays a bonus); the goods each one needs sit

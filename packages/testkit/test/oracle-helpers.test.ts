@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The helpers of a game's oracle and metrics tests (decision A44): `playOracle` gives the run that `runOracle`
  * compares, `withEndsTurn` writes back the flag no file of `oracles/` holds, and `metricsOf` reads a mechanic's

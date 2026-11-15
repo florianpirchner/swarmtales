@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Tic-tac-toe teams: two teams of three residents play a match of tic-tac-toe on one board. Before every move the
  * team talks in its private chat, the captain of the turn proposes a cell, the two others vote and only the agreed

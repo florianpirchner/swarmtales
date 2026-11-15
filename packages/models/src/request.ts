@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The limits of one request and the fixed request fields that are merged over a provider's payload. */
 
 /**

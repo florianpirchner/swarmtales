@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of the `court` mechanic: its options, its slice, its events, its prompts, its tool and the services it requires. */
 import { Type } from "typebox";
 import { defineHead, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";

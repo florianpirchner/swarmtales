@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The byte-identity list of the port (M2 specification 7): the sha256 of every carried prompt file, of the tool name
  * list, of the options schema, of the event schemas and of the tool parameters, generated on the old platform

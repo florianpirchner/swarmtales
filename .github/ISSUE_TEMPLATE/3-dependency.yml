@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
 name: New dependency
 description: A new package, tool, action, vendored file or downloaded data. The lockfile changes only with such an issue.
 body:

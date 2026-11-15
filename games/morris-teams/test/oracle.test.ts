@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game against its five oracle files: each file is played from its inputs under the game's own scheduler, with
  * the Referee loaded, and compared at level 3 (rules, texts, scheduling); the cut file up to its cut. The old name

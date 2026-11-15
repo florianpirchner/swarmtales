@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `channels` mechanic: talk in the city. Residents post on the public board, read it and send each other direct
  * messages; they found private groups, post and read there and keep a shared treasury in the ledger, which is split

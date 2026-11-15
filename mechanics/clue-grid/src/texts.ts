@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts of the `clue-grid` mechanic: the rules, a resident's role, its task and what `viewGrid` shows. */
 import { cluesOf, isKeeper, keeper, limitOf, teamOf } from "./flow.ts";
 import type { ClueGridCtx } from "./head.ts";

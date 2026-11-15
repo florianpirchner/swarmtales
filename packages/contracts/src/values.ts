@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The smallest vocabulary shared by every package: what a value may be, where randomness comes from and how a run
  * ends.

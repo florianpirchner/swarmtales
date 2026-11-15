@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { Type } from "typebox";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { defineEvents, defineService, defineTool, refuse, reply } from "../src/mechanic/definers.ts";

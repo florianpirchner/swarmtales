@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Part 1: the append-only log with its frames, listeners and sinks. One delivery mode: an event is queued when it
  * is appended and delivered when the outermost frame returns, or at once when no frame is open; in log order of

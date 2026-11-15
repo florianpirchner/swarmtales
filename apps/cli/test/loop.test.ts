@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The run loop of `swt run` (specification of M3, section 6.3): the Human Hand from a file and from standard input,
  * the pause, the snapshots, `SWT-X008` and `SWT-X009`, and a run without the flags, which has the log of `Kernel.run`.

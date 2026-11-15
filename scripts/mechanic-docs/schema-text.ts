@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Schemas as text for the generated blocks of a mechanic's README: a type in a few words, the fields of an object, a table. */
 
 /** A JSON object. */

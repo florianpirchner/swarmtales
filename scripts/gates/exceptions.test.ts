@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The exception format, enforced on the text of every source file, where no comment can switch it off. */
 import { describe, expect, it } from "vitest";
 import { commentsOf, exceptionOffences } from "../lib/exceptions.ts";

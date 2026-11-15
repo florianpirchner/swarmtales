@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The two reports from fixture facts: the whole text of each is pinned as a snapshot; the heading of the
  * model-written section is a fixed string; a value that was not measured is printed as the word "absent", in the

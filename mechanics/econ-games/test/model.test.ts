@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of the three games (carried from `test/stories/econ-lab.test.ts`, the block "econ-games rules"). */
 import { describe, expect, it } from "vitest";
 import { pairsOf, referenceOf } from "../src/rules.ts";

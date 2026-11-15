@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The city slice, end to end and offline (specification of M3, section 2.1): six scripted residents, the scripted
  * warden and the scripted Human Hand play twelve ticks in a real kernel, one tick at a time. The whole log equals

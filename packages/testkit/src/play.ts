@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `play` and `testKernel`: a game from its definition to a played run, in the four steps the command line takes too
  * (resolve the game, create the kernel, check the win fact, run). A port of the old `playStory` and of the old

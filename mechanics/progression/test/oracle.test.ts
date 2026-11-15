@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The oracle proof of `submitSolution` and of the task line: every submission of the Whispers and City files is
  * played again at its minute, and the answer, the events of the progression per resident and the task a resident

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `card-table` mechanic: a deck of suited cards (`suits`, each with ranks 1..n), the seats that
  * play, a seeded shuffle and deal, and one private hand per seat. A resident sees only its own hand

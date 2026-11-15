@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The X catalogue and the record schemas of the model driver (M2 spec 2.6 and 4.4). */
 import { Check } from "typebox/value";
 import { describe, expect, it } from "vitest";

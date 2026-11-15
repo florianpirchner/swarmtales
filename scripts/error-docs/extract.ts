@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Reads the error codes out of the source of the packages, without running it. A code is a string literal
  * `"SWT-<letter><three digits>"` in code (a mention in a comment is none). Where a code is raised, the texts of its

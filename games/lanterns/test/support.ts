@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The scripted resident of the Lanterns tests and their readers of the log. Carried from `test/stories/lanterns.test.ts`
  * (`player`, `hiddenIn`) and `test/stories/tictactoe-support.ts` (`field`, `ofType`): the player follows its turn

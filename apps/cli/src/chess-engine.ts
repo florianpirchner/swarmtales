@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Garbochess-JS (BSD-3-Clause, vendored unmodified under `third_party/garbochess/`) as the reference engine for
  * chess runs, in this process, for `swt analyse chess`: the lab's analysis takes it as its `ChessEngine`. No

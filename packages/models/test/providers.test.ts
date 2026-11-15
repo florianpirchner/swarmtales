@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The provider adapters, the model settings and the request limits (M2 spec 3.2 and 3.3). No request leaves the
  * process: every adapter gets a stubbed `fetch`, and the global one throws. Every key is built here at run time.

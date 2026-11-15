@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 // Tests 1 to 4 of section 3.7 of the M4 specification: arrival order, the wake rule, `idle`, failures and resolution.
 import { SwtError, type Activation, type ActorDriver, type Envelope, type Kernel } from "@swarmtales/contracts";
 import { turns } from "@swarmtales/engine";

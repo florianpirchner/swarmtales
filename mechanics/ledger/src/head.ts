@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of the `ledger` mechanic: its options, its state with the snapshot, its events, service, prompts and tool. */
 import { Type } from "typebox";
 import { IdentityService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The layered prompt lookup (`PromptLookup` in the contracts): for one owner (a mechanic id, or the
  * kernel) and prompt id, the game's file wins, then the owner's own folder, then `library/prompts/`.

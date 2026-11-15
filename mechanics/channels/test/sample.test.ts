@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The `sample` of `readBoard`, `postBoard` and `sendDM`: what the fake driver (`--fake`) may call. Each gives a call one time in eight; the texts are short, and a message goes to another resident that may act. */
 import { describe, expect, it } from "vitest";
 import type { RandomSource } from "@swarmtales/contracts";

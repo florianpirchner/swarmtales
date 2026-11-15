@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Convoy: an original hidden-role card game for six solo seats. In every game two secret saboteurs (who know each
  * other) sit among four loyal seats; a convoy crosses eight stages. Each stage a rotating lead proposes a crew, the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The experiment spec: arms, seeds and replicates over one game, with the metrics, the pass rule, the guardrails,
  * the exclusions and the budget. A spec is a committed JSON file; its hash is in the manifest of every run.

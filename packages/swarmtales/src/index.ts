@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Swarm Tales: everything a game author needs, re-exported from `@swarmtales/sdk`. No logic lives here.
  *

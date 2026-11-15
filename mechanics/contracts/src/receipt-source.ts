@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What a base mechanic (`ledger`, `channels`) asks to name the receipt of a booking or a delivered message in its
  * reply, and what `progression` asks for the receipt of a solved level (the reply of `submitSolution`) and for the

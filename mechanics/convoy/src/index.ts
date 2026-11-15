@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The rules of Convoy, the hidden-role card game for a table of solo seats. A match is several games; in each game
  * the roles are dealt in secret (a few **saboteurs**, who know each other; the rest loyal) and a convoy crosses a

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `pnpm docs:errors`: writes `docs/reference/errors.md` from the code catalogues of all packages. With `--check` it
  * writes nothing and exits 1 when the page is not what the source says. Either way it exits 1 when a code has no

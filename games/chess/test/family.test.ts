@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Chess as a game family (M4 specification, issue 32): the default params give the game of issue M4-29, the arm of
  * the requests series (section 7.2) and the other branches give the games of their old variants, every old variant

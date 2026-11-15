@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The tool `say`: a short message to everyone or to one trader, a few per round; it moves nothing. */
 import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";

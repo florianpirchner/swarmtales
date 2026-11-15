@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The model source: which model and stream function an actor talks to. Every `Models` object of the provider
  * library is made by {@link closedModels}, so the library never reads the environment or a file for a key: a key

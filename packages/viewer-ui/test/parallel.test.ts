@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The viewer over a log of the scheduler sample `parallel` (`viewer-core/test/fixtures/parallel-run`): the word
  * "tick" in the replay's header, its sliders and its lanes; activations that overlap shown in commit order with their

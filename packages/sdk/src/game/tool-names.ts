@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Step 6 of game resolution: the canonical name and the shown name of every tool. A game names a tool by its bare
  * name; the log names it by its canonical name; a model reads its shown name, which is the bare name unless the

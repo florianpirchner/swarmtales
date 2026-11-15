@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The verifier of a run of the new platform: the chain of version 2 and the manifest it names. */
 import { iJsonIssue } from "./canonical.ts";
 import { jsonHash, parseJson } from "./hashes.ts";

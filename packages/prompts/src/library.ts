@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Where the prompt library is: `library/prompts/`, the last place a prompt is looked up in. */
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The state of the platform's source tree, for the run manifest (`kernel.commit`, `kernel.dirty`) and for the
  * refusal of a confirmatory run on a tree that is not clean (`SWT-C023`, lesson P443). This is the only file

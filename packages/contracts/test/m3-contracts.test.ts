@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The contract changes of milestone M3 (section 3 of its specification): the Director uses of a game, the model
  * port `AskModel`, the snapshot file, the manifest's `human`, and the new error codes. All of it is optional or

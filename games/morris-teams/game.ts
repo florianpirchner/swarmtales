@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Nine men's morris teams: two teams of three residents play a match of nine men's morris on one board, the
  * tic-tac-toe teams setup on a bigger game. Before every move the team talks in its private chat, the captain of the

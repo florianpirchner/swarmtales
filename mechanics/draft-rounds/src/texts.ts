@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts of the `draft-rounds` mechanic: the rules, the pick a seat is asked for, the table and a game's result line. */
 import type { DraftRoundsCtx } from "./head.ts";
 import { cardsLine, deckOf, quarryLine, receiverOf, RESOURCES } from "./model.ts";

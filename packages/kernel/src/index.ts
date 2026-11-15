@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The single-writer state machine over an append-only log. It calls no model, reads no file, no environment
  * variable and no wall clock. The index exports `createKernel`, the revision and the random streams.

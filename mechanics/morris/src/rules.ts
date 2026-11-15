@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The rules of nine men's morris as pure functions, shared by the mechanic and the morris-referee.
  *

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic alone against the oracle file in which no resident ever acts: the rolls, the timer's bids and calls,
  * the scores of every decision and the end of the match depend on the seed and the mechanic only, so the mechanic's

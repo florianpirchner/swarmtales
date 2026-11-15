@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game the morris tests play: the mechanic under test with the consensus gate, the team channel and the strategy
  * brain, set up as the old platform's game was (`stories/morris-teams/story.ts`) but without the morris-referee, which

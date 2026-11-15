@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game through the real mechanics: scripted matches of the three arms, the aid and hard strikes, offline. Carried
  * from `test/stories/harbor-lights.test.ts` of the old platform (two games, roster order); the registry case is

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Shared by the grid-game tests: a game, a stateless scripted player and the match it plays. */
 import type { ActorDriver, Envelope } from "@swarmtales/contracts";
 import { defineGame, type Game, type MechanicUse } from "@swarmtales/sdk";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The verifier of the signed event log, on texts: no file system, no `node:crypto`, so the CLI, a browser and a
  * Web Worker give the same verdict. The hash rule is in `hashes.ts`.

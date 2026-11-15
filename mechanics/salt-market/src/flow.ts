@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The start of a game and of its rounds: the seeded deal (rotated by default), the holdings, the counters, the good
  * announced to spoil, and the next game once the strategy brain lets it start. The end of a round (shipments,

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The words a log is read with, in one place for a host (the static page, the VS Code extension):
  * who acted and whom a line was about, and which lines are messages. Each part is added to its defaults, so a host names only what its stories do differently.

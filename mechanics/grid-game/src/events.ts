@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { Type } from "typebox";
 import { defineEvents } from "@swarmtales/sdk";
 import { Result, Side, Tally } from "./model.ts";

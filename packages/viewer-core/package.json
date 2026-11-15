@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Viewer library: readers and the event model of a run",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L5"

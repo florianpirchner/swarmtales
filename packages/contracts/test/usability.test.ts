@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The usability proof of the frozen contracts: a hand-written plugin, scheduler, driver and sink play one run on
  * the miniature kernel of `mini-kernel.ts`, written against the types of 2.1 to 2.8 alone, without a cast. The

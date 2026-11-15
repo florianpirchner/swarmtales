@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The contract of the mechanic `marks`: its event and its service, declared apart from the mechanic, so another
  * mechanic (the `tribunal`) listens and calls without a value import of `marks` itself.

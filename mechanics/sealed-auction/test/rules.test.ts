@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of the sealed auction as pure functions: the four cases of `sealed-auction rules` in the old `test/stories/blind-bid.test.ts`. */
 import { describe, expect, it } from "vitest";
 import { referenceOf } from "../src/reference.ts";

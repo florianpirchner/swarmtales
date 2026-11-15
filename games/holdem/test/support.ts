@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Shared by the tests of the game: the options behind each old variant name, the scripted seat of the old
  * `test/stories/holdem.test.ts` (`player`, with its brain part) and the readers of the log.

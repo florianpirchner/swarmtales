@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt analyse chess` (M4-56): the engine analysis of a fake chess run writes `analysis.json` and `ANALYSIS.md`
  * with the pinned engine, the depth and every half-move of the log; a bad depth, a run of another game and a folder

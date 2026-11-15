@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game's part of the old `test/stories/morris-teams.test.ts`: a scripted match of two teams with mills,
  * removals, brains and scored turns; a match nobody plays; a single resident and a team of three against the search.

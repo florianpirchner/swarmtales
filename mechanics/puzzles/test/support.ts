@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Shared by the puzzles tests: the levels and deals of the City of Keys oracles, a game, a judge that banishes, and a stand-in of the ledger. */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";

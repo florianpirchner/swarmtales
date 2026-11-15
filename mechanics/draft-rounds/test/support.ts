@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game the draft-rounds tests play: four solo seats, the draft and a strategy brain per seat, set up as the old
  * platform's Quarry game was (`stories/quarry/story.ts`), in roster order. The scripted resident is the player of the

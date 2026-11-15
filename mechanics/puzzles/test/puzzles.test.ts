@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `puzzles` mechanic, the deal: the fragment cases of the old `test/mechanics/puzzles/puzzles.test.ts`. The
  * golden logs of the old test are the oracle files here; the cases of factors and of the door are not ported

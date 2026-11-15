@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Dealing a level and reading the deal. Ported from the old platform; the deal draws from `ctx.rng("puzzle", level)`, the old stream. */
 import { generateLevelPuzzles } from "./fragments.ts";
 import type { PuzzlesCtx, PuzzlesReader } from "./head.ts";

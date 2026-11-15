@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game through the real mechanics: scripted two-game matches of three rounds with notes, the levers and the
  * control arm, offline. Carried from `test/stories/ember-tricks.test.ts` of the old platform (roster order); the

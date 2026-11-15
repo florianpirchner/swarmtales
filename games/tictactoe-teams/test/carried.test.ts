@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The byte-identity list of the game (M1 specification 8): the sha256 of the briefings of nine variants, generated
  * on the old platform (`tictactoeEntry(options).briefing` for every resident of the roster, as the JSON of the

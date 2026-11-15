@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Shared by the tests of the game: the options behind each old variant name, the game in the roster order of the old
  * test, the scripted trader of the old `test/stories/salt-market.test.ts` (`trader`, carried) and the readers of the

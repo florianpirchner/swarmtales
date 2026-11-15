@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The consensus gate with scripted residents on a toy game: offline, no model. Carried from the old `consensus.test.ts`. */
 import { describe, expect, it } from "vitest";
 import type { Envelope } from "@swarmtales/contracts";

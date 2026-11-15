@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Step 7 of game resolution: the tools of each grant name and the tools that start locked. Without an entry in the
  * game a grant name gets every tool whose `for` names it, in load order (the old `grants: "auto"`); a list replaces

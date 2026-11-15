@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
 # The game of guess-number.ts in its data form.
 schema: 1
 id: guess-number

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 // Tests 5 and 7 of section 3.7 of the M4 specification: replay by the close line under sixty interleavings, and
 // resume from every boundary by replay.
 import type { ActorDriver, Envelope } from "@swarmtales/contracts";

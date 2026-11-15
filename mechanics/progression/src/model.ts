@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The data of the progression mechanic: the options (the game's levels and rules), the prompts, the state and its
  * snapshot slice. Carried from the old `mechanics/progression/src/model.ts`; the acts and the managed tools come with the second half of the port (M5-20).

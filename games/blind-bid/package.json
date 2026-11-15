@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Game: Blind Bid, a sealed auction",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L6"

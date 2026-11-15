@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The Hello Game replays equal from its log alone: no fake driver takes part in the second run. */
 import { fakeDriver, play, replay } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";

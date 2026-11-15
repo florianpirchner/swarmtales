@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The board and the notices of `channels`, offline. Ported from the board cases of the old `channels.test.ts` and
  * `turn-inputs.test.ts`; the cases about marks, the note of the Director and the digest line wait for M5.

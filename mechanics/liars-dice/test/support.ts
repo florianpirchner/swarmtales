@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Shared by the liars-dice tests: a game of the mechanic alone and a stateless scripted player (the `player` of the old liar's dice test, without its brain part). */
 import { nameOf, type ActorDriver, type Envelope } from "@swarmtales/contracts";
 import { defineGame, type Game } from "@swarmtales/sdk";

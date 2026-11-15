@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The record source of the run assembly: the one event the command line itself writes into a log. */
 import type { RecordSource } from "@swarmtales/contracts";
 import { Type } from "typebox";

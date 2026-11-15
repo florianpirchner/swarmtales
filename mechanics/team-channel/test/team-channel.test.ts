@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The team channel with scripted residents: offline, no model. Carried from the old `team-channel.test.ts`. */
 import { describe, expect, it } from "vitest";
 import { Type } from "typebox";

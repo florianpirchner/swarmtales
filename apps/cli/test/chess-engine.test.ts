@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The chess reference engine of `swt analyse chess` (`src/chess-engine.ts`, carried from the old `test/stories/chess-engine.test.ts`): the vendored Garbochess-JS file is the one that
  * was pinned, and the same position at the same depth gives the same score, best move and node count everywhere.

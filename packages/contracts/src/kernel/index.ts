@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The files of `kernel/`: what the kernel sees. The issues that own the folder fill this barrel. */
 export * from "./actor.ts";
 export * from "./clock.ts";

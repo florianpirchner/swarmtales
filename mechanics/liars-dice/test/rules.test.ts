@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of liar's dice (carried from `test/stories/liars-dice.test.ts`, the block "liar's dice rules"). */
 import { describe, expect, it } from "vitest";
 import { atLeast, baselineOf, beats, bidProblem, countFor, legalBids, minimalRaise, nextLive, truthOf, type Rules } from "../src/rules.ts";

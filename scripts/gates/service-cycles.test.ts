@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * No service cycle (12-m5-spec.md, section 2.2, pattern 5, and section 4.6): if mechanic A asks mechanic B, B never
  * asks A, also not through a third mechanic. A asks B when a service in A's `requires` or `uses` is in B's

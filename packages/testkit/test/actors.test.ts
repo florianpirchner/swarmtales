@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The actor `human` in a run: a game whose grant `human` holds a tool has the actor, and a call of it between two
  * ticks goes through the whole dispatch although no scheduler activates it (the first test of issue M3-12).

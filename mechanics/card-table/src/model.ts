@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The card table's rules as pure functions (shared with the games that use it and their reference
  * listeners) and the mechanic's state. A card is its id `"<Suit> <rank>"`, for example `"Ember 7"`:

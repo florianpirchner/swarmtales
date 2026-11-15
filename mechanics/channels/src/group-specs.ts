@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The declarations of the group tools of `channels` and the prompts they read: names, parameters and texts as on the old platform. */
 import { Type } from "typebox";
 import { MAX_GROUP_NAME_LENGTH, MAX_GROUP_POST_LENGTH } from "./group-types.ts";

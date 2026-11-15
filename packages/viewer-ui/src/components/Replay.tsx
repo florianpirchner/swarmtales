@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { actorLanes, highlightsOf, messageGraph, type Highlight, type RunEvent, type RunProjection, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { positionOf } from "../replay-math.ts";

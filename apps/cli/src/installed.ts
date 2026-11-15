@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The installed table: mechanic id to definition, for a game in its data form. It is built from the `swarmtales`
  * field of the dependencies of one `package.json` (the command line's own), which names the exports of a package

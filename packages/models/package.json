@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Key broker, provider adapters, model settings, the resident driver and the cost meter",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L4"

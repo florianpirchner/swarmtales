@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The real parts wired by hand, as the assembly will wire them, with two small plugins and a scheduler written
  * here. Every part was built against fakes of its neighbours; this file holds what they do together.

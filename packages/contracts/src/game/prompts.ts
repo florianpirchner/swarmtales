@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The prompt lookup: the one interface through which a text file is found and rendered. It is declared here so
  * that the sdk and the prompts package both name it without importing each other.

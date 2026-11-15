@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A game with the actor `human`: two residents guess a number, and a stand-in for the mechanic `humanHand` (same
  * id, tools and fact; the command line does not depend on a mechanic package) grants `pause` and `resume` to the human.

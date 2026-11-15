@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The human's amendment (rules 2 and 6). The sdk gives the game the actor `human` because the tool is granted to it.
  */

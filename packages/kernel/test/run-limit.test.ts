@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Run limits from outside the plugins (M2 specification, 2.3): `KernelPorts.limits`, checked before the plugins' limits. */
 import { describe, expect, it } from "vitest";
 import type { RunLimit } from "@swarmtales/contracts";

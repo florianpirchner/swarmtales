@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** `replay`: a log played again from its inputs alone; the first differing line; what is refused. */
 import { setTimeout as sleep } from "node:timers/promises";
 import { SwtError, type ActorDriver, type Envelope, type RecordSource } from "@swarmtales/contracts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The layer table: which workspace package may import which, and which Node modules. `check-layers.ts` enforces
  * it; `docs/LAYERS.md` explains it. Sources: DECISIONS.md D8 and E6, paper 01 section 4.4, and the layer table of

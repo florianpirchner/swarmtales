@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Finding 1 of the M4 review (`docs/M4-REVIEW.md`): a live run whose cost meter closed (an answer of a model with a
  * price came without a cost, so the meter fails closed and the run ends at `models.budget`) replays equal. From

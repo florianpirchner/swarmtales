@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The metrics of the `chess` mechanic: the numbers it exports about a finished run, each computed from its own events.
  * The definitions are those of the old runs index of chess (`stories/chess/runs/README.md` on `legacy`): the

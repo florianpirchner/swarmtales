@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The first test of the activation hooks (specification of M4, 4.9): where the events of a hook land. A stand-in
  * for the forfeit clock of chess (old `mechanics/chess/src/index.ts`, `turnOpened` and `turnEnded`) plays game 1

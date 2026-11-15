@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The word-list test of the kernel (REWRITE.md 3.2; M1 specification, 3.7): the kernel has no role word and no game
  * word in an identifier or in a string literal. A role or a game exists for the kernel only as data that a plugin

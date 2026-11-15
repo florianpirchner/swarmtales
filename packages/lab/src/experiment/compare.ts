@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Comparable runs: the manifest fields that must be equal before two runs of one experiment are pooled.
  */

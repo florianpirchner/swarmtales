@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt analyse chess`: the engine analysis of a chess run (Garbochess-JS of the lab), offline and without a model.
  * `analysis.json` and `ANALYSIS.md` are new files of the folder, so the folder is scanned for a held key value after

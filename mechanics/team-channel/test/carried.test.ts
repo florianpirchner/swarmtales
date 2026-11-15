@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The byte-identity list of the port (specification of M1, section 8): the prompt files, the tools and the events
  * of `team-channel` are what the old platform had. The sha256 values are those of the files of the old platform

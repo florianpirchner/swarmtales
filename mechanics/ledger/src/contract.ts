@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The contract of the mechanic `ledger`: its service, its events and the name of the system account. The only file
  * another mechanic imports.

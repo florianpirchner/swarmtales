@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The stage `review` (M5-04, `12-m5-spec.md` 4.3): the review handlers of the plugins and the tool's own review,
  * after `rule` and before `execute`, with the lane held while an answer is awaited. The first test of the issue

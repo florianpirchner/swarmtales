@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Part 3: the actors of a run and their suspensions. The kernel gives an actor no meaning; it only asks whether
  * the actor may act, which holds while no plugin suspends it.

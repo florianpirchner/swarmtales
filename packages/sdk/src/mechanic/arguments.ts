@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The argument handling of the old runner (R2-D6): before a tool saw its arguments, the agent runtime dropped an
  * optional property sent as `null` and converted values to the schema's types (`1.5` to `1` for an integer, `"3"`

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of the key broker (M2 spec 3.1). Every value is built here at run time; no test reads the real environment. */
 import { inspect } from "node:util";
 import { describe, expect, it } from "vitest";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Records (M2 specification, 2.3): events of a declared source outside the plugins, for a person only, redacted in memory. */
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";

@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: numbered proof of a delivered message or a transfer, showReceipt, and blame with a judge; provides the contract receipt-source",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"class": "game",

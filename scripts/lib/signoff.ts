@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The sign-off rule (DECISIONS.md, D15 and 5.6): every commit carries a `Signed-off-by` line of a person, who
- * certifies the Developer Certificate of Origin with it.
+ * The sign-off rule (DECISIONS.md, D15, 5.6 and A65): every commit carries a `Signed-off-by` line of a person, the
+ * record of who is responsible for the commit. The terms of a contribution are the agreement in CONTRIBUTING.md.
  *
  * - A commit made by a person is signed off by its author (the address of the author is among the signers).
  * - A commit made by an agent session keeps the agent's commit identity, and the person who operates the session
- *   signs off. An agent identity is no signer: a program certifies nothing.
+ *   signs off. An agent identity is no signer: a program answers for nothing.
  */
 
 /** One commit of `git log`. */

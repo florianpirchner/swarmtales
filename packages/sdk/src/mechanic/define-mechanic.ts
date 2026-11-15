@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `defineMechanic(head, body)`: checks that the body fits the head, and gives the definition a game lists. Its
  * `resolve` binds parsed options and the texts into the plugin the kernel loads; `create` then builds the state of

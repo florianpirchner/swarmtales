@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The shapes of the projection of an envelope log (`projectRun` in `projection.ts` builds them). */
 import type { RunEvent } from "./events.ts";
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Harbor Lights: a cooperative game of hidden hands for a crew of four. The harbour wall has five signal towers
  * (Amber, Cobalt, Moss, Rose, Violet), each lit lamp by lamp from 1 to 7. Every crew member holds four cards facing

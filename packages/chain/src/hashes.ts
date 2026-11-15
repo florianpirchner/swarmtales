@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The chain's hashes and the small text helpers its verifiers share. Line `n`'s hash is
  * `sha256(hash(n-1) + canonicalJson(line n))` (RFC 8785, hex digests, UTF-8), starting from the genesis entry's

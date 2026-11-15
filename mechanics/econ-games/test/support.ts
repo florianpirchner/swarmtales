@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Shared by the econ-games tests: a game of the mechanic alone and a stateless scripted player (the `player` of the old econ-lab test). */
 import { nameOf, type ActorDriver, type Envelope } from "@swarmtales/contracts";
 import { defineGame, type Game } from "@swarmtales/sdk";

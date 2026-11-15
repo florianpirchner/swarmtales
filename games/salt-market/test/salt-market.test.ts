@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game's part of the old `test/stories/salt-market.test.ts`, played through the game file: a scripted match of
  * four rotated games with a brain per trader and a fresh context per game, and a match where nobody acts. The rules,

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Pure verifier of the signed, hash-chained log of a run. No `node:*` import, no `Buffer`: the command line, a
  * browser and a Web Worker give one verdict. Signing needs `node:crypto` and lives in `@swarmtales/runlog`.

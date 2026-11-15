@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What the fake driver (`--fake`) does with groups: the `sample` of each group tool. As the samples of the board, a
  * sample gives a call only now and then, in a group of the caller where the call can be taken (a founder that left

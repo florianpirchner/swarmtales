@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Service contracts: what one plugin offers to others. */
 import type { TSchema } from "typebox";
 

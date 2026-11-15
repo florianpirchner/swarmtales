@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What the overview of `GAMES.md` takes that no game file holds: the card's title, the family, a note on the
  * residents, the oracle folder and the proof. Everything else comes from `games/index.ts` and the game files. A

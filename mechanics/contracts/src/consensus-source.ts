@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What `consensus` needs from the mechanic that owns the gated tool (a game, a vote, a council).
  * That mechanic `provides` this service; `consensus` requires it, so it loads after it. Every method is

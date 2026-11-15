@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The state of `channels` and its snapshot slice: the board, the message counter, the direct messages, each resident's inbox and its "seen" mark. */
 import { Type, type Static } from "typebox";
 import { Board } from "./board.ts";

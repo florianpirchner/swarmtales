@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Groups and treasuries of `channels`, carried from the old `test/mechanics/channels/groups.test.ts`: with the real
  * ledger, a stand-in for the provider of `receipt-source` and a stand-in for the mechanic that founds the city's

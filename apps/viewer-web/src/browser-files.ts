@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Collecting files from the browser's three folder inputs: a File System Access directory, a dropped folder, a picked folder. */
 import { sourceFilesOf, type SourceFile } from "./file-source.ts";
 

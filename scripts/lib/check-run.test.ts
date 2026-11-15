@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { describe, expect, it } from "vitest";
 import { readText } from "./files.ts";
 import { CHECK_BUDGET, failures, GATES, groupMemoryMb, lanes, summary, type CheckRun, type GateResult } from "./check-run.ts";

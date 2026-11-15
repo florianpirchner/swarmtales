@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The resident session (M2 spec 4.2 to 4.4): one turn of one resident against the scripted source, in runs played
  * by the testkit under the `turns` scheduler. No request leaves the process: the global `fetch` rejects.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The runner of an experiment: plays the plan with an injected player, holds every cap by code before a run
  * starts, and rewrites the state file after every run, so a stopped experiment continues without replaying.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The catalogue of the codes `SWT-L001` to `SWT-L005`, `SWT-L007` and `SWT-L008`: the chain breaks at a line
  * (L001), a head is not signed or no head covers the tail (L002), the manifest is not the one the genesis names,

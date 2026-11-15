@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { createRoot } from "react-dom/client";
 import { App } from "./components/App.tsx";
 import type { ViewerSetup } from "./setup.ts";

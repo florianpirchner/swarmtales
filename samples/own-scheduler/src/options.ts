@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The options of the scheduler sample `parallel` (specification of M4, section 3.2). */
 import { InputEntrySchema } from "@swarmtales/engine";
 import { Type, type Static } from "typebox";

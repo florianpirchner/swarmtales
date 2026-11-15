@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The last will at the gate, carried from the old `exile` (`will.ts`): once, points and held pieces to heirs at once.
  * The points each heir receives are capped at the gate's `bequestPerHeir` share of the balance; any number of heirs,

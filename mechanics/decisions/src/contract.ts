@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `/contract` sub-path of the mechanic `decisions`: the only file another mechanic imports. It holds the
  * service, the three events, the tool reference and the refusal codes of the decision window.

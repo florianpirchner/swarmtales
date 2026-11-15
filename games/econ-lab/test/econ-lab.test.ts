@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Econ Lab through the real mechanics: a scripted match of the three games, offline. Carried from
  * `test/stories/econ-lab.test.ts`; the assertions on the old `turn_started` read `activation_opened`, and the end of

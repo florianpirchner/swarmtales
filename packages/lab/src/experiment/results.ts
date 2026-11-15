@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The results of an experiment (`results.json`): written by code only and validated by this schema. Every number
  * of a series README comes from this file; nobody types one.

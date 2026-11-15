@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The one definition of a code line (DECISIONS.md, D13): a line that holds at least one token. Blank lines and
  * lines that hold only comments do not count. The budget tests and the ESLint limits both count with this module.

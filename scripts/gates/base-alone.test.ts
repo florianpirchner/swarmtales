@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Two gates of M4 (11-m4-spec.md, section 4.2) over the manifests and the imports of the packages.
  *

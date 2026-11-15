@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The carried rules of Convoy: the block "Convoy rules" of the old `test/stories/convoy.test.ts`, with its bot table. */
 import { describe, expect, it } from "vitest";
 import { combinations, mayDamage, posterior, revealsSelf, topSuspects, winnerOf, type Rules, type StageRecord } from "../src/model.ts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The holdem mechanic alone: a scripted match with duplicate deals, the move timer, the locks, the decision aid at a
  * mixed table, a fake run and its conformance (offline). The cases are the mechanic's part of the old

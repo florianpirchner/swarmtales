@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Econ Lab: four solo seats play a match of three classic experimental-economics games in neutral framing, one
  * after another, each over several rounds: a split offer (ultimatum), a shared fund (public goods) and an A-or-B

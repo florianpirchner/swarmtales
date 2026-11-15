@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of the `chess` mechanic: its options, its state with the snapshot, its events, services, prompts and tools. */
 import { Type, type Static } from "typebox";
 import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";

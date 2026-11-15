@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Game families, overrides (SWT-G041), record sources, and metrics on the head: what they change in a resolved game and what they leave alone. */
 import { SwtError, type Envelope, type PromptLookup, type RecordSource, type SchedulerDefinition } from "@swarmtales/contracts";
 import { Type } from "typebox";

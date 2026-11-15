@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The name lint (issue 15): the words that the glossary retired do not come back, in exported identifiers and in
  * the prose of the docs. `docs/GLOSSARY.md` lists the same words for readers; a test keeps the two in step.

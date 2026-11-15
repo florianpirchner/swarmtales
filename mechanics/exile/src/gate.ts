@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The gate, carried from the old `exile` (`gone.ts`, `state.ts`): a caller sends a resident to the gate with its
  * prices and texts, a caller banishes at once, and a gate whose time is up closes: the board is told, `exiled` is

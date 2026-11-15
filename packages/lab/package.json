@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Facts of a run, statistics, experiments and the computed run report",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L4"

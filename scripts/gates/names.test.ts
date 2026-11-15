@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The name lint (issue 15): retired words stay out of exported identifiers and out of the docs. */
 import { describe, expect, it } from "vitest";
 import { isBudgetFile } from "../lib/budget.ts";

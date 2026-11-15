@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import { directoryPicker, filesOfDrop, filesOfHandle, filesOfInput } from "./browser-files.ts";
 import { filesSource, rootName, type SourceFile } from "./file-source.ts";

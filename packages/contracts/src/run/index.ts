@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The files of `run/`: the run manifest, the metric a mechanic exports, the model port and the snapshot file. */
 export type { AskModel, ModelAnswer, ModelQuestion } from "./ask.ts";
 export { type RunManifest, RunManifestSchema } from "./manifest.ts";

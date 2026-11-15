@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { compareRuns, loadRun, type Comparison, type RunModel, type RunSource, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useState } from "react";
 import { number, usd } from "../format.ts";

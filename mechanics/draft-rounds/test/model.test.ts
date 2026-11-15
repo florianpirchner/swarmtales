@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The rules of Quarry (carried from `test/stories/quarry.test.ts`, the block "Quarry rules"), and the proof that the
  * carried state schema is what the old platform had (commit 9765702).

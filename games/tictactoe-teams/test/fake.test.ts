@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The fake run of tic-tac-toe teams (`swt run --fake`, M4 specification 4.11): the fake driver plays the match to
  * its end through the `sample` of every resident tool, and the captain plays the cell its team agreed on.

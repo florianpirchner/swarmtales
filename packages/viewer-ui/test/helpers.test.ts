@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The pure helpers of `@swarmtales/viewer-ui`: FEN, view descriptors, the location hash, report links, scales. */
 import { memorySource, loadRun } from "@swarmtales/viewer-core";
 import { describe, expect, it } from "vitest";

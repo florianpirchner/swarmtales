@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The estimate of an experiment: the difference of two arms with its standard error, t interval and a permutation
  * p value, and a share with its Wilson interval. The permutation tests enumerate every assignment while that is

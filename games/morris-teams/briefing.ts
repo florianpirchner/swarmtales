@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The briefings of nine men's morris: what a resident reads before the run starts. Carried from the old game file
  * (`stories/morris-teams/story.ts`, `rulesText` and `briefing`): the template strings are byte-identical, and the

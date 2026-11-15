@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A depth-limited alpha-beta search over whole morris turns (a step with its removal), with
  * iterative deepening under a node budget, and a static evaluation: pieces, mills about to close

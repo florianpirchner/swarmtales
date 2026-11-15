@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The Human Hand's mechanic in a real kernel: the cases of the old `test/host/human.test.ts` that are about `pause`
  * and `resume` (specification of M3, section 6.4). Offline, no model.

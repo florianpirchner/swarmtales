@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of the three games as pure functions (in `rules.ts`: pairings, payoffs, reference metrics) and the mechanic's state. */
 import { Type } from "typebox";
 import { RoundRecord } from "./rules.ts";

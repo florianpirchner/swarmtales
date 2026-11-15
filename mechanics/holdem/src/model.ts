@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Fixed-limit hold'em betting as pure functions over one hand, and the mechanic's state. A hand has no
  * stacks: every seat can always cover the betting (the raise cap bounds what a seat can put into one hand: 48

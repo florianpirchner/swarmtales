@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The contract between the viewer and the place it runs in (the static page, the VS Code webview):
  * `mountViewer(element, setup)` in `mount.tsx` takes a `ViewerSetup`. The host knows files and where

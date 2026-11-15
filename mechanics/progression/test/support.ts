@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Shared by the progression tests: the options a game of the oracle files gives the mechanic (from its story file),
  * the submissions of a file, and stand-ins for the pieces (`level-pieces`) and the receipts (`receipt-source`). The

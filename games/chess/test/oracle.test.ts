@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game against all twelve oracle files: the five of the default, the fresh context and the compact board
  * (M4-29), and the seven recorded for M4 (M4-17, the additions 1 to 7 of the M4 specification 2.4: the legal-move

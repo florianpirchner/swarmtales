@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A team of three against one resident alone (`soloSide`): the head-to-head test of what a team adds, played offline
  * by script. Carried from `test/stories/tictactoe-teams-mixed.test.ts`.

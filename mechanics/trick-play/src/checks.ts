@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The checks of the tools: who may act in which phase, and what a bid, a suit, a card or a veto must be. */
 import type { Refusal } from "@swarmtales/contracts";
 import { refuse } from "@swarmtales/sdk";

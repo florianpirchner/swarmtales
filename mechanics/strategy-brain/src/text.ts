@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Pure text checks of the strategy brain: words, a hash and the replay detector. */
 
 /**

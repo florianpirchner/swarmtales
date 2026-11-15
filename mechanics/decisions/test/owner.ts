@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** A test mechanic that owns decisions: its tool `decide` proposes one, and it writes `committed` when it commits. */
 import { Type } from "typebox";
 import type { Envelope } from "@swarmtales/contracts";

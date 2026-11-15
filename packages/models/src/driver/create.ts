@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The assembly of the model driver: one resident session per actor, with the tools notice, the late tools and the
  * `prompt_fixed` record. A port of the assembly in the old `core-run.ts`: only the tools open at the start are

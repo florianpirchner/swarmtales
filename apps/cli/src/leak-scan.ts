@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The leak scan after a run and after a report: a held key value in a file of the run folder marks the folder. */
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

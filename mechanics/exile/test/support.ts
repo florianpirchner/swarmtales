@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Shared by the gate and will tests: stand-ins for the keeper of the points (`exile-purse`), for `names` (`identity`)
  * and for a caller that opens a gate with the City's texts and prices, as the old tribunal did; the real `channels`.

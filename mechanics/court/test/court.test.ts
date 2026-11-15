@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The `court` mechanic: the vote, the tally, and the verdict with and without a decision window (offline). */
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";

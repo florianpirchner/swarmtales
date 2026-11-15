@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Tic-tac-toe teams through the real mechanics: a scripted 3-game match, offline. Carried from
  * `test/stories/tictactoe-teams.test.ts`; the assertions on the old `turn_started` read `activation_opened`.

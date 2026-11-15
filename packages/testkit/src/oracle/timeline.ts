@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Folds the log of a run on this platform into the entries of an oracle file, with the one declared mapping of
  * the specification of M1, section 7. Bookkeeping the oracle dropped is dropped here too: `run_started`,

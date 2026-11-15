@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * An index over a run's events, built once per run (a 96-agent log has well over 100,000 lines):
  * by seq, by minute, by actor and by type, plus "the state at seq n" lookups for the scrubber.

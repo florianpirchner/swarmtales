@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The draft-rounds mechanic: a scripted match, the timer, the refusals of `pick` and its conformance (offline). */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

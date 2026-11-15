@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { describe, expect, it } from "vitest";
-import { ALLOWED_LICENCES } from "./allowlist.ts";
+import { ALLOWED_LICENCES, PROJECT_LICENCE } from "./allowlist.ts";
 import { readText } from "../lib/files.ts";
 import { declaredByInstalled, judgePackages, lockedPackages, recordedRows, renderInventory, type JudgementInput } from "./inventory.ts";
 import { checkHeaders, checkManifests, checkVendored, checkWorkflows, usedActions } from "./repo-files.ts";
@@ -37,6 +37,15 @@ describe("SPDX expressions", () => {
 			expect(verdict(id)).toBe(`refused: ${id}`);
 		}
 		expect(verdict("GPL-2.0-only WITH Classpath-exception-2.0")).toContain("refused");
+	});
+
+	it("refuses a dependency under the project's own licence or another source-available one, with no override", () => {
+		expect(verdict(PROJECT_LICENCE)).toBe(`refused: ${PROJECT_LICENCE}`);
+		expect(verdict("Elastic-2.0")).toBe("refused: Elastic-2.0");
+		const coversUp = [{ package: "odd@1.0.0", licence: "MIT", evidence: "https://example.org/LICENSE" }];
+		const result = judgePackages(input({ "odd@1.0.0": "LicenseRef-SUL-1.0" }, { overrides: coversUp }));
+		expect(result.offences[0]).toContain("LicenseRef-SUL-1.0");
+		expect(result.offences.join("\n")).toContain("an override never replaces a licence that is never allowed");
 	});
 
 	it("does not parse what is not an expression", () => {
@@ -164,18 +173,25 @@ describe("lockfile", () => {
 });
 
 describe("repository files", () => {
-	it("needs the SPDX line first, after an optional shebang", () => {
-		const good = "// SPDX-License-Identifier: Apache-2.0\nexport {};\n";
+	it("needs the SPDX line of the project licence first, after an optional shebang", () => {
+		expect(PROJECT_LICENCE).toBe("LicenseRef-SUL-1.0");
+		const good = "// SPDX-License-Identifier: LicenseRef-SUL-1.0\nexport {};\n";
 		expect(checkHeaders([{ path: "a.ts", text: good }, { path: "b.mjs", text: `#!/usr/bin/env node\n${good}` }])).toEqual([]);
 		expect(checkHeaders([{ path: "a.ts", text: "export {};\n" }, { path: "c.ts", text: "// SPDX-License-Identifier: MIT\n" }])).toHaveLength(2);
+		expect(checkHeaders([{ path: "d.ts", text: "// SPDX-License-Identifier: Apache-2.0\nexport {};\n" }])).toEqual([
+			'd.ts: the first line must be "// SPDX-License-Identifier: LicenseRef-SUL-1.0"',
+		]);
 	});
 
-	it("needs Apache-2.0 and exact versions in package.json", () => {
-		const good = { license: "Apache-2.0", dependencies: { typebox: "1.3.27", "@swarmtales/contracts": "workspace:*" } };
+	it("needs the project licence and exact versions in package.json", () => {
+		expect(checkManifests([{ path: "a/package.json", text: JSON.stringify({ license: "Apache-2.0" }) }])).toEqual([
+			'a/package.json: "license" must be "LicenseRef-SUL-1.0"',
+		]);
+		const good = { license: "LicenseRef-SUL-1.0", dependencies: { typebox: "1.3.27", "@swarmtales/contracts": "workspace:*" } };
 		expect(checkManifests([{ path: "package.json", text: JSON.stringify(good) }])).toEqual([]);
 		const bad = { license: "MIT", devDependencies: { eslint: "^9.39.5", vitest: "latest" } };
 		expect(checkManifests([{ path: "p/package.json", text: JSON.stringify(bad) }])).toEqual([
-			'p/package.json: "license" must be "Apache-2.0"',
+			'p/package.json: "license" must be "LicenseRef-SUL-1.0"',
 			'p/package.json: eslint has the version "^9.39.5"; name one exact version',
 			'p/package.json: vitest has the version "latest"; name one exact version',
 		]);

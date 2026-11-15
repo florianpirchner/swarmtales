@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Projections of an oracle file and of a run's log: the events of named sources and types, with named fields, in
  * order. An oracle that cannot be replayed whole (its setup has mechanics this platform does not have yet) still

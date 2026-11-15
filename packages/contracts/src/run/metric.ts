@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The metric: one number a mechanic exports about a finished run. A type only; the sdk has the typed helper. */
 import type { Envelope } from "../kernel/envelope.ts";
 

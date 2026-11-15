@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Web Worker: checks a run's chain off the main thread (an 8 MB log takes seconds). It receives the
  * texts of the run's files and answers with the same verdict `verifyRun` gives. Only viewer-core is used.

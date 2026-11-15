@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The facts of a run: a `guess-number` run folder written by the run log's own writer is read into its facts; an
  * unfinished run and a run that fails `verifyRun` are refused; a thing that was not measured is "absent", not 0.

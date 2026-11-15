@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Who wrote to whom. A message is a line of a type the {@link MessageVocabulary} names: a direct
  * message, a channel post, table talk. Deliveries and receipts (`notice`, a city's board posts),

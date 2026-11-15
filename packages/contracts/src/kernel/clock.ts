@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The schema of a scheduled job, as a snapshot holds it. The interface `Job` is in `kernel-def.ts`. */
 import { Type } from "typebox";
 import type { JsonValue } from "../values.ts";

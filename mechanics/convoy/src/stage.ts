@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The second half of a stage and the end of a game: the sealed cards of the crew, the reveal of their count, the
  * accusations of the loyal seats after the crossing, the score of the game, and the timer of these two phases.

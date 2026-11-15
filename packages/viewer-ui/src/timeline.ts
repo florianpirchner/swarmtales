@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The rows of the replay's event list. A line that belongs to an activation (a call, its answer, a record of the
  * driver, the closing) is not a row of its own: the activation is one row and its card lists those lines. A row

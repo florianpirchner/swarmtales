@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `pnpm check:layers`: the import rules that no compiler enforces. The rules are in `layers/rules.ts`, the table in
  * `layers/table.ts`, the explanation in `docs/LAYERS.md`.

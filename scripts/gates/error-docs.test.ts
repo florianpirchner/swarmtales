@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The gate of the error reference: `docs/reference/errors.md` is what `pnpm docs:errors` writes (the `--check` of
  * the generator), every code in the source has an anchor there and every anchor a code. The codes are found here

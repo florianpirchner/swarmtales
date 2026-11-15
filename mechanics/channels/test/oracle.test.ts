@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The oracle proof of the talk (specification of M3, section 2.5, projection 6). No City of Keys oracle can be
  * replayed whole, so the test walks the oracle's timeline: at every `turn` entry the named resident gets an

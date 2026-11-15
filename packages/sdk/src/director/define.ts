@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `defineDirector(head, body)`: the definition of a Director. A Director is a model actor that is no resident: it
  * is woken by events of the game's mechanics, asks its model once, and acts only through tools of its grant. The

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The model selection: provider, model id and settings. Free of the provider library, so it is pure. Precedence:
  * command line, then environment, then the game.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of Lanterns as pure functions. Carried from "Lanterns rules" of `test/stories/lanterns.test.ts`. */
 import { describe, expect, it } from "vitest";
 import { clueProblem, dealGrid, keeperOf, landedOf, paceLine, referenceOf, scoreGame, seekersOf, stemOf, type Card, type ClueRecord } from "../src/model.ts";

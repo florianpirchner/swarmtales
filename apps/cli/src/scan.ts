@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** `swt scan`: the leak scan of a run (`leak-scan.ts`) as a command over any folder. It prints file names and counts, never a value or a part of one. */
 import { statSync } from "node:fs";
 import { resolve } from "node:path";

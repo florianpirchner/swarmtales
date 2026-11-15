@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * From a Director's firing to the line that fired it. No payload holds a place on the log (decision A34): the
  * reply of a Director's `take` lists each firing with its number `n`, its tick, its event and its payload, and the

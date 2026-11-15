@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The lines of `events.jsonl` as open records. Every story writes its own event types, so the core
  * reads only what every line has (`type`, `seq`, `minute`, `at`), who acted (the actor) and whom the

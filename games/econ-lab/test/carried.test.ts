@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The byte-identity list of the game (specification of M2, section 7): the sha256 of the eight briefings (four seats,
  * with and without the brain), generated on the old platform (`econLabEntry({ brain }).briefing(seat)` at `v0-final`),

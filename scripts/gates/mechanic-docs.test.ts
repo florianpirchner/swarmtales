@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The stale check of the mechanic READMEs (docs/MECHANIC-README.md): every mechanic package has a README in the
  * fixed shape, and its generated blocks say what the head says. `pnpm docs:mechanics` rewrites them.

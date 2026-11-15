@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The metrics of the `liars-dice` mechanic: the numbers it exports about a finished run, each computed from its own
  * events. The definitions are those of the old runs of liar's dice (`stories/liars-dice/runs/` on `legacy`, P280 to

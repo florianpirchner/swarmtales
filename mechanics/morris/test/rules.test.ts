@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The nine men's morris rules module: geometry, move numbers, mills and removals, flying and the end of a game.
  * Carried from `test/mechanics/morris/rules.test.ts`; the old source-rule check is the lint of this repository now.

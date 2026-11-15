@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The runtime revision: a number that changes only when the kernel changes how a run plays (when an actor is
  * activated, what it is shown, how tool notices and answers arrive), not with every commit. Runs of one revision

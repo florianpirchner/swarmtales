@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Shared by the sealed-auction tests: a game of the mechanic alone and the scripted bidders of the old Blind Bid test, without its brain part. */
 import { nameOf, type ActorDriver, type Envelope } from "@swarmtales/contracts";
 import { defineGame, type Game } from "@swarmtales/sdk";

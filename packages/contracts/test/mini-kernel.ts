@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A kernel in miniature, written by hand against the kernel-facing contracts only (M1 specification 2.1 to 2.8).
  * It is the usability proof of the frozen interfaces: the dispatch pipeline (3.3), the tick sequence (3.5) and the

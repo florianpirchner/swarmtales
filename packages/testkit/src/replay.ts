@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `replay`: plays a run again from its log alone and compares the new log with it, line by line. The inputs of a
  * a replay are the tool calls and the events of the record sources; everything else is produced again. No model, no

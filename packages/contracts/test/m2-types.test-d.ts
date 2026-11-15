@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The type test of the M2 contracts (M2 specification, 2.3 to 2.6). `tsc -b` compiles this file; nothing here runs.
  * It shows three things: the static type of each new schema is the type the specification names; every addition to

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `econ-games` mechanic: a match of classic experimental-economics games for solo seats, one game
  * after another, each over several rounds (docs/ideas/game-roadmap.md §2.2):

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The driver assembly (M2 spec 4.1, 4.2, 4.4): real kernel runs through the testkit's `play` with the record
  * source of the driver, the scripted source and the carried prompt files. No request leaves the process: the

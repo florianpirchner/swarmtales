@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Sample 5 in process: the two mechanics play, `tryCall` answers undefined without `exile`, an immune id that is
  * no actor is refused, a holder's amendment is what the tribunal commits, and the game passes the conformance

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The input of the Human Hand for the run loop: the JSON lines of `--hand <file>`, or of standard input with
  * `--hand -`, each checked against the grant `human` of the game. `SWT-X008` and `SWT-X009` are here.

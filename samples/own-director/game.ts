@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game of sample 6: three residents name a captain, the choice waits two ticks in a decision window, and its
  * holders are the steward (a Director) and the person at the run (the Human Hand).

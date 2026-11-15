@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** What the tests of `swt run` and `swt resume` share: the command in process, the log of a run folder, and a resumed log without its marker. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

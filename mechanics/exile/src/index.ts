@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `exile` mechanic: banishing a resident. A caller banishes at once (`banish`) or sends a resident to the gate
  * with the prices and the texts it sets (`toGate`); at the gate the resident may be bought back once (`payRansom`) and

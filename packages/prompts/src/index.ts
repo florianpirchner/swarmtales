@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Prompt file loader and lookup: the file format with its renderer, and the layered lookup over the game's
  * folder, the owning mechanic's folder and `library/prompts/`.

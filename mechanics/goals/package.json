@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: a secret goal per resident and act",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"class": "game",

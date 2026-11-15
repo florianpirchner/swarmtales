@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Staged calls (12-m5-spec.md, 4.2; issue M5-02): a plugin stages a tool call, the kernel makes it as the actor
  * `script` after the outermost step that staged it, depth first, and runs the `then` job with the outcome.

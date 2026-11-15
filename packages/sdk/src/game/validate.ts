@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Steps 1 to 4 of game resolution: the schema of the data form, the residents, the teams and roles, and the
  * mechanics with their options and event types. Each step collects issues and throws nothing; resolution throws

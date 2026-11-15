@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The key order of a state schema (A43): a snapshot file sorts its keys, so a state loaded as it is comes back
  * sorted, and an event written from it later carries another key order than in the straight run. A head's

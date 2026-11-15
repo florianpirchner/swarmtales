@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { gridGame } from "@swarmtales/mechanic-grid-game";
 import { defineGame } from "@swarmtales/sdk";
 

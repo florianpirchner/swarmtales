@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Shared by the ledger tests: the game, a stand-in for the exile, and readers of the log and of the saved slice. */
 import type { Envelope, Kernel } from "@swarmtales/contracts";
 import { defineGame, defineHead, defineMechanic, type Game, type MechanicUse } from "@swarmtales/sdk";

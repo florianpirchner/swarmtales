@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `draft-rounds` mechanic: the drafting game Quarry (docs/ideas/game-roadmap.md §2.4) for solo seats.
  * A match is several games; a game is several pack rounds; in a pack round every seat opens a pack,

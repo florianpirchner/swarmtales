@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The state of the `morris` mechanic with its snapshot schema, and what is read off it: the tally, the captain of the turn and the legal move numbers. */
 import { Type, type Static } from "typebox";
 import { MorrisEvents } from "./events.ts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** `swt log verify`: checks a run folder and says whether its log holds. */
 import { resolve } from "node:path";
 import { formatIssue } from "@swarmtales/contracts";

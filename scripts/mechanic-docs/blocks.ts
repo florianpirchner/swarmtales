@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The generated blocks of a mechanic's README (docs/MECHANIC-README.md), computed from the mechanic's head, its
  * prompt files and the manifests of the games: what a reader would otherwise have to dig out of the code.

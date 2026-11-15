@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The tool `bid`: why a seat may not bid now, a sealed bid with its reply, and what a fake run samples for the two tools. */
 import type { RandomSource, Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";

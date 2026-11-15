@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The oracle proofs of the pieces (specification of M3, section 2.5, projections 1 to 3). No City of Keys oracle
  * can be replayed whole, so each proof lays the same selectors over the oracle's timeline and over the log of a

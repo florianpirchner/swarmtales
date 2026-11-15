@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of the `chess` mechanic: games, moves and their refusals, the end of a game, and the forfeit clock. */
 import type { InputLine, Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";

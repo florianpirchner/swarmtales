@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { UserConfig } from "tsdown";
 
 /** The one tsdown configuration every package builds with: ESM output plus `.d.ts`, no native code. */

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Canonical JSON after RFC 8785 (JSON Canonicalization Scheme) for parsed JSON values: object keys
  * sorted by their UTF-16 code units, no whitespace, strings and numbers serialised as ECMAScript's

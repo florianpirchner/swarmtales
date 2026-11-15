@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts of the hint towers: the status a seat reads, the record after a game and the lines the replies share. */
 import { deckOf, rankOf, suitOf } from "@swarmtales/mechanic-card-table/contract";
 import type { HintTowersCtx } from "./head.ts";

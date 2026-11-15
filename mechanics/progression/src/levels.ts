@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Levels, the door clock, the ranking and the penalty ladder (carried from the old `mechanics/progression/src/levels.ts`
  * and `rules.ts`: `levelOf`, `isFinished`, `hasPassed`, `ranking`, `penaltyAt`, `renderTemplate`). The acts and the

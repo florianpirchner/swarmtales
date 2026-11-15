@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** No secret in a file of a run folder: each line is redacted before it is chained, and a manifest, game or texts with a secret opens no folder (M2-01). */
 import { generateKeyPairSync } from "node:crypto";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";

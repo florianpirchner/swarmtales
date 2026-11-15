@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The Monte Carlo worth of a hand at bidding time: how many tricks it takes on average when the other
  * seats' cards and the trump are unknown. Pure and seeded by the caller (the mechanic passes a stream

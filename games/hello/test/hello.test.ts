@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The Hello Game (sample 1): it plays to the end with the fake driver, one activation per move; `swt run --fake`
  * writes a run folder whose log verifies, without a warning; and the README shows the game
@@ -83,7 +83,7 @@ describe("sample 1 in the README", () => {
 
 	it("the code block of the README is the game file, without its licence line", () => {
 		const block = /```ts\n([\s\S]*?)```/.exec(readme)?.[1];
-		expect(block).toBe(file.replace("// SPDX-License-Identifier: Apache-2.0\n", ""));
+		expect(block).toBe(file.replace("// SPDX-License-Identifier: LicenseRef-SUL-1.0\n", ""));
 		expect(readme.match(/```ts\n/g)).toHaveLength(1);
 	});
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game the hint-towers tests play (the old `towerStory`: four seats, a deck of three suits of four ranks, two
  * games) and the stateless scripted crew member of the old tests, which follows the status it is shown.

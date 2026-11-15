@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { SwtError, type ActorSpec, type GameData, type PluginPort, type ResolvedPlugin } from "@swarmtales/contracts";
 import { describe, expect, it } from "vitest";
 import { actorsOf, residentsOf } from "../src/game/validate.ts";

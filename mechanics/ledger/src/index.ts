@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `ledger` mechanic: double-entry points. Every resident has an account, every change of points is a booking
  * between two accounts (`ledger_entry`), other mechanics book through the service `ledger`, and residents pay each

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The plan and the runner of an experiment, with a fake `PlayRun` that writes a real, verifiable run folder per
  * run: the plan is fixed by the spec, a stopped experiment continues without replaying, every cap stops before a

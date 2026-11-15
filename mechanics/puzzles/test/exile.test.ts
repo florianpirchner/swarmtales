@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `puzzles` mechanic after an exile: the listener to `exile.exiled` does what the pieces' part of the old
  * exile's `onExiled` did (the first exile of the oracle `cityofkeys-burn-s7`), after the ledger whatever the game's

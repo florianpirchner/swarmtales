@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The sink of a run folder: it stamps each event with the wall clock, redacts it and hands it to the chain writer. */
 import { type EventSink, type Redact, redactSecrets, redactValue } from "@swarmtales/contracts";
 import type { EventChain } from "./chain-writer.ts";

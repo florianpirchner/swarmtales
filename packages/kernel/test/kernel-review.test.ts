@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The open points of the kernel review that the assembly closes (errata O10 to O14). */
 import { Check } from "typebox/value";
 import { describe, expect, it } from "vitest";

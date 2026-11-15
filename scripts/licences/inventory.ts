@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Judges the packages of the lockfile against the allowlist and renders `THIRD-PARTY-LICENSES.md`. */
 import { Type, type Static } from "typebox";
 import { ALLOWED_ACTIONS, ALLOWED_LICENCES, NEVER_ALLOWED } from "./allowlist.ts";

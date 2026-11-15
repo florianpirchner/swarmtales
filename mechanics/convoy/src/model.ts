@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The rules of Convoy as pure functions (role deal, crew sizes, damage rule, the Bayesian suspicion
  * tracker, a scripted bot table for balance) and the mechanic's state.

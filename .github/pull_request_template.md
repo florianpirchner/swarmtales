@@ -21,6 +21,7 @@ Closes #
 ## Licence and sign-off
 
 - [ ] Contains no code or text copied from a source under a licence outside the allowlist.
+- [ ] I agree to the CLA in CONTRIBUTING.md (the first pull request of each contributor says so).
 - [ ] Every commit is signed off by a person (`git commit -s`; in an agent session the line of the person who operates it).
 - [ ] No new dependency, or the issue names its licence and `THIRD-PARTY-LICENSES.md` is regenerated.
 

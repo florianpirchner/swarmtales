@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The shape of the workspace: the rules that make sure every gate sees every package. A package in a folder that
  * no gate reads, without a `tsconfig.json`, or without an API report would pass the check unseen.

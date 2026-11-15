@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { RunIndex } from "@swarmtales/viewer-core";
 import { viewText, type ViewDescriptor } from "../views.ts";
 import { BoardFen } from "./BoardFen.tsx";

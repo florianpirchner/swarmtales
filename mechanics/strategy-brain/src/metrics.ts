@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The metric of the `strategy-brain` mechanic: the number it exports about a finished run, computed from its own events. */
 import type { MetricDefinition } from "@swarmtales/contracts";
 import { defineMetric } from "@swarmtales/sdk";

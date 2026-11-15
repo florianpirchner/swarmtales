@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game's part of the old `test/stories/convoy.test.ts`: a scripted match of the game file with a brain per seat,
  * a private role and a fresh context per game, and the timer for seats that never act. The rules block is in

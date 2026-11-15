@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: the story's rules on time and events, acting through other mechanics as the actor script",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"class": "game",

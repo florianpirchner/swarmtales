@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The types between the kernel's files. A part is what its factory returns, so its type is derived from the
  * factory and documented there; a test fakes a neighbour against that type. What a factory gets of the other parts

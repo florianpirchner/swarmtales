@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The 4x4 variant (four in a row) through the real mechanics: one scripted match offline, with the briefing and the
  * referee at size 4. Carried from `test/stories/tictactoe-teams-4x4.test.ts`; the old name grammar is not carried, so

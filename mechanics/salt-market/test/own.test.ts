@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The option `markOwnOffers` (A46, M4-70, P478): off, no text a trader reads carries the mark; on, the open offers a
  * trader reads mark its own offers, every one of them, and no offer of another trader.

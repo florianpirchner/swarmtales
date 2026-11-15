@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `holdem` mechanic: fixed-limit Texas Hold'em for solo seats, heads-up or at a full table. A match is several
  * games of several hands; the button moves one seat per hand. The deal is seeded; with `duplicate` on (the default)

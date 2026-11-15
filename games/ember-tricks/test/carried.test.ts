@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The byte-identity list of the game (M4 specification 2.2, rules 5, 8 and 9): the sha256 of the eight briefings
  * (four seats, with and without notes), generated on the old platform (`emberTricksEntry({ brain }).briefing(seat,

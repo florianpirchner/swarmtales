@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { GameDefinitionSchema, ModelChoiceSchema, ResidentIdSchema, type GameData, type PromptLookup } from "../src/game/index.ts";

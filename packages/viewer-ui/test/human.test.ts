@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Rows 4 to 7 of what the viewer must show (specification of M3, section 9), drawn from the resumed run folder of
  * `viewer-core`: the calls of the human and the header badge, the pause as a band, the resume marker as a line,

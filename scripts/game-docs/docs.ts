@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The generated blocks of `GAMES.md` (`<!-- generated:overview -->` ... `<!-- /generated:overview -->`): the count
  * of the games that run, the overview table and the families of the old platform with their ported marks. This file

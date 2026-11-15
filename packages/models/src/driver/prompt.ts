@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The neutral system prompt of a resident. A port of the old `neutralSystemPrompt` without its City parts (frame,
  * persona, motive, shift): the header, the game's briefing, the steps with the tools sentence and the speech rule,

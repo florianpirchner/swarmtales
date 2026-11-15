@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic `sealed` of the sample game: every round each resident seals one guess of a hidden number, and the
  * round is opened when its tick ends. No guess is seen before the opening and the hidden number is a labelled random

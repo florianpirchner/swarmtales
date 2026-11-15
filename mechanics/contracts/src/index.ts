@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The service contracts that have two providers: consensus-source, brain-source, identity, allowance and
  * receipt-source.

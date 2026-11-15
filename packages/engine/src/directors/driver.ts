@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The driver of a Director: what one activation of a Director does. It takes the firings the plugin `directors`
  * queued, asks the model once through the port `AskModel`, and hands an answer that fits to the Director's `act`,

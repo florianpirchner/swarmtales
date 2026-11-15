@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `defineMetric`: a metric whose `compute` is typed by the event schemas of its mechanic. Each payload is parsed
  * with its schema before `compute` sees it; a payload that does not parse makes the metric absent.

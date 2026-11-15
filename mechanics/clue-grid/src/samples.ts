@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What the fake driver (`--fake`) plays in Lanterns: the `sample` of each resident tool. A sample gives a call only
  * where the call is legal now, so a fake run holds accepted clues and guesses. The driver calls the first open tool

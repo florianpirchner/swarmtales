@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What a mechanic's code sees: its typed contexts. The kernel hands every instance an untyped `PluginPort`; the sdk
  * wraps it into the contexts below. An author sees resident ids (`A01`), never actor ids (`resident:A01`), and its

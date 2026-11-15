@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What every part of Salt Market shares: the holdings and counters of a trader, the queued lines of its next turn,
  * how a trader id is read and written, the market's open or closed state, and the lines of an offer and of the book.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `progression` mechanic: levels and their doors, `submitSolution` with the penalty ladder and the attempt
  * window, the looks `getStatus`, `getProblem`, `listAgents` and `activeTools`, and the task and status lines of a

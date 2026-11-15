@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The chess mechanic: its rules through chess.js, a scripted match, the forfeit clock, the cap, the views and its conformance (offline). Ported from the old `test/stories/chess.test.ts`. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

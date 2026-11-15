@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The run viewer's React components. The place the viewer runs in (the static page in `apps/viewer-web`)
  * calls `mountViewer(element, setup)`.

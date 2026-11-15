@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Part 2: the kernel's snapshot. It is taken between two ticks from what the kernel owns (suspensions, locks,
  * jobs) plus one versioned slice per plugin that keeps state and one of the scheduler, and loaded back on resume.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game against its oracles: the six files of `oracles/holdem/`, the decision aid at a mixed table
  * (`holdem-aid-mixed-s7.json`) among them, are played from their inputs under the game's own scheduler and compared

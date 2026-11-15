@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The run folder: where it is, and the files a run writes into it before its first event. */
 import type { KeyObject } from "node:crypto";
 import { mkdirSync, readdirSync, writeFileSync } from "node:fs";

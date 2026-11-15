@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The tool `act`: why a seat may not act now, the action with its reply, and what a fake run samples. */
 import type { RandomSource, Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";

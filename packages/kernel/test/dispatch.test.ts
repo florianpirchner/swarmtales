@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { SwtError, type ActorId, type Envelope, type KernelDefinition, type PreparedCall, type Refusal, type StageHandlers, type Submission, type ToolOutcome } from "@swarmtales/contracts";

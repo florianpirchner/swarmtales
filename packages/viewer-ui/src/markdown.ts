@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Markdown to safe HTML for the report view. A report is a file in a repository, but its text can come
  * from a model or from a stranger's pull request, so the HTML is always sanitised before it is shown:

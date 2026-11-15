@@ -115,6 +115,6 @@ Node 26.13 or newer (the one source is [`.node-version`](.node-version)) and pnp
 
 ## Licence and citation
 
-Apache License 2.0, see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE); third-party software is listed in
-[`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md). The name "Swarm Tales" is not licensed (section 6 of the
-licence). A `CITATION.cff` follows with the 1.0 release.
+Sustainable Use License 1.0 with Additional Terms (source-available), see [`LICENSE`](LICENSE), [`LICENSE-FAQ.md`](LICENSE-FAQ.md),
+[`NOTICE`](NOTICE) and [`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md). It is not viral: what you build with Swarm Tales
+outside this repository is yours, under any licence you choose. A `CITATION.cff` follows with the 1.0 release.

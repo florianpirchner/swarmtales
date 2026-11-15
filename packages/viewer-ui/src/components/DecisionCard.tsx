@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { Decision } from "@swarmtales/viewer-core";
 import { brief } from "../timeline.ts";
 import { Step } from "./Step.tsx";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of the `exile` mechanic: its state with the snapshot, its events, services, prompts and tools. */
 import { Type, type Static } from "typebox";
 import { IdentityService } from "@swarmtales/mechanic-contracts";

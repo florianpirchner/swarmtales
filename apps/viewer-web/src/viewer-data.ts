@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The build's view and game data (`public/viewer-data.json`); a build without the file has neither. */
 import { parseGames, parseViews, type GameInfo, type ViewDescriptor } from "@swarmtales/viewer-ui";
 import { Type } from "typebox";

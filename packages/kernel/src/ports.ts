@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Part 7: the port the kernel gives the scheduler. It holds what is no policy of a scheduler: the lines of the
  * `inputs` hooks, the basis of an activation and of its calls, the count of its calls, and the two brackets

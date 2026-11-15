@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Game descriptions for the Games tab: one entry per game, with its mechanics, tools and README, handed to the
  * viewer by the page that mounts it (the old platform wrote them at build time). The viewer

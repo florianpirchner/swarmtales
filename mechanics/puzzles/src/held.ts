@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What a resident holds for others, who still lacks a fragment, and what an exile does to the pieces. Ported from
  * the old platform (`heldPieces`, `lackingFragment`, and the pieces' part of the old exile's `onExiled`).

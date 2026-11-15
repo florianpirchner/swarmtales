@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game definition, version 1, in its data form: what a YAML or JSON file holds and what `game.hash` hashes.
  * A game is plain data; a TypeScript game returns the same data from a builder.

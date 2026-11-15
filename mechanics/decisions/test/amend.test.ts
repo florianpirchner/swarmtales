@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** `amendDecision`: the amendment cases of the old `test/host/decisions.test.ts`, with residents as holders. */
 import { describe, expect, it } from "vitest";
 import type { ToolOutcome } from "@swarmtales/contracts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The Node signer the carried chain tests run against: `EventChain`, `verifyChain` and `verifyContinuity` from
  * the old `packages/chronicle/src/log/chain.ts`, and a few lines that stand in for the old JSONL log and its bus.

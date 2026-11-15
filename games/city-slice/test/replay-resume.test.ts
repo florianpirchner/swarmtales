@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The city slice replays and resumes, in process (specification of M3, done-when 2 and 3, sections 7.2 and 7.4).
  * Replay: `replay` gets the game and the lines of a committed timeline, nothing else, and writes the same log. Resume:

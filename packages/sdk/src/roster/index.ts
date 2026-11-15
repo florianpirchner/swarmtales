@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `roster` plugin: who plays, in which team and in which role. Game resolution adds it to every game that
  * lists no provider of the service `roster`. It is written by hand as a `ResolvedPlugin`, not with

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The one file that reads the environment of the process. It hands on only the variables it is asked for by name. */
 import { KEY_VARIABLES } from "@swarmtales/models";
 

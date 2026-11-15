@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What a trader reads: the rules, the round (its own goods and secrets, the open book, the shipments to come, the
  * offers and deliveries), the answer of `viewMarket`, and the lines of its next turn with the inbox since the last.

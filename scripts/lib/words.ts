@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Word scanning shared by the kernel word-list test and the name lint. */
 import ts from "typescript";
 

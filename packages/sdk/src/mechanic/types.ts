@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic types: what `defineHead(head)` and `defineMechanic(head, body)` take and what they return. The head
  * declares everything that is data: id, package, services, options, the state schema, events, prompts and the tools

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The verification of a run folder, alone or against the folder of the run it resumed from; the codes are in `catalogue.ts`. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

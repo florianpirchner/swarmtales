@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `chess` mechanic: a match of chess games between two solo seats (docs/ideas/game-roadmap.md
  * §2.8), with chess.js as the legality filter and the referee. The model never changes the board

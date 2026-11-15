@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The empty answer turns of P475 (M4-69): a seat that has not read its last answer is woken for it (reason `answer`),
  * the wake rule of the old platform, so after its own bid or card it gets a turn that can only read "Not your turn".

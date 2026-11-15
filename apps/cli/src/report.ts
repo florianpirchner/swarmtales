@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt report`: the computed report of one finished run. The facts are read from the verified run folder with the
  * metric definitions of the game's mechanics; `REPORT.md` is a new file of the folder, so the folder is scanned

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The error catalogue of the sdk: every G (game), M (mechanic) and P (texts) code of the milestones M1 and M2, each as a
  * function that returns the issue. A step of game resolution collects issues and resolution throws them as one

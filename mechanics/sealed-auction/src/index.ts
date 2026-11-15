@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `sealed-auction` mechanic: solo seats bid on a series of lots, one lot at a time, with sealed
  * bids and a purse per game. Three kinds of lot measure three classic auction skills against closed-form

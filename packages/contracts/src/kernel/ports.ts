@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The ports of the kernel: scheduler, driver and sink. Internal interfaces, not plugin kinds. */
 import type { TSchema } from "typebox";
 import type { JsonValue, RandomLabel, RandomSource, RunEnd } from "../values.ts";

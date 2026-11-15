@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of a match: blocks, rounds and phases, the locks of the decision tools, a decision and the resolution of a round. */
 import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";

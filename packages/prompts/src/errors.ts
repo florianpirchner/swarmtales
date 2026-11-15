@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The errors of this package: the catalogue of the codes `SWT-P010` to `SWT-P015`. The package builds them itself
  * as an `SwtError` of the contracts (it may not import the sdk, whose catalogue holds `SWT-P003`).

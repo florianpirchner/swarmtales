@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of the `trick-play` mechanic: its options, its state, its events, services, prompts and tools. */
 import { Type } from "typebox";
 import { defineHead, inSchemaOrder, type CtxOf, type ViewOf } from "@swarmtales/sdk";

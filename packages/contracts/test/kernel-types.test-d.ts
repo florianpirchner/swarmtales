@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The type test of the kernel-facing contracts (M1 specification, 2.1 to 2.8). `tsc -b` compiles this file: the
  * hand-written values must fit the interfaces. Nothing here runs. The lines that must not compile are in

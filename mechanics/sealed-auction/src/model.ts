@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The state of the sealed auction (the rules are pure functions in `rules.ts`, the reference metrics in `reference.ts`). */
 import { Type, type Static } from "typebox";
 import { Lot, LotResult } from "./rules.ts";

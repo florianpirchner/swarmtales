@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The exception format (issue 9): a rule is switched off only by a disable comment with a reason and a linked
  * issue. The ESLint rule `swt/disable-needs-issue` reports it in the editor; `scripts/gates/exceptions.test.ts`

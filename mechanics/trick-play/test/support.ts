@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game the trick-play tests play (the old `trickStory`: four seats on the default deck, two games of three rounds)
  * and the stateless scripted player of the old tests, which follows the table it is shown.

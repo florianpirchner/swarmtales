@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
 name: Port issue
 description: Carry or port code from the old platform (tag v0-final) as it is.
 body:

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game against its oracles: the four files of `oracles/ember-tricks/` are played from their inputs under the
  * game's own scheduler and compared at level 3 (rules, texts, scheduling); the two cut files up to their cut. The old

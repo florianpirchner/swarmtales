@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The two standing checks in process: they pass on a game that holds, and each names the fault of one that does not. */
 import type { ActorDriver } from "@swarmtales/contracts";
 import { defineGame } from "@swarmtales/sdk";

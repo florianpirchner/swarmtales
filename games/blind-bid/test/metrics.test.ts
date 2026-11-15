@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The metrics of `sealed-auction` over the new log of an oracle replay (M4 specification, issue 50): each equals the
  * number computed by hand from the same oracle file, and a metric without its event is absent, never 0.

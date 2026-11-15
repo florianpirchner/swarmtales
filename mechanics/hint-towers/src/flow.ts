@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of the hint towers: a game starts and ends, a seat acts, the checks of the tools and the move timer. */
 import type { Refusal } from "@swarmtales/contracts";
 import { refuse } from "@swarmtales/sdk";

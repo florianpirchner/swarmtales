@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The reference page of the error codes, `docs/reference/errors.md`: one section per code with its summary, why and
  * fix, read from the code catalogues of all packages (`extract.ts`). Every `SwtError` prints a link to the section

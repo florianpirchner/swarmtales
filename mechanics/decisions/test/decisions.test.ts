@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The decision window without amendments: the cases of the old `test/host/decisions.test.ts`, with a test mechanic as owner. */
 import { describe, expect, it } from "vitest";
 import { SwtError } from "@swarmtales/contracts";

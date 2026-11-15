@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The card-table mechanic: the deck, card names a model may write, the seeded deal and private hands (offline). */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

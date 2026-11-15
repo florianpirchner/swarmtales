@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Actors: who causes something in a run. The kernel treats every kind alike. */
 import type { JsonValue } from "../values.ts";
 

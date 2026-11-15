@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `liars-dice` mechanic: the traditional bluffing game with hidden dice for solo seats. A match is several
  * games. In a game every seat starts with the same number of dice; each round every seat still in rolls its dice in

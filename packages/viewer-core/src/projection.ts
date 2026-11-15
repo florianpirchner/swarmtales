@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The projection of an envelope log: what the views draw beside the plain list of events. It attaches every line
  * of an activation (its calls, their answers, the records of its driver) to the activation, reads a Director's

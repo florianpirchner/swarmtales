@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of the `clue-grid` mechanic: games, clue turns and guesses, the locks of the three move tools and the end of a game. */
 import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";

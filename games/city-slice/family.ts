@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The city slice as a game family: `game.ts` stays the one game of the committed timelines, and this file is what
  * `swt run --set briefed=true` is given for a run with model residents. The default params give the game of `game.ts`,

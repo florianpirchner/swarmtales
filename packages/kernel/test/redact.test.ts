@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** No secret in `run_ended.detail`: the event in memory is redacted, and so is what every sink gets (M2-01). */
 import { describe, expect, it } from "vitest";
 import { createKernel } from "../src/index.ts";

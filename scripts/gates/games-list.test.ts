@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The games list is whole (M4 specification 4.3): every folder under `games/` with a `game.ts` has its line in
  * `games/index.ts`, every line names a game file that exists, a seed and a fake seed, and the game has its

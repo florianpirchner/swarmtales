@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `showResults: false` (the cure of LH19): a seat is shown nothing of an earlier game once the next one has started,
  * in its inputs and in the replies of `viewTable`, with and without a brain, over several seeds. The default is the

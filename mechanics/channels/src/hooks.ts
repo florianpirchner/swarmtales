@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** What `channels` puts into a resident's activation, and whether the resident has news. */
 import type { InputLine } from "@swarmtales/contracts";
 import { drainMailbox } from "./dms.ts";

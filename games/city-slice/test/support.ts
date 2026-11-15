@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Shared by the tests of the city slice: the resolved game, the drivers of the scripted run, and the run itself, played one tick at a time. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

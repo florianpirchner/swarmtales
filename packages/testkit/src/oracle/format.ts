@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The oracle file format (`oracles/README.md`): one game configuration and one seed as plain JSON, written
  * from the old platform before the rewrite. A file names the game and its effective options, the ordered

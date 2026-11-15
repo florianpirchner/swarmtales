@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: packs passed around a table, one card kept per pick, a quarry of sets scored at the end",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",

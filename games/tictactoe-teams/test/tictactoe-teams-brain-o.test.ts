@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The asymmetric arm: only team O keeps a strategy brain (option `brainTeams`), offline and scripted. Carried from
  * `test/stories/tictactoe-teams-brain-o.test.ts`.

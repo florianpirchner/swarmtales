@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The asker (M3 spec 4.4) against the scripted source, in real kernel runs through the testkit's `play`: the one
  * resident of guess-number asks once per activation, so the records are lines of the kernel's log. No request

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The layer rules as pure functions over a description of the workspace. `workspace.ts` builds the description. */
 import { isBuiltin } from "node:module";
 import { posix } from "node:path";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { ChainGenesis, ChainGenesisV2 } from "@swarmtales/chain";
 import { keyFingerprint, usageTotals, type RunMeta, type RunModel } from "@swarmtales/viewer-core";
 import { useMemo } from "react";

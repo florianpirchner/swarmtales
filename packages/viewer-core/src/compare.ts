@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Several runs side by side (brain against no brain on seeds 41/43/47, say): one row per run and
  * the spread of every number across the runs.

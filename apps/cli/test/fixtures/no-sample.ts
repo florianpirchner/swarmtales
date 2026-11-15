@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** A game whose only tool has no `sample`, so the fake driver never calls it. */
 import { defineGame, defineHead, defineMechanic, reply } from "@swarmtales/sdk";
 import { Type } from "typebox";

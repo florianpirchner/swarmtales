@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A saved session: the conversation of one actor as its model sees it, for the section `sessions` of a snapshot
  * file, so that a resumed run asks the request the straight run would have asked (M5 spec 4.5, decision A55). The

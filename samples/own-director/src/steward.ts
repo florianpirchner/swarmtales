@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The Director of sample 6: the steward. The crew's proposal of a captain wakes it; it asks its model whom it
  * wants as captain and for one line to the crew. When the answer names another resident, the steward amends the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The standing checks of every game of the games list through the command line, part 1 (`standing-part.ts` says
  * what they check and how the parts deal the boundaries), and the test that the list is read whole.

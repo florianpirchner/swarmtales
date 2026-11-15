@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The hand-written game the tests of the assembly play: one actor, one plugin with a counter, a scheduler of a few lines. */
 import { Type } from "typebox";
 import { kindOf, SwtError } from "@swarmtales/contracts";

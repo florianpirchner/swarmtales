@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts a resident reads: the rules of a game, its task in the open phase, a past round in one line and the table. */
 import { blockOf, LABEL, partnerOf, scoreLine } from "./flow.ts";
 import type { EconGamesCtx } from "./head.ts";

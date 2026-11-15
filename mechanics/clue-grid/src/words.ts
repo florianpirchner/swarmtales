@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The word pool of Lanterns, carried as it stands: the grid stream draws from it, so its order is part of every recorded game. */
 
 /**

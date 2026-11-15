@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game of the scheduler sample: three residents seal a guess of a hidden number in each of three rounds, played
  * under `parallel`. It runs in the tests of the sample only: `swt run` cannot name `parallel`.

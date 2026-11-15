@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The morris-referee mechanic: the classes of a turn on known tactical positions, the events it writes and who may
  * read them, and its own copy of the position across a snapshot. The first part is carried from

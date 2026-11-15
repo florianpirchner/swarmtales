@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The signed event log: `events.chain.jsonl` and `run.pub` beside an unchanged `events.jsonl`. Carried from the
  * old `test/log/chain.test.ts`; the runs here carry a genesis of version 1, so they also prove that an old run

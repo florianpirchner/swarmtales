@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The lines of a run worth reading first, for the replay: what the run's report cites as evidence (`#seq`, with the
  * report's own sentence as the reason), and, without any model, the rare actions of the log (an event type that occurs

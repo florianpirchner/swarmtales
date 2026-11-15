@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Mechanic: the decision window. A mechanic proposes a decision through the service `decisions`; the holders may
  * amend it with the tool `amendDecision` until its deadline; at the deadline a job writes `decision_settled` with the proposal that stands, and

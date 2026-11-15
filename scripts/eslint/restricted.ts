@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The `no-restricted-syntax` entries of `eslint.config.js`, kept here so a test can prove that they match. */
 
 /** A cast of a cast (`x as unknown as T`). Type assertions are forbidden as a whole; this names the worst case. */

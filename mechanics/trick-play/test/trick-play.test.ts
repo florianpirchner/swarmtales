@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The trick-play mechanic: the rules as functions, a scripted match, the veto, the move timer, the levers and conformance (offline). */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

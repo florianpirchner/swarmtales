@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** A small reader for SPDX licence expressions: ids, `WITH`, `AND`, `OR` and parentheses. */
 
 /** A parsed licence expression. */

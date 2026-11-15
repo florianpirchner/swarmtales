@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Double-entry points ledger: the old kernel's `PointsLedger`, carried from the old platform
  * (`test/core/points-ledger.ts`) as the reference the differential test books against. Two changes of form only: the

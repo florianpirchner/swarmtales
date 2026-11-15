@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt replay` and `swt scan` (specification of M4, section 4.4): a run folder replays equal through the command
  * line, a differing replay is `SWT-C031`, a log cut inside a tick is `SWT-T005`; the scan finds a held key value

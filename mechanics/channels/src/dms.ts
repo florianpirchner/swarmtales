@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Direct messages: sending and delivery. The check order, the codes and the texts are the old platform's. */
 import type { ToolOutcome } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";

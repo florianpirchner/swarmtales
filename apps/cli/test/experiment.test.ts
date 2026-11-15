@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt experiment` and `swt report` over a family of guess-number with the scripted source: a two-arm series runs,
  * is stopped at its cap, continues after the total was raised, and is analysed. This file is its own game file (its

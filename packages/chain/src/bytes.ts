@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Byte helpers without `Buffer` (the package runs in a browser): UTF-8, hex and standard base64
  * (RFC 4648 §4, with padding), the forms `node:crypto` writes a key and a signature in.

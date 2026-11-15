@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The viewer's place in the page's `location.hash`, e.g. `#run=stories/chess/runs/x/run&view=replay&seq=57`; a bare `#seq=57` is valid. */
 export const VIEW_IDS = ["runs", "games", "overview", "replay", "report", "charts", "compare"] as const;
 /** The id of one tab. */

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Mechanic: a vote that ends in a verdict (the slice's stand-in for the tribunal). One session opens and closes at
  * fixed ticks; residents vote with `vote`; at the close the resident with the most votes is the verdict, which the

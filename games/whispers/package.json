@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Game: the hidden whisperer among six residents, with the variants whispers and whispers-rumours",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L6"

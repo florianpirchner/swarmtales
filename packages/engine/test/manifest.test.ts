@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `buildManifest` against a hand-made `ResolvedGame`: the manifest validates, it says what the game and the run
  * say, and a change of one input changes exactly the hashes that cover it.

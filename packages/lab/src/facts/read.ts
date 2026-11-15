@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Reading a run folder into the facts of the run. The folder is verified with `verifyRun` of the run log first:
  * facts are read only from a finished run whose log verifies.

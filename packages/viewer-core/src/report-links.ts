@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `#123` references in a run report (`REPORT.md` cites its evidence as `#seq`) resolved to events,
  * so every claim is one click away from its line.

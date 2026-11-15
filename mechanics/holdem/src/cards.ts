@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The 52-card deck, a seven-card hand evaluator and a Monte Carlo equity estimate, as pure functions.
  * A card is a two-letter id, rank then suit: `As` (ace of spades), `Td` (ten of diamonds), `2c`.

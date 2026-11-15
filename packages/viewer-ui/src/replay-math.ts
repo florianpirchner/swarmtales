@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The position in `events` (sorted by seq) of the last event at or before `seq`; 0 when `seq` is before the first.
  *

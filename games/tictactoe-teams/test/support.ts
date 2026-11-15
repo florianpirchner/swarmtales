@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Scripted residents for tic-tac-toe teams: they follow the game's own turn inputs and tool replies, so they hold
  * no state. Carried from `test/stories/tictactoe-support.ts`.

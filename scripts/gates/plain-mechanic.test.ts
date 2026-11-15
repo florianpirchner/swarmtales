@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Plain mechanics (11-m4-spec.md, section 4.2): a mechanic is the value `defineMechanic` returned, and nothing in
  * `mechanics/*\/src` reaches past the sdk into the kernel's plugin form. The gate fails on

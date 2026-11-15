@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of a match: games and rounds with their seeded rolls, the locks of the two decision tools, the score of a decision, a bid, a call and the move of a seat that did not act in time. */
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import type { LiarsDiceCtx } from "./head.ts";

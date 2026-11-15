@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 // Test 9 of section 3.7 of the M4 specification: the sample game ends with the same result lines under `turns` and
 // under `parallel`, with scripted drivers, though the guesses arrive in another order.
 import type { Envelope } from "@swarmtales/contracts";

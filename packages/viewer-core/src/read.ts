@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Reads of the files beside the log: a file that cannot be read or does not fit becomes an issue, not a failed load. */
 import type { LoadIssue } from "./events.ts";
 import { parseJsonFile } from "./files.ts";

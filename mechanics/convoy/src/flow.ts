@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The flow of a game up to the crew that goes out: the start of a game with its seeded roles, the stages with their
  * rotating lead, the crew proposal, the talk, the sealed votes of confidence, the locks of the six decision tools and

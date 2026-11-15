@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The plugin `directors`: the queue of every Director of a game. Game resolution adds it, last in load order, to a
  * game that has a Director. It listens to the events the Directors' triggers name and queues a firing for each

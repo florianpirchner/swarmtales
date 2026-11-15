@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Ember Tricks as a game family (M4 specification, issue 51): the family of issue M4-34 is the default export, its
  * default params give the game of that issue, the other branches give the games of their old variants, every old

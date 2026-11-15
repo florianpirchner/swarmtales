@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The public board: append-only, visible to everyone. Carried from the old platform (`minute` is `tick` here).
  *

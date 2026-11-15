@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Step 8 of game resolution: every text a model may read is found before the run starts. The step renders each
  * prompt a mechanic declares and the kernel's four reply texts through the prompt lookup, and collects the tool

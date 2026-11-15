@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** A RunSource over a list of files (a picked or dropped folder, a File System Access directory), read lazily. */
 import { joinPath, type RunSource, type RunSourceEntry } from "@swarmtales/viewer-core";
 

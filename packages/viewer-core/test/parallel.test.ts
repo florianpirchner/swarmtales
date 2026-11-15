@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The projection of a log of the scheduler sample `parallel` (`fixtures/parallel-run`): activations that overlap, and the `basis` of each call. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

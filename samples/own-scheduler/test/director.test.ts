@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 // Test 8 of section 3.7 of the M4 specification: a Director under `parallel`, and the pause between ticks.
 import { SwtError, type ActorDriver, type Envelope } from "@swarmtales/contracts";
 import { turns } from "@swarmtales/engine";

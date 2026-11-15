@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The hint-towers rules as pure functions over a plain game state, shared by the mechanic, its
  * reference bot and the tests. The deck is the card table's: every card is unique (`"<Suit> <rank>"`).

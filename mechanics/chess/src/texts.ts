@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts of the `chess` mechanic: the position in its two views, the lines of a turn, the result line and the coach's review. */
 import type { InputLine } from "@swarmtales/contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";

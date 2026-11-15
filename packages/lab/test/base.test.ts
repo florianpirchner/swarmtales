@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The lab base: the schemas, the `E` catalogue, and the committed rerun plan of the M2 gate (specs, baselines, ledger). */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";

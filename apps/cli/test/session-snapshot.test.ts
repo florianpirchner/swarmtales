@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The sessions in the snapshot (M5 spec 4.5, row 1; issue M5-08): a run of scripted model sessions is cut at a tick
  * boundary, its snapshot file is written with the section `sessions` through the key broker's redaction, scanned for

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Highlights for the replay: report citations with their line, rare and notable actions, the actor's thought before. */
 import { describe, expect, it } from "vitest";
 import { parseEvents } from "../src/events.ts";

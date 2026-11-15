@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** One Vitest configuration for the workspace. Tests live inside their package and run offline. */
 import { BaseSequencer, type TestSpecification } from "vitest/node";
 import { defineConfig } from "vitest/config";

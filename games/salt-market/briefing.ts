@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The briefings of Salt Market: what a trader reads before the run starts. Carried from the old game file
  * (`stories/salt-market/story.ts`, `briefing`): the strings are byte-identical, and the table is passed in at build

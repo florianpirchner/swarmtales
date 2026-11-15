@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The open offers as a trader reads them, with its own offers marked when the option `markOwnOffers` is on (A46,
  * P478): a seat took its own offer for another's and tried to accept it. With the option off, the text is the old one.

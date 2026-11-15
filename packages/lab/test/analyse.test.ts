@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The analysis of an experiment on hand tables: the pass rule gives kept, not kept and no verdict; the estimate
  * over every finished run stands beside the gated one; a metric of one arm only is "absent"; guardrails and the

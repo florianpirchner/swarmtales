@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `grid-game` mechanic: a small board game (tic-tac-toe by default, any `size` x `size` board
  * with a `line` to win) between two teams over a match of `games` games. The mechanic owns the

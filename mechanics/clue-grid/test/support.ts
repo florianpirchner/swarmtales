@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game the clue-grid tests play: two teams of three, the clue grid, the team chat and a strategy brain per team,
  * set up as the old platform's Lanterns game was (`stories/lanterns/story.ts`), in roster order. The scripted

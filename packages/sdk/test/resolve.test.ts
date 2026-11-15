@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { SwtError, type GameData, type PromptLookup, type SchedulerDefinition, type ServiceDefinition } from "@swarmtales/contracts";
 import { Type } from "typebox";
 import { Parse, Value } from "typebox/value";

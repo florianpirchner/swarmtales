@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The constants of the kernel-facing contracts (strings that logs and callers carry byte for byte), and the three
  * lines that must not compile: `tsc -b` fails on an `@ts-expect-error` line when the types loosen.

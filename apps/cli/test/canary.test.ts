@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The canary test (specification of M2, 5.2): fake key values go through the whole live path of the command line,
  * each sub-test tries to leak them one way, and two scans look for them: one of every file, the terminal and the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `/rules` sub-path of this mechanic: the rules of liar's dice as pure functions (bid order, counting, the
  * probability a bid is true for a seat that knows only its own dice, the baseline decision, the seat statistics).

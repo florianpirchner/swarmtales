@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The `sample` of `transferPoints`: what the fake driver (`--fake`) may call. Now and then, 1 to 5 points that the balance covers, to another resident that may act. */
 import { describe, expect, it } from "vitest";
 import type { RandomSource } from "@swarmtales/contracts";

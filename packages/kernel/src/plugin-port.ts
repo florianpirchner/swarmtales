@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Part 5: the port of one plugin, the only way a plugin reaches the kernel. */
 import type { PluginPort, ResolvedPlugin } from "@swarmtales/contracts";
 import type { PluginPortParts } from "./parts.ts";

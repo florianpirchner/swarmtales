@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The gate and the ransom, carried from the old `test/mechanics/exile/` (`exile.test.ts`, `world.test.ts`) and checked
  * against the calls of `oracles/cityofkeys/cityofkeys-act2-s7.json` (the ransom of A05 at minute 36, the will at 47

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { findRuns, type RunSource, type RunSummary, type Vocabulary } from "@swarmtales/viewer-core";
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { formatHash, parseHash, type ViewId } from "../hash.ts";

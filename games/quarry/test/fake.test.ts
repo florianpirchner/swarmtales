@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The fake run of Quarry (`swt run --fake`, M4 specification 4.11): the fake driver plays the match to its end
  * through the `sample` of every resident tool; with burns allowed its picks burn a card now and then.

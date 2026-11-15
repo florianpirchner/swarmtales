@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `pnpm docs:games`: writes the generated blocks of `GAMES.md` from `games/index.ts`, the game files and the
  * catalogue, then lists what is still wrong. With `--check` it writes nothing. It exits 1 on any problem. It runs

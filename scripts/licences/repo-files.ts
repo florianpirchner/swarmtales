@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The licence checks on the repository's own files: SPDX headers, `package.json` files, workflows, vendored folders. */
 import { Type } from "typebox";
 import { Value } from "typebox/value";

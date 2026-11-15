@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `humanHand` mechanic: the tools of the Human Hand, `pause` and `resume`. A pause holds no tick back by itself;
  * it is the fact `humanHand.paused`, which the run loop reads between two ticks. A cut of the old `HumanDesk`

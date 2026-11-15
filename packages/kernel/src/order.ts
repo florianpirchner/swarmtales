@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The order of the registrations of one hook, or of the listeners of one event, across plugins (3.4). */
 import { SwtError } from "@swarmtales/contracts";
 import { afterCycle } from "./errors.ts";

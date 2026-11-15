@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 // Test 10 of section 3.7 of the M4 specification: the limit of `channels` under `parallel`. Its board's "seen" mark
 // is taken when a resident's inputs are built and assumes that no other activation is open until that resident's
 // activation ends. Under `parallel` that is not so, and the mark goes wrong; `docs/SCHEDULERS.md` names this test.

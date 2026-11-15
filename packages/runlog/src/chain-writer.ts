@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The signer of a run's log: it writes `events.jsonl`, the hash chain beside it (`events.chain.jsonl`) and the
  * run's public key (`run.pub`). Carried from the old `packages/chronicle/src/log/chain.ts` (`EventChain`); new is

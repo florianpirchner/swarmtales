@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { SwtError, type Envelope, type EventSink, type GameData } from "@swarmtales/contracts";
 import { turns } from "@swarmtales/engine";
 import { defineGame, defineHead, defineMechanic, reply } from "@swarmtales/sdk";

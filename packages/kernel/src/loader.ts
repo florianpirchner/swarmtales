@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Part 5: loading the plugins of a definition, in its order, with the checks that only a loaded body shows or that
  * protect the kernel (3.2). Whatever does not fit is `SWT-R002`; the one thing left out is a listener of a plugin that

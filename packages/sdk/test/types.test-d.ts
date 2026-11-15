@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The type test of the sdk's author types (M1 specification 6.1, 6.2, 6.5, in the head-declares-tools shape of the
  * mechanic spike, paper 07 section 6.1). `tsc -b` compiles this file and nothing here runs. The definers are declared

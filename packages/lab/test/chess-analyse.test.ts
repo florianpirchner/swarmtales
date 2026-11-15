@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The chess analysis of the lab with an engine of its own: the analysis asks only the engine it is handed, reads
  * `move_played` and `game_started` of the chess mechanic only, and names the engine in the Markdown. The numbers of

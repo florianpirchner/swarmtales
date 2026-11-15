@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The ransom, carried from the old `exile` (`ransom.ts`): points paid toward a gate are spent at once and never
  * refunded, others' points count toward `price`, the resident's own toward `selfPrice`, and more than the rest is not

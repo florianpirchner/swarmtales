@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `strategy-brain` mechanic: one short free text per team (or one shared text), carried from game
  * to game in place of the residents' conversation. It is the only cross-game memory of a match:

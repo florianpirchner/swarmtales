@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The `sample` of `vote`: what the fake driver (`--fake`) may call. One vote per resident and session, never against itself or a banished resident, and a resident that has votes against it is drawn more often. */
 import { describe, expect, it } from "vitest";
 import type { RandomSource } from "@swarmtales/contracts";

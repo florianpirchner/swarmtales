@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic `crew` of sample 6: the residents name a captain, and the choice is a decision with a window. When
  * every resident has named one, `crew` proposes the resident with the most names (a tie goes to the first in roster

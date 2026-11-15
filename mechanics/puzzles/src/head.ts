@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of the `puzzles` mechanic: its options, its state with the snapshot, its events and the services it uses when loaded. */
 import { defineHead, type CtxOf, type StateSetup } from "@swarmtales/sdk";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";

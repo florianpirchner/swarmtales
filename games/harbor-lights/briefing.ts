@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The briefings of Harbor Lights: what a seat reads before the run starts. Carried from the old game file
  * (`stories/harbor-lights/story.ts`, `RULES` and `briefing`): the template strings are byte-identical. The old

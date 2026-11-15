@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The reference of a game for the report: every seat's accusations and votes against a Bayesian tracker of the public
  * record (the crews, the damage counts, the audit), and what the sealed cards and the talk show of its play.

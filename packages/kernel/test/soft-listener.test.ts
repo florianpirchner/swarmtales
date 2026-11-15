@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A listener of a plugin that is not loaded (erratum E59 of M1, rule of M1-38; M2 specification, 2.3): a plugin that
  * listens to two others loads with only one of them, and its listener of the present one runs.

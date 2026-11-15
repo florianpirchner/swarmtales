@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Lanterns as a game family (M4 specification, issue 31): the default params give the game of issue M4-26, the
  * control arm of the series of section 7.2 and the variant of the silent file give the games of their old variants,

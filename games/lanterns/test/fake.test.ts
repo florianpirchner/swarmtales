@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The fake run of Lanterns (`swt run --fake`, M4 specification 2.2 rule 2 and 4.11): the fake driver plays the match
  * to its end through the `sample` of every resident tool that a fake run can reach.

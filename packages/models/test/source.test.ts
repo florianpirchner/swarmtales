@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The model source, the scripted source and the cost meter (M2 spec 1.2, 3.3, 3.4, 4.3). No request leaves the
  * process: a live source gets a stubbed `fetch`, and the global one rejects. Every key is built here at run time.

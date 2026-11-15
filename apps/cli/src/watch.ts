@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What a run says about its Human Hand and its snapshots beside the log: a refused line of `--hand` is printed as
  * it happens and counted for the result lines, and a `--snapshot-at` that wrote no snapshot gets a warning line.

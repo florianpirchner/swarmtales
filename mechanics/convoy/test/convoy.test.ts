@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic alone (offline): the refusals of the old test "refuses bad crews, ... out-of-turn votes", a lost vote
  * of confidence, the talk, the cards with the cooldown, the audit, the accusations and the reference of the report,

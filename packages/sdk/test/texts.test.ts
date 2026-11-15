@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { SwtError, type PromptLookup } from "@swarmtales/contracts";
 import { describe, expect, it } from "vitest";
 import { collectTexts, type TextSource } from "../src/game/texts.ts";

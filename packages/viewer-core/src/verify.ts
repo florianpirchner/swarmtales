@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The chain verdict of a loaded run, from `@swarmtales/chain` (the verifier `swt log verify` uses). */
 import { CHAIN_FILE, type ChainVerdict, keyFingerprint, PUBLIC_KEY_FILE, type RunTexts, verifyChainText, verifyRunTexts } from "@swarmtales/chain";
 import { envelopeLogIssues } from "@swarmtales/contracts";

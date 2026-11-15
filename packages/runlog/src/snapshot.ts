@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The snapshot files of a run folder (`snapshots/t<tick>.json`): written between two ticks, read to resume. A file
  * of a live run also holds the section `sessions`, the conversations of its model actors (M5 spec 4.5): opaque to

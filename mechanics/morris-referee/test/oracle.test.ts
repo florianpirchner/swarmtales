@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The referee against the five oracle files of nine men's morris: each file is played from its inputs under `turns`
  * inside the test game of `support.ts` and compared at level 3 (rules, texts, scheduling) as it was recorded, with

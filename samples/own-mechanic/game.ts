@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game of sample 5: four residents mark a suspect; at two marks the tribunal proposes a sentence, which the
  * person at the run may amend for one tick, and the sentenced resident is banished.

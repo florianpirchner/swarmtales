@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of a match: games with their seeded deals, the lots one after another, the lock of `bid`, the resolution of a lot and the lot timer. */
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { inSchemaOrder } from "@swarmtales/sdk";

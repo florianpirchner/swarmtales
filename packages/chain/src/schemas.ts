@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The chain's file names, constants and entry schemas. Version 1 is the genesis the old platform wrote (it is
  * still read, so old runs verify); version 2 names the hash of the run's manifest instead of repeating its content.

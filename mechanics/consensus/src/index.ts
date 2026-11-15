@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `consensus` mechanic: a gate for "a team must agree before a tool call is released". The
  * captain proposes a value for the gated tool's parameter (`proposeMove`), the other members vote

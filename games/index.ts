@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The games list: one line per game that is played on this platform. The standing checks of a game (replay, resume
  * from every boundary, the fake run) are run over this list, and a gate fails when a folder under `games/` with a

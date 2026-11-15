@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The projection (specification of M3, section 9) over the timelines of the city slice, over a resumed run folder
  * of the command line (`fixtures/resumed-run`), over a log as M2 wrote it, and over the old format.

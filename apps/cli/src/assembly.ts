@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What a fake run and a live run assemble alike since M3: the manifest with the drivers of Directors and of the
  * human and the field `human`, and the part of the run loop that the flags `--hand` and `--snapshot-at` fill.

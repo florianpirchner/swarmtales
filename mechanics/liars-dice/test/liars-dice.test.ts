@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The liars-dice mechanic alone: a scripted match, the move timer, the locks, a fake run and its conformance (offline).
  * The cases are the mechanic's part of the old `test/stories/liars-dice.test.ts`; the game's part (the brain, the

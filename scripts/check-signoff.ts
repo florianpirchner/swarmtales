@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * `pnpm check:signoff [<revision range>]`: every commit carries the `Signed-off-by` line of a person (Developer
- * Certificate of Origin, see CONTRIBUTING.md and `lib/signoff.ts`). Without an argument it checks every commit
+ * `pnpm check:signoff [<revision range>]`: every commit carries the `Signed-off-by` line of a person (the record of
+ * who is responsible for it, see CONTRIBUTING.md and `lib/signoff.ts`). Without an argument it checks every commit
  * that `HEAD` reaches; merge commits are left out, because a hosting service writes them.
  *
  * The check never passes on nothing: outside a git checkout, on a history that a shallow clone cut off and on an

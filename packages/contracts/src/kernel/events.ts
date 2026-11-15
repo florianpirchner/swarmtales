@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The events the kernel writes itself. Their source is `kernel`. */
 import { Type, type TProperties } from "typebox";
 import { InputNoteSchema } from "./schemas.ts";

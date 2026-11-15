@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Differential test of the ledger's book against the old kernel's `PointsLedger` (carried in
  * `old-points-ledger.ts`): random bookings, every error code, idempotency keys, strict accounts, the snapshot and

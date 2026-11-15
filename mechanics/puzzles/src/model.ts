@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The data of the puzzles mechanic: the options a game gives, the events it writes, the level state it keeps and
  * the snapshot slice. Ported from the old platform, cut to fragment levels.

@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
 # The commands of the tutorial docs/tutorials/director.md, run from the root of the repository.
 # test/tutorial.test.ts runs every line in process, in this order, and checks what each prints.
 node --conditions development apps/cli/src/bin.ts run samples/own-director/game.ts --fake --hand samples/own-director/hands/amend.jsonl

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Who sits where in the `chess` mechanic: the side of a resident, the side on move and its captain, read from the state. */
 import type { Chess } from "chess.js";
 import type { ChessState } from "./head.ts";

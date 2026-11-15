@@ -68,11 +68,12 @@ name lint in the check rejects the retired ones.
 - **Record.** Every merged issue gets a row in [`docs/ISSUE-RECORD.md`](docs/ISSUE-RECORD.md): tokens (input,
   output, cache read, cache write), wall time, changed lines. Work without a record is not allowed; the budget and
   the kill criterion are counted from it.
-- **Sign-off.** Every commit carries the `Signed-off-by` line of a person, who certifies the Developer
-  Certificate of Origin with it ([`CONTRIBUTING.md`](CONTRIBUTING.md)). A person commits with `git commit -s`.
+- **Sign-off.** Every commit carries the `Signed-off-by` line of a person, the record of who is responsible for
+  the commit; the terms of a contribution are the contributor licence agreement in
+  [`CONTRIBUTING.md`](CONTRIBUTING.md) (decision A65). A person commits with `git commit -s`.
   An agent session keeps the git identity of its environment (for example `Claude <noreply@anthropic.com>`), so
   the history shows which commits an agent made, and does **not** use `-s`: that would sign off as the agent, and
-  a program certifies nothing. The session adds the line of the person who operates it. In Flo's sessions, by his
+  a program answers for nothing. The session adds the line of the person who operates it. In Flo's sessions, by his
   standing instruction (decision D15):
   `git commit -m "<message>" --trailer "Signed-off-by: Florian Pirchner <872809+florianpirchner@users.noreply.github.com>"`.
   `pnpm check:signoff` refuses a commit that only an agent identity signed off, and a person's commit that its
@@ -127,13 +128,15 @@ Machines enforce them; a limit is never met by moving code next door.
   (`*.api.md`) is committed; `pnpm api:update` rewrites it.
 - An error for a developer is an `SwtError` with a code, where, why and fix. No bare `throw new Error` in a package.
 - Tests live inside their package and run offline. Never call a live model in a test.
-- Every source file starts with `// SPDX-License-Identifier: Apache-2.0`.
+- Every source file starts with `// SPDX-License-Identifier: LicenseRef-SUL-1.0`.
 - Environment names start with `SWT_`.
 - Deep technical docs go under `docs/`. Ideas that are not approved go under `docs/ideas/`.
 
 ## Licence
 
-- The project is 100% Apache 2.0: code, prompts, game texts, docs and run data.
+- The whole project is under the Sustainable Use License 1.0 with Additional Terms (`LICENSE`, source-available,
+  decision A65): kernel, sdk, contracts, code, prompts, game texts, docs and run data. Only third-party files keep
+  their own licences.
 - **No GPL and no other copyleft licence anywhere, ever:** not in a dependency (also development, optional and
   transitive ones), not in a tool, an action, a copied file or data. The allowlist and the two exception paths are
   in [`docs/LICENCE-POLICY.md`](docs/LICENCE-POLICY.md); `pnpm check:licences` enforces them.

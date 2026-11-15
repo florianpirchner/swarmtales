@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What the fake driver (`--fake`) says in the city: the `sample` of each resident tool. A sample gives a call only
  * now and then, so that a resident stops talking and the tools after it in the grant get their turn; the texts are

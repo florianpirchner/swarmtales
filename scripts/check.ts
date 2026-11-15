@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `pnpm check`: every gate, with the time and the peak memory of each, and a budget for the whole (10 minutes, 6
  * GB). The lanes of the gate list run side by side, the gates of a lane one after the other (M4-71); the output of a

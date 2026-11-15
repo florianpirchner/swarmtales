@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt run` without `--fake`: a game file to a verified run folder, played by models under a cost cap. The order is
  * fixed, because the manifest must exist before the first event: the key broker and the cap; the resolved game and

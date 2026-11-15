@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt experiment run` and `swt experiment analyse`. The runner of the lab holds the caps and the state file; this
  * file gives it the player (one live run in process, with the spend ledger passed on) and the metric definitions

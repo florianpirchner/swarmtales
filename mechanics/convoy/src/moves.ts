@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The tools of the crew and the vote: why a seat may not act now, a crew proposal, a line of talk, a sealed vote with their replies, and what a fake run samples. */
 import type { RandomSource, Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";

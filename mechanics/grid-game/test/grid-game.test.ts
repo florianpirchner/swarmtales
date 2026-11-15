@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The grid-game mechanic: captains, refusals, the match and its conformance (offline, scripted players). Carried from
  * `test/mechanics/grid-game/grid-game.test.ts`; "the board rules" are in `rules.test.ts`.

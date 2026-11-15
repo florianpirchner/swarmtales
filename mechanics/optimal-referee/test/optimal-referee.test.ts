@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The optimal-referee mechanic: minimax classes on known positions, the events it writes and who may read them.
  * Carried from `test/mechanics/optimal-referee/optimal-referee.test.ts`.

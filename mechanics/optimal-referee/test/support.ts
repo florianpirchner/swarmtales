@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** A grid-game match with the referee and a stateless scripted player (as the support file of the grid-game tests). */
 import type { ActorDriver, Envelope } from "@swarmtales/contracts";
 import { gridGame } from "@swarmtales/mechanic-grid-game";

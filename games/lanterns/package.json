@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Game: Lanterns, a clue game for two teams",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L6"

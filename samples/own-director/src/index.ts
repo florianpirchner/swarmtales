@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Sample 6: a Director of your own. The mechanic `crew` proposes a captain as a decision with a window, the Director
  * `steward` reads the proposal and may amend it, and the game `../game.ts` loads both with the Human Hand. The

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** From `asked.firings[n]` to the line that fired (decision A34): over a small log with twin lines and over the committed logs of the city slice. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

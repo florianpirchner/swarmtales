@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The README is the landing page: at most 120 lines (DECISIONS.md, section 4). */
 import { existsSync } from "node:fs";
 import { join } from "node:path";

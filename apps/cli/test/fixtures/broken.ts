@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** A game whose only tool throws, so its run ends with the reason `error`. */
 import { defineGame, defineHead, defineMechanic } from "@swarmtales/sdk";
 import { Type } from "typebox";

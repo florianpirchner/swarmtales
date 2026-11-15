@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Secrets out of a text before it reaches a signed log, a file of a run folder or the terminal. A thrown message
  * or a provider's error text is recorded as written, and a signed line cannot be edited later: Node's `Request`

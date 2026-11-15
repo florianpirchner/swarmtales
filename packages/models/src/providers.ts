@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The provider adapters and their registry. Every adapter is built with `createProvider` of the provider library
  * and the auth object of the key broker, so no adapter reads the environment and none holds a login.

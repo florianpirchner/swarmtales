@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `pnpm lint`: ESLint over the whole repository, in several processes, each in a 4 GB heap. The typed rules keep
  * every program of a process in memory, so one process over all packages runs out of its heap; the folders of the

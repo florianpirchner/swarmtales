@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The small definers an author writes beside `defineMechanic`: a service contract, events and a tool declared
  * apart from their mechanic, and the two results of a tool call. Each returns what it was given, with its types

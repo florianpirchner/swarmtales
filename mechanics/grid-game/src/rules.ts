@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `/rules` sub-path of this mechanic: the board rules of the grid game, as pure functions (shared with the
  * optimal-referee). `model.ts` re-exports them beside the mechanic's state.

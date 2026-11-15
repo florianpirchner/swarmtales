@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The run loop (specification of M3, section 6.3): it plays a run one tick at a time, and at every tick boundary
  * it applies the lines of the Human Hand, holds the run while the fact `humanHand.paused` is true, and writes the

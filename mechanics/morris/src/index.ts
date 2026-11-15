@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `morris` mechanic: nine men's morris (rules in `rules.ts`) between two teams over a match of
  * `games` games. The mechanic owns the board, the pieces in hand, the side to move, mills and

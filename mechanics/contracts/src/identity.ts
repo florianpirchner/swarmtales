@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What a base mechanic (`channels`, `ledger`, `exile`) asks so that its texts show the name a resident chose in place
  * of its id, and take a name where an id goes. The mechanic `names` provides it. When no provider is loaded, the

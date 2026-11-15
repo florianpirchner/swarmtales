@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The standing checks of every game of the games list (`games/index.ts`), through the command line (M4
  * specification 4.3), for each fake seed of the game:

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The byte-identity list of the port (M4 specification 2.2): the sha256 of the tool name list, of the options schema
  * and of the event schemas, generated on the old platform (commit 87844a76). The mechanic has no prompt file.

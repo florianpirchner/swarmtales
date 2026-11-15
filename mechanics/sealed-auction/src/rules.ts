@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of the sealed auction as pure functions: the deal, the resolution of a lot and the reference metrics. */
 import { Type, type Static } from "typebox";
 

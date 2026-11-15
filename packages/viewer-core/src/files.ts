@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The JSON files beside `events.jsonl` (`000-run.json`, `usage.json`), as far as the viewer reads
  * them. Untrusted: parsed with Typebox, lenient on fields the viewer does not use, so an older or a

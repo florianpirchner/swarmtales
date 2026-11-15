@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of trick play: games and rounds start and end, a seat bids, names trump, plays or vetoes, and the move timer. */
 import type { ToolSuccess } from "@swarmtales/contracts";
 import { reply } from "@swarmtales/sdk";

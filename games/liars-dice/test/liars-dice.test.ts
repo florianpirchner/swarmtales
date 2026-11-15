@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game's part of the old `test/stories/liars-dice.test.ts`: a scripted match of the game file with a brain per
  * seat, and the timer for seats that never act. The rules, the locks and the refusals are proven by the mechanic's

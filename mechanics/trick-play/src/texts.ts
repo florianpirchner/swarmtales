@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts of trick play: the table a seat reads, its action line with the levers, and the record after a game. */
 import { CardTableService, renderHand } from "@swarmtales/mechanic-card-table/contract";
 import { vetoProblem } from "./checks.ts";

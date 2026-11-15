@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The test mechanic `board` of the scheduler sample: a resident posts, and every other resident has news until its
  * next activation opens. Every resident has news before its first activation. Its limits end the run after a number

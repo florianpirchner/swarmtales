@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Group treasuries and the groups of the city, carried from the old platform. Points move through the service of
  * `ledger`; the receipt of a booking is read through `receipt-source` when a provider is loaded, and is empty

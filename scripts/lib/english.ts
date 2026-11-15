@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The English-only rule: everything in the repository is in English. This module holds the German word list and is
  * therefore the one file the scan leaves out. Carried from `test/code-rules.test.ts` of the old platform.

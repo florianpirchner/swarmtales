@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The prompt file format and its renderer. Carried from the old `test/prompts/prompts.test.ts` ("prompt files"). */
 import { describe, expect, it } from "vitest";
 import { hasStrayBraces, parsePromptFile, placeholders, PromptError, renderBody } from "../src/index.ts";

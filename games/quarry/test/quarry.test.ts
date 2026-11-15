@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Quarry through the real mechanics: a scripted match, offline. Carried from `test/stories/quarry.test.ts` (its rule
  * block is in `mechanics/draft-rounds/test/model.test.ts`); the assertions on the old `turn_started` read

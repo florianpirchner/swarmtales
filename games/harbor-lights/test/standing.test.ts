@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The standing checks of Harbor Lights, in process (M4 specification 4.3): the log replays equal, and a run resumed
  * from every tick boundary writes the log of the straight run. A match of three games is checked on its variant with

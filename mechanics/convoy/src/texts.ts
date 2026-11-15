@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts of a turn: the rules and the role of a seat, the task it is asked to do, the table as `viewConvoy` shows it, the input lines of an activation and whether a seat has news. */
 import { holdsAudit, list, phaseLine, sizeOf } from "./flow.ts";
 import type { ConvoyCtx } from "./head.ts";

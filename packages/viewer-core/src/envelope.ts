@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The envelope reader: a run of the new platform, recognised by its `manifest.json`. A line of its
  * `events.jsonl` is a stored envelope with the payload nested; the reader turns it into the same

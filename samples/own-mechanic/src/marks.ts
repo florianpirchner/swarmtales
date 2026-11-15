@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic `marks` of sample 5: every resident marks one other resident as a suspect. One tool (`mark`), one
  * event (`marked`), one option (`immune`) and one service (`marks`).

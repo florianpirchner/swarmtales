@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The carried betting of hold'em: the block "holdem betting" of the old `test/stories/holdem.test.ts`. */
 import { describe, expect, it } from "vitest";
 import { baselineOf, evLossOf, newHand, normalise, play, rangesOf, settle, type Limits } from "../src/model.ts";

@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: public goods, ultimatum and an A-or-B dilemma in rounds for solo seats",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",

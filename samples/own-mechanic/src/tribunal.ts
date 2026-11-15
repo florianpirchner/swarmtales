@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic `tribunal` of sample 5: it listens to `marks.marked`. When the marks against a resident reach the
  * option `threshold`, it proposes that resident's sentence as the decision `tribunal.sentence`, and it commits the

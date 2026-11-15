@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Reads an oracle file (`oracles/README.md`): parsed against `OracleSchema`, its `counts` checked against its timeline. */
 import { readFileSync } from "node:fs";
 import { SwtError } from "@swarmtales/contracts";

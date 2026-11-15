@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The heads the overview of `GAMES.md` reads: the default export of every game file on `games/index.ts`, built with
  * the defaults of its params where it is a game family. Only data is read: the residents, the mechanic ids, the

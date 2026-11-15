@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** What a fake run samples for the tools of Salt Market: only calls the bank would take. */
 import type { RandomSource } from "@swarmtales/contracts";
 import { giveProblem } from "./give.ts";

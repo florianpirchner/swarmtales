@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The service contract of the mechanic `card-table`: the only file another mechanic imports. It holds the service
  * `card-table`, the event `cards_dealt` and the card rules as pure functions (a card's suit and rank, the card

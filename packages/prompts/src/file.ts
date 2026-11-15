@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A prompt file: Markdown with a small frontmatter (`id`, `variables`) and a body with
  * `{{variable}}` placeholders. The template language has nothing else: no conditions, no loops;

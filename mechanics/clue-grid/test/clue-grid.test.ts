@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The clue-grid mechanic: a scripted match, the deadlines, the refusals, the keeper's silence in the team chat, the
  * samples of the fake driver and its conformance (offline). Carried from "lanterns, scripted match" of

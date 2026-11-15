@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The direct messages of `channels`, offline. Ported from the delivery cases of the old `channels.test.ts` and from
  * what `dm-records.test.ts` asks of the records; the cases about names, marks, the cap of a window, receipts and

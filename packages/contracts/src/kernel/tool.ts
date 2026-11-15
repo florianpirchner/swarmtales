@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Tools: definition, call, result and refusal, as the kernel sees them. */
 import type { TSchema } from "typebox";
 import type { JsonValue, RandomSource } from "../values.ts";

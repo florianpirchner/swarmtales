@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The order of an activation's input lines (specification of M1, section 4.2). */
 import type { InputNote, OrderedNote } from "@swarmtales/contracts";
 import type { InputEntry } from "./options.ts";

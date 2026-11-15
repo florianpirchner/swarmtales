@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The contract of the mechanic `progression`: its events, the service it provides (`progression`, the level of a
  * resident for `marks`) and the service it asks of the pieces of a level (`level-pieces`, provided by `puzzles`).

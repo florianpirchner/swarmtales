@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The heads the README generator reads. A mechanic package names its mechanics in the `swarmtales` field of its
  * `package.json`; each name is an export of `src/index.ts` whose `head` holds everything that is data: tools,

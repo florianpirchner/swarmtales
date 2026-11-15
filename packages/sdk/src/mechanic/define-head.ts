@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The head of a mechanic: `defineHead` and `defineHandlers` keep the types of what they are given, `erasedHead`
  * turns a head into the data that is read without running a handler, and `definitionIssues` finds what the types

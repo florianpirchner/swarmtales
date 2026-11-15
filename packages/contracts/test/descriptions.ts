@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The description rule for Typebox schemas: every schema carries a `description`, so generated references, editor
  * hovers and error texts can say what a value is. A package's test passes its schemas to

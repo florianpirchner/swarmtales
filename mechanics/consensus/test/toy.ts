@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A toy game that provides the `ConsensusSourceService`: two teams take turns taking cells 0-8. Carried from the old
  * `toy.ts`; its two texts are inline (the old test kept them in prompt files), and the game does not load

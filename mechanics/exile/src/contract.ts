@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The service contract of the mechanic `exile`: the only file another mechanic imports. It holds the service
  * `exile`, the events (`exiled`, the gate, the ransom, the last will), the reason of the suspension, and the service

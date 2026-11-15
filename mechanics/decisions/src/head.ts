@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of the `decisions` mechanic: its option, its slice, its events, its prompts, its tool and the service it provides. */
 import { Type, type Static } from "typebox";
 import { SwtError } from "@swarmtales/contracts";

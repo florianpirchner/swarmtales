@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { useEffect, useRef, useState } from "react";
 import { summaryOf } from "../format.ts";
 import { scrollToShow, visibleRange } from "../replay-math.ts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game the strategy-brain tests play: the grid game between two teams of three with the brain, and a scripted
  * resident that follows its turn inputs and tool replies, so it holds no state. The old tests played the whole

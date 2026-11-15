@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts of the `morris` mechanic: the board as `viewBoard` shows it, and the summary of a finished game. */
 import type { MorrisCtx } from "./head.ts";
 import { captainOf, ENGINE, legalCodes, positionOf, type EndReason, type GameRecord, type MorrisState } from "./model.ts";

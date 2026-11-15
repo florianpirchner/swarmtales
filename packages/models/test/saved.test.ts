@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A saved session (M5 spec 4.5, row 1): one session saved between two steps and loaded into a new one asks its
  * model what the first would have asked next, also when a tool was declared late (the provider library writes that

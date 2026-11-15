@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `REPORT.md` of one run. Every number comes from the facts of the run; the only part a model will write is the
  * last section, and at this milestone nothing writes it.

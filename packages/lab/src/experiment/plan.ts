@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The plan of an experiment: every arm at every seed and replicate, in an order the spec alone fixes. The runner
  * plays the plan, the analysis asks it which runs are still open.

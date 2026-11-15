@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of a match: games and hands with their seeded duplicate deals, the lock of `act`, the record as events, the score of a decision, and the move of a seat that did not act in time. */
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { DECK, equity, rangeEquity } from "./cards.ts";

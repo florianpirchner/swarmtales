@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The ledger listens to `exile.exiled`: the burn entry in the old shape (old `onExiled`: the whole balance, reason
  * `exiled <id>`, nothing for a balance of 0), and the test of `after:`: a test mechanic in the place of `puzzles`

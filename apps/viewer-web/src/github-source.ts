@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A RunSource over a GitHub repository: the whole file tree comes in one call of the git trees API (so
  * listing a series of runs costs one request, not one per folder), files from raw.githubusercontent.com,

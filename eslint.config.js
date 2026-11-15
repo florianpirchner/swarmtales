@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 // @ts-check
 import eslint from "@eslint/js";
 import jsdoc from "eslint-plugin-jsdoc";

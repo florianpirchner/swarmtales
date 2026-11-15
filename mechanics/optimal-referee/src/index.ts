@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `optimal-referee` mechanic: a read-only listener that scores every move of the grid game
  * against exact minimax play and writes the score as `move_scored`. It has no tools, writes no

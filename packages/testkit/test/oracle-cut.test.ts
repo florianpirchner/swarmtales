@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Cut files in `runOracle` (specification of M2, section 7.2): a file with `truncated` is played for
  * `truncated.afterMinute + 1` ticks and compared up to its last entry, without the end. The oracle here is the

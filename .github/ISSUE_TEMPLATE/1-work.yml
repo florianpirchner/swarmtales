@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
 name: Work issue
 description: One change with a clear end. No change lands without an issue.
 body:

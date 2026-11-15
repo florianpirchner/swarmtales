@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Review of M2, part A: failing cases against the key broker, the meter and the resident session. The harness is
  * the one of `session.test.ts` (the scripted source under the `turns` scheduler); the global `fetch` rejects.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The double-entry bookkeeping of the ledger, carried from the old platform (`mechanics/ledger/src/book.ts`, there a
  * copy of the old kernel's `PointsLedger`) as functions over the mechanic's state. Rewards and penalties flow through

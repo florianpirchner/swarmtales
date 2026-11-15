@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt experiment run --plan` over the three committed specs of the M4 rerun plan (`docs/RERUN-PLAN-M4.md`): each
  * prints its plan and its caps, resolves its arms and its metrics against the game, and plays nothing. The global

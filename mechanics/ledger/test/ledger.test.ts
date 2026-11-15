@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The ledger mechanic: the transfer tool's checks and replies as the old platform gave them (check order, codes,
  * texts), the events, the service, the limit `zero-sum` and the conformance checks. Ported from the old

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of Quarry as pure functions (in `rules.ts`: deck, pass order, tableau score, the greedy reference) and the mechanic's state. */
 import { Type, type Static } from "typebox";
 import { Card, countsOf, RESOURCES } from "./rules.ts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The ledger as the keeper of the points of `exile` (`exile-purse`, M5-15): a ransom burns, a last will moves, each
  * booked before the exile's own event as in `oracles/cityofkeys/cityofkeys-act2-s7.json`; the points of a resident

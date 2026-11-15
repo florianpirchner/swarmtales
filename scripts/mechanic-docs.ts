@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `pnpm docs:mechanics`: writes the generated blocks of every mechanic's README (docs/MECHANIC-README.md) from the
  * heads, and creates a README with all sections for a mechanic that has none. It then lists what is still wrong.

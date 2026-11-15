@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The pure part of the run viewer. It reads run folders through a `RunSource`, verifies the signed log with
  * `@swarmtales/chain`, indexes the events and derives what the views draw. No `node:*`, no DOM, no React: it

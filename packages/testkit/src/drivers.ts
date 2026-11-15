@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Drivers for offline runs: a scripted one, an idle one and the fake one (`--fake`). A port of the old
  * `agents.ts`; a driver is a plain async function of the activation, so a test that decides each call from the

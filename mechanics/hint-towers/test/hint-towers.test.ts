@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The hint-towers mechanic: a scripted match, the refusals, the move timer, the quiet tools and its conformance (offline). */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

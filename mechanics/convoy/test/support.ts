@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Shared by the tests of Convoy: the game of the old platform around the mechanic under test (`stories/convoy/story.ts`:
  * six solo seats, the six decision tools locked, three passes a tick, 8 calls a tick, a strategy brain per seat).

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Open quarries frozen per step (lesson LH18, decision A29). With `openHands` the `Quarries:` line of a pick request
  * is the live state, and the seats are asked one after another: a seat asked later sees picks of the same step.

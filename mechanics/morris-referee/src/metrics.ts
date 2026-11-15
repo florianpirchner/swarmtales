@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The metrics of the `morris-referee` mechanic: the numbers it exports about a finished run, computed from its
  * `move_scored` events. The definitions are those of the old runs of nine men's morris (`stories/morris-teams/runs/`

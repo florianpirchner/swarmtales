@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The state file of an experiment (`experiment.json`): the spec and the record of every run played so far. A record
  * names its run folder relative to the experiment's folder, so a folder that was moved is continued and analysed.

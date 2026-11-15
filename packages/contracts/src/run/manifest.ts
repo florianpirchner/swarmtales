@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The run manifest: everything that defines a run, fixed before its first event. It is written as `manifest.json`
  * into the run folder, and its hash is in the genesis of the chain. No behaviour.

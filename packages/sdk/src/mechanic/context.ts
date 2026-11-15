@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The contexts of one mechanic instance over the kernel's untyped `PluginPort`. Author words become kernel words
  * here, once: a resident id (`A01`) is the actor `resident:A01`, and a mechanic's own tool (`playMove`) is the

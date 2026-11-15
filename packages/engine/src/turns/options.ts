@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The options of the `turns` scheduler (specification of M1, section 4.1). */
 import { Type, type Static } from "typebox";
 

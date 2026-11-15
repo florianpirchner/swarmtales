@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The reference bot of the hint towers: the action the move timer plays for an idle seat, and the crew of bots that
  * plays every deal for the baseline. It reads the game as a seat does: the others' cards, never its own.

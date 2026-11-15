@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts a seat reads: a resolved lot, the rules, its task on an open lot, the auction, and the input lines of an activation. */
 import { lotNow } from "./flow.ts";
 import type { SealedAuctionCtx } from "./head.ts";

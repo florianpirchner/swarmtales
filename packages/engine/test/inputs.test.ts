@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `arrange` and `TurnsOptions`: the cases of the old `arrangeInputs` (carried from the old tests of the turn loop,
  * the hook order and the order within a kind), the `{ source }` entry, and a differential test against vectors

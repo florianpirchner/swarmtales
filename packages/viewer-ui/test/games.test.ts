@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The Games tab's data: parsing and the game of a run's name (variants and earlier names). */
 import { describe, expect, it } from "vitest";
 import { gameOfRun, parseGames, type GameInfo } from "../src/games.ts";

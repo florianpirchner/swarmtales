@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The summary of a list of values: mean, sample standard deviation, the t interval and a seeded bootstrap interval
  * of the mean. Plain arithmetic, carried from the noise-floor script of the old platform, so the numbers of a

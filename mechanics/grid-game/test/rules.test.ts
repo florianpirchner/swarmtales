@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The board rules of the grid game (carried from `test/mechanics/grid-game/grid-game.test.ts`, "the board rules"),
  * and the proof that the carried contract, events and state schemas are what the old platform had.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The city's message numbers: one number space for every message a reader can cite, board posts and direct
  * messages alike. Numbers only grow, so a higher number is always a later message. Carried from the old platform.

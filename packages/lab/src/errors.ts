@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The errors of the lab: the catalogue of the codes `SWT-E001` to `SWT-E011`. Every failure of an experiment is an
  * `SwtError` of the contracts with one issue; the lab throws nothing else.

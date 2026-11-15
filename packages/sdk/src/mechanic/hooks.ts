@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The hooks and the stage handlers of one mechanic instance, bound to its context and turned into the kernel's
  * forms. A hook that takes a resident runs only for an actor of that kind and answers with bare ids; a stage

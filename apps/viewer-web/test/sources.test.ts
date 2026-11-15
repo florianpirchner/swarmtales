@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The web app's sources: a file list (picked or dropped folder) and GitHub through a fake fetch. */
 import { findRuns, loadRun } from "@swarmtales/viewer-core";
 import { describe, expect, it } from "vitest";

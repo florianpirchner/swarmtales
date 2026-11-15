@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The check that a resumed run continues the run it resumed from. */
 import { canonicalJson } from "./canonical.ts";
 import { fieldOf, linesOf, parseJson } from "./hashes.ts";

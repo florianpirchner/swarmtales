@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of Lanterns as pure functions (word pool, deal, clue check, scoring, the per-clue record) and the mechanic's state. */
 import { Type, type Static } from "typebox";
 import { WORD_POOL } from "./words.ts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The layered prompt lookup: the game, then the owning mechanic, then the library. Carried from the old
  * `test/host/prompt-lookup.test.ts`.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt --help` from the table in `flags.ts`, the reference page beside it, a refused line of the Human Hand, a
  * `--snapshot-at` that writes nothing, and the fix texts of `SWT-X009` and `SWT-D002`.

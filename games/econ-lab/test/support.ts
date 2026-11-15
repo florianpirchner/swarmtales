@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The scripted seat of the Econ Lab tests and their readers of the log. Carried from `test/stories/econ-lab.test.ts`
  * (`player`) and `test/stories/tictactoe-support.ts` (`field`, `ofType`).

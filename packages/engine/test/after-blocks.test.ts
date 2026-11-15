@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The option `afterBlocks` of `turns` (specification of M3, section 8) against a stub `SchedulerPort` with
  * residents and actors of the kind `director`: the slots, the news rule, the round per slot, and that a game

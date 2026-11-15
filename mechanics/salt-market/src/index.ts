@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The rules of Salt Market, the negotiation game for solo seats. A match is several games; a game is a few rounds of
  * open trading among the traders. Each trader holds a bundle of five goods (salt, cloth, copper, spice, wax), values

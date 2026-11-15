@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `defineGame` and `gameData`: the builder form of a game and its data form (a port of the old `defineCoreStory`
  * and `storyData`). The builder form names its mechanics by typed uses, so a grant or a lock of a tool whose

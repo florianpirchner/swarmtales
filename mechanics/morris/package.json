@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: nine men's morris with its built-in search",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",

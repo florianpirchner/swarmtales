@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The tool `give`: goods handed over for nothing back, which count toward the giver's open promises to the receiver. */
 import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";

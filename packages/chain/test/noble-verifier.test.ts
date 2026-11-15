@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The verifier (pure JavaScript, `@noble/*`) against a Node signer (`node:crypto`): a chain the signer writes
  * verifies in the browser verifier, and a tampered copy fails at the first broken line. Carried from the old

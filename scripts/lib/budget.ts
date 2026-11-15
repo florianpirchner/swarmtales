@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The code-line budgets of the engine (DECISIONS.md, D13). A code line is a non-blank, non-comment line of a
  * `.ts` file under `src/`, tests excluded; `code-lines.ts` counts it.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of liar's dice as pure functions (in `rules.ts`: bid order, counting, the baseline, the seat statistics) and the mechanic's state. */
 import { Type, type Static } from "typebox";
 import { Bid, Entry, Scored } from "./rules.ts";

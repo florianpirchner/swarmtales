@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The catalogue of the R codes (run and kernel): one function per code, each returning the issue. A code is never
  * reused or renumbered. `SWT-R010`, `SWT-R011` and `SWT-R014` belong to the scheduler, which may not import the

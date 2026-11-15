@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The tolerance check of a new series against a baseline: is the new platform within the noise of the old one?
  * Pure functions of two value lists; the file formats are the caller's.

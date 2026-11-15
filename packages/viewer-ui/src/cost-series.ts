@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { LineSeries } from "./scale.ts";
 
 const MAX_LINES = 8;

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The tutorial `docs/tutorials/director.md` as a test. Every code block of the tutorial is an include: its lines
  * stand, in one piece, in the file of the sample that the last link before the block names. The commands of

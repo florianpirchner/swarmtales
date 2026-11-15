@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The `/contract` sub-path of this mechanic: what other mechanics may import. */
 import { Type } from "typebox";
 import { defineService } from "@swarmtales/sdk";

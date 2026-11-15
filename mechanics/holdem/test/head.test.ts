@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of hold'em: the start state fits the state schema, the snapshot round-trips, and a table seats 2 to 10. */
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";

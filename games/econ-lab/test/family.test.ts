@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Econ Lab as a game family (specification of M2, sections 7.3 and 8.1): the default params give the game of issue
  * M2-14, each arm gives the game of its old variant, and the committed experiment specs name only params it has.

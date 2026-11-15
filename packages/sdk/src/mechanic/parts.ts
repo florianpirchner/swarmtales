@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The seams between the files of `mechanic/` (type-only): what `define-mechanic.ts` hands to `context.ts`,
  * `hooks.ts` and `kit.ts` for one instance, and the binders `kit.ts` gives back. No file needs an inert kit: the

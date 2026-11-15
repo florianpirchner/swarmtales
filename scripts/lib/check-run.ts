@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The pure parts of `pnpm check`: the gate list, the budget (DECISIONS.md, D3) and the summary. The budget makes
  * sure that the check fits a standard hosted runner.

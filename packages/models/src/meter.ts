@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The cost meter: the one place that counts what a run spent and the one place that holds its cap. The numbers
  * come from the answers of the provider library; the cap reaches the kernel as the run limit `models.budget`.

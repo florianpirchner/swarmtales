@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The scripted source: every answer of every actor is written down beforehand. No network, no key, the same agent
  * loop as a live run. It is the only way a test reaches the driver.

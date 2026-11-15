@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic against the old platform, without a scheduler: the calls of three oracle files (the first game of
  * each; the brain's calls left out) are made in their order, and every reply, every refusal and every event of trick

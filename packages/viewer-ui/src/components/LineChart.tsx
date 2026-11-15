@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { niceTicks, seriesColor, tickLabel, type LineSeries } from "../scale.ts";
 
 interface Props {

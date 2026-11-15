@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The kernel's own budget (specification of M1, 1.3; of M5, 1.3). The cap of 1500 is tested in `scripts/gates`; this
  * gate holds the kernel at its measured count, so that every new kernel line is booked by an issue.

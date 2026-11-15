@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The oracle runner: plays a game from the inputs of an oracle file under the game's own scheduler and compares
  * what came out with the file, at the three levels of `oracles/README.md` (specification of M1, section 7).

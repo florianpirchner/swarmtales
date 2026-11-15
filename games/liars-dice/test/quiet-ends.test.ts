@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The empty turns after a brain write of P474 (M4-69): a seat that has not read its last answer is woken for it
  * (reason `answer`), the wake rule of the old platform, so after `writeBrain` it gets a turn with no input line while

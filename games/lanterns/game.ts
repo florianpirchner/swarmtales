@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Lanterns: two teams of three residents play a match of an original word-clue game on a grid of 20 words. Each game
  * one member of each team is its keeper (the role rotates game by game) and sees which words belong to whom; the two

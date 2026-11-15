@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The analysis of an experiment: from the records of the runner and the facts of the runs to `results.json`. Every
  * estimate is computed twice, over the included runs (the pass rule reads this one) and over every finished run.

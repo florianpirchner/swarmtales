@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `puzzles` mechanic: the pieces of the fragment levels. Every level is dealt when the run starts (teams, a
  * password per team, a fragment per resident); when a resident is banished its fragments burn and the levels

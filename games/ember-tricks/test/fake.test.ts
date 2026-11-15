@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The fake run of Ember Tricks (`swt run --fake`, M4 specification 2.2 rule 2): the fake driver plays through the
  * `sample` of every resident tool, and the run ends without an `error` end with an accepted call of every tool that

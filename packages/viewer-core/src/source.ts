@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Where a viewer reads run files from: a dropped folder,
  * the File System Access API, GitHub's raw files, `vscode.workspace.fs`, or a map in memory for

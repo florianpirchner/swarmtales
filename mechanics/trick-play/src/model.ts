@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of trick play as pure functions (shared with the reference worth and the tests) and the mechanic's state. */
 import { Type, type Static } from "typebox";
 import { rankOf, suitOf } from "@swarmtales/mechanic-card-table/contract";

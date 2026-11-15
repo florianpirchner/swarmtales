@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The progression tools (carried from the old `mechanics/progression/src/tools.ts`): `getStatus`, `activeTools`,
  * `getProblem`, `submitSolution` and `listAgents`. The reply texts and refusal codes are the old ones; every reply

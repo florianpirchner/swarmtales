@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Part 6: the tick and the job queue. A job is a named function of a plugin; an entry holds only the owner, the
  * job's name, its tick and its data, so the queue is part of the snapshot. Due jobs are taken once, in the order

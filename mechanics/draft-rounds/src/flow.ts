@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of the `draft-rounds` mechanic: games, pack rounds and picks, the pass of the packs and the end of a game. */
 import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";

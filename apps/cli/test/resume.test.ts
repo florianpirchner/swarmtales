@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt resume` (specification of M3, section 7.2): the resumed log without its marker is the straight log, the
  * continuity of the two folders verifies, and what cannot be resumed is refused before a folder is written.

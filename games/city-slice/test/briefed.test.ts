@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The variant `briefed` of the city slice (issue M3-33), offline: off, the family gives the game of the committed
  * timelines; on, every resident has the briefing, the court's notice is an input line of every resident in the

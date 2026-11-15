@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * View descriptors: a mechanic ships `views.json` naming an event type and the paths of its fields,
  * and the viewer draws it with one of its fixed renderers (`kind`). The descriptor holds no code and

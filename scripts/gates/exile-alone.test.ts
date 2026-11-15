@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Done-when 4 of milestone M3: `exile` names no other mechanic. The gate reads `mechanics/exile/package.json` and
  * every file under `mechanics/exile/src/` and finds no mechanic package, no import that leaves the package for

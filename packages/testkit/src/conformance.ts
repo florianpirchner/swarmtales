@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Conformance checks for a mechanic and the games that use it. Each returns a list of problems, empty when the
  * mechanic conforms, so any test framework can assert on it. A port of the old `conformance.ts`; the source rules

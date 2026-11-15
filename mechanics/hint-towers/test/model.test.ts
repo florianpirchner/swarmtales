@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of the hint towers as functions, and the reference bot (carried from the old mechanic test). */
 import { describe, expect, it } from "vitest";
 import { deckOf } from "@swarmtales/mechanic-card-table/contract";

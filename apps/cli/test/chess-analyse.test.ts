@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The chess analysis of the lab (`packages/lab/src/chess/analyse.ts`) with Garbochess-JS: centipawn loss against the engine's best move, the classes,
  * a finished position scored without a search, and the Markdown of a run. The first two tests are carried from the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The plugin shape: what a plugin hands the kernel, and the untyped port the kernel hands a plugin. */
 import type { TSchema } from "typebox";
 import type { JsonValue, RandomLabel, RandomSource, RunEnd } from "../values.ts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Quarry: four solo seats play a match of drafting games. In each game every seat opens packs of cards, keeps one
  * card per pick and passes the rest around the table; at the end every quarry scores the square of each resource it

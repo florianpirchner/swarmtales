@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game's part of the old `test/stories/chess.test.ts`: a scripted match of the game file with a brain per seat,
  * the same match with a fresh context per move and the compact board, and the timer for seats that never move. The

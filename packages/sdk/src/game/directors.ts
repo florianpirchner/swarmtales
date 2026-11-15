@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The Directors of a game in game resolution: each use is matched with its definition, its options are parsed, its
  * triggers are checked against the events the game's mechanics declare, and its grant gets the tool `take` of the

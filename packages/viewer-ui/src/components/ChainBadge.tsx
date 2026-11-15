@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { RunModel, RunVerification } from "@swarmtales/viewer-core";
 import type { VerificationState } from "../use-run.ts";
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The flow of the `morris` mechanic: games, moves and their refusals, the engine's turn and the end of a game. */
 import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { ConsensusService } from "@swarmtales/mechanic-consensus/contract";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `team-channel` mechanic: private channels of pre-seeded teams. A resident posts to and reads
  * its own team's channel only. Every resident may post `maxPostsPerMove` messages per round; the

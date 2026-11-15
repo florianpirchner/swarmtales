@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The head of `channels`: its state with the snapshot, its events, its services, its prompts and its tools. */
 import { Type } from "typebox";
 import { ReceiptSourceService } from "@swarmtales/mechanic-contracts";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Runs packed next to the page: `runs/index.json` names the packs, each pack is fetched once on the first read. */
 import { findRuns, loadRun } from "@swarmtales/viewer-core";
 import { describe, expect, it } from "vitest";

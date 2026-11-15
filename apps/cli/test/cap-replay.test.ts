@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The cost cap of a live run (P471, P472; decision A46, issue M4-68), on the committed log of the cap smoke
  * `hello-game-002` (cap 0.001 USD, runtime revision 4): `swt replay` meters the cap of the manifest again and replays

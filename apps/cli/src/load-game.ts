@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Game files: a TypeScript or JavaScript module that default-exports a game or a game family, or a JSON or YAML file that holds one
  * in its data form. The loader reads the file and says what it found; it does not judge the game. Every field is

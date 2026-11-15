@@ -20,7 +20,8 @@ define, recut and reprogram from zero, including the kernel.
 - "Story" is renamed to "Game" (a story may become one kind of game; say what you recommend).
 - "Overseer" is renamed to "Director" (model actors that are not residents: Gamemaker, Confessor,
   Judge, Weaver ...).
-- Licence: 100% Apache 2.0.
+- Licence: the Sustainable Use License 1.0 with Additional Terms, for the whole repository (owner, 2026-11-15; it
+  replaces "100% Apache 2.0", see decision A65 in `DECISIONS.md`).
 - The kernel is definable/configurable. Example: agents may run in parallel on their own instead
   of being stepped by a seeded turn scheduler. So the scheduler is pluggable (seeded turn-based
   versus async parallel); the hash-chained event log keeps runs auditable where they are not

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `clue-grid` mechanic: the word-clue game Lanterns (docs/ideas/game-roadmap.md §2.9) for two teams.
  * A grid of words is dealt; each word secretly belongs to team amber, team teal, the fog (nobody) or the

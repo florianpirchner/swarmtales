@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The smallest model port: one question to a model inside an activation, and its answer. The Director's driver
  * asks through it, so that the engine needs no import of the models package. No behaviour. The file is not under

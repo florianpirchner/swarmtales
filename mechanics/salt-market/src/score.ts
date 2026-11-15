@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The end of a game: every trader's points and contract, the reference of `market_game_scored` against the optimum
  * (for the human only: efficiency, the gain over idle play, fairness, the promises kept), the result line for the

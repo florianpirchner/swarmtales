@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The chess analysis of the lab (no model, no money, never part of a run): replays every game of a finished chess
  * run and scores each half-move with a reference engine (`ChessEngine` of `engine.ts`; the command line hands in

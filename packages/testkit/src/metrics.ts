@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `metricsOf`: the metrics of one mechanic of a played run, as the facts of the lab read them, for a test that
  * checks a metric against a number counted by hand.

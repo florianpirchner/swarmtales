@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `hint-towers` mechanic: a cooperative game of hidden hands on the `card-table`, for a crew of
  * seats over a match of `games` games. Every seat holds `handSize` cards it cannot see; it sees every

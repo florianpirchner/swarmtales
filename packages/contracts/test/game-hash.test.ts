@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The contract changes of milestone M3 leave every existing game as it is: the manifest that `swt run --fake`
  * writes for each of the four games names the game hash it named before the changes. The hashes are pinned here;

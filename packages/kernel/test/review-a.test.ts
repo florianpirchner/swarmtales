@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Review of M2, part A: the reason of a run limit is a text of the outside and passes the redaction port like `run_ended.detail`. */
 import { describe, expect, it } from "vitest";
 import type { RunLimit } from "@swarmtales/contracts";

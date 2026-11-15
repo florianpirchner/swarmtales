@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The task of a level and the progression's parts of the status line (carried from the old
  * `mechanics/progression/src/task.ts`: `problemFor`, `taskLines`, `statusParts`, `awaitsCode`). The task is the

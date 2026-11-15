@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Ember Tricks: an original trick-taking game with exact bidding for four solo seats. Five suits of different lengths
  * (Ash 1-10, Brine 1-9, Cinder 1-8, Dust 1-7, Ember 1-6), rounds of 1 to 8 cards; every seat bids the exact number of

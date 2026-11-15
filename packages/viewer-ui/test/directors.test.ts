@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Rows 1 to 3 of what the viewer must show (specification of M3, section 9), drawn from the resumed run folder
  * of `viewer-core`: the records of a driver on the card of their activation, a Director's activation as a row of

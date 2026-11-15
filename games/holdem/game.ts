@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Hold'em: fixed-limit Texas Hold'em for solo seats, four-handed or heads-up. A match is several games of several
  * hands; every game starts from a fresh context, and the only memory across games is each seat's private strategy

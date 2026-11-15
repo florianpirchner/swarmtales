@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Part 4: the step counter of one tick. It counts the calls of the actors of the definition and of nobody else. */
 import type { ActorId } from "@swarmtales/contracts";
 

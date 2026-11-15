@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `pnpm check:licences` (`--check`) and `pnpm licences:write` (`--write`): the licence gate of DECISIONS.md 5.3.
  *

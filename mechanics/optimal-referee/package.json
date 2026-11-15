@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: a referee that scores each move of the grid game against the best move",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",

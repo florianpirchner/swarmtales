@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { RunProjection } from "@swarmtales/viewer-core";
 import { callLine, pauseLine, resumeLine } from "../timeline.ts";
 import { Step } from "./Step.tsx";

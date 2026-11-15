@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The noise floor: the values of one metric over replicates of one arm at one seed, with their summary. A new
  * series is compared with it (the tolerance check); the file of the old platform is written once and never changed.

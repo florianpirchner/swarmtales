@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** A FEN position as an 8x8 board (rank 8 first), for the `board-fen` view. Other fields of the FEN are read only as far as the board needs. */
 export interface FenBoard {
 	/** 64 squares, a8 first, then b8 ... h1; a piece is its FEN letter (uppercase white), an empty square undefined. */

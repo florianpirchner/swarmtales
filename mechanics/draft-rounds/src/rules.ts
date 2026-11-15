@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `/rules` sub-path of this mechanic: the rules of Quarry as pure functions (deck, pass order, tableau score, the
  * greedy reference). `model.ts` re-exports them beside the mechanic's state.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The scheduler sample `parallel` (specification of M4, sections 3.2 and 3.3): every resident that is woken acts
  * on its own, and its calls are committed in the order in which they arrive. A scan opens every actor that may act

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The briefings of chess: what a seat reads before the run starts. Carried from the old game file
  * (`stories/chess/story.ts`, `briefing(brain, teams)`), all four branches (solo or teams, with or without a brain):

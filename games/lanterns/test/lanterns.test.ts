@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Lanterns as a game: the parts of `test/stories/lanterns.test.ts` that the port of the mechanic left to the game
  * (the scripted match under the game's own retro focus, a fresh context per game with the team's brain), and the

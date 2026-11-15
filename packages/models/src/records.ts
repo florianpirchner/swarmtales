@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The records of the model driver: what one resident was sent and what it answered. The kernel checks that a
  * record's source and type are declared; the writer checks the payload, with {@link residentRecord}.

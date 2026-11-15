@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Series the charts and the replay draw, derived from the events alone: cost and tokens per minute,
  * events per actor (lanes), and counts by type and tool (who wrote to whom: `messages.ts`).

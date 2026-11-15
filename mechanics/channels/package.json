@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: talk on the board, direct messages and notices",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",

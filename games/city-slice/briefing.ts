@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The briefing of the variant `briefed` of the city slice: what a resident reads before the run starts. It states
  * the rules of the place and names no move: what a resident does with them is its own.

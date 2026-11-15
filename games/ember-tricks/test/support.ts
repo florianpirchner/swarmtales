@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Shared by the tests of the game: the params behind each old variant name, the scripted seat of the old
  * `test/mechanics/trick-play/support.ts` (`trickPlayer`, carried with its notes branch) and the readers of the log.

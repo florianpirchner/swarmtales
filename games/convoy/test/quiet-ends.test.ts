@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The turns with nothing to do of P477 (M4-69): a seat that has not read its last answer is woken for it (reason
  * `answer`), the wake rule of the old platform, so after its vote, its line or its card it gets a turn although it owes

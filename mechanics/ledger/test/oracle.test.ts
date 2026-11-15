@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The oracle proofs of the ledger (specification of M3, section 2.5, projections 4 and 5). No City of Keys oracle
  * can be replayed whole, so the test walks the oracle's timeline: it makes every `transferPoints` call of the file,

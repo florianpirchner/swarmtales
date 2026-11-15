@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `morris-referee` mechanic: a read-only listener that scores every whole turn of the morris game
  * (a step with its removal) against a depth-limited alpha-beta search and writes the score as

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What the chess analysis needs of a reference engine: a synchronous evaluation of one position at a depth, and the
  * name of the ruler. The lab loads no engine itself; the command line hands in the vendored Garbochess-JS

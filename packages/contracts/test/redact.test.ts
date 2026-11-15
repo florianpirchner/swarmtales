@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The redaction patterns carried from the old platform, and the two helpers around a redact function. */
 import { describe, expect, it } from "vitest";
 import { redactSecrets, redactValue, redactWith } from "../src/index.ts";

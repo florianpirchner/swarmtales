@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The size limits of the repository, in one place. Lines are code lines (see `code-lines.ts`), except the README
  * limit, which counts raw lines. Sources: `docs/refactoring-before-release/DECISIONS.md` D4, D13, E7 and section 4.

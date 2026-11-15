@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The web app's remembered GitHub token: kept only on request, and a blocked storage never breaks the page. */
 import { describe, expect, it } from "vitest";
 import { tokenStore } from "../src/token-store.ts";

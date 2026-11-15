@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** `swt replay`: plays a run folder again from its log alone (`replay` of the testkit) and says whether the log comes out the same. */
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";

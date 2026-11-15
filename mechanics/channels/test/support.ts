@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Shared by the channels tests: a game, a test mechanic that speaks as the city, and readers of calls and events. */
 import { Type } from "typebox";
 import type { Envelope } from "@swarmtales/contracts";

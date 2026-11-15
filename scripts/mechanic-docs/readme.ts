@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The README files of the mechanics: hand-written sections and generated blocks between markers
  * (`<!-- generated:tools -->` ... `<!-- /generated:tools -->`). This file writes the blocks into a README and says

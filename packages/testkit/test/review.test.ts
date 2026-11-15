@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The stage `review` from the sdk to a replay (M5-04, `12-m5-spec.md` 4.3): a review handler of one mechanic on a
  * tool of another (the guard), a tool's own review (the blame), both answered by Directors with `answers` through

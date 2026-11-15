@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The type test of `defineGame` (M1 specification 6.2): `ToolOf` gives the bare tool names of the listed mechanics,
  * so a grant or a lock of another tool does not compile. `tsc -b` compiles this file and nothing here runs.

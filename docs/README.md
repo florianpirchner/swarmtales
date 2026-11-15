@@ -10,7 +10,8 @@ milestones that build what they describe.
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md): the licence of contributions and the sign-off.
 - [`GLOSSARY.md`](GLOSSARY.md): the words, one meaning each, and the retired words.
 - [`LAYERS.md`](LAYERS.md): which package may import which.
-- [`LICENCE-POLICY.md`](LICENCE-POLICY.md): Apache 2.0, the allowlist, the licence gate.
+- [`LICENCE-POLICY.md`](LICENCE-POLICY.md): the project licence (Sustainable Use License with Additional Terms, see
+  [`../LICENSE-FAQ.md`](../LICENSE-FAQ.md)), the allowlist for third parties, the licence gate.
 - [`MECHANIC-README.md`](MECHANIC-README.md): the fixed shape of a mechanic's README and its generated sections.
 - [`ISSUE-RECORD.md`](ISSUE-RECORD.md): tokens, wall time and changed lines per issue; the budget.
 

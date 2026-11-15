@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The catalogue of the X codes (models): one function per code, each returning the issue. A code is never reused
  * or renumbered. Every issue is built from names and ids only, never from a key value, and is thrown through

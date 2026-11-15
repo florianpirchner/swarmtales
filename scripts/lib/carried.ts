@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The documents carried from the old platform (DECISIONS.md, section 8.3). They are evidence and stay as they were
  * written: the name lint does not read them, and their links into old code and runs point at the tag `v0-final`.

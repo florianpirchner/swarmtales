@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The key broker: a key exists in exactly one object and leaves it only into a provider's request. The broker is
  * handed an environment record and never reads the environment itself.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Exact game values by minimax, for the optimal-referee. Values are from the point of view of the side that moves: 1 win, 0 draw, -1 loss. */
 import { freeCells, linesOf, other, winnerOf, type Cell, type Side } from "@swarmtales/mechanic-grid-game/rules";
 

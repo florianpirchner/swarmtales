@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The briefings of liar's dice: what a seat reads before the run starts. Carried from the old game file
  * (`stories/liars-dice/story.ts`, `briefing`): the template strings are byte-identical, and the table is passed in

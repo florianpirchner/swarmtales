@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The schemas of the kernel-facing values that are read from a file: actor ids, log envelopes, input notes and the
  * end of a run. Each interface is declared beside its meaning (`actor.ts`, `envelope.ts`, `../values.ts`); the

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The econ-games mechanic alone: a scripted match, the timer, the locks and its conformance (offline). The cases are
  * the mechanic's part of the old `test/stories/econ-lab.test.ts`; the game's part (the brain, the briefings) is the

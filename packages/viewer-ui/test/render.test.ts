@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The views draw a run of the new platform and an old run: rendered to text, without a browser. */
 import { indexRun, loadRun, memorySource, projectRun, verifyRun, type RunModel } from "@swarmtales/viewer-core";
 import { createElement } from "react";

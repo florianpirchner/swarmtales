@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Blind Bid as a game family (M4 specification, issue 50): the default params give the game of issue M4-36, the other
  * branches give the games of their old variants, every old variant name is reached by params, and a param the family

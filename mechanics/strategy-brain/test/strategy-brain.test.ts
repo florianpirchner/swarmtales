@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The strategy-brain mechanic: text checks, the retro window and its refusals, the hold on the grid game (offline,
  * scripted). Carried from `test/mechanics/strategy-brain/strategy-brain.test.ts`; `support.ts` says what stands in

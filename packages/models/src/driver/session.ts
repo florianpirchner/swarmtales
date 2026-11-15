@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The resident session: one persistent agent of the provider library for one resident, and one model request per
  * activation. A port of the old resident runner's turn: the tool calls of an answer run in order through

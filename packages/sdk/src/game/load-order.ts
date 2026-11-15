@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Step 5 of game resolution: the providers of the services and the load order of the mechanics. The order decides
  * the order of the tools a model sees and of tied hooks, so the algorithm is the one of the old platform, unchanged.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The asker: the model port `AskModel` of a Director. One request per question, without a tool and without a
  * memory; the answer is the JSON in the model's text. Every answer is counted on the cost meter of the run, as

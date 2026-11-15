@@ -1,13 +1,18 @@
 # Licence policy
 
-The decision behind this page is section 5 of
-[`refactoring-before-release/DECISIONS.md`](refactoring-before-release/DECISIONS.md). This page is the working copy
+The decisions behind this page are section 5 of
+[`refactoring-before-release/DECISIONS.md`](refactoring-before-release/DECISIONS.md) and its row A65. This page is the working copy
 for contributors; the gate is `scripts/check-licences.ts`.
 
 ## The rule
 
-Swarm Tales is 100% Apache 2.0. **No GPL and no other copyleft licence anywhere, ever.** Copyleft means strong, weak,
-file-level and network copyleft alike.
+Swarm Tales, all of it, is under the Sustainable Use License 1.0 with Additional Terms ([`LICENSE`](../LICENSE), SPDX
+id `LicenseRef-SUL-1.0`): kernel, sdk, contracts, code, prompts, game texts, docs and run data. It is source-available,
+not open source. Only third-party files keep their own licences. **No GPL and no other copyleft licence anywhere,
+ever.** Copyleft means strong, weak, file-level and network copyleft alike.
+
+The project's own licence is not on the allowlist below: a third-party dependency is judged against the allowlist
+alone, and a dependency under `LicenseRef-SUL-1.0` or any other source-available licence is refused.
 
 The rule covers everything the repository declares, vendors, bundles or downloads: every package in the lockfile
 (production, development, optional, peer, transitive, platform binaries), every file in the repository, every file a
@@ -27,8 +32,9 @@ A package passes when its SPDX licence expression is satisfied by these ids alon
 - `A OR B` passes when one side is on the list; the inventory records which side is used.
 - `A AND B` passes only when both sides are on the list.
 - Never allowed, with no exception path: every `GPL`, `LGPL`, `AGPL`, `MPL`, `EPL`, `CDDL`, `EUPL`, `OSL`,
-  `CC-BY-SA` and `OFL` licence, and any other licence with a share-alike or source-disclosure duty. Also refused:
-  `CC-BY-NC`, `SSPL`, `BUSL`, source-available licences, `UNLICENSED` and a missing licence.
+  `CC-BY-SA` and `OFL` licence, and any other licence with a share-alike or source-disclosure duty. Also refused,
+  because they would bind the project to someone else's terms: `CC-BY-NC`, `SSPL`, `BUSL`, `Elastic`, the
+  Sustainable Use License, other source-available licences, `UNLICENSED` and a missing licence.
 
 ## What the gate checks
 
@@ -42,9 +48,9 @@ A package passes when its SPDX licence expression is satisfied by these ids alon
    The message names the package, the licence and what pulls the package in;
 2. a package of the lockfile does not come from the registry with an integrity hash (a git repository, a tarball
    address, a local path);
-3. a source file does not start with `// SPDX-License-Identifier: Apache-2.0` (vendored files under `third_party/`
+3. a source file does not start with `// SPDX-License-Identifier: LicenseRef-SUL-1.0` (vendored files under `third_party/`
    keep the header of their source);
-4. a `package.json` does not say `"license": "Apache-2.0"`, or names a dependency without an exact version;
+4. a `package.json` does not say `"license": "LicenseRef-SUL-1.0"`, or names a dependency without an exact version;
 5. a workflow or a local action under `.github/` uses an action that is not on the short list in
    `scripts/licences/allowlist.ts` or is not pinned by a full commit id, or runs a job in a container image; or
    there is no workflow at all;

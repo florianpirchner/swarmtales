@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The tools of the cards, the audit and the accusations: a sealed card of a crew member, the lead's single audit of a game, a loyal seat's suspects, with their replies, and what a fake run samples. */
 import type { RandomSource, Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";

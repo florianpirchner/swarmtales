@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `trick-play` mechanic: a trick-taking game with exact bidding on the `card-table`, played by
  * solo seats over a match of `games` games, each a list of `rounds` (cards dealt per round).

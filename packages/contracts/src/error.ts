@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The error for a developer: a code, what, where, why and a fix. A refusal is a tool outcome and never an error.
  */

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * A RunSource over runs packed next to the page: `runs/index.json` names the packs (`{ title, packs: { "<pack>.json":
  * [paths] } }`), and each pack is one JSON object of path to text, fetched once on the first read of one of its files.

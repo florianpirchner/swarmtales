@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The C codes of the commands: `SWT-C003`, `SWT-C010`, `SWT-C020` and `SWT-C024`. `SWT-C001` and `SWT-C002` are beside the game
  * file loader (`load-game.ts`), `SWT-C030` beside the installed table (`installed.ts`).

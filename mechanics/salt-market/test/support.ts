@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Shared by the tests of Salt Market: the table of the old game file (`stories/salt-market/story.ts`: four solo
  * seats, three passes a tick, 12 calls a tick, in roster order as the old test had it), optionally with a strategy

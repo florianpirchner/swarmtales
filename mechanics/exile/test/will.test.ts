@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The last will, carried from the old `test/mechanics/exile/` (`world.test.ts` "refuses wills in the old order",
  * `exile.test.ts` "counts two bequests to one heir together against the cap"), the will of

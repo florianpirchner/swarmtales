@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The log envelope and the lines of an activation's inputs. The schemas live in `schemas.ts`. */
 import type { ActorId } from "./actor.ts";
 

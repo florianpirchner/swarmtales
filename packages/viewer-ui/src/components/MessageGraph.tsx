@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { MessageGraph as Graph } from "@swarmtales/viewer-core";
 
 interface Props {

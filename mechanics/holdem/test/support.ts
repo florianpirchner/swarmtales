@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Helpers of the hold'em tests: a game of the mechanic alone, a stateless scripted player, and event readers. */
 import { nameOf, type ActorDriver, type Envelope } from "@swarmtales/contracts";
 import { defineGame, type Game } from "@swarmtales/sdk";

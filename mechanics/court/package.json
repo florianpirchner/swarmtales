@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: a vote that ends in a verdict (the slice's stand-in for the tribunal)",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",

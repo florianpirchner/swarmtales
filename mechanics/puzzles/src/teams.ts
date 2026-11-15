@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Team layouts: solo, random(size), sameAs(level), splitFrom(level, size). Carried from the old platform. Every
  * layout is drawn from a labelled stream of the run seed and the level number, so a level's teams do not depend on

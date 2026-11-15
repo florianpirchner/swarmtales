@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The four kernel replies are carried byte for byte: their sha256 is the one of the same file at `v0-final`
  * (`git show v0-final:library/prompts/replies/core/<name>.md | sha256sum`, taken at commit 9765702).

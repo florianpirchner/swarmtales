@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The `/rules` sub-path of this mechanic: the rules of the three games as pure functions (pairings, payoffs, reference
  * metrics) with their schemas. `model.ts` re-exports them beside the mechanic's state.

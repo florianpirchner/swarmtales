@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic alone against two oracle files whose run the brain does not touch: the silent file (no resident ever
  * acts, so the deals, the lot timer, the resolutions without a bid, the references and the end of the match depend on

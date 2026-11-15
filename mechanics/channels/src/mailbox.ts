@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The inbox of one resident for direct messages: a hard capacity and at most `maxPerSender` unread messages per
  * sender. There is no queue; a message that does not fit is refused at once. Carried from the old platform

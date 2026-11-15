@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game the chess tests play: two solo seats (or two teams of two), chess, the team channel and a strategy brain
  * per seat or team, set up as the old platform's chess game was (`stories/chess/story.ts`), with its variants. The scripted resident is the player

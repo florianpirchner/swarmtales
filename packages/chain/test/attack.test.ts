@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Attacks on a version 2 run, written by the challenger of M1-04: a log that is cut back, grown, rewritten or
  * reworded must not pass as the run that was signed, and what holds without being a whole run must say so.

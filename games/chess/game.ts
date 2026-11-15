@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Chess: two solo seats play a match of chess games with alternating colours. chess.js is the legality filter and
  * the referee: a move is text, an illegal one is refused and the board stays, and chess.js ends the game (mate,

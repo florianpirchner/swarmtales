@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The variant `briefed` of the city slice through the command line (issue M3-33): the command of a live smoke, with
  * `--fake` in the place of the models. `swt run games/city-slice/family.ts --set briefed=true` with the committed

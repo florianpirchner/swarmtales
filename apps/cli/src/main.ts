@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The commands of `swt`: the flags are read in `flags.ts`, and every `SwtError` becomes printed issues and exit code 1. */
 import { formatIssue, redactSecrets, redactValue, SwtError } from "@swarmtales/contracts";
 import type { MechanicDefinition } from "@swarmtales/sdk";

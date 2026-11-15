@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Part 5: the providers of the services, and the call of a method by another plugin. */
 import { SwtError, type ProvidedService } from "@swarmtales/contracts";
 import { guarded, misfit } from "./errors.ts";

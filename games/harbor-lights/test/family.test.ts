@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Harbor Lights as a game family (M4 specification, issue 31): the default params give the game of issue M4-24, the
  * two arms of the series of section 7.2 give the games of their old variants, and a param the family does not have

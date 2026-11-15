@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The city slice through the command line (specification of M3, done-when 2 and 3): `swt run --fake --hand
  * --snapshot-at`, `swt resume`, `swt log verify --previous`, and `replay` from the run folder. The resumed log

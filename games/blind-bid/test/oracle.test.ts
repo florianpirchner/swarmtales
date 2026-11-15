@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game against its oracles: the five files of `oracles/blind-bid/` are played from their inputs under the game's
  * own scheduler and compared at level 3 (rules, texts, scheduling). The old names are not carried, so the table of

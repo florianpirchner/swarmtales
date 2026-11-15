@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The standing checks of Salt Market, in process (M4 specification 4.3): the log replays equal, and a run resumed from
  * every tick boundary writes the log of the straight run. A match of more than one game is checked on a variant with

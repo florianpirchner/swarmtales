@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The byte-identity list of the port (M4 specification 2.2): the sha256 of the carried prompt file, of the tool name
  * list, of the options schema, of the event schemas, of the audiences and of the service, generated on the old

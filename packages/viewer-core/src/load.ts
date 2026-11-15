@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Finding and loading run folders. A run folder is a folder with an `events.jsonl`; everything
  * else in it is optional (`000-run.json`, `events.chain.jsonl`, `run.pub`, `usage.json`,

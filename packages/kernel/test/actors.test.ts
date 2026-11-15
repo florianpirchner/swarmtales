@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { describe, expect, it } from "vitest";
 import type { ActorSpec, Envelope } from "@swarmtales/contracts";
 import { createActors } from "../src/actors.ts";

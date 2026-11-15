@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts a seat reads: a line of the hand's record, a hand's result, the rules, its task on its turn with the decision aid, the table, and the input lines of an activation. */
 import { describeWith, rangeEquity } from "./cards.ts";
 import { limitsOf, scoreLine, signed } from "./flow.ts";

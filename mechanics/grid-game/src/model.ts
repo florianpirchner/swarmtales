@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The board rules of the grid game (in `rules.ts`, shared with the optimal-referee), and the mechanic's state. */
 import { Type, type Static } from "typebox";
 import { Cell, Side } from "./rules.ts";

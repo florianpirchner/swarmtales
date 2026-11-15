@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The fake run of the Econ Lab (`swt run --fake`, M4 specification 4.11): the fake driver plays the three games to
  * the end through the `sample` of every resident tool, each decision by the seat that owes it.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The spend ledger: every test writes its own ledger file into a temporary folder; the ledger of the gate
  * (`games/m2-ledger.jsonl`) is never touched. The clock is fixed, the model is the scripted one.

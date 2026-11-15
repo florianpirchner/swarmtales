@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The tools notice: the input line that tells a resident which tools are open to it. A port of the old runner's
  * notice: it is sent when the set of open tools differs from the one of the last notice, so once at the start,

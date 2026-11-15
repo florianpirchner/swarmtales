@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The chess rules of the `chess` mechanic, all through chess.js: replaying a game from its move list,
  * reading a move the way a model writes it (SAN, long algebraic or UCI), the end of a game, material,

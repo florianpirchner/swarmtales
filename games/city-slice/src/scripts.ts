@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The scripted run of the city slice: what each of the six residents calls in each tick, what the person does
  * between the ticks, and what the warden's model answers. All of it is data keyed by tick, so a driver built from

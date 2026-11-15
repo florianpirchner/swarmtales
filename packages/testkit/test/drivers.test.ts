@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import type { Envelope } from "@swarmtales/contracts";
 import { defineGame, defineHead, defineMechanic, reply } from "@swarmtales/sdk";
 import { Type } from "typebox";

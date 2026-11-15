@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What a base mechanic (`channels`) asks to print the marks a resident has left in its reply (`marks 7/8 left`). The
  * mechanic `marks` provides it and charges the price in its own stage handlers on the tools of `channels`, by bare

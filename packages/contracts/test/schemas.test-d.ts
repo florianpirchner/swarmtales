@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The type test of the kernel-facing schemas (M1 specification, 2.6): the static type of each schema equals the
  * interface of issue 01. `tsc -b` compiles this file; nothing here runs. A JSON schema cannot say `readonly`, so both

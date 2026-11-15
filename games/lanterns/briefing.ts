@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The briefings of Lanterns: what a resident reads before the run starts. Carried from the old game file
  * (`stories/lanterns/story.ts`, `briefing`): the template strings are byte-identical, and the resident count is

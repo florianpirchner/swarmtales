@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Liar's dice: the traditional bluffing game with hidden dice for solo seats. A match is several games; in each game
  * every seat rolls its dice in secret every round, the seats bid higher in turn on how many dice of a face the whole

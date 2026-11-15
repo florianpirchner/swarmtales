@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Submitting a code, entering a level and the doors (carried from the old `mechanics/progression/src/submit.ts`:
  * `submit`, `enterLevel`, `notifyHolders`, `openDoor`, `openOnClock`). The order of the checks and of the events is

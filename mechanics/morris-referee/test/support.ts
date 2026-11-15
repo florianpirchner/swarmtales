@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game the referee tests play: the morris game of the old platform (`stories/morris-teams/story.ts`) with the
  * referee loaded last, as there, and without the briefing, which belongs to the game issue. The setup is the one of

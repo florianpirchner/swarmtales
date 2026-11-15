@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The chess mechanic's variants: the legal-move lists, the threats, the coach and the teams with the advisor's wake
  * (`wakeTeam`, the `told` list). `NOT_CAPTAIN` stays as carried and has no test: as on the old platform, the game locks

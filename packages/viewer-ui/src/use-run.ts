@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { indexRun, loadRun, projectRun, verifyRun, type RunIndex, type RunModel, type RunProjection, type RunSource, type RunVerification, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useState } from "react";
 import { verifyTexts, type VerifyReply, type VerifyRequest } from "./verify-worker.ts";

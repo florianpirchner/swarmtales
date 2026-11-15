@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The spend ledger: the cap of a milestone held by code. A JSON-lines file whose first line is `{ "capUsd": n }`;
  * every run adds `{ "run", "id", "reservedUsd" }` before it starts and `{ "run", "id", "costUsd" }` after it ended.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Offers and trades through the bank: what an offer may ask, what each side must hold (goods, tax, the escrow fee and
  * the escrowed goods its shipment does not cover), the trade that `accept` executes with the delivery it leaves owed,

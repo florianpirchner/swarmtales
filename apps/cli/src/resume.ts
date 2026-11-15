@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt resume` (specification of M3, section 7.2): a fake run goes on from a snapshot file in a new run folder,
  * whose log starts with the lines of the run before and then the marker `run_resumed`.

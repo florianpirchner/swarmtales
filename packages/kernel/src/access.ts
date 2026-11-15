@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Part 4: grants and locks, the two halves of the stage `lock`. A grant says which tools an actor may use at all.
  * A lock closes one tool for one actor: the start locks of the definition (no event, they are part of it), then

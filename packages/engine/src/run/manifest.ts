@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The manifest builder: it turns a resolved game and the facts of one run into the run manifest. It reads data
  * only: it creates no plugin, reads no clock and no file, so the same input gives the same manifest.

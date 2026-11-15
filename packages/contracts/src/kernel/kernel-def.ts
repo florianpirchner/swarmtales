@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The kernel definition, the kernel itself and its snapshot, as types. The snapshot schema lives in `state.ts`. */
 import type { JsonValue, RandomSource, RunEnd } from "../values.ts";
 import type { ActorId, ActorSpec } from "./actor.ts";

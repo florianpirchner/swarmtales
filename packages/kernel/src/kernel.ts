@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The assembly: `createKernel` joins the parts to one kernel, keeps the end and the first failure of the run, and
  * resumes a run from a snapshot and its log. A port of what is left of the old `host.ts` beside the lifecycle.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The leak scan of a run folder: which of its files hold what a given test calls a leak. */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";

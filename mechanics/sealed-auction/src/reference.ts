@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The reference metrics of a game: its distance from the closed-form single-lot references, for the human and the report only. */
 import { Type, type Static } from "typebox";
 import { curseFreeCeiling, equilibriumBid, type Lot, type LotKind, type LotResult, type Rules } from "./rules.ts";

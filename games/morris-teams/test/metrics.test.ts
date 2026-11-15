@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The metrics of `morris` over the new log of an oracle replay (M4 specification, issue 52): each equals the number
  * computed by hand from the same oracle file, and a metric without its events is absent, never 0. That the replay is

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Game resolution: from a game (builder form or data form) to the definition a kernel is created from. It runs the
  * steps of the files beside it in order, collects every issue, and throws once. It reads heads and data only: no

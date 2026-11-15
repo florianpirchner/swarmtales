@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Blind Bid: four solo seats bid on a series of lots with sealed bids and a purse per game. Each game sells six lots
  * of three kinds, two each: pay-your-bid and pay-the-runner-up lots with private values, and shared-worth lots with

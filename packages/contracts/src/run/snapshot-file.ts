@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The snapshot file of a run (`<run>/snapshots/t<tick>.json`): the kernel's state between two ticks with the
  * signed head of the chain at that point. A run resumes from it. No behaviour.

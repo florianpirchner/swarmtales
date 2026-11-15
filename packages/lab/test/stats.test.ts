@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The statistics of the lab: the numbers of the M0 noise floor from its value lists, hand examples, the fixed seed, the tolerance. */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

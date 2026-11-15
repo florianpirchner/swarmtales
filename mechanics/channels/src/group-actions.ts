@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What `channels` does with groups, carried from the old platform: the registry decides who may, this file writes the
  * events and the replies. The old marks of a group post (its price, `marks n/m left`) belong to `marks` and to the

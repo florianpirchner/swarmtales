@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Sample 6 in process: the steward amends the crew's choice on a structured answer, keeps it on its fallback, and
  * the game holds the standing checks (replay, and resume from every boundary) with both answers. No model is asked:

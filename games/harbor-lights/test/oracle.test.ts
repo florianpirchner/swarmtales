@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game against its oracles: every file of the folder (the three arms, the aid, hard strikes and the silent file) is
  * played from its inputs under the game's own scheduler and compared at level 3 (rules, texts, scheduling); the cut

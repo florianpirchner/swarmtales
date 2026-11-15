@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The facts of a run: every number is computed from the envelopes of its log. The metrics of the loaded mechanics
  * are computed by their own definitions; the generic keys (`run.*`, `models.*`) come from kernel events and the

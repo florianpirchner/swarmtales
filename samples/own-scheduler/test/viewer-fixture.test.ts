@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The recorder of the viewer's fixture `packages/viewer-core/test/fixtures/parallel-run`: one race of test 5 of
  * section 3.7 (the mechanic `board`, `onNews`, two activations a tick, drivers that wait a seeded random time), seed

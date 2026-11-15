@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The English-only test: no German umlauts and no common German words in any text file of the repository. */
 import { describe, expect, it } from "vitest";
 import { findGerman } from "../lib/english.ts";

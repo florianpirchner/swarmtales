@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The rules of Salt Market as pure functions (the deal, bundles, the score, the optimum, fairness) and
  * the mechanic's state as a Typebox schema (the snapshot slice).

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The mechanic against the four oracle files of Convoy, inside the test game of `support.ts`: each file is played
  * from its inputs under `turns` and compared at level 3 (rules, texts, scheduling). The game with its briefing

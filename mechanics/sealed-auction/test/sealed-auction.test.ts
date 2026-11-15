@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The sealed-auction mechanic alone: a scripted match, the lot timer, the lock of `bid`, a fake run and its
  * conformance (offline). The cases are the mechanic's part of the old `test/stories/blind-bid.test.ts`; the game's

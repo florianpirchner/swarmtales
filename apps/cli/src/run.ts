@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt run --fake`: a game file to a verified run folder, in the four steps `play` of the testkit takes too
  * (resolve the game, create the kernel, check the win fact, run), with the sink of the run folder.

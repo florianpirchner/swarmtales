@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The envelope reader, the choice of the reader by `manifest.json`, and the carried legacy fixture. */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";

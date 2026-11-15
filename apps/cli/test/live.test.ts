@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `swt run` without `--fake`, with the scripted source in place of a provider: the test builds its environment
  * record and its key values itself, reads nothing from the process, and the global `fetch` rejects.

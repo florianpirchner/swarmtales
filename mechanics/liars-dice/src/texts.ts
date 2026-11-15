@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The texts a seat reads: a line of the public record, the rules, its task on its turn, the table, and the input lines of an activation. */
 import { rulesOf } from "./flow.ts";
 import type { LiarsDiceCtx } from "./head.ts";

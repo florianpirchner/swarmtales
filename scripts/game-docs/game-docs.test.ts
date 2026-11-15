@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The catalogue `GAMES.md` (M4 specification, issue 62): the gate of `pnpm docs:games --check`, so a stale overview,
  * count or ported mark fails the check, and the generator's refusals on small texts.

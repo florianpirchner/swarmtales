@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The rules of the progression that no oracle file reaches (the old `test/mechanics/progression` cases of the first
  * half of the port): a shut door and its opening, the attempt window, the refusals of a submission, the looks with the

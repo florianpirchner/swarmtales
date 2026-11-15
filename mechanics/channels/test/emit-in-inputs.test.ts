@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The first test of the direct messages: may a `turnInputs` hook emit? `dm_delivered` is written there. */
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";

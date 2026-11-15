@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The rules of `model.ts`: the deal, rotation, the score, the optimum, fairness and spoilage (the old test's "Salt Market rules"). */
 import { describe, expect, it } from "vitest";
 import type { RandomSource } from "@swarmtales/contracts";

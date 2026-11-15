@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Quarry with scripted model records replays without a model: the seat writes a request and a response record
  * around its calls and owes an answer after each turn with a call, as a model driver does. The record source is a

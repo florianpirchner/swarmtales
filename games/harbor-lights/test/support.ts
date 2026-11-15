@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The arms of the Harbor Lights tests, their scripted crew member and their readers of the log. The player is carried
  * from `test/mechanics/hint-towers/support.ts` (`towerPlayer`) of the old platform.

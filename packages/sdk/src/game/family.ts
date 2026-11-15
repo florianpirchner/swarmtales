@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The game family: a game built from typed params, for a game with variants and for the arms of an experiment.
  * What is hashed and recorded is the data of the game that `build` returns, so two param sets give two game hashes.

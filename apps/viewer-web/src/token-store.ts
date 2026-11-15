@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The GitHub token, remembered on this device only when the person ticks "Remember on this device". It lives in
  * `localStorage` of the page's origin, which on GitHub Pages is shared by every Pages site of the owner; that is why it

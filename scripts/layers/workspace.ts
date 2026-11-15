@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Reads the workspace from disk into the description that `rules.ts` checks. */
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";

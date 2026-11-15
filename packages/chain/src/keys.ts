@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Ed25519 public keys as a run writes them (PEM `run.pub`, base64 SPKI DER in the genesis) and
  * signature checks, in pure JavaScript (`@noble/curves`). An Ed25519 SPKI DER is a fixed 12-byte

@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Mechanic: levels and doors, submitSolution, tool unlocks per level, acts, the ranking, the task and status lines",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",

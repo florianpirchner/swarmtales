@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Offers, trades and messages through the bank (the old test "refuses bad offers, taxes big trades, holds escrow
  * until it is due" up to the trade, and "refuses a plain promise of shipment goods due before the trader could hand

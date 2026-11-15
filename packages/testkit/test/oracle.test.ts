@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { defineGame, defineHead, defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { Type, type Static } from "typebox";
 import { describe, expect, it } from "vitest";

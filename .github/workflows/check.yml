@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
 # The full check on every pull request and on every push to `main` and `develop` (DECISIONS.md, D3).
 # Budget: `pnpm check` itself fails above 10 minutes or 6 GB. Actions are pinned by commit; the licence gate
 # checks that (scripts/licences/allowlist.ts).

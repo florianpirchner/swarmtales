@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The assembly's sequence of a run: the start, one tick in two halves (the scheduler plays between them), the end
  * and the failure. A port of `Host#play`, `start`, `#finish` and `#fail` of the old `host.ts`.

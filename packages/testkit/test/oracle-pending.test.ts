@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The pending answer of a live replay in `runOracle` (erratum E62; specification of M2, section 7.2): the driver of
  * a file with `source.kind: "live-replay"` is pending after an activation with a call, so `turns` wakes the resident

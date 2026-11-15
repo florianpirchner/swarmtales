@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The parts of the old `test/mechanics/ledger/ledger.test.ts` that need other mechanics, played with stand-ins: the
  * names of `identity` in the replies and the target, the receipt of `receipt-source` in the reply, and the cap on
