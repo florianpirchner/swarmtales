@@ -1291,6 +1291,9 @@ importers:
       '@swarmtales/mechanic-decisions':
         specifier: workspace:*
         version: link:../../mechanics/decisions
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:../../mechanics/exile
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk

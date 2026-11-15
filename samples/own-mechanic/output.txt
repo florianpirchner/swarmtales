@@ -1,0 +1,2 @@
+fake models: no result
+own-mechanic seed 3: ended after 4 ticks (tick limit)

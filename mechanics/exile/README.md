@@ -136,6 +136,33 @@ const done = ctx.call(ExileService, "banish", { resident: "A04" });
 if (!done.ok) return refuse(done.code ?? "REFUSED");
 ```
 
+A mechanic that can play without `exile` names it under `uses` and calls it with `tryCall`, which answers
+`undefined` when no loaded mechanic provides the service. The tribunal of sample 5 does so
+([`samples/own-mechanic/src/tribunal.ts`](../../samples/own-mechanic/src/tribunal.ts)):
+
+```ts
+	const banished = ctx.tryCall(ExileService, "banish", { resident });
+	ctx.emit("sentenced", { resident, changed, exiled: banished?.ok === true });
+```
+
+A listener of an event is written the same way for `exiled` as for any other: the declared events, the type, the
+handler, and the mechanics whose listeners of that event must run first. The same file listens to `marks.marked`:
+
+```ts
+		kit.listen(
+			MarksEvents,
+			"marked",
+			({ name }, ctx) => {
+				if (ctx.call(MarksService, "against", { resident: name }) !== ctx.options.threshold) return;
+				const answer = ctx.call(DecisionsService, "propose", { kind: SENTENCE, proposal: { resident: name }, window: ctx.options.window, schema: Sentence });
+				if (answer.committed) sentence(ctx, name, false);
+			},
+			{ after: ["marks"] },
+		),
+```
+
+The tutorial [Write a mechanic](../../docs/tutorials/mechanic.md) walks through it.
+
 ## Lessons and loopholes
 
 None recorded yet. The log is [`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md).

@@ -23,6 +23,9 @@
 			"path": "../../mechanics/decisions"
 		},
 		{
+			"path": "../../mechanics/exile"
+		},
+		{
 			"path": "../../packages/testkit"
 		},
 		{

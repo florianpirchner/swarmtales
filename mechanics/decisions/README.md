@@ -211,6 +211,25 @@ grants: {
 The person and the Director `warden` hold every decision: each is named in `holders` and has `amendDecision` in its
 grant. The `court` proposes its verdict with a window of 2 ticks, in which a holder may change it.
 
+The owner of a decision proposes it and commits on `decision_settled`. The tribunal of sample 5 proposes a sentence
+when the marks against a resident reach its threshold, commits at once on `committed: true`, and otherwise commits
+the proposal that stands at the deadline, after it checked the kind, the owner and the shape
+([`samples/own-mechanic/src/tribunal.ts`](../../samples/own-mechanic/src/tribunal.ts)):
+
+```ts
+				const answer = ctx.call(DecisionsService, "propose", { kind: SENTENCE, proposal: { resident: name }, window: ctx.options.window, schema: Sentence });
+				if (answer.committed) sentence(ctx, name, false);
+```
+
+```ts
+		kit.listen(DecisionsEvents, "decision_settled", (settled, ctx) => {
+			if (settled.kind !== SENTENCE || settled.owner !== ctx.mechanic || !Check(Sentence, settled.proposal)) return;
+			sentence(ctx, settled.proposal.resident, settled.changed);
+		}),
+```
+
+The tutorial [Write a mechanic](../../docs/tutorials/mechanic.md) walks through it.
+
 ## Lessons and loopholes
 
 None recorded yet. The log is [`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md).

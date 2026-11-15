@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Sample: sample 5, a mechanic of your own, with its tutorial. The issues of milestone M4 fill this package.
+ * Sample 5: a mechanic of your own. The mechanic `marks` lets residents mark a suspect; the mechanic `tribunal`
+ * listens to its event and owns a decision; the game `../game.ts` loads both. The tutorial is
+ * `docs/tutorials/mechanic.md`.
  *
  * @packageDocumentation
  */
-export {};
+export { MarksEvents, MarksService } from "./contract.ts";
+export { marks, marksHead } from "./marks.ts";
+export { SENTENCE, tribunal } from "./tribunal.ts";
