@@ -3,8 +3,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkDeterminism, checkOptionsDocumented, checkPackage, checkSnapshotRoundTrip, fakeDriver, idleDriver, play, testKernel } from "@swarmtales/testkit";
-import type { ActorDriver, Envelope } from "@swarmtales/contracts";
+import { checkDeterminism, checkOptionsDocumented, checkPackage, checkResumeEveryBoundary, checkSnapshotRoundTrip, fakeDriver, idleDriver, play, testKernel } from "@swarmtales/testkit";
+import { nameOf, type ActorDriver, type Envelope } from "@swarmtales/contracts";
 import { chess } from "../src/index.ts";
 import { adjudicate, parseMove, replay, scoreMove } from "../src/model.ts";
 import { chessGame, field, movesSoFar, ofType, playerOf } from "./support.ts";
@@ -170,5 +170,23 @@ describe("mechanic conformance", () => {
 		for (const cut of [0, 1, 3]) expect(await checkSnapshotRoundTrip(chessGame(), () => player, cut)).toEqual([]);
 		// Silent seats: the cut falls inside the forfeit clock.
 		expect(await checkSnapshotRoundTrip(chessGame({ brain: false, games: 1 }), () => idleDriver, 1)).toEqual([]);
+	});
+
+	it("resumes with the refused moves in the order of the first refusal, Black's before White's (A43)", async () => {
+		// A02 (Black) tries an illegal king move at ply 1, A01 (White) at ply 4 and waits two minutes before its mate, so a
+		// boundary falls between the refusals and `game_ended`, whose `illegal` is { A02, A01 } and not sorted.
+		const sloppy: ActorDriver = async (turn) => {
+			const who = nameOf(turn.actor);
+			if (!/Retro|Before game 1/.test(turn.inputs.map((note) => note.text).join("\n"))) {
+				const view = await turn.call("viewBoard", {});
+				const plies = view.ok ? movesSoFar(view.reply) : -1;
+				if (who === "A01" && plies === 6 && turn.tick < 3) return;
+				if ((who === "A02" && plies === 1) || (who === "A01" && plies === 4)) await turn.call("playMove", { move: "Ke7", reason: "try" });
+			}
+			await player(turn);
+		};
+		const run = await play(chessGame({ games: 1 }), { drivers: { resident: sloppy } });
+		expect(ofType(run.events, "game_ended").map((event) => [event.tick, JSON.stringify(field(event, "illegal"))])).toEqual([[4, '{"A02":1,"A01":1}']]);
+		expect(await checkResumeEveryBoundary(chessGame({ games: 1 }), () => ({ resident: sloppy }), {})).toEqual([]);
 	});
 });

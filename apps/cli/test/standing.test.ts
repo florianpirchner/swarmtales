@@ -34,13 +34,6 @@ const HOLDS = /^ok, \d+ lines, head [0-9a-f]{64}, continuity holds$/;
 const LIST = readFileSync(new URL("../../../games/index.ts", import.meta.url), "utf8");
 const LINE = /\{ name: "([^"]+)", file: "([^"]+)", seeds: \[[\d, ]*\], fakeSeeds: \[([\d, ]+)\] \}/g;
 const RUNS = [...LIST.matchAll(LINE)].flatMap(([, name = "", file = "", seeds = ""]) => seeds.split(",").map((seed) => ({ name, seed: Number(seed), file: fileURLToPath(new URL(`../../../${file}`, import.meta.url)) })));
-/**
- * Open: game to the boundaries from which its resumed log differs today. Tic-tac-toe teams and nine men's morris
- * at boundary 0: both teams have a retro window open, `strategy-brain` saves its windows as an object, the snapshot file sorts the
- * keys, and the two `resetCap` calls of the next tick swap. The fix belongs to `mechanics/strategy-brain`; the
- * entry goes with it (the test fails when the boundary resumes equal).
- */
-const OPEN: Readonly<Record<string, readonly number[]>> = { "tictactoe-teams": [0], "morris-teams": [0] };
 /** The run folder a command printed (`run: <folder>`), relative to the working directory. */
 const folderOf = (printed: Printed): string => (printed.out.at(-1) ?? "").replace(/^run: /, "");
 
@@ -76,8 +69,7 @@ describe("the standing checks through the command line", () => {
 		expect(eventsOf(join(cwd, folder))).toEqual(log);
 		expect((await swt("replay", folder, "--game", file)).code).toBe(0);
 		const differing: number[] = [];
-		const equal = boundaries.filter((tick) => !(OPEN[name] ?? []).includes(tick));
-		const whole = [equal[0], equal[Math.floor(equal.length / 2)], equal.at(-1)];
+		const whole = [boundaries[0], boundaries[Math.floor(boundaries.length / 2)], boundaries.at(-1)];
 		for (const tick of boundaries) {
 			const resumed = await swt("resume", folder, "--game", file, "--snapshot", `${folder}/snapshots/t${String(tick)}.json`);
 			expect([tick, resumed.code, resumed.err]).toEqual([tick, 0, ""]);
@@ -88,7 +80,7 @@ describe("the standing checks through the command line", () => {
 			expect((await swt("log", "verify", folderOf(resumed), "--previous", folder)).out, `boundary ${String(tick)}`).toEqual([expect.stringMatching(HOLDS)]);
 			expect((await swt("replay", folderOf(resumed), "--game", file)).code, `boundary ${String(tick)}`).toBe(0);
 		}
-		expect(differing).toEqual(OPEN[name] ?? []);
+		expect(differing).toEqual([]);
 		// Nine men's morris takes about 160 s here: 21 boundaries of a fake run of 156 ticks and 18000 lines.
 	}, 300_000);
 });

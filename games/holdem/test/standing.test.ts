@@ -2,8 +2,8 @@
 /**
  * The standing checks of hold'em, in process (M4 specification 4.3): the log replays equal, and a run resumed from
  * every tick boundary writes the log of the straight run. The scripted runs get both checks on a short match (two
- * games of three hands, as the old snapshot test played them), the fake runs the replay: their resume from every
- * boundary is proven through the command line over the games list (`apps/cli/test/standing.test.ts`).
+ * games of three hands, as the old snapshot test played them), and so do the fake runs on the game file (A43: a
+ * resume from a snapshot file, whose keys are sorted, writes the straight log).
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
@@ -22,7 +22,7 @@ describe("holdem: the standing checks", () => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	});
 
-	it.each(RUNS.filter((run) => run.name.startsWith("scripted")))("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each(RUNS)("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
-	});
+	}, 120_000);
 });

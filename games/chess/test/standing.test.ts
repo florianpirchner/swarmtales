@@ -2,9 +2,8 @@
 /**
  * The standing checks of chess, in process (M4 specification 4.3): the log replays equal, and a run resumed from
  * every tick boundary writes the log of the straight run. The scripted runs get both checks on a match of one game
- * (the game file plays two), plain and with a fresh context per move; the fake runs the replay: their resume from
- * the sampled boundaries is proven through the command line over the games list (`apps/cli/test/standing.test.ts`).
- * The team variant, which the games list does not play, gets both checks here on a fake run of one game with the
+ * (the game file plays two), plain and with a fresh context per move, and the fake runs on the game file get both
+ * checks too (A43: a resume from a snapshot file, whose keys are sorted, writes the straight log). The team variant, which the games list does not play, gets both checks here on a fake run of one game with the
  * lists, the threats and the coach, and the control arm without a brain gets the replay.
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
@@ -28,7 +27,7 @@ describe("chess: the standing checks", () => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	});
 
-	it.each([...RUNS.filter((run) => run.name.startsWith("scripted")), TEAMS])("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each([...RUNS, TEAMS])("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
-	});
+	}, 120_000);
 });

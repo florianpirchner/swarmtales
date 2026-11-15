@@ -6,6 +6,20 @@ import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contra
 import { defineHead, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { Done, HoldemSlice, Move, Result, Scored, SeatStats, Street, type HoldemState } from "./model.ts";
 
+// The seats' points in the order of the seats, as they were built: a snapshot file sorts every object's keys, and
+// `game_ended` and `match_ended` write the points as they are (A43).
+function bySeat(points: Readonly<Record<string, number>>, seats: readonly string[]): Record<string, number> {
+	const rank = (seat: string): number => (seats.includes(seat) ? seats.indexOf(seat) : seats.length);
+	return Object.fromEntries(Object.entries(points).sort(([a], [b]) => rank(a) - rank(b)));
+}
+
+// The state as it is, the points by seat. No event writes another object of the state as it is (a hand's records
+// are built anew when they are written), so the rest needs no order of its schema.
+function loadState(data: HoldemState): HoldemState {
+	const state = structuredClone(data);
+	return { ...state, scores: bySeat(state.scores, state.seats), gameScores: bySeat(state.gameScores, state.seats) };
+}
+
 /** The tool a seat acts with; it is open only to the seat to act. */
 export const ACT = "act";
 
@@ -57,7 +71,7 @@ export const holdemHead = defineHead({
 			due: false,
 		};
 	},
-	snapshot: { save: (state: HoldemState) => structuredClone(state), load: (data): HoldemState => structuredClone(data) },
+	snapshot: { save: (state: HoldemState) => structuredClone(state), load: loadState },
 	events: {
 		game_started: Type.Object({ game: Type.Integer(), hands: Type.Integer(), seats: Type.Array(Type.String()) }),
 		hand_started: Type.Object({ game: Type.Integer(), hand: Type.Integer(), button: Type.String(), seats: Type.Array(Type.String()) }),

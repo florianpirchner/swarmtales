@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /** The head of the `chess` mechanic: its options, its state with the snapshot, its events, services, prompts and tools. */
 import { Type, type Static } from "typebox";
-import { defineHead, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
+import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
@@ -99,6 +99,26 @@ export const ChessSlice = Type.Object({
  */
 export type ChessState = Static<typeof ChessSlice>;
 
+// The snapshot: the state and the key order of the records whose keys come in the order of play (A43). A snapshot file
+// sorts every object's keys, and `game_ended` writes `illegal` and `forfeits` as they are, in the order of the first refusal.
+const ChessSaved = Type.Object({
+	...ChessSlice.properties,
+	keyOrder: Type.Optional(Type.Object({ illegal: Type.Array(Type.String()), forfeits: Type.Array(Type.String()) }, { description: "The keys of `illegal` and `forfeits` in the order they were added." })),
+});
+
+// A record with the keys in `order` first, then the others in their order (the sort is stable).
+function inOrder<T>(record: Readonly<Record<string, T>>, order: readonly string[] = []): Record<string, T> {
+	const rank = (key: string): number => (order.includes(key) ? order.indexOf(key) : order.length);
+	return Object.fromEntries(Object.entries(record).sort(([a], [b]) => rank(a) - rank(b)));
+}
+
+function loadState(data: Static<typeof ChessSaved>): ChessState {
+	const { keyOrder, ...slice } = data;
+	const state = inSchemaOrder(ChessSlice, slice);
+	// The seats' records are built in the order of the seats; the other two keep the order saved with them.
+	return { ...state, members: inOrder(state.members, state.seats), taken: inOrder(state.taken, state.seats), scores: inOrder(state.scores, state.seats), illegal: inOrder(state.illegal, keyOrder?.illegal), forfeits: inOrder(state.forfeits, keyOrder?.forfeits) };
+}
+
 const ColourSchema = Type.Union([Type.Literal("white"), Type.Literal("black")]);
 
 const Reason = Type.Optional(Type.String({ maxLength: 400, description: "A short reason, for the record." }));
@@ -150,7 +170,7 @@ export const chessHead = defineHead({
 	package: "@swarmtales/mechanic-chess",
 	summary: "A match of chess games between two solo seats; chess.js checks every move and ends the games.",
 	options,
-	state: ChessSlice,
+	state: ChessSaved,
 	start: (setup): ChessState => {
 		const teams = setup.options.teams ?? Object.fromEntries(setup.residents.map((id) => [id, [id]]));
 		const names = Object.keys(teams);
@@ -182,8 +202,8 @@ export const chessHead = defineHead({
 		};
 	},
 	snapshot: {
-		save: (state: ChessState) => structuredClone(state),
-		load: (data): ChessState => structuredClone(data),
+		save: (state: ChessState) => ({ ...structuredClone(state), keyOrder: { illegal: Object.keys(state.illegal), forfeits: Object.keys(state.forfeits) } }),
+		load: loadState,
 	},
 	events,
 	metrics: chessMetrics(events),

@@ -96,6 +96,10 @@ function openWindows(ctx: Ctx, game: number): void {
 	}
 }
 
+// The teams with an open window, in the order of the option `teams`: the order the windows open in, and one that a
+// snapshot file (keys sorted) cannot change, so a resumed run calls and closes in the straight run's order (A43).
+const windowTeams = (ctx: Ctx): string[] => Object.keys(ctx.options.teams).filter((team) => ctx.state.windows.has(team));
+
 function closeWindow(ctx: Ctx, team: string, reason: "written" | "max_posts" | "timeout"): void {
 	const window = ctx.state.windows.get(team);
 	if (window === undefined) return;
@@ -277,10 +281,12 @@ export const strategyBrain = defineMechanic(strategyBrainHead, {
 			if (ctx.options.brainAtStart) holdForRetro(ctx, 0);
 		},
 		tickStarted: (ctx) => {
-			for (const team of ctx.state.windows.keys()) ctx.tryCall(TeamChannelService, "resetCap", { team });
+			for (const team of windowTeams(ctx)) ctx.tryCall(TeamChannelService, "resetCap", { team });
 		},
 		tickEnded: (ctx) => {
-			for (const [team, window] of [...ctx.state.windows]) {
+			for (const team of windowTeams(ctx)) {
+				const window = ctx.state.windows.get(team);
+				if (window === undefined) continue;
 				if (window.posts >= ctx.options.retroMaxPosts) closeWindow(ctx, team, "max_posts");
 				else if (ctx.tick - window.opened + 1 >= ctx.options.retroMaxMinutes) closeWindow(ctx, team, "timeout");
 			}
