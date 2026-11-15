@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game: Convoy. The issues of milestone M4 fill this package.
+ * Game: Convoy, a hidden-role card game for six solo seats.
  *
  * @packageDocumentation
  */
-export {};
+export { convoyGame, default, type ConvoyOptions } from "../game.ts";
+export { briefings, SEATS } from "../briefing.ts";

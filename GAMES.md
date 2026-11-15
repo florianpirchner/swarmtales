@@ -1,6 +1,6 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. Ten games run on the new platform today, each with a scripted
+The catalogue of the games that run on Swarm Tales. Eleven games run on the new platform today, each with a scripted
 or sampled player in place of a model. The first live runs on this platform are those of the gate of milestone M2
 ([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding or a recorded moment yet:** a finding appears
 on a card only when it is reproduced on this platform, with n, standard error and a link.
@@ -23,6 +23,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
 | [Chess](#chess) | board games, all information public | 2 | `chess`, `team-channel`, `strategy-brain` | none; variants are options of `chessGame` | the five oracle files of the default, the fresh context and the compact board match at level 3 |
 | [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none; variants are options of `holdemGame` | the five oracle files without the aid match at level 3 |
+| [Convoy](#convoy) | hidden information and bluff | 6 | `convoy`, `strategy-brain` | none; variants are options of `convoyGame` | four oracle files match at level 3 |
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
 old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
@@ -183,17 +184,32 @@ the report only.
   mapping (the files lack the flag `endsTurn`, which follows from the reply); the briefings are byte-identical.
 - Links: [folder](games/holdem/), [README](games/holdem/README.md), [oracle files](oracles/holdem/).
 
+## Convoy
+
+Six solo seats (A01 to A06) play a match of an original hidden-role card game. In every game two secret saboteurs,
+who know each other, sit among four loyal seats, and a convoy crosses eight stages: a rotating lead proposes a crew,
+the table talks and votes confidence, and the crew plays sealed safe or damage cards of which only the count is
+revealed. One audit per game shows one earlier card; three damaged stages stop the convoy. Every game starts from a
+fresh context with new roles; a seat's only memory is a short private strategy brain. The mechanic scores the loyal
+seats' accusations and votes against a Bayesian tracker of the public record, for the report only.
+
+- Variants are options of `convoyGame`: the games, the crews, the damage limit, the cooldown, no brain (the control
+  arm).
+- Proof: the four oracle files match at level 3, three of them up to their cut after game 1; the briefings are
+  byte-identical.
+- Links: [folder](games/convoy/), [README](games/convoy/README.md), [oracle files](oracles/convoy/).
+
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families. Eight are ported so far, marked in bold; the Hello Game and the city slice are new and are
+five families. Nine are ported so far, marked in bold; the Hello Game and the city slice are new and are
 not among the fifteen.
 
 | Family | Games |
 |---|---|
 | Societies | City of Keys, Whispers |
 | Board games, all information public | **chess (ported)**, nine men's morris, **tic-tac-toe teams (ported)** |
-| Hidden information and bluff | **Hold'em (ported)**, **Liar's Dice (ported)**, Convoy |
+| Hidden information and bluff | **Hold'em (ported)**, **Liar's Dice (ported)**, **Convoy (ported)** |
 | Cooperation under hidden information | **Harbor Lights (ported)**, **Lanterns (ported)** |
 | Markets, bids and economics | **Econ Lab (ported)**, Salt Market, Blind Bid, **Quarry (ported)**, Ember Tricks |
 

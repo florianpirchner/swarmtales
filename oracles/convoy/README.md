@@ -16,3 +16,7 @@ hidden card.
 
 Not covered: games 2 and 3 of a played match with their retro windows, the damage and cooldown variants (`-d<n>`,
 `-c<n>`), refused calls beyond the ones a recorded model made ([../COVERAGE.md](../COVERAGE.md)).
+
+The game (M4-46, `games/convoy/test/oracle.test.ts`) matches all four files at level 3, three up to their cut. No
+mapping of `call.endsTurn` is needed: no tool of the old `convoy` mechanic set the flag, so the files and today's
+calls agree on its absence.
