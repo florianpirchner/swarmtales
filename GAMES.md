@@ -1,6 +1,6 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. Five games run on the new platform today, each with a scripted
+The catalogue of the games that run on Swarm Tales. Six games run on the new platform today, each with a scripted
 or sampled player in place of a model. The first live runs on this platform are those of the gate of milestone M2
 ([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding or a recorded moment yet:** a finding appears
 on a card only when it is reproduced on this platform, with n, standard error and a link.
@@ -17,6 +17,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none; variants are options of `tictactoeGame` | nine oracle files match at level 3 |
 | [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with nine params | six oracle files match at level 3 |
 | [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with five params | five oracle files match at level 3 |
+| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | a game family with five params | the oracle files of the arms `solo` and `nobrain` match at level 3; the silent file of the crew arm at level 2 |
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
@@ -81,6 +82,24 @@ play and the social optimum, for the report only.
 - Links: [folder](games/econ-lab/), [README](games/econ-lab/README.md), [oracle files](oracles/econ-lab/),
   [experiment specifications](games/econ-lab/experiments/).
 
+## Harbor Lights
+
+A crew of four (A01 to A04) plays a match of a cooperative card game of hidden hands. Five signal towers are lit
+from rank 1 to 7; every seat holds four cards it cannot see and sees everyone else's. On a turn a seat gives a signal
+(all cards of one suit or one rank in a teammate's hand), plays a slot to its tower (a wrong rank is a misfire), or
+discards a slot to win a signal back. Every card exists once and a lost card is bridged, so a loss costs one point.
+Every game starts from a fresh context; what a seat keeps is the arm: one crew brain written after a chat between
+games, private notes, or nothing. A crew of reference bots plays every deal too, for the report only.
+
+- Params of the game family: `games`, `brain` (`crew`, `solo`, `nobrain`), `strikes` (`soft`: every misfire from the
+  second on costs 3 points; `hard`: the third strike ends the game), `aid` (each own slot shows the chance that a
+  play lights it now), `maxWords`. The defaults give the game of the old platform.
+- Proof: the three oracle files of the arms `solo` and `nobrain` match at level 3, one of them up to its cut; the
+  silent file of the crew arm matches at level 2 (level 3 waits for the lock events of M4-64); the briefings are
+  byte-identical.
+- Links: [folder](games/harbor-lights/), [README](games/harbor-lights/README.md),
+  [oracle files](oracles/harbor-lights/).
+
 ## The city slice
 
 The smallest part of the City of Keys that needs talk, a ledger, an exile, a decision with a window, a Director and
@@ -103,7 +122,7 @@ played by scripts, offline, and has no briefing. The full recut of the City come
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families. Three are ported so far, marked in bold; the Hello Game and the city slice are new and are
+five families. Four are ported so far, marked in bold; the Hello Game and the city slice are new and are
 not among the fifteen.
 
 | Family | Games |
@@ -111,7 +130,7 @@ not among the fifteen.
 | Societies | City of Keys, Whispers |
 | Board games, all information public | chess, nine men's morris, **tic-tac-toe teams (ported)** |
 | Hidden information and bluff | Hold'em, Liar's Dice, Convoy |
-| Cooperation under hidden information | Harbor Lights, Lanterns |
+| Cooperation under hidden information | **Harbor Lights (ported)**, Lanterns |
 | Markets, bids and economics | **Econ Lab (ported)**, Salt Market, Blind Bid, **Quarry (ported)**, Ember Tricks |
 
 Until a game is ported, its rules, runs and findings are readable at the tag
