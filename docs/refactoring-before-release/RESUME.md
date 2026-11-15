@@ -32,9 +32,9 @@ one holds.
 
 1. **Owed by the owner** (the build session cannot push tags): the tag `v0-final` on `a73e6a9` (still not on the
    remote; the switch of `main` waits for it), `runtime-r4` at the merge of M4-02 (`b158a5b`) and `runtime-r5` at
-   the merge of M4-68 (`6d1a685`), as `docs/RUNTIME-REVISIONS.md` says. The owner's go is also open for P465 (no
+   the merge of M4-68 (`6d1a685`) and `runtime-r6` at the merge of M4-72 (`390448d`), as `docs/RUNTIME-REVISIONS.md` says. The owner's go is also open for P465 (no
    game tool in an answer turn) and the look at the provider's usage page against the 4.09 USD of the series.
-2. **The milestone review of M4** runs next: a challenger session that reads the specification, the errata and the
+2. **The milestone review of M4** is done (`docs/M4-REVIEW.md`, closed by M4-72, A47); M4 is closed. Was: a challenger session that reads the specification, the errata and the
    result, and attacks the gate. Its findings become issues of M4 by a decision row, as the reviews of M2 and M3
    did; M4 is closed by that review.
 3. **The row of M4-63** in `docs/ISSUE-RECORD.md` (row 231) waits for its commit id, merge time, tokens and agent
