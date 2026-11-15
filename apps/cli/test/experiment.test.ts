@@ -19,6 +19,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { experimentRun, type ExperimentInput } from "../src/experiment.ts";
 import { LEAK_FILE } from "../src/leak-scan.ts";
 import { main, type CliIo } from "../src/main.ts";
+import { report } from "../src/report.ts";
 
 const Params = Type.Object({ max: Type.Integer({ default: 20, description: "The secret lies between 1 and this number" }) }, { description: "The params of the family" });
 export default defineGameFamily(Params, ({ max }) => defineGame({ id: "guess-number", seed: 4, residents: 3, mechanics: [guessNumber({ max })], briefing: "Find the secret number.", end: { ticks: 30 } }));
@@ -93,7 +94,7 @@ const lines = (file: string): readonly string[] => readFileSync(join(cwd, file),
 describe("swt experiment", () => {
 	it("runs a two-arm series that is stopped at its cap, continues under a raised total, and is analysed", async () => {
 		writeFileSync(join(cwd, "ledger.jsonl"), '{"capUsd":1}\n');
-		const plan = planRuns(SPEC).map((run) => `run ${run.index} ${run.arm} seed ${run.seed} replicate ${run.replicate}: series/guess-number-00${run.index + 1} ended with guess-number.solved, `);
+		const plan = planRuns(SPEC).map((run) => `run ${run.index} ${run.arm} seed ${run.seed} replicate ${run.replicate}: guess-small/guess-number-00${run.index + 1} ended with guess-number.solved, `);
 		const stopped = await run("series", SPEC, { ledger: "ledger.jsonl" });
 		expect([stopped.code, /SWT-[A-Z]\d{3}/.exec(stopped.err)?.[0]]).toEqual([6, "SWT-E004"]);
 		expect(stopped.out.slice(0, 2)).toEqual([expect.stringMatching(/^guess-small: 6 runs, in this order \(arm\/seed\/replicate\): (control|small)\/\d\/0 /), "estimate: 0.06 USD of the cap 0.06 USD, at most 0.05 USD per run"]);
@@ -108,6 +109,8 @@ describe("swt experiment", () => {
 		expect([state?.runs.slice(0, 4), state?.runs.length, state?.specHash]).toEqual([before?.runs, 6, before?.specHash]);
 		// The ledger was passed on: every run reserved its cap and settled its cost.
 		expect([lines("ledger.jsonl").filter((line) => line.includes('"reservedUsd":0.05')).length, lines("ledger.jsonl").filter((line) => line.includes('"costUsd"')).length]).toEqual([6, 6]);
+		// P447: the ledger names a run by experiment id and run id, not by a path from the start directory.
+		expect(lines("ledger.jsonl").slice(1).map((line) => /"run":"([^"]+)"/.exec(line)?.[1]).filter((name) => !/^guess-small\/guess-number-00[1-6]$/.test(name ?? ""))).toEqual([]);
 
 		expect(await swt("experiment", "analyse", "series")).toEqual([0, expect.stringMatching(/^guess-small: kept \(estimate -10\.3\d+, n 3\): run\.ticks, small minus control /), undefined]);
 		const results = parseExperimentResults(JSON.parse(readFileSync(join(cwd, "series/results.json"), "utf8")));
@@ -129,7 +132,7 @@ describe("swt experiment", () => {
 	it("stops the series at once when a run leaks (exit 4), and with the refusal of a ledger that has no room, which costs the experiment nothing", async () => {
 		const plant: EventSink = { write: () => { writeFileSync(join(cwd, "leaky/guess-number-001/notes.txt"), `Authorization: ${KEY}`); } };
 		const leaky = await run("leaky", SPEC, { sinks: [plant] });
-		expect([leaky.code, leaky.out.slice(2), /SWT-E007[^\n]*reported a leak/.test(leaky.err), leaky.err.includes(KEY)]).toEqual([4, [expect.stringMatching(/^run 0 \w+ seed \d replicate 0: failed in leaky\/guess-number-001 \(SWT-X030\)$/)], true, false]);
+		expect([leaky.code, leaky.out.slice(2), /SWT-E007[^\n]*reported a leak/.test(leaky.err), leaky.err.includes(KEY)]).toEqual([4, [expect.stringMatching(/^run 0 \w+ seed \d replicate 0: failed in guess-small\/guess-number-001 \(SWT-X030\)$/)], true, false]);
 		expect([existsSync(join(cwd, "leaky", "guess-number-001", LEAK_FILE)), existsSync(join(cwd, "leaky/guess-number-002")), readExperimentState(join(cwd, "leaky"))?.runs.map((record) => record.status)]).toEqual([true, false, ["stopped"]]);
 		writeFileSync(join(cwd, "full.jsonl"), '{"capUsd":0.04}\n');
 		// A ledger without room refuses the run before any call: the series stops with SWT-C025, charges nothing and keeps the run open.
@@ -163,7 +166,13 @@ describe("swt report", () => {
 		expect(await swt("report", "series/guess-number-001")).toEqual([0, "report: series/guess-number-001/REPORT.md", undefined]);
 		const text = lines("series/guess-number-001/REPORT.md");
 		expect(text).toEqual(expect.arrayContaining(["# Run guess-number-001", expect.stringMatching(/^\| `run\.ticks` \| Ticks \| {2}\| \d+ \|$/), "| `models.costUsd` | Cost | USD | 0.003 |", LOOPHOLE_HEADING]));
+		expect(text.filter((line) => line.startsWith("metrics absent:") || line.startsWith("- Human-influenced"))).toEqual([]);
 		expect((await swt("report", "series/guess-number-002", "--game", fileURLToPath(import.meta.url)))[0]).toBe(0);
+		// P444: without `--game`, a mechanic of the manifest that is not installed is named at the head of the facts table; the SDK's `roster` is no mechanic.
+		const { io } = terminal();
+		expect(await report({ directory: "series/guess-number-003" }, { ...io, installed: {} })).toBe(0);
+		const bare = lines("series/guess-number-003/REPORT.md");
+		expect([bare.filter((line) => line.startsWith("metrics absent:")), bare[bare.indexOf("## Facts") + 2], bare.some((line) => line.startsWith("| `guess-number."))]).toEqual([["metrics absent: guess-number"], "metrics absent: guess-number", false]);
 		expect(await swt("report", "series")).toEqual([1, "", "SWT-E001"]);
 		writeFileSync(join(cwd, "series/guess-number-002/notes.txt"), `Authorization: ${KEY}`);
 		expect(await swt("report", "series/guess-number-002")).toEqual([4, "report: series/guess-number-002/REPORT.md", "SWT-X030"]);

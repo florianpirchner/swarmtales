@@ -16,6 +16,7 @@ import { Type } from 'typebox';
 export const ACTOR_KEYS: {
     readonly requests: "models.requests.";
     readonly costUsd: "models.costUsd.";
+    readonly noCalls: "run.noCallActivations.";
 };
 
 // @public
@@ -377,7 +378,7 @@ export function readRun(directory: string, metrics: Readonly<Record<string, read
 export function renderRunReport(facts: RunFacts, manifest: RunManifest, titles: Readonly<Record<string, {
     readonly title: string;
     readonly unit?: string;
-}>>): string;
+}>>, options?: RunReportOptions): string;
 
 // @public
 export function renderSeriesReport(results: ExperimentResults, spec: ExperimentSpec): string;
@@ -418,6 +419,11 @@ export type RunRecord = Readonly<Static<typeof Played>>;
 
 // @public
 export class RunRefused extends SwtError {}
+
+// @public
+export interface RunReportOptions {
+    readonly metricsAbsent?: readonly string[];
+}
 
 // @public
 export function share(hits: number, n: number): {

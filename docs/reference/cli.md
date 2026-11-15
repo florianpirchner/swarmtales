@@ -84,7 +84,9 @@ checks that the new log continues the old one. `--json` prints the verdict as on
 
 ### `swt report <run dir>`
 
-Writes the report of a run into its folder. `--game <game file>` gives the game whose mechanics name the metrics.
+Writes the report of a run into its folder. `--game <game file>` gives the game whose mechanics name the metrics;
+without it the mechanics are the installed ones that the plugin ids of the run's manifest name. A mechanic of the
+run whose metrics cannot be computed so is named in a line `metrics absent: <id>` at the head of the facts table.
 
 | Exit code | Meaning |
 |---|---|

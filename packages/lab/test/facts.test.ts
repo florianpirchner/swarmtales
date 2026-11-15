@@ -115,6 +115,7 @@ describe("readRun", () => {
 			end: { reason: "limit", limit: "guess-number.solved", tick: 2 },
 			values: {
 				"run.ticks": 2, "run.activations": 3, "run.toolCalls": 3, "run.toolRefusals": 1, "run.refusals.INVALID_ARGUMENTS": 1,
+				"run.noCallActivations": 0, "run.humanToolCalls": 0, "run.noCallActivations.resident:A01": 0, "run.noCallActivations.resident:A02": 0,
 				...ABSENT_MODELS,
 				"guess-number.guesses": 2, "guess-number.highGuesses": 0, "guess-number.resets": "absent",
 			},
@@ -184,6 +185,23 @@ describe("factsOf", () => {
 		// A `response` that is not what the driver writes: the counts stand, the sums are not measured.
 		const broken = factsOf(MANIFEST, log([[0, DRIVER, "response", A01, usage(100, 0.25)], [0, DRIVER, "response", A01, { input: "many" }]]), {});
 		expect(broken).toMatchObject({ "models.requests": 0, "models.inputTokens": "absent", "models.costUsd": "absent", "models.requests.resident:A01": 0, "models.costUsd.resident:A01": "absent" });
+	});
+
+	it("A44: counts the activations that closed without a call, in the run and per actor; P452: counts the tool calls of the human", () => {
+		const A03 = actorId("resident", "A03");
+		const closed = (actor: ActorId, outcome: string, calls: number) => [0, "kernel", "activation_closed", actor, { actor, calls, outcome }] as const;
+		const turns = log([
+			closed(A01, "no-call", 0), closed(A01, "acted", 1), closed(A01, "no-call", 0), closed(A02, "acted", 2), closed(A03, "error", 0),
+			// The same type from another source, and a payload without an outcome, are no idle turn of the kernel's.
+			[0, PLUGIN, "activation_closed", A02, { actor: A02, calls: 0, outcome: "no-call" }], [0, "kernel", "activation_closed", A02, { actor: A02 }],
+			[1, "kernel", "tool_called", "human", { as: "pause", params: {} }], [1, "kernel", "tool_called", "human", { as: "resume", params: {} }], [1, PLUGIN, "tool_called", "human", {}],
+		]);
+		const values = factsOf(MANIFEST, turns, {});
+		expect([values["run.noCallActivations"], values["run.humanToolCalls"]]).toEqual([2, 2]);
+		expect(Object.entries(values).filter(([key]) => key.startsWith("run.noCallActivations."))).toEqual([["run.noCallActivations.resident:A01", 2], ["run.noCallActivations.resident:A02", 0], ["run.noCallActivations.resident:A03", 0]]);
+		// An actor that never had an activation closed has no key; a run without one counts 0.
+		const quiet = factsOf(MANIFEST, log([[0, "kernel", "run_started", "kernel", { seed: 7 }]]), {});
+		expect([quiet["run.noCallActivations"], quiet["run.humanToolCalls"], Object.keys(quiet).filter((key) => key.startsWith("run.noCallActivations."))]).toEqual([0, 0, []]);
 	});
 
 	it("keeps a generic key when a plugin is named like one", () => {

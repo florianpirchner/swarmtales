@@ -9,7 +9,7 @@
  */
 import { readFileSync } from "node:fs";
 import { findPackageJSON } from "node:module";
-import { relative, resolve } from "node:path";
+import { basename, relative, resolve } from "node:path";
 import { jsonHash } from "@swarmtales/chain";
 import { formatIssue, redactSecrets, redactValue, SwtError, type DriverTable, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import { createDirectorDrivers, DIRECTOR_RECORDS } from "@swarmtales/engine";
@@ -65,6 +65,8 @@ export interface LiveResult {
 	readonly code: number;
 	/** The run folder, relative to the current directory; absent when the run did not start. */
 	readonly run?: string;
+	/** The name of the run in the spend ledger and in the series lines: `<experiment id>/<run id>`, or `<purpose>/<run id>` outside an experiment (`smoke/quarry-001`). Absent when the run did not start. */
+	readonly name?: string;
 	/** The end of the run; absent when the run loop stopped with the run still open. */
 	readonly end?: RunEnd;
 	/** The stop of the run loop, when the run did not end. */
@@ -138,6 +140,35 @@ interface Outcome {
 	readonly hand?: HandCount;
 }
 
+/**
+ * The requests and tokens of a run as the result line prints them (P448): the input that was not read from a cache,
+ * the cache reads and writes, and the output.
+ *
+ * @param spend - What the run spent.
+ * @returns For example "12 requests, 686 input, 755266 cache-read, 84665 cache-write and 31038 output tokens".
+ *
+ * @public
+ */
+export function tokenLine(spend: Spend): string {
+	return `${String(spend.requests)} requests, ${String(spend.input)} input, ${String(spend.cacheRead)} cache-read, ${String(spend.cacheWrite)} cache-write and ${String(spend.output)} output tokens`;
+}
+
+/**
+ * The name of a run in the spend ledger and in the series lines (P447): never a path, so it does not depend on the
+ * directory the command started in.
+ *
+ * @param input - The experiment of the run and its purpose.
+ * @param input.experiment - The experiment the run belongs to.
+ * @param input.purpose - The purpose of the run, which names it outside an experiment.
+ * @param directory - The run folder; its last part is the run id.
+ * @returns `<experiment id>/<run id>`, or `<purpose>/<run id>` (`smoke/quarry-001`).
+ *
+ * @public
+ */
+export function runName(input: Pick<LiveInput, "experiment" | "purpose">, directory: string): string {
+	return `${input.experiment?.id ?? input.purpose}/${basename(directory)}`;
+}
+
 // Every line goes through `redact`: the result of a game and the text of an issue may hold what a model wrote.
 function print(outcome: Outcome, json: boolean, io: CliIo, redact: Redact): void {
 	const { game, settings, end, result, verdict, spend, capUsd, run, issues } = outcome;
@@ -153,7 +184,7 @@ function print(outcome: Outcome, json: boolean, io: CliIo, redact: Redact): void
 	for (const line of handLine(outcome.hand)) io.out(line);
 	for (const issue of issues) io.err(redact(formatIssue(issue)));
 	if (verdict.ok) io.out(`log verified: ${String(verdict.lines)} lines, head ${verdict.head ?? "none"}`);
-	io.out(`spend: ${spend.costUsd.toFixed(4)} USD of the cap ${capUsd.toFixed(2)} USD, ${String(spend.requests)} requests, ${String(spend.input)} input and ${String(spend.output)} output tokens`);
+	io.out(`spend: ${spend.costUsd.toFixed(4)} USD of the cap ${capUsd.toFixed(2)} USD, ${tokenLine(spend)}`);
 	io.out(redact(`run: ${run}`));
 }
 
@@ -248,7 +279,8 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace
 	const run = await prepared(input, io, broker);
 	const { game, settings, source, systemPrompts, meter, redact, texts } = run;
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
-	const { kernel, folder, settle } = reserved(input, io, relative(io.cwd, directory), meter.capUsd, () => opened(input, io, run, directory));
+	const name = runName(input, directory);
+	const { kernel, folder, settle } = reserved(input, io, name, meter.capUsd, () => opened(input, io, run, directory));
 	trace.scan = () => scanFolder(directory, (text) => broker.leaks(text));
 	const play = async (): Promise<Awaited<ReturnType<typeof played>>> => {
 		kernel.start();
@@ -269,7 +301,7 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace
 	// A closed meter does not know the cost: the reservation stays, as for a run that crashed.
 	if (meter.closed === undefined) settle(meter.total.costUsd);
 	const result = game.win === undefined || end?.reason === "error" ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
-	const outcome = { ...ended, spend: meter.total, run: relative(io.cwd, directory), issues: redactValue([...issues, ...verdict.issues, ...leak], redact), ...(hand === undefined ? {} : { hand }) };
+	const outcome = { ...ended, spend: meter.total, run: relative(io.cwd, directory), name, issues: redactValue([...issues, ...verdict.issues, ...leak], redact), ...(hand === undefined ? {} : { hand }) };
 	print({ game, settings, end: last, why: whyOf(kernel, last), ...result, verdict, capUsd: meter.capUsd, ...outcome }, input.json, io, redact);
 	return { code: codeOf(leak.length > 0, end, verdict.ok, end?.limit === meter.limit.id), ...outcome };
 }

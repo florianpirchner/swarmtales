@@ -48,7 +48,7 @@ export interface Ledger {
 	/**
 	 * Checks that a run fits and writes its reservation, in one step without a wait between the two.
 	 *
-	 * @param run - The name of the run: its folder.
+	 * @param run - The name of the run: `<experiment id>/<run id>`, or `<purpose>/<run id>` for a single run.
 	 * @param usd - The cost cap of the run.
 	 * @throws SwtError `SWT-C025` when the ledger cannot be read, or when the costs, the open reservations and `usd` together are above the cap; nothing is written then.
 	 */
@@ -102,8 +102,8 @@ function held(file: string): { readonly capUsd: number; readonly heldUsd: number
  * @example
  * ```ts
  * const ledger = openLedger("games/m2-ledger.jsonl", () => new Date());
- * ledger.reserve("runs/quarry-001", 0.1); // refused with SWT-C025 when 0.1 USD more does not fit
- * ledger.settle("runs/quarry-001", 0.0412);
+ * ledger.reserve("smoke/quarry-001", 0.1); // refused with SWT-C025 when 0.1 USD more does not fit
+ * ledger.settle("smoke/quarry-001", 0.0412);
  * ```
  *
  * @public

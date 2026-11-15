@@ -67,11 +67,11 @@ function failureOf(result: LiveResult): SwtError {
 	return new SwtError([...leaks, ...result.issues.filter((issue) => issue.code !== LEAK)]);
 }
 
-// The series' line of one run, and for a failed one the error the runner gets.
+// The series' line of one run, which names it `<experiment id>/<run id>` (P447), and for a failed one the error the runner gets.
 function outcomeOf(result: LiveResult): { readonly line: string; readonly failure?: SwtError } {
-	if (result.code !== 4 && result.run !== undefined && result.spend !== undefined) return { line: `${result.run} ended with ${result.end?.limit ?? result.end?.reason ?? "no end"}, ${result.spend.costUsd.toFixed(4)} USD` };
+	if (result.code !== 4 && result.name !== undefined && result.spend !== undefined) return { line: `${result.name} ended with ${result.end?.limit ?? result.end?.reason ?? "no end"}, ${result.spend.costUsd.toFixed(4)} USD` };
 	const codes = result.issues.map((issue) => issue.code).join(", ");
-	return { line: `failed${result.run === undefined ? "" : ` in ${result.run}`} (${codes === "" ? "no issue" : codes})`, failure: failureOf(result) };
+	return { line: `failed${result.name === undefined ? "" : ` in ${result.name}`} (${codes === "" ? "no issue" : codes})`, failure: failureOf(result) };
 }
 
 // One live run in process. Its own lines are not printed: the series prints one line per run.

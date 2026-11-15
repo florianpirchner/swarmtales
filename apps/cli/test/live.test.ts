@@ -13,7 +13,7 @@ import { guessNumber } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { runLive, type LiveInput, type LiveResult } from "../src/live.ts";
+import { runLive, runName, tokenLine, type LiveInput, type LiveResult } from "../src/live.ts";
 import { main, type CliIo } from "../src/main.ts";
 
 const GAME = fileURLToPath(new URL("./fixtures/guess-number.ts", import.meta.url));
@@ -83,11 +83,11 @@ describe("runLive with the scripted source", () => {
 	it("writes the manifest before the first event, plays to the end, verifies the log and prints the spend", async () => {
 		const seen: boolean[] = [];
 		const watch: EventSink = { write: () => void seen.push(existsSync(join(cwd, "runs/guess-number-001/manifest.json"))) };
-		const { code, run, end, out, err } = await live({ sinks: [watch], replicate: 2, purpose: "pilot" });
-		expect([code, run, err]).toEqual([0, "runs/guess-number-001", ""]);
+		const { code, run, name, end, out, err } = await live({ sinks: [watch], replicate: 2, purpose: "pilot" });
+		expect([code, run, name, err]).toEqual([0, "runs/guess-number-001", "pilot/guess-number-001", ""]);
 		expect(end).toMatchObject({ reason: "limit", limit: "guess-number.solved" });
 		expect([seen.length > 10, seen.every(Boolean)]).toEqual([true, true]);
-		expect(out).toEqual([expect.stringMatching(/^guess-number seed 4 with anthropic\/\S+: ended after \d+ ticks \(limit guess-number.solved: A01 found the secret\)$/), expect.stringMatching(/^log verified: \d+ lines, head [0-9a-f]{64}$/), expect.stringMatching(/^spend: 0\.0000 USD of the cap 1\.00 USD, [1-9]\d* requests, /), "run: runs/guess-number-001"]);
+		expect(out).toEqual([expect.stringMatching(/^guess-number seed 4 with anthropic\/\S+: ended after \d+ ticks \(limit guess-number.solved: A01 found the secret\)$/), expect.stringMatching(/^log verified: \d+ lines, head [0-9a-f]{64}$/), expect.stringMatching(/^spend: 0\.0000 USD of the cap 1\.00 USD, [1-9]\d* requests, \d+ input, \d+ cache-read, \d+ cache-write and \d+ output tokens$/), "run: runs/guess-number-001"]);
 		const manifest = manifestOf("runs/guess-number-001");
 		expect(manifest).toMatchObject({ run: { purpose: "pilot" }, replicate: 2, limits: { budgetUsd: 1 }, game: { params: {} } });
 		expect(manifest.actors.map((actor) => [actor.driver, actor.model?.provider, actor.model?.params.thinking, /^pi-ai@\d+\.\d+\.\d+$/.test(actor.model?.pricing ?? "")])).toEqual([1, 2, 3].map(() => [RESIDENT_DRIVER, "anthropic", "medium", true]));
@@ -141,5 +141,13 @@ describe("runLive with the scripted source", () => {
 		// An `SwtError` is printed as its issues, anything else as its redacted message; neither as an error object.
 		const broken = await live({ out: "broken", sinks: [{ write: () => { throw new TypeError(`the sink failed with ${KEY}`); } }] });
 		expect([broken.code > 0, [...broken.out, broken.err].join("\n").includes(KEY), broken.err]).toEqual([true, false, expect.stringContaining("[redacted]")]);
+	});
+});
+
+describe("the result line and the name of a run", () => {
+	it("P448: prints the cache reads and writes beside the input and the output; P447: names a run without a path", () => {
+		expect(tokenLine({ requests: 12, input: 686, output: 31038, cacheRead: 755266, cacheWrite: 84665, costUsd: 0.4 })).toBe("12 requests, 686 input, 755266 cache-read, 84665 cache-write and 31038 output tokens");
+		const experiment = { id: "harbor-lights-notes", specHash: "0".repeat(64), arm: "solo" };
+		expect([runName({ purpose: "smoke" }, "/somewhere/runs-data/smoke/quarry-001"), runName({ purpose: "confirmatory", experiment }, "../runs/harbor-lights-007")]).toEqual(["smoke/quarry-001", "harbor-lights-notes/harbor-lights-007"]);
 	});
 });

@@ -4,7 +4,7 @@
  * last section, and at this milestone nothing writes it.
  */
 import type { RunManifest } from "@swarmtales/contracts";
-import { ACTOR_KEYS, type RunFacts } from "../facts/facts.ts";
+import { ACTOR_KEYS, type FactValue, type RunFacts } from "../facts/facts.ts";
 import { code, section, shown, table } from "./format.ts";
 
 /**
@@ -31,6 +31,8 @@ const GENERIC: Titles = {
 	"run.activations": { title: "Activations" },
 	"run.toolCalls": { title: "Tool calls" },
 	"run.toolRefusals": { title: "Refused tool calls" },
+	"run.noCallActivations": { title: "Activations without a call" },
+	"run.humanToolCalls": { title: "Tool calls of the human" },
 	"models.requests": { title: "Model requests" },
 	"models.failedRequests": { title: "Failed model requests" },
 	"models.contextResets": { title: "Context resets" },
@@ -58,13 +60,19 @@ function header(facts: RunFacts, manifest: RunManifest): readonly string[] {
 		`- Kernel: runtime revision ${kernel.revision}, version ${kernel.version}${commit}; scheduler ${code(scheduler.id)}, revision ${scheduler.revision}`,
 		`- Manifest: ${code(facts.manifestHash)}`,
 		`- Signed head: ${code(facts.head)}`,
+		...human(facts.values["run.humanToolCalls"]),
 	];
 }
 
-const perActor = (key: string): boolean => key.startsWith(ACTOR_KEYS.requests) || key.startsWith(ACTOR_KEYS.costUsd);
+// P452: the header says so when the Human Hand called a tool.
+function human(calls: FactValue | undefined): readonly string[] {
+	return typeof calls === "number" && calls > 0 ? [`- Human-influenced: ${String(calls)} tool ${calls === 1 ? "call" : "calls"} of \`human\``] : [];
+}
 
-// The actors with their drivers and models, what each asked and cost, and the spend of the run. An actor without
-// a model reads "absent" in both columns: it could not ask.
+const perActor = (key: string): boolean => Object.values(ACTOR_KEYS).some((prefix) => key.startsWith(prefix));
+
+// The actors with their drivers and models, what each asked and cost, its turns without a call, and the spend of
+// the run. An actor without a model reads "absent" in the two columns of the model: it could not ask.
 function spend(facts: RunFacts, manifest: RunManifest): readonly string[] {
 	const { values } = facts;
 	const rows = manifest.actors.map((actor) => [
@@ -73,8 +81,22 @@ function spend(facts: RunFacts, manifest: RunManifest): readonly string[] {
 		actor.model === undefined ? "none" : `${actor.model.provider} ${code(actor.model.resolvedId)}`,
 		shown(values[`${ACTOR_KEYS.requests}${actor.id}`]),
 		shown(values[`${ACTOR_KEYS.costUsd}${actor.id}`]),
+		shown(values[`${ACTOR_KEYS.noCalls}${actor.id}`]),
 	]);
-	return [...table(["Actor", "Driver", "Model", "Requests", "Cost (USD)"], rows, "no actor"), "", `The run: ${shown(values["models.costUsd"])} USD in ${shown(values["models.requests"])} model requests.`];
+	return [...table(["Actor", "Driver", "Model", "Requests", "Cost (USD)", "Turns without a call"], rows, "no actor"), "", `The run: ${shown(values["models.costUsd"])} USD in ${shown(values["models.requests"])} model requests.`];
+}
+
+// P444: one line for every mechanic of the run whose metrics the report could not compute, ahead of the table.
+const absentLines = (plugins: readonly string[]): readonly string[] => plugins.flatMap((plugin) => [`metrics absent: ${plugin}`, ""]);
+
+/**
+ * What a run report knows beside the facts and the titles.
+ *
+ * @public
+ */
+export interface RunReportOptions {
+	/** The plugin ids of the run's mechanics whose metric definitions were not found: each gets a line "metrics absent: <id>" at the head of the facts table. */
+	readonly metricsAbsent?: readonly string[];
 }
 
 /**
@@ -83,14 +105,16 @@ function spend(facts: RunFacts, manifest: RunManifest): readonly string[] {
  *
  * @remarks
  * Pure: facts and manifest in, Markdown out. The facts table has one row per key of `facts.values`, in their
- * order, without the keys per actor (`models.requests.<actor id>`, `models.costUsd.<actor id>`): those stand in
- * the table of the spend, one row per actor. A value that was not measured is printed as the word `absent`, never as a zero. The report ends with
- * {@link LOOPHOLE_HEADING} and {@link NO_LOOPHOLE_PART}.
+ * order, without the keys per actor ({@link ACTOR_KEYS}): those stand in the table of the spend, one row per
+ * actor. A value that was not measured is printed as the word `absent`, never as a zero. A run whose Human Hand
+ * called a tool (`run.humanToolCalls` above 0) has a header line "Human-influenced" with the count. The report ends
+ * with {@link LOOPHOLE_HEADING} and {@link NO_LOOPHOLE_PART}.
  *
  * @param facts - The facts of the run, as `readRun` computed them.
  * @param manifest - The manifest of the run.
  * @param titles - Title and unit by key (`<plugin id>.<metric id>`), from the metric definitions of the loaded
  * mechanics. A key without one gets the lab's title for its own keys, or the key itself.
+ * @param options - The mechanics whose metrics are absent from the facts.
  * @returns The Markdown text, ending with a line break.
  * @example
  * ```ts
@@ -100,7 +124,7 @@ function spend(facts: RunFacts, manifest: RunManifest): readonly string[] {
  *
  * @public
  */
-export function renderRunReport(facts: RunFacts, manifest: RunManifest, titles: Readonly<Record<string, { readonly title: string; readonly unit?: string }>>): string {
+export function renderRunReport(facts: RunFacts, manifest: RunManifest, titles: Readonly<Record<string, { readonly title: string; readonly unit?: string }>>, options: RunReportOptions = {}): string {
 	const entries = Object.entries(facts.values);
 	const rows = entries.filter(([key]) => !perActor(key)).map(([key, value]) => {
 		const { title, unit } = titleOf(key, titles);
@@ -111,7 +135,7 @@ export function renderRunReport(facts: RunFacts, manifest: RunManifest, titles: 
 	return [
 		...header(facts, manifest),
 		...section("## Result", [`The run ended at tick ${tick}: ${reason}${limit === undefined ? "" : ` (${limit})`}.`]),
-		...section("## Facts", table(["Key", "Title", "Unit", "Value"], rows, "no value")),
+		...section("## Facts", [...absentLines(options.metricsAbsent ?? []), ...table(["Key", "Title", "Unit", "Value"], rows, "no value")]),
 		...section("## Refusals", table(["Code", "Count"], refusals, "none")),
 		...section("## Spend", spend(facts, manifest)),
 		...section(LOOPHOLE_HEADING, [NO_LOOPHOLE_PART]),

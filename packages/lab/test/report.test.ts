@@ -23,7 +23,7 @@ const MANIFEST: RunManifest = {
 };
 const FACTS: RunFacts = {
 	run: "toy-open-s1-r0", manifestHash: A, head: B, game: "toy", seed: 1, replicate: 0, arm: "open", end: { reason: "limit", limit: "maxTicks", tick: 9 },
-	values: { "run.ticks": 9, "run.toolRefusals": 0, "run.refusals.TOOL_LOCKED": 2, "models.requests": 20, "models.costUsd": 0.0123456, "models.requests.resident:A01": 20, "models.costUsd.resident:A01": 0.0123456, "toy.score": 7.5, "toy.decisions": "absent", "brain.writes": "absent" },
+	values: { "run.ticks": 9, "run.toolRefusals": 0, "run.noCallActivations": 3, "run.humanToolCalls": 2, "run.refusals.TOOL_LOCKED": 2, "models.requests": 20, "models.costUsd": 0.0123456, "run.noCallActivations.resident:A01": 3, "models.requests.resident:A01": 20, "models.costUsd.resident:A01": 0.0123456, "toy.score": 7.5, "toy.decisions": "absent", "brain.writes": "absent" },
 };
 const TITLES = { "toy.score": { title: "Score", unit: "points" }, "toy.decisions": { title: "Decisions" } };
 
@@ -53,7 +53,7 @@ const RESULTS: ExperimentResults = { ...UNGATED, pass: { rule: "toy.score, open 
 
 describe("the run report", () => {
 	it("is the computed text of the fixture facts", () => {
-		expect(renderRunReport(FACTS, MANIFEST, TITLES)).toMatchInlineSnapshot(`
+		expect(renderRunReport(FACTS, MANIFEST, TITLES, { metricsAbsent: ["brain", "court"] })).toMatchInlineSnapshot(`
 			"# Run toy-open-s1-r0
 
 			- Game: \`toy\` (Toy game), params \`{"open":true}\`
@@ -62,6 +62,7 @@ describe("the run report", () => {
 			- Kernel: runtime revision 3, version 0.0.0, commit \`c0ffee\` with changes that are not committed; scheduler \`turns\`, revision 1
 			- Manifest: \`aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\`
 			- Signed head: \`bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\`
+			- Human-influenced: 2 tool calls of \`human\`
 
 			## Result
 
@@ -69,10 +70,16 @@ describe("the run report", () => {
 
 			## Facts
 
+			metrics absent: brain
+
+			metrics absent: court
+
 			| Key | Title | Unit | Value |
 			| --- | --- | --- | --- |
 			| \`run.ticks\` | Ticks |  | 9 |
 			| \`run.toolRefusals\` | Refused tool calls |  | 0 |
+			| \`run.noCallActivations\` | Activations without a call |  | 3 |
+			| \`run.humanToolCalls\` | Tool calls of the human |  | 2 |
 			| \`run.refusals.TOOL_LOCKED\` | Refusals with TOOL_LOCKED |  | 2 |
 			| \`models.requests\` | Model requests |  | 20 |
 			| \`models.costUsd\` | Cost | USD | 0.01235 |
@@ -88,10 +95,10 @@ describe("the run report", () => {
 
 			## Spend
 
-			| Actor | Driver | Model | Requests | Cost (USD) |
-			| --- | --- | --- | --- | --- |
-			| \`resident:A01\` | \`model\` | anthropic \`claude-haiku\` | 20 | 0.01235 |
-			| \`director:host\` | \`scripted\` | none | absent | absent |
+			| Actor | Driver | Model | Requests | Cost (USD) | Turns without a call |
+			| --- | --- | --- | --- | --- | --- |
+			| \`resident:A01\` | \`model\` | anthropic \`claude-haiku\` | 20 | 0.01235 | 3 |
+			| \`director:host\` | \`scripted\` | none | absent | absent | absent |
 
 			The run: 0.01235 USD in 20 model requests.
 
@@ -115,6 +122,8 @@ describe("the run report", () => {
 		const silent = renderRunReport({ ...FACTS, values: { "models.costUsd": "absent", "models.requests": "absent" } }, { ...MANIFEST, actors: [] }, {});
 		expect(silent).toContain("The run: absent USD in absent model requests.");
 		expect(silent).toContain("## Refusals\n\nnone\n");
+		// P452 and P444: no header line without a call of the human, and no line of absent metrics without one named.
+		expect([silent.includes("Human-influenced"), silent.includes("metrics absent"), renderRunReport({ ...FACTS, values: { ...FACTS.values, "run.humanToolCalls": 1 } }, MANIFEST, {}).includes("- Human-influenced: 1 tool call of `human`\n")]).toEqual([false, false, true]);
 	});
 });
 

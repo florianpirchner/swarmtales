@@ -18,5 +18,5 @@ export { type PlannedRun, planRuns } from "./experiment/plan.ts";
 export { type ExperimentOptions, type MetricTable, type PlayRun, type RunOutcome, runExperiment } from "./experiment/run.ts";
 export { type ExperimentState, ExperimentStateSchema, readExperimentState, resolveRunFolder, type RunRecord } from "./experiment/state.ts";
 export { analyse } from "./experiment/analyse.ts";
-export { LOOPHOLE_HEADING, NO_LOOPHOLE_PART, renderRunReport } from "./report/run-report.ts";
+export { LOOPHOLE_HEADING, NO_LOOPHOLE_PART, renderRunReport, type RunReportOptions } from "./report/run-report.ts";
 export { renderSeriesReport } from "./report/series-report.ts";

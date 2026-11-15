@@ -44,13 +44,17 @@ export interface RunFacts {
 const KERNEL = "kernel";
 /** The record sources of the model driver and of a Director's asker (`RESIDENT_RECORDS.id` and `DIRECTOR_MODEL_RECORDS.id` of `models`, which the lab may not import). */
 const DRIVERS: readonly string[] = ["@swarmtales/models/resident", "@swarmtales/models/director"];
+/** The actor of the Human Hand, whose tool calls make a run human-influenced. */
+const HUMAN = "human";
 /**
- * The prefixes of the keys per actor: `models.requests.<actor id>` and `models.costUsd.<actor id>`.
+ * The prefixes of the keys per actor: `models.requests.<actor id>`, `models.costUsd.<actor id>` and
+ * `run.noCallActivations.<actor id>`.
  *
  * @public
  */
-export const ACTOR_KEYS = { requests: "models.requests.", costUsd: "models.costUsd." } as const;
+export const ACTOR_KEYS = { requests: "models.requests.", costUsd: "models.costUsd.", noCalls: "run.noCallActivations." } as const;
 
+const Closed = Type.Object({ outcome: Type.String({ description: "How the activation went: `acted`, `no-call` or `error`" }) }, { description: "What the lab reads of an `activation_closed` payload" });
 const Refusal = Type.Object({ code: Type.String({ description: "The refusal code" }) }, { description: "What the lab reads of a `tool_refused` payload" });
 const tokens = (description: string) => Type.Integer({ minimum: 0, description });
 const Usage = Type.Object(
@@ -64,6 +68,19 @@ const SUMS = [["models.inputTokens", "input"], ["models.outputTokens", "output"]
 
 const count = (events: readonly Envelope[], type: string): number => events.filter((event) => event.type === type).length;
 
+// The activations that closed without a call (A44), in the run and for every actor that had an activation closed,
+// and the tool calls of the Human Hand.
+function turnValues(kernel: readonly Envelope[]): [string, FactValue][] {
+	const closed = kernel.filter((event) => event.type === "activation_closed");
+	const idle = closed.filter((event) => Check(Closed, event.payload) && event.payload.outcome === "no-call");
+	const actors = [...new Set(closed.map((event) => event.actor))];
+	return [
+		["run.noCallActivations", idle.length],
+		["run.humanToolCalls", kernel.filter((event) => event.type === "tool_called" && event.actor === HUMAN).length],
+		...actors.map((actor): [string, FactValue] => [`${ACTOR_KEYS.noCalls}${actor}`, idle.filter((event) => event.actor === actor).length]),
+	];
+}
+
 // The kernel's counts, and one row per refusal code that occurred. A code with no refusal has no row.
 function runValues(events: readonly Envelope[]): Record<string, FactValue> {
 	const kernel = events.filter((event) => event.source === KERNEL);
@@ -73,7 +90,7 @@ function runValues(events: readonly Envelope[]): Record<string, FactValue> {
 		const key = `run.refusals.${event.payload.code}`;
 		values[key] = (typeof values[key] === "number" ? values[key] : 0) + 1;
 	}
-	return values;
+	return { ...values, ...Object.fromEntries(turnValues(kernel)) };
 }
 
 // The sum of one field over the `response` records, or "absent" when one of them is not what the driver writes: a
@@ -134,6 +151,12 @@ function metricValues(manifest: RunManifest, events: readonly Envelope[], metric
  * more keys for every actor that has a model or wrote a record, `models.requests.<actor id>` and
  * `models.costUsd.<actor id>` ({@link ACTOR_KEYS}): an actor that made no request reads `0`. The records of a
  * Director's asker count like those of the model driver, in the keys of the run too.
+ *
+ * Two keys of the run come from the kernel's events whatever drives the actors: `run.noCallActivations` counts the
+ * `activation_closed` events with the outcome `no-call` (turns that ended without a call), with one more key
+ * `run.noCallActivations.<actor id>` for every actor that had an activation closed (`0` when each of its turns had
+ * a call); `run.humanToolCalls` counts the `tool_called` events of the actor `human` (a run with one is
+ * human-influenced).
  *
  * @param manifest - The manifest of the run.
  * @param events - The envelopes of the log, in log order.

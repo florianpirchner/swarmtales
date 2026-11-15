@@ -68,17 +68,31 @@ export function metricTable(mechanics: readonly MechanicDefinition[]): MetricTab
 	return Object.fromEntries(mechanics.map((mechanic) => [mechanic.id, mechanic.head.metrics]));
 }
 
-// The mechanics the run's metrics come from: of its game file, resolved with the seed and the params of the manifest, or every installed one.
-async function mechanicsOf(input: ReportInput, manifest: RunManifest, io: CliIo): Promise<readonly MechanicDefinition[]> {
-	if (input.game === undefined) return Object.values(io.installed ?? (await installedTable(PACKAGE_FILE)));
-	const params = Object.keys(manifest.game.params).length === 0 ? {} : { params: manifest.game.params };
-	return (await resolveFile({ file: input.game, seed: manifest.seed, ...params }, io)).mechanics;
+// The plugins the SDK adds to a game (`roster`, `directors`): no mechanic definition, and no metric.
+const SDK = "@swarmtales/sdk";
+
+// The mechanics the run's metrics come from: of its game file, resolved with the seed and the params of the
+// manifest, or the installed ones that the manifest's plugin ids name (P444). A plugin of the run that neither
+// gives is named as absent.
+async function mechanicsOf(input: ReportInput, manifest: RunManifest, io: CliIo): Promise<{ readonly mechanics: readonly MechanicDefinition[]; readonly absent: readonly string[] }> {
+	const plugins = manifest.plugins.filter((plugin) => plugin.package !== SDK).map((plugin) => plugin.id);
+	let mechanics: readonly MechanicDefinition[];
+	if (input.game === undefined) {
+		const installed = new Map(Object.entries(io.installed ?? (await installedTable(PACKAGE_FILE))));
+		mechanics = plugins.flatMap((id) => installed.get(id) ?? []);
+	} else {
+		const params = Object.keys(manifest.game.params).length === 0 ? {} : { params: manifest.game.params };
+		mechanics = (await resolveFile({ file: input.game, seed: manifest.seed, ...params }, io)).mechanics;
+	}
+	return { mechanics, absent: plugins.filter((id) => !mechanics.some((mechanic) => mechanic.id === id)) };
 }
 
 /**
  * Writes `REPORT.md` of a run folder: reads the run (`readRun` of the lab, which verifies the log first), renders
  * the report with the titles and units of the metrics, writes it through the redaction of the key broker and scans
- * the folder for a held key value.
+ * the folder for a held key value. Without `--game` the mechanics are those of the installed table that the
+ * plugin ids of the manifest name; a plugin of the run without a definition (neither in the table nor, with
+ * `--game`, in the game) is named in a line "metrics absent: <id>" at the head of the facts table.
  *
  * @param input - The run folder and, for a game whose mechanics are not installed with the command line, its game file.
  * @param io - The current directory, the two outputs, and for a test the installed table and the environment.
@@ -96,10 +110,10 @@ export async function report(input: ReportInput, io: CliIo): Promise<number> {
 	const directory = resolve(io.cwd, input.directory);
 	const broker = createKeyBroker(io.env ?? readEnv());
 	const manifest = parseLabFile(RunManifestSchema, jsonFile(join(directory, MANIFEST_FILE)), "run manifest", join(directory, MANIFEST_FILE));
-	const mechanics = await mechanicsOf(input, manifest, io);
+	const { mechanics, absent } = await mechanicsOf(input, manifest, io);
 	const facts = readRun(directory, metricTable(mechanics));
 	const titles = Object.fromEntries(mechanics.flatMap((mechanic) => mechanic.head.metrics.map((metric) => [`${mechanic.id}.${metric.id}`, metric])));
-	writeFileSync(join(directory, REPORT_FILE), broker.redact(renderRunReport(facts, manifest, titles)));
+	writeFileSync(join(directory, REPORT_FILE), broker.redact(renderRunReport(facts, manifest, titles, { metricsAbsent: absent })));
 	const leak = scanFolder(directory, (text) => broker.leaks(text));
 	for (const issue of leak) io.err(broker.redact(formatIssue(issue)));
 	io.out(broker.redact(`report: ${join(relative(io.cwd, directory), REPORT_FILE)}`));

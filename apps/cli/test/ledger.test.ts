@@ -107,7 +107,7 @@ describe("swt run --ledger", () => {
 		expect(linesOf(file)).toHaveLength(2);
 		expect((await live({ ledger: "run.jsonl", budget: 0.5, out: "fits" })).code).toBe(0);
 		const id: unknown = expect.any(String);
-		expect(linesOf(file).slice(2)).toEqual([{ run: "fits/guess-number-001", id, reservedUsd: 0.5, at: AT }, { run: "fits/guess-number-001", id, costUsd: 0, at: AT }]);
+		expect(linesOf(file).slice(2)).toEqual([{ run: "smoke/guess-number-001", id, reservedUsd: 0.5, at: AT }, { run: "smoke/guess-number-001", id, costUsd: 0, at: AT }]);
 		// The flag of the command line reaches the run: the same ledger refuses through `main`.
 		const err: string[] = [];
 		const code = await main(["run", GAME, "--provider", "anthropic", "--budget", "0.6", "--ledger", file, "--out", "refused"], { cwd, now, out: () => undefined, err: (line) => err.push(line), env });
@@ -119,7 +119,7 @@ describe("swt run --ledger", () => {
 		const crash = { write: (): void => { throw new TypeError("the sink failed"); } };
 		expect((await live({ ledger: "crash.jsonl", budget: 0.7, out: "crash", sinks: [crash] })).code).toBe(1);
 		const id: unknown = expect.any(String);
-		expect(linesOf(file).slice(1)).toEqual([{ run: "crash/guess-number-001", id, reservedUsd: 0.7, at: AT }]);
+		expect(linesOf(file).slice(1)).toEqual([{ run: "smoke/guess-number-001", id, reservedUsd: 0.7, at: AT }]);
 		expect((await live({ ledger: "crash.jsonl", budget: 0.4, out: "crash" })).code).toBe(1);
 		expect((await live({ ledger: "crash.jsonl", budget: 0.3, out: "crash" })).code).toBe(0);
 	});
