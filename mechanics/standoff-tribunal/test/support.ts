@@ -4,6 +4,7 @@
  * stand-ins of `progression` (the levels and the door clock) and `puzzles` (the service `holdout-pieces`) that read
  * it. The world is a pure function of the tick, so a resumed run reads what the straight run read.
  */
+import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { defineHead, defineMechanic, type MechanicUse } from "@swarmtales/sdk";
 import { HoldoutPiecesService } from "../src/contract.ts";
@@ -26,7 +27,12 @@ export interface World {
 	readonly dms: readonly Dm[];
 	readonly opensAt: (level: number) => number;
 	readonly lastLevel: number;
+	/** Whether the resident has had its turn in the tick: its level-ups and messages of the tick count from then on. */
+	readonly turnTaken?: (resident: string, tick: number) => boolean;
 }
+
+// Whether what the resident did at `at` is done as the city looks at `tick`.
+const done = (world: World, resident: string, at: number, tick: number): boolean => at < tick || (at === tick && world.turnTaken?.(resident, tick) === true);
 
 const plain = (text: string): string => text.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
@@ -39,7 +45,7 @@ const plain = (text: string): string => text.toUpperCase().replace(/[^A-Z0-9]/g,
  * @returns The level.
  */
 export function levelAt(world: World, resident: string, tick: number): number {
-	return (world.ups.get(resident) ?? []).filter(([at]) => at < tick).reduce((_, [, level]) => level, 1);
+	return (world.ups.get(resident) ?? []).filter(([at]) => done(world, resident, at, tick)).reduce((_, [, level]) => level, 1);
 }
 
 /**
@@ -49,13 +55,14 @@ export function levelAt(world: World, resident: string, tick: number): number {
  * @param level - The door.
  * @param holder - The holder.
  * @param tick - The tick.
+ * @param gone - Whether a resident is struck; a struck holder lacks nobody, a struck member is not counted.
  * @returns The residents, sorted.
  */
-export function lackingAt(world: World, level: number, holder: string, tick: number): readonly string[] {
+export function lackingAt(world: World, level: number, holder: string, tick: number, gone: (resident: string) => boolean = () => false): readonly string[] {
 	const fragment = world.fragments.get(level)?.get(holder);
-	if (fragment === undefined || levelAt(world, holder, tick) < level) return [];
-	const holds = (member: string): boolean => world.dms.some((dm) => dm.tick < tick && dm.from === holder && dm.to === member && plain(dm.text).includes(plain(fragment)));
-	return world.residents.filter((member) => member !== holder && levelAt(world, member, tick) === level && !holds(member)).sort((a, b) => a.localeCompare(b));
+	if (fragment === undefined || gone(holder) || levelAt(world, holder, tick) < level) return [];
+	const holds = (member: string): boolean => world.dms.some((dm) => done(world, dm.from, dm.tick, tick) && dm.from === holder && dm.to === member && plain(dm.text).includes(plain(fragment)));
+	return world.residents.filter((member) => member !== holder && !gone(member) && levelAt(world, member, tick) === level && !holds(member)).sort((a, b) => a.localeCompare(b));
 }
 
 /**
@@ -65,12 +72,14 @@ export function lackingAt(world: World, level: number, holder: string, tick: num
  * @returns The two mechanics.
  */
 export function cityOf(world: World): readonly MechanicUse[] {
-	const pieces = defineMechanic(defineHead({ id: "puzzles", package: "@test/puzzles", summary: "Test: the pieces of the world.", provides: [HoldoutPiecesService] }), {
+	const pieces = defineMechanic(defineHead({ id: "puzzles", package: "@test/puzzles", summary: "Test: the pieces of the world.", provides: [HoldoutPiecesService], uses: [ExileService] }), {
 		services: {
 			"holdout-pieces": {
 				openFragmentDoors: (_input, ctx) => [...world.fragments.keys()].filter((level) => ctx.tick >= world.opensAt(level)).sort((a, b) => a - b),
-				lacking: ({ level, holder }, ctx) => [...lackingAt(world, level, holder, ctx.tick)],
-				inherited: () => [],
+				lacking: ({ level, holder }, ctx) => [...lackingAt(world, level, holder, ctx.tick, (resident) => ctx.tryCall(ExileService, "isExiled", { resident }) === true)],
+				// The fragments of the struck (old `inheritedFragments`, one team).
+				inherited: ({ resident, level }, ctx) =>
+					[...(world.fragments.get(level) ?? new Map<string, string>())].flatMap(([from, fragment]) => (from !== resident && ctx.tryCall(ExileService, "isExiled", { resident: from }) === true ? [{ from, fragment }] : [])),
 			},
 		},
 	});

@@ -154,8 +154,22 @@ describe("the blockers, the call and the grace", () => {
 });
 
 describe("the head", () => {
-	it("carries the ten prompt texts of the old platform; only the ids differ", () => {
+	it("carries the twenty-three prompt texts of the old platform; only the ids differ", () => {
+		const same = (path: string, sha256: string) => [path, path, sha256] as const;
 		const old: readonly (readonly [string, string, string])[] = [
+			same("tools/tribunalVote", "771eb54de43a9747e821fe5e2137b61d125de63e66ba5bdeaba459a45c96641d"),
+			same("replies/ballot-holdout", "ed3914641967b9f7d168486aa2e573521f329dd8a270deb81a96be7910e231bc"),
+			same("replies/ballot-yes", "e1d87f11648e43ad9a66f77c0c2178fe460cba8b5bae8035db9e16ac60f0b5fe"),
+			same("replies/ballot-no", "2208929617a50999e4b2214c0b2445534c497467bed6d4ffc3245f25fe0af445"),
+			same("replies/locked", "70f509570c857b3348bb1283497fe786aec9052bc745265380856cf93a5d8d24"),
+			same("gamemaker/tools/drawLot", "3e78caf137167c427a446afd8b3af1b0d10bba95feeaa3aeec5e44121d30bf41"),
+			same("gamemaker/tools/announceTribunal", "9314983656aed1f89a5c19e5df5f1d3fe1cd2283d8c2cc843a0ada7128a0b666"),
+			same("gamemaker/tools/permaDeath", "ade82f862fd875b0a135665671dab83ad81916f1dd3a34735867c344d5f60943"),
+			same("gamemaker/replies/lot-drawn", "af9e4fc29944df44ca03601ef132afe38e6a692ac3836ebf33a58049ee47bd5e"),
+			same("gamemaker/replies/announced", "0e8444e64719ab62667e69211860673ae5c90fe311a6c9a4cfb4bda110d96ecb"),
+			same("gamemaker/replies/struck", "b9b0d9eeb379b6f5adc6e0190a115ad69632b99d2f706b0bb18614ad129b38df"),
+			same("gamemaker/replies/struck-lot", "045d705011d9fcef9388f91908678042e03b6031ec0bfec7b7692cc569e3a8dc"),
+			same("gamemaker/replies/struck-vote", "062e427436be82180cdbc9468df778ba98e0a07f10f683f24086409f9097eeb9"),
 			["gamemaker/tools/callTribunal", "gamemaker/tools/callTribunal", "41b9d4127ca6145f22f89b24a6c4f6b04d8c1e7dfb1dfcc2fb6f2e0840a24a1b"],
 			["gamemaker/replies/tribunal-called", "gamemaker/replies/tribunal-called", "e54aedf51508ff7d60fdba0e7b16d8c311a1e29729adda91b8c2e7a2103420f2"],
 			["gamemaker/replies/tribunal-lot", "gamemaker/replies/tribunal-lot", "094c21a99b7db23e51348bf243be17ae33c13e11f7184278c84f2fec2177cdc9"],
@@ -173,7 +187,11 @@ describe("the head", () => {
 			expect([id, createHash("sha256").update(text).digest("hex")]).toEqual([id, sha256]);
 		}
 		expect(Object.keys(standoffTribunal.head.prompts).sort()).toEqual(old.map(([path]) => `standoff-tribunal/${path}`).sort());
-		expect(standoffTribunal.head.tools.map((tool) => [tool.name, tool.description, tool.for])).toEqual([["callTribunal", "standoff-tribunal/gamemaker/tools/callTribunal", ["gamemaker"]]]);
+		const gm = (name: string) => [name, `standoff-tribunal/gamemaker/tools/${name}`, ["gamemaker"]];
+		expect(standoffTribunal.head.tools.map((tool) => [tool.name, tool.description, tool.for])).toEqual([
+			["tribunalVote", "standoff-tribunal/tools/tribunalVote", ["resident"]],
+			...["callTribunal", "drawLot", "announceTribunal", "permaDeath"].map(gm),
+		]);
 	});
 
 	it("documents its options, matches its package, and samples a call on a blocker for the fake driver", async () => {

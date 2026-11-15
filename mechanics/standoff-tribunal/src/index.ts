@@ -1,41 +1,32 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The `standoff-tribunal` mechanic: the holdout tribunal of Whispers over a resident who keeps a fragment back,
- * part 1 (issue M5-29). Every tick it reports the blockers (`blocker_found`, `blocker_cleared` and the fact
- * `blockers`), the Director calls a tribunal with `callTribunal` through the note desk of `channels`, the accused has
- * its grace, the tribunal is dropped once nobody lacks the fragment, and after the grace the first vote opens and the
- * city announces it when the Director does not. The residents read the tribunal in their status line and its rule
- * under every new task. The votes, the lot and the strike follow with issue M5-30. Ported from the old
- * `mechanics/standoff-tribunal/src`.
+ * The `standoff-tribunal` mechanic: the holdout tribunal of Whispers over a resident who keeps a fragment back. Every
+ * tick it reports the blockers (`blocker_found`, `blocker_cleared` and the fact `blockers`), the Director calls a
+ * tribunal with `callTribunal` through the note desk of `channels`, the accused has its grace, the tribunal is dropped
+ * once nobody lacks the fragment, and after the grace the others vote in secret with `tribunalVote`, up to
+ * `maxVotes` times. After a unanimous vote the Director strikes the accused with `permaDeath`; after the last failed
+ * vote it draws the lot with `drawLot` and strikes the one drawn; it announces each outcome with
+ * `announceTribunal`, and the city does each itself after the fallback. The struck resident is banished through
+ * `exile` (by `holdout`, keeping its points) and its fragments go to everyone left. The residents read the tribunal in
+ * their status line and its rule under every new task. Ported from the old `mechanics/standoff-tribunal/src`.
  *
  * @packageDocumentation
  */
 import { Type } from "typebox";
-import type { RandomSource } from "@swarmtales/contracts";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
-import { defineMechanic } from "@swarmtales/sdk";
-import { standoffTribunalHead, type ToolCtx } from "./head.ts";
+import { defineMechanic, refuse } from "@swarmtales/sdk";
+import { standoffTribunalHead } from "./head.ts";
 import { courtFor, holdoutLines } from "./ports.ts";
+import { sampleAnnounce, sampleCall, sampleLot, sampleStrike, sampleVote } from "./samples.ts";
 import { BlockersFact, blockersOf, computeHoldoutSection, HoldoutSectionFact, PendingFact, pendingOf, SessionFact, sessionOf } from "./section.ts";
-import { checkLine, runCallTribunal } from "./tools.ts";
+import { checkLine, runAnnounce, runCallTribunal, runDrawLot, runPermaDeath, runVote } from "./tools.ts";
 
 export { HoldoutPiecesService, StandoffTribunalEvents } from "./contract.ts";
-export { HoldoutCourt, type CallError, type Called } from "./court.ts";
+export { HoldoutCourt, type AnnounceError, type CallError, type Called, type LotError, type StrikeError, type TribunalVoteError } from "./court.ts";
 export { StandoffTribunalOptions, standoffTribunalHead, type Ctx, type ToolCtx, type View } from "./head.ts";
 export { BlockersFact, HoldoutSectionFact, PendingFact, SessionFact, type HoldoutSection } from "./section.ts";
 export { HoldoutSlice, type HoldoutState } from "./slice.ts";
 export type { Blocker, BlockerFact, HoldoutData, HoldoutOutcome, HoldoutPending, HoldoutPorts, HoldoutRule, HoldoutStage, HoldoutTexts, Presence, Session, VoteResult } from "./types.ts";
-
-/** The share of the times a sample is asked in which it gives a call. */
-const RATE = 0.25;
-
-// A call on the first blocker while none runs and the pause is over, for the fake driver.
-function sampleCall(ctx: ToolCtx, random: RandomSource): { accused: string[]; reason: string } | undefined {
-	const data = ctx.state.data;
-	const blocker = [...data.blockers.values()][0];
-	if (random.next() >= RATE || blocker === undefined || data.session !== undefined || ctx.tick < data.cooldownUntil) return undefined;
-	return { accused: [blocker.blocker], reason: `Tribunal ${String(data.tribunals + 1)}: ${blocker.blocker} holds back a fragment of door ${String(blocker.door)}.` };
-}
 
 /**
  * The holdout tribunal.
@@ -49,16 +40,31 @@ function sampleCall(ctx: ToolCtx, random: RandomSource): { accused: string[]; re
  */
 export const standoffTribunal = defineMechanic(standoffTribunalHead, {
 	tools: {
+		tribunalVote: { run: ({ yes }, ctx) => runVote(ctx, yes), sample: sampleVote },
 		callTribunal: {
 			check: ({ reason }, ctx) => checkLine(ctx, reason),
 			run: ({ accused, reason }, ctx) => runCallTribunal(ctx, accused, reason),
 			sample: sampleCall,
 		},
+		drawLot: { run: ({ candidates }, ctx) => runDrawLot(ctx, candidates), sample: sampleLot },
+		announceTribunal: { check: ({ text }, ctx) => checkLine(ctx, text), run: ({ text }, ctx) => runAnnounce(ctx, text), sample: sampleAnnounce },
+		permaDeath: { check: ({ reason }, ctx) => checkLine(ctx, reason), run: ({ agent, reason }, ctx) => runPermaDeath(ctx, agent, reason), sample: sampleStrike },
+	},
+	pipeline: {
+		// The old `enabledTools`: `tribunalVote` while the resident may cast a ballot.
+		lock: (call, ctx) => {
+			if (call.owner !== ctx.mechanic || call.tool !== "tribunalVote" || call.resident === undefined) return undefined;
+			return courtFor(ctx).canVote(call.resident) ? undefined : refuse("TOOL_LOCKED", ctx.prompt("standoff-tribunal/replies/locked", {}));
+		},
 	},
 	hooks: {
-		// After the door clock of `progression`, which it requires and so loads after (old minuteStarted 800 after 700).
-		tickStarted: (ctx) => {
-			courtFor(ctx).tick(ctx.tick);
+		// After the door clock of `progression`, which it requires and so loads after (old minuteStarted 800 after 700),
+		// and after the standoff (old 500; erratum J146).
+		tickStarted: {
+			after: ["standoff"],
+			run: (ctx) => {
+				courtFor(ctx).tick(ctx.tick);
+			},
 		},
 		turnInputs: (resident, ctx) => holdoutLines(ctx, resident),
 		// The rule goes under a task once per level, as the task itself.

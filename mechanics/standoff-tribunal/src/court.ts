@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The holdout tribunal (old `HoldoutTribunal`, carried from the old `mechanics/standoff-tribunal/src/court.ts` over
- * the state the mechanic owns), part 1: the blockers, the call, the grace and its end. Every tick the city reports
- * who blocks a door: a resident who has stood at an open door for `stallMinutes` and has not sent its fragment of it
- * to another who has stood before it for `stallMinutes` too. The Director decides whether to put a blocker on trial
- * (`call`); with several blockers the city draws the accused. The accused has `graceMinutes` to fix it; otherwise
- * the first secret vote opens. The Director announces each outcome; the city does so itself after
- * `fallbackMinutes`. The count of a vote, the lot and the strike follow with issue M5-30.
+ * the state the mechanic owns). Every tick the city reports who blocks a door (`watch.ts`). The Director decides
+ * whether to put a blocker on trial (`call`); with several blockers the city draws the accused. The accused has
+ * `graceMinutes` to fix it; otherwise everyone else votes in secret, `voteMinutes` long, banishment needs every
+ * voter's yes, `maxVotes` in all; after the last one fails one resident drawn by lot is struck, once per door. The
+ * Director announces each outcome and strikes; the city does so itself after `fallbackMinutes`.
  */
 import { err, ok, type Result } from "./result.ts";
 import { renderTemplate } from "./template.ts";
-import type { BlockerFact, HoldoutData, HoldoutOutcome, HoldoutPorts, HoldoutRule, HoldoutTexts, Session } from "./types.ts";
+import type { HoldoutData, HoldoutOutcome, HoldoutPorts, HoldoutRule, HoldoutTexts, Session } from "./types.ts";
+import { namesList, notePresent, qualified, updateBlockers } from "./watch.ts";
 
 /**
  * Why a call of a tribunal is refused.
@@ -18,6 +18,34 @@ import type { BlockerFact, HoldoutData, HoldoutOutcome, HoldoutPorts, HoldoutRul
  * @public
  */
 export type CallError = "NOT_NOW" | "INVALID_ACCUSED" | "NOT_A_BLOCKER";
+
+/**
+ * Why `drawLot` is refused.
+ *
+ * @public
+ */
+export type LotError = "NOT_NOW" | "INVALID_CANDIDATES" | "ALREADY_DRAWN";
+
+/**
+ * Why `permaDeath` is refused.
+ *
+ * @public
+ */
+export type StrikeError = "NOT_NOW" | "NOT_ALLOWED" | "NO_LOT";
+
+/**
+ * Why `announceTribunal` is refused.
+ *
+ * @public
+ */
+export type AnnounceError = "NOTHING_TO_ANNOUNCE";
+
+/**
+ * Why a ballot is refused.
+ *
+ * @public
+ */
+export type TribunalVoteError = "NO_VOTE" | "NOT_A_VOTER";
 
 /**
  * A called tribunal, as the reply names it.
@@ -36,27 +64,6 @@ export interface Called {
 	/** The blockers the lot drew the accused among. */
 	readonly candidates?: readonly string[];
 }
-
-/**
- * "A04", "A04 and A05", "A02, A04 and A05".
- *
- * @param names - The names.
- * @returns The list.
- */
-export function namesList(names: readonly string[]): string {
-	const last = names.at(-1) ?? "";
-	return names.length <= 1 ? last : `${names.slice(0, -1).join(", ")} and ${last}`;
-}
-
-/**
- * The key of a resident at a door.
- *
- * @param door - The door.
- * @param agent - The resident.
- * @returns `door:agent`.
- */
-export const reachedKey = (door: number, agent: string): string => `${String(door)}:${agent}`;
-const byDoor = (a: BlockerFact, b: BlockerFact): number => a.door - b.door || a.blocker.localeCompare(b.blocker);
 
 /**
  * The court over the state of the mechanic and the ports of the call at hand.
@@ -131,8 +138,8 @@ export class HoldoutCourt {
 	 * @param minute - The tick.
 	 */
 	tick(minute: number): void {
-		this.#notePresent(minute);
-		this.#updateBlockers(minute);
+		notePresent(this.#data, this.#ports, minute);
+		updateBlockers(this.#data, this.#rule, this.#ports, minute);
 		const data = this.#data;
 		if (data.pending !== undefined && minute >= data.pending.due) this.#flush();
 		const session = data.session;
@@ -141,51 +148,32 @@ export class HoldoutCourt {
 			this.#drop(session, minute);
 			return;
 		}
-		if (minute < session.until || session.stage !== "grace") return;
-		this.#openVote(session, minute);
-		this.#await(session, "graceFailed", `the grace is over and ${this.#label(session.accused)} has not fixed it; vote 1 of ${String(this.#rule.maxVotes)} is open until minute ${String(session.until)}`, {
-			accused: this.#label(session.accused),
-			until: String(session.until),
-		});
+		if (minute >= session.until) this.#stageOver(session, minute);
 	}
 
-	#notePresent(minute: number): void {
-		for (const { door, agent } of this.#ports.present()) {
-			const id = reachedKey(door, agent);
-			if (!this.#data.reached.has(id)) this.#data.reached.set(id, minute);
-		}
-	}
-
-	#stalled(door: number, agent: string, minute: number): boolean {
-		const since = this.#data.reached.get(reachedKey(door, agent));
-		return since !== undefined && minute - since >= this.#rule.stallMinutes;
-	}
-
-	// The blockers now: holder and lacking residents both at the door for the stall.
-	#qualified(minute: number): readonly BlockerFact[] {
-		return this.#ports
-			.blockers()
-			.flatMap((fact) => {
-				if (!this.#stalled(fact.door, fact.blocker, minute)) return [];
-				const lacking = fact.lacking.filter((agent) => this.#stalled(fact.door, agent, minute));
-				return lacking.length === 0 ? [] : [{ ...fact, lacking }];
-			})
-			.sort(byDoor);
-	}
-
-	#updateBlockers(minute: number): void {
-		const blockers = this.#data.blockers;
-		const now = new Map(this.#qualified(minute).map((fact) => [reachedKey(fact.door, fact.blocker), fact]));
-		for (const [id, blocker] of [...blockers]) {
-			if (now.has(id)) continue;
-			blockers.delete(id);
-			this.#ports.emit("blocker_cleared", { door: blocker.door, blocker: blocker.blocker });
-		}
-		for (const fact of [...now.values()].sort(byDoor)) {
-			const id = reachedKey(fact.door, fact.blocker);
-			const known = blockers.get(id);
-			if (known === undefined) this.#ports.emit("blocker_found", { door: fact.door, blocker: fact.blocker, lacking: [...fact.lacking] });
-			blockers.set(id, { ...fact, since: known?.since ?? minute });
+	// The end of the stage (the switch of the old `tick`).
+	#stageOver(session: Session, minute: number): void {
+		switch (session.stage) {
+			case "grace":
+				this.#openVote(session, minute);
+				this.#await(session, "graceFailed", `the grace is over and ${this.#label(session.accused)} has not fixed it; vote 1 of ${String(this.#rule.maxVotes)} is open until minute ${String(session.until)}`, {
+					accused: this.#label(session.accused),
+					until: String(session.until),
+				});
+				return;
+			case "vote":
+				this.#count(session, minute);
+				return;
+			case "banish":
+				this.#ports.post("CITY", this.#text("banished", { accused: this.#label(session.accused), yes: String(session.lastResult?.yes ?? 0) }));
+				this.#strike(session, session.accused, "banished", "city");
+				return;
+			case "lot": {
+				const drawn = session.drawn ?? this.#draw("strike", this.#ports.alive(), session.number);
+				this.#ports.post("CITY", this.#text("lot", { accused: this.#label(session.accused), drawn: this.#label(drawn) }));
+				this.#strike(session, drawn, "lot", "city");
+				return;
+			}
 		}
 	}
 
@@ -200,6 +188,44 @@ export class HoldoutCourt {
 		for (const voter of session.voters) this.#ports.notify(voter, "CITY", this.#text("voteOpened", values));
 		this.#ports.notify(session.accused, "CITY", this.#text("accusedVote", values));
 		this.#ports.emit("holdout_vote_opened", { tribunal: session.number, vote: session.vote, voters: [...session.voters], until: session.until });
+	}
+
+	// The count of a closed vote: banish, the next vote, the lot, or spared at a door the lot struck before.
+	#count(session: Session, minute: number): void {
+		const rule = this.#rule;
+		const alive = this.#ports.alive();
+		const voters = session.voters.filter((voter) => alive.includes(voter));
+		const yes = voters.filter((voter) => session.ballots.get(voter) === true).length;
+		const no = voters.length - yes;
+		const unanimous = voters.length > 0 && yes === voters.length;
+		session.lastResult = { vote: session.vote, yes, no };
+		this.#ports.emit("holdout_vote_result", { tribunal: session.number, vote: session.vote, yes, no, voters: [...voters], unanimous });
+		if (unanimous || (session.vote >= rule.maxVotes && !this.#data.lotDoors.includes(session.door))) {
+			session.stage = unanimous ? "banish" : "lot";
+			session.until = minute + rule.fallbackMinutes;
+		} else if (session.vote < rule.maxVotes) this.#nextVote(session, minute, yes, no);
+		else this.#spare(session, minute);
+	}
+
+	#nextVote(session: Session, minute: number, yes: number, no: number): void {
+		const { maxVotes } = this.#rule;
+		const number = session.vote;
+		const left = maxVotes - number;
+		this.#openVote(session, minute);
+		this.#await(
+			session,
+			"voteFailed",
+			`vote ${String(number)} of ${String(maxVotes)} on ${this.#label(session.accused)} was not unanimous: ${String(yes)} yes, ${String(no)} no (who voted what stays secret); ` +
+				`${String(left)} ${left === 1 ? "vote" : "votes"} left, vote ${String(session.vote)} is open until minute ${String(session.until)}`,
+			{ accused: this.#label(session.accused), number: String(number), yes: String(yes), no: String(no), left: String(left), until: String(session.until) },
+		);
+	}
+
+	#spare(session: Session, minute: number): void {
+		this.#end(minute);
+		this.#ports.emit("holdout_ended", { tribunal: session.number, outcome: "spared" });
+		const facts = `every vote on ${this.#label(session.accused)} failed, and the lot has struck at door ${String(session.door)} before (once per door): nobody is struck, the tribunal ends`;
+		this.#await(session, "spared", facts, { accused: this.#label(session.accused), door: String(session.door) }, minute);
 	}
 
 	#drop(session: Session, minute: number): void {
@@ -242,7 +268,7 @@ export class HoldoutCourt {
 		const unique = [...new Set(accused)].sort((a, b) => a.localeCompare(b));
 		if (unique.length === 0 || unique.length !== accused.length) return err("INVALID_ACCUSED", "name each accused once");
 		// The facts as they stand now, not as the tick began: a fragment sent since clears a blocker.
-		const blockers = this.#qualified(minute);
+		const blockers = qualified(data, this.#rule, this.#ports, minute);
 		const listed = [...new Set(blockers.map((blocker) => blocker.blocker))].sort((a, b) => a.localeCompare(b));
 		const innocent = unique.filter((agent) => !listed.includes(agent));
 		if (innocent.length > 0) {
@@ -292,6 +318,95 @@ export class HoldoutCourt {
 		for (const agent of this.#ports.alive()) this.#ports.notify(agent, author, text);
 		this.#ports.emit("holdout_called", { tribunal: number, accused, door, lacking: [...lacking], until, text, ...(candidates === undefined ? {} : { candidates: [...candidates] }) });
 		return { accused, door, lacking, until, ...(candidates === undefined ? {} : { candidates }) };
+	}
+
+	/**
+	 * The final lot among every resident in the city after the last vote failed; binding and drawn once.
+	 *
+	 * @param candidates - The residents the Director names.
+	 * @returns The drawn resident, or why not.
+	 */
+	drawLot(candidates: readonly string[]): Result<{ readonly drawn: string }, LotError> {
+		const unique = [...new Set(candidates)].sort((a, b) => a.localeCompare(b));
+		const session = this.#data.session;
+		if (session?.stage !== "lot") return err("NOT_NOW", "a lot is drawn only after the last vote of a tribunal failed; with several blockers callTribunal draws the accused itself");
+		if (session.drawn !== undefined) return err("ALREADY_DRAWN", `the lot fell on ${this.#label(session.drawn)}`);
+		const alive = [...this.#ports.alive()].sort((a, b) => a.localeCompare(b));
+		if (unique.length !== candidates.length || unique.join(",") !== alive.join(",")) {
+			return err("INVALID_CANDIDATES", `after the last vote the lot is drawn among every resident in the city: ${namesList(alive.map((agent) => this.#label(agent)))}`);
+		}
+		const drawn = this.#draw("strike", alive, session.number);
+		session.drawn = drawn;
+		return ok({ drawn });
+	}
+
+	/**
+	 * Strikes the accused after a unanimous vote, or the one the lot drew; the Director's `reason` goes on the board.
+	 *
+	 * @param agent - The resident to strike.
+	 * @param reason - The Director's line, checked.
+	 * @param author - The name on the post.
+	 * @returns The struck resident and how, or why not.
+	 */
+	permaDeath(agent: string, reason: string, author: string): Result<{ readonly agent: string; readonly by: "banished" | "lot" }, StrikeError> {
+		const session = this.#data.session;
+		if (session === undefined || session.stage === "grace" || session.stage === "vote") return err("NOT_NOW", "permaDeath only after a unanimous vote to banish, or after the last vote failed and the lot was drawn");
+		const by = session.stage === "banish" ? "banished" : "lot";
+		const target = by === "banished" ? session.accused : session.drawn;
+		if (target === undefined) return err("NO_LOT", "draw the lot first: drawLot with every resident in the city");
+		if (agent !== target) return err("NOT_ALLOWED", by === "banished" ? `the vote banished ${this.#label(target)}, nobody else` : `the lot fell on ${this.#label(target)}, nobody else`);
+		this.#ports.post(author, reason);
+		this.#strike(session, agent, by, "gamemaker");
+		return ok({ agent, by });
+	}
+
+	/**
+	 * The Director's own words for the outcome the city waits to have announced.
+	 *
+	 * @param text - The Director's words, checked.
+	 * @param author - The name on the post.
+	 * @returns The outcome announced, or why not.
+	 */
+	announce(text: string, author: string): Result<HoldoutOutcome, AnnounceError> {
+		const pending = this.#data.pending;
+		if (pending === undefined) return err("NOTHING_TO_ANNOUNCE", "no tribunal outcome waits to be announced");
+		this.#data.pending = undefined;
+		this.#ports.post(author, text);
+		this.#ports.emit("holdout_announced", { tribunal: pending.tribunal, kind: pending.kind, by: "gamemaker", text });
+		return ok(pending.kind);
+	}
+
+	/**
+	 * A secret ballot: banish the accused (`yes`) or not; the last one counts.
+	 *
+	 * @param agent - The voter.
+	 * @param yes - True to banish.
+	 * @returns The accused, the vote's close and number, or why not.
+	 */
+	vote(agent: string, yes: boolean): Result<{ readonly accused: string; readonly until: number; readonly number: number }, TribunalVoteError> {
+		const session = this.#data.session;
+		if (session?.stage !== "vote") return err("NO_VOTE", "no tribunal vote is open");
+		if (!this.canVote(agent)) return err("NOT_A_VOTER", agent === session.accused ? "the accused does not vote" : "you are not a voter of this tribunal");
+		session.ballots.set(agent, yes);
+		this.#ports.emit("holdout_ballot", { tribunal: session.number, vote: session.vote, agent, yes });
+		return ok({ accused: session.accused, until: session.until, number: session.vote });
+	}
+
+	#strike(session: Session, agent: string, outcome: "banished" | "lot", by: "gamemaker" | "city"): void {
+		const data = this.#data;
+		const minute = this.#ports.minute();
+		this.#end(minute);
+		if (outcome === "lot" && !data.lotDoors.includes(session.door)) data.lotDoors.push(session.door);
+		if (!data.struck.includes(agent)) data.struck.push(agent);
+		data.blockers.forEach((blocker, id) => {
+			if (blocker.blocker === agent) data.blockers.delete(id);
+		});
+		this.#ports.emit("holdout_ended", { tribunal: session.number, outcome, struck: agent, by });
+		this.#ports.notify(agent, "CITY", this.#text("struckNotice", { struck: this.#label(agent) }));
+		this.#ports.post("CITY", this.#text("struck", { struck: this.#label(agent) }));
+		this.#ports.struck(agent);
+		// The released fragments may clear other blockers at once.
+		updateBlockers(data, this.#rule, this.#ports, minute);
 	}
 
 	// Draws one of `candidates` with the run's seed; the n-th lot of a run always falls the same way.

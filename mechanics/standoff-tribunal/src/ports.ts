@@ -2,17 +2,19 @@
 /**
  * The old `World` around the holdout tribunal, through the services of other mechanics (old `ports.ts`): who lacks
  * what at which open fragment door (`holdout-pieces` of `puzzles`), who stands where (`exile`), the levels
- * (`progression`), the names (`identity`), and the posts and notices (`channels`); and the status parts (old
- * `holdoutParts`) and the rule under a new task.
+ * (`progression`), the names (`identity`), and the posts and notices (`channels`); the strike's own part (old
+ * `#onStruck`: banished by `exile`, then the struck resident's fragments to everyone before an open door); and the
+ * status parts (old `holdoutParts`) and the rule under a new task.
  */
 import type { InputLine } from "@swarmtales/contracts";
 import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
-import { ExileService } from "@swarmtales/mechanic-exile/contract";
+import { ExileService, KEEPING_STRIKE } from "@swarmtales/mechanic-exile/contract";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { HoldoutPiecesService } from "./contract.ts";
 import { HoldoutCourt } from "./court.ts";
 import type { Ctx } from "./head.ts";
+import { renderTemplate } from "./template.ts";
 import type { BlockerFact, HoldoutPorts, Presence } from "./types.ts";
 
 /** The holdout part of the status line, after every other part (old `STATUS_ORDER.holdout`). */
@@ -52,8 +54,24 @@ function presentAtDoors(ctx: Ctx): readonly Presence[] {
 	return doors(ctx).flatMap((door) => alive(ctx).filter((agent) => levelOf(ctx, agent) >= door).map((agent) => ({ door, agent })));
 }
 
+// Old `#onStruck` after the court: banished for good, keeping its points (`exiled` with `by: "holdout"`), then each
+// resident left before an open fragment door it has not passed gets the struck resident's fragment of it.
+function onStruck(ctx: Ctx, agent: string): void {
+	ctx.call(ExileService, "banish", { resident: agent, by: KEEPING_STRIKE });
+	const open = doors(ctx);
+	for (const resident of alive(ctx)) {
+		const level = levelOf(ctx, resident);
+		if (!open.includes(level) || ctx.call(ProgressionService, "hasPassed", { resident, level })) continue;
+		const fragment = ctx.call(HoldoutPiecesService, "inherited", { resident, level }).find((entry) => entry.from === agent)?.fragment;
+		if (fragment === undefined) continue;
+		const text = renderTemplate(ctx.options.texts.released, { struck: labelOf(ctx, agent), fragments: `door ${String(level)}: ${fragment}` });
+		ctx.call(ChannelsService, "notify", { to: resident, author: "CITY", text });
+	}
+}
+
 /**
- * The ports of the court for this call; `posted` holds the message number of the last post on the board.
+ * The ports of the court for this call; `posted` holds the message number of the call's first post on the board (the
+ * Director's own, which its note names).
  *
  * @param ctx - The context.
  * @returns The ports and the number of the last post.
@@ -68,7 +86,8 @@ export function portsFor(ctx: Ctx): HoldoutPorts & { readonly posted: () => numb
 		lacking: (door, holder) => lacking(ctx, door, holder),
 		label: (agent) => labelOf(ctx, agent),
 		post: (author, text) => {
-			posted = ctx.call(ChannelsService, "post", { author, text }).postSeq;
+			const { postSeq } = ctx.call(ChannelsService, "post", { author, text });
+			posted ??= postSeq;
 		},
 		notify: (agent, author, text) => {
 			ctx.call(ChannelsService, "notify", { to: agent, author, text });
@@ -77,6 +96,9 @@ export function portsFor(ctx: Ctx): HoldoutPorts & { readonly posted: () => numb
 			ctx.emit(type, payload);
 		},
 		pick: (lot, sorted) => ctx.rng("holdout-lot", lot).pick(sorted),
+		struck: (agent) => {
+			onStruck(ctx, agent);
+		},
 		posted: () => posted,
 	};
 }

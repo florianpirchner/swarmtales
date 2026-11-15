@@ -72,9 +72,22 @@ export const standoffTribunalHead = defineHead({
 	snapshot: { save: saveHoldout, load: loadHoldout },
 	events: StandoffTribunalEvents.events,
 	prompts: {
+		"standoff-tribunal/tools/tribunalVote": [],
+		"standoff-tribunal/replies/ballot-holdout": ["vote", "accused", "number", "until"],
+		"standoff-tribunal/replies/ballot-yes": [],
+		"standoff-tribunal/replies/ballot-no": [],
+		"standoff-tribunal/replies/locked": [],
 		"standoff-tribunal/gamemaker/tools/callTribunal": [],
+		"standoff-tribunal/gamemaker/tools/drawLot": [],
+		"standoff-tribunal/gamemaker/tools/announceTribunal": [],
+		"standoff-tribunal/gamemaker/tools/permaDeath": [],
 		"standoff-tribunal/gamemaker/replies/tribunal-called": ["accused", "lot", "door", "until", "lacking"],
 		"standoff-tribunal/gamemaker/replies/tribunal-lot": ["candidates", "accused"],
+		"standoff-tribunal/gamemaker/replies/lot-drawn": ["drawn"],
+		"standoff-tribunal/gamemaker/replies/announced": ["value"],
+		"standoff-tribunal/gamemaker/replies/struck": ["agent", "how"],
+		"standoff-tribunal/gamemaker/replies/struck-lot": [],
+		"standoff-tribunal/gamemaker/replies/struck-vote": [],
 		"standoff-tribunal/status/holdout-owed": ["door", "lacking"],
 		"standoff-tribunal/status/holdout-grace": ["accused", "until", "owed"],
 		"standoff-tribunal/status/holdout-accused": ["vote", "maxVotes", "until", "owed"],
@@ -86,9 +99,34 @@ export const standoffTribunalHead = defineHead({
 	requires: [HoldoutPiecesService, ProgressionService, ExileService, ChannelsService, NotesService],
 	uses: [IdentityService],
 	tools: {
+		tribunalVote: {
+			description: "standoff-tribunal/tools/tribunalVote",
+			params: Type.Object({ yes: Type.Boolean({ description: "true: banish the accused; false: keep it" }) }),
+			for: ["resident"],
+		},
 		callTribunal: {
 			description: "standoff-tribunal/gamemaker/tools/callTribunal",
 			params: Type.Object({ accused: Accused, reason: Type.String({ description: `Your public announcement, 1-${String(MAX_NOTE_LENGTH)} characters; the city adds the procedure` }) }),
+			for: ["gamemaker"],
+		},
+		drawLot: {
+			description: "standoff-tribunal/gamemaker/tools/drawLot",
+			params: Type.Object({
+				candidates: Type.Array(Type.String({ description: "Resident name or ID" }), { description: "After the last vote of a tribunal failed: every resident in the city", minItems: 1, maxItems: 96 }),
+			}),
+			for: ["gamemaker"],
+		},
+		announceTribunal: {
+			description: "standoff-tribunal/gamemaker/tools/announceTribunal",
+			params: Type.Object({ text: Type.String({ description: `The outcome in your words, 1-${String(MAX_NOTE_LENGTH)} characters` }) }),
+			for: ["gamemaker"],
+		},
+		permaDeath: {
+			description: "standoff-tribunal/gamemaker/tools/permaDeath",
+			params: Type.Object({
+				agent: Type.String({ description: "The banished accused, or the resident the lot drew; name or ID" }),
+				reason: Type.String({ description: `Your public line on the board, 1-${String(MAX_NOTE_LENGTH)} characters` }),
+			}),
 			for: ["gamemaker"],
 		},
 	},

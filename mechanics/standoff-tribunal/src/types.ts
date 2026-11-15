@@ -231,6 +231,8 @@ export interface HoldoutPorts {
 	readonly emit: <K extends keyof Events>(type: K, payload: Static<Events[K]>) => void;
 	/** The `n`-th lot of the run among `sorted` (old `rngFor(seed, "holdout-lot", n).pick(sorted)`). */
 	readonly pick: (lot: number, sorted: readonly string[]) => string;
+	/** The strike's own part in the city (old `#onStruck`): banished for good, then the released fragments. */
+	readonly struck: (agent: string) => void;
 }
 
 /**

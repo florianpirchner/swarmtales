@@ -38,22 +38,43 @@ issues: part 1 (M5-29) holds the blockers, the call and the grace; part 2 (M5-30
 3. **The grace.** The accused has `graceMinutes` whole ticks of turns. Once nobody lacks its fragment, the tribunal
    is dropped (`holdout_ended`, outcome `dropped`). When the grace ends, the first secret vote opens
    (`holdout_vote_opened`, a notice to every voter and to the accused).
-4. **The announcements.** Each outcome waits for the gamemaker's words; the city posts its own line after
-   `fallbackMinutes` (`holdout_announced` with `by: "city"`). The gamemaker's `announceTribunal` comes with part 2.
-5. **What residents see.** Their status line carries the running tribunal (the accused whom it still owes its
+4. **The votes.** Every other resident in the city casts a secret `tribunalVote` (yes banishes, no keeps; the last
+   ballot counts, `holdout_ballot`); the tool is locked for the accused and outside a vote. At the vote's end the
+   city counts the voters still in the city (`holdout_vote_result`): every voter's yes banishes; otherwise the next
+   vote opens, `maxVotes` in all; after the last one fails the lot strikes, once per door (a door the lot struck
+   before spares the accused, outcome `spared`).
+5. **The strike.** After a unanimous vote the gamemaker strikes the accused with `permaDeath`; after the last failed
+   vote it draws the lot among every resident in the city with `drawLot` (`lot_drawn`, purpose `strike`) and strikes
+   the one drawn. The city does either itself after `fallbackMinutes`. The struck resident gets its notice, the board
+   its post, `exile` banishes it with `by: "holdout"` (it keeps its points), and everyone left before an open door of
+   fragments it has not passed gets the struck resident's fragment of it (`holdout-pieces.inherited`).
+6. **The announcements.** Each outcome waits for the gamemaker's words (`announceTribunal`); the city posts its own
+   line after `fallbackMinutes` (`holdout_announced` with `by: "city"`).
+7. **What residents see.** Their status line carries the running tribunal (the accused whom it still owes its
    fragment, a voter its own ballot, never another's), and the rule (`texts.rule`) comes as a line of kind `task`
    under every new task, after the progression's task and before the terms of `marks`.
-6. **The gamemaker's report.** The fact `section` (with `session`, `pending`, `cooldownUntil` and `struck`) is what
+8. **The gamemaker's report.** The fact `section` (with `session`, `pending`, `cooldownUntil` and `struck`) is what
    the report of `mechanics/city-directors` reads; it writes the old lines from it.
 
-**Not done here:** the count of a vote, the lot, the strike through `exile` and the tools `tribunalVote`, `drawLot`,
-`announceTribunal` and `permaDeath` (part 2, M5-30); the accused's direct messages past the cap (errata J50, open);
-the checks of game facts on the tribunal's texts (errata J62, the owners' rules).
+**Not done here:** the accused's direct messages past the cap (issue M5-68, errata J135); the checks of game facts
+on the tribunal's texts (errata J62, the owners' rules); the provider of `holdout-pieces` (`puzzles`, M5-64).
 
 ## Tools
 
 <!-- generated:tools -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
+
+### `tribunalVote`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `yes` | boolean | yes | true: banish the accused; false: keep it |
+
+What the caller reads ([standoff-tribunal/tools/tribunalVote](prompts/standoff-tribunal/tools/tribunalVote.md)):
+
+> Your secret ballot in the open holdout tribunal: yes banishes the accused from the city for good, no keeps it. Banishment needs a yes from every voter. Nobody sees how you voted; your last ballot counts.
 
 ### `callTribunal`
 
@@ -67,6 +88,43 @@ the checks of game facts on the tribunal's texts (errata J62, the owners' rules)
 What the caller reads ([standoff-tribunal/gamemaker/tools/callTribunal](prompts/standoff-tribunal/gamemaker/tools/callTribunal.md)):
 
 > Calls a holdout tribunal on a resident the report names as a blocker; when the report names more than one, the city draws the accused by lot among all of them. The city posts your reason as the announcement, adds the procedure and tells every resident. One tribunal at a time.
+
+### `drawLot`
+
+- Granted when the game lists no grants: `gamemaker`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `candidates` | string[] | yes | After the last vote of a tribunal failed: every resident in the city |
+
+What the caller reads ([standoff-tribunal/gamemaker/tools/drawLot](prompts/standoff-tribunal/gamemaker/tools/drawLot.md)):
+
+> After the last vote of a tribunal failed, the city draws the lot with the run's seed among every resident in the city, once and for good; then permaDeath may strike only the one drawn.
+
+### `announceTribunal`
+
+- Granted when the game lists no grants: `gamemaker`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `text` | string | yes | The outcome in your words, 1-400 characters |
+
+What the caller reads ([standoff-tribunal/gamemaker/tools/announceTribunal](prompts/standoff-tribunal/gamemaker/tools/announceTribunal.md)):
+
+> Announces the tribunal outcome the report shows under TO ANNOUNCE on the board, in your words (the counts, never who voted how).
+
+### `permaDeath`
+
+- Granted when the game lists no grants: `gamemaker`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `agent` | string | yes | The banished accused, or the resident the lot drew; name or ID |
+| `reason` | string | yes | Your public line on the board, 1-400 characters |
+
+What the caller reads ([standoff-tribunal/gamemaker/tools/permaDeath](prompts/standoff-tribunal/gamemaker/tools/permaDeath.md)):
+
+> Strikes a resident from the city for good: only the accused after a unanimous vote to banish it, or the resident the lot drew after the last vote failed. Your reason goes on the board; the city gives the struck resident's fragments to everyone left.
 
 <!-- /generated:tools -->
 
@@ -238,9 +296,22 @@ This mechanic exports no metrics.
 
 | Prompt | Variables |
 | --- | --- |
+| [standoff-tribunal/tools/tribunalVote](prompts/standoff-tribunal/tools/tribunalVote.md) | - |
+| [standoff-tribunal/replies/ballot-holdout](prompts/standoff-tribunal/replies/ballot-holdout.md) | `vote`, `accused`, `number`, `until` |
+| [standoff-tribunal/replies/ballot-yes](prompts/standoff-tribunal/replies/ballot-yes.md) | - |
+| [standoff-tribunal/replies/ballot-no](prompts/standoff-tribunal/replies/ballot-no.md) | - |
+| [standoff-tribunal/replies/locked](prompts/standoff-tribunal/replies/locked.md) | - |
 | [standoff-tribunal/gamemaker/tools/callTribunal](prompts/standoff-tribunal/gamemaker/tools/callTribunal.md) | - |
+| [standoff-tribunal/gamemaker/tools/drawLot](prompts/standoff-tribunal/gamemaker/tools/drawLot.md) | - |
+| [standoff-tribunal/gamemaker/tools/announceTribunal](prompts/standoff-tribunal/gamemaker/tools/announceTribunal.md) | - |
+| [standoff-tribunal/gamemaker/tools/permaDeath](prompts/standoff-tribunal/gamemaker/tools/permaDeath.md) | - |
 | [standoff-tribunal/gamemaker/replies/tribunal-called](prompts/standoff-tribunal/gamemaker/replies/tribunal-called.md) | `accused`, `lot`, `door`, `until`, `lacking` |
 | [standoff-tribunal/gamemaker/replies/tribunal-lot](prompts/standoff-tribunal/gamemaker/replies/tribunal-lot.md) | `candidates`, `accused` |
+| [standoff-tribunal/gamemaker/replies/lot-drawn](prompts/standoff-tribunal/gamemaker/replies/lot-drawn.md) | `drawn` |
+| [standoff-tribunal/gamemaker/replies/announced](prompts/standoff-tribunal/gamemaker/replies/announced.md) | `value` |
+| [standoff-tribunal/gamemaker/replies/struck](prompts/standoff-tribunal/gamemaker/replies/struck.md) | `agent`, `how` |
+| [standoff-tribunal/gamemaker/replies/struck-lot](prompts/standoff-tribunal/gamemaker/replies/struck-lot.md) | - |
+| [standoff-tribunal/gamemaker/replies/struck-vote](prompts/standoff-tribunal/gamemaker/replies/struck-vote.md) | - |
 | [standoff-tribunal/status/holdout-owed](prompts/standoff-tribunal/status/holdout-owed.md) | `door`, `lacking` |
 | [standoff-tribunal/status/holdout-grace](prompts/standoff-tribunal/status/holdout-grace.md) | `accused`, `until`, `owed` |
 | [standoff-tribunal/status/holdout-accused](prompts/standoff-tribunal/status/holdout-accused.md) | `vote`, `maxVotes`, `until`, `owed` |

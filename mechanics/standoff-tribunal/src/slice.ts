@@ -7,7 +7,7 @@
  */
 import { Type, type Static } from "typebox";
 import { inSchemaOrder } from "@swarmtales/sdk";
-import { reachedKey } from "./court.ts";
+import { reachedKey } from "./watch.ts";
 import { emptyHoldout, type HoldoutData, type Session } from "./types.ts";
 
 const Id = Type.String({ description: "A resident id" });

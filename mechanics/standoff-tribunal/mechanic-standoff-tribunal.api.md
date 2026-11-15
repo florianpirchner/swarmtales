@@ -15,6 +15,9 @@ import { Type } from 'typebox';
 import { ViewOf } from '@swarmtales/sdk';
 
 // @public
+export type AnnounceError = "NOTHING_TO_ANNOUNCE";
+
+// @public
 export interface Blocker extends BlockerFact {
     readonly since: number;
 }
@@ -54,13 +57,26 @@ export type Ctx = CtxOf<typeof standoffTribunalHead>;
 // @public
 export class HoldoutCourt {
     constructor(rule: HoldoutRule, ports: HoldoutPorts, data: HoldoutData);
+    announce(text: string, author: string): Result<HoldoutOutcome, AnnounceError>;
     ballotOf(agent: string): boolean | undefined;
     // Warning: (ae-forgotten-export) The symbol "Result" needs to be exported by the entry point index.d.ts
     call(accused: readonly string[], announcement: string, author: string): Result<Called, CallError>;
     canVote(agent: string): boolean;
+    drawLot(candidates: readonly string[]): Result<{
+        readonly drawn: string;
+    }, LotError>;
     exemptFromCap(from: string, to: string): boolean;
     lackingNow(): readonly string[];
+    permaDeath(agent: string, reason: string, author: string): Result<{
+        readonly agent: string;
+        readonly by: "banished" | "lot";
+    }, StrikeError>;
     tick(minute: number): void;
+    vote(agent: string, yes: boolean): Result<{
+        readonly accused: string;
+        readonly until: number;
+        readonly number: number;
+    }, TribunalVoteError>;
 }
 
 // @public
@@ -133,6 +149,7 @@ export interface HoldoutPorts {
     readonly pick: (lot: number, sorted: readonly string[]) => string;
     readonly post: (author: string, text: string) => void;
     readonly present: () => readonly Presence[];
+    readonly struck: (agent: string) => void;
 }
 
 // @public
@@ -267,6 +284,9 @@ export interface HoldoutTexts {
 }
 
 // @public
+export type LotError = "NOT_NOW" | "INVALID_CANDIDATES" | "ALREADY_DRAWN";
+
+// @public
 export const PendingFact: Type.TUnion<[Type.TObject<{
     tribunal: Type.TInteger;
     kind: Type.TString;
@@ -394,7 +414,7 @@ outcome: Type.TUnion<[Type.TLiteral<"dropped">, Type.TLiteral<"banished">, Type.
 struck: Type.TOptional<Type.TString>;
 by: Type.TOptional<Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>>;
 }>;
-}, "callTribunal">;
+}, "tribunalVote" | "callTribunal" | "drawLot" | "announceTribunal" | "permaDeath">;
 
 // @public
 export const StandoffTribunalEvents: EventsDefinition<"standoff-tribunal", {
@@ -588,9 +608,22 @@ struck: Type.TOptional<Type.TString>;
 by: Type.TOptional<Type.TUnion<[Type.TLiteral<"gamemaker">, Type.TLiteral<"city">]>>;
 }>;
 }, {
+readonly "standoff-tribunal/tools/tribunalVote": readonly [];
+readonly "standoff-tribunal/replies/ballot-holdout": readonly ["vote", "accused", "number", "until"];
+readonly "standoff-tribunal/replies/ballot-yes": readonly [];
+readonly "standoff-tribunal/replies/ballot-no": readonly [];
+readonly "standoff-tribunal/replies/locked": readonly [];
 readonly "standoff-tribunal/gamemaker/tools/callTribunal": readonly [];
+readonly "standoff-tribunal/gamemaker/tools/drawLot": readonly [];
+readonly "standoff-tribunal/gamemaker/tools/announceTribunal": readonly [];
+readonly "standoff-tribunal/gamemaker/tools/permaDeath": readonly [];
 readonly "standoff-tribunal/gamemaker/replies/tribunal-called": readonly ["accused", "lot", "door", "until", "lacking"];
 readonly "standoff-tribunal/gamemaker/replies/tribunal-lot": readonly ["candidates", "accused"];
+readonly "standoff-tribunal/gamemaker/replies/lot-drawn": readonly ["drawn"];
+readonly "standoff-tribunal/gamemaker/replies/announced": readonly ["value"];
+readonly "standoff-tribunal/gamemaker/replies/struck": readonly ["agent", "how"];
+readonly "standoff-tribunal/gamemaker/replies/struck-lot": readonly [];
+readonly "standoff-tribunal/gamemaker/replies/struck-vote": readonly [];
 readonly "standoff-tribunal/status/holdout-owed": readonly ["door", "lacking"];
 readonly "standoff-tribunal/status/holdout-grace": readonly ["accused", "until", "owed"];
 readonly "standoff-tribunal/status/holdout-accused": readonly ["vote", "maxVotes", "until", "owed"];
@@ -1120,8 +1153,21 @@ text: Type.TString;
 readonly output: Type.TString;
 };
 }>], {
+tribunalVote: Type.TObject<{
+yes: Type.TBoolean;
+}>;
 callTribunal: Type.TObject<{
 accused: Type.TArray<Type.TString>;
+reason: Type.TString;
+}>;
+drawLot: Type.TObject<{
+candidates: Type.TArray<Type.TString>;
+}>;
+announceTribunal: Type.TObject<{
+text: Type.TString;
+}>;
+permaDeath: Type.TObject<{
+agent: Type.TString;
 reason: Type.TString;
 }>;
 }>;
@@ -1153,7 +1199,13 @@ export const StandoffTribunalOptions: Type.TObject<{
 }>;
 
 // @public
+export type StrikeError = "NOT_NOW" | "NOT_ALLOWED" | "NO_LOT";
+
+// @public
 export type ToolCtx = ToolCtxOf<typeof standoffTribunalHead>;
+
+// @public
+export type TribunalVoteError = "NO_VOTE" | "NOT_A_VOTER";
 
 // @public
 export type View = ViewOf<typeof standoffTribunalHead>;
