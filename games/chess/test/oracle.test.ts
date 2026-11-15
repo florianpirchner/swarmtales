@@ -16,7 +16,7 @@ import { join } from "node:path";
 import { readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { chessGame } from "../game.ts";
-import { VARIANTS } from "./support.ts";
+import { VARIANTS, withEndsTurn } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "chess");
 
@@ -36,10 +36,6 @@ const FILES = [
 ];
 
 const gameOf = (oracle: Oracle) => chessGame({ ...VARIANTS[oracle.variant], seed: oracle.seed });
-
-const ENDS_TURN = new Set(["playMove", "resign"]);
-/** The oracle with `endsTurn: true` on every accepted `playMove` and `resign`. */
-const withEndsTurn = (oracle: Oracle): Oracle => ({ ...oracle, timeline: oracle.timeline.map((entry) => (entry.k === "call" && entry.ok && ENDS_TURN.has(entry.tool) ? { ...entry, endsTurn: true } : entry)) });
 
 describe("chess against its oracles", () => {
 	it("covers every file of the folder, each with the options of its variant", () => {

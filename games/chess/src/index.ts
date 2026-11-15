@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { chessGame, default, ticksFor, type ChessOptions } from "../game.ts";
+export { chessFamily, chessGame, default, ticksFor, type ChessOptions } from "../game.ts";
 export { briefings, residentsOf, SEATS, TEAMS } from "../briefing.ts";

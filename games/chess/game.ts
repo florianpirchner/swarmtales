@@ -7,13 +7,15 @@
  * baseline scores every move for the report; the seats never see it. A port of the old `stories/chess/story.ts`:
  * the variants are options of the factory, the id is always `chess`. This issue carries the default, the fresh
  * context per move and the compact board, the legal-move lists, the loose pieces, the coach, two teams of two, the
- * control arm without a brain and the settled cap.
+ * control arm without a brain and the settled cap. The file exports the game family: the variants that an experiment
+ * or `--set` may choose are its params, and its defaults give the game of the old platform.
  */
 import { SwtError } from "@swarmtales/contracts";
 import { chess } from "@swarmtales/mechanic-chess";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import { teamChannel } from "@swarmtales/mechanic-team-channel";
-import { defineGame, paramOverride } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily, paramOverride } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, residentsOf, SEATS, TEAMS } from "./briefing.ts";
 
 /**
@@ -130,4 +132,42 @@ export function chessGame(options: ChessOptions = {}) {
 	});
 }
 
-export default chessGame();
+const flag = (name: keyof typeof DEFAULTS, description: string) => Type.Boolean({ default: DEFAULTS[name] === true, description });
+
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose, with the bounds of the old
+ * variant-name parser. The seed and the tick count are no params: the seed is the run's, and the tick count follows
+ * from the games, the plies and the teams.
+ */
+const Params = Type.Object(
+	{
+		games: Type.Integer({ minimum: 1, maximum: 20, default: DEFAULTS.games, description: "Games in the match; the colours swap from game to game." }),
+		maxPlies: Type.Integer({ minimum: 2, maximum: 400, default: DEFAULTS.maxPlies, description: "Half-moves after which a game is scored on material." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+		fresh: flag("fresh", "The seat on move starts every half-move from a fresh context (rules, brain, its last note, the position)."),
+		compact: flag("compact", "The compact board: a grid without spaces and only the last 12 half-moves."),
+		brain: flag("brain", "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)."),
+		showLegalMoves: flag("showLegalMoves", "The position shown to the seat on move lists every legal move."),
+		showThreats: flag("showThreats", "The position lists each side's loose pieces."),
+		coach: flag("coach", "After each game a coach reviews each seat's worst moves for its next retro; needs the brain."),
+		teams: flag("teams", "Two teams of two with a private chat; the captaincy rotates move by move."),
+		settleCap: flag("settleCap", "At the cap, settle the capture still open on the board before counting material (LH17)."),
+	},
+	{ description: "The variants of chess." },
+);
+
+/**
+ * Chess as a game family: the default params give the registry default of the old platform (two games of at most 160
+ * half-moves, a brain per seat); `{ games: 4, maxPlies: 80, fresh: true, compact: true }` is the arm of the requests
+ * series. Its `build` refuses the coach without the brain with `SWT-G041`, as {@link chessGame} does.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: chessFamily, params: { games: 4, maxPlies: 80, fresh: true, compact: true }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const chessFamily = defineGameFamily(Params, (params) => chessGame(params));
+
+export default chessFamily;

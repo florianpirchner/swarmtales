@@ -9,7 +9,7 @@
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import game, { chessGame } from "../game.ts";
+import { chessGame } from "../game.ts";
 import { player } from "./support.ts";
 
 const fake = (seed: number): StandingDrivers => (kernel) => ({ resident: fakeDriver(kernel, seed) });
@@ -18,7 +18,7 @@ const scripted = (): { resident: typeof player } => ({ resident: player });
 const RUNS = [13, 29].flatMap((seed) => [
 	{ name: `scripted, seed ${String(seed)}`, game: chessGame({ games: 1 }), drivers: scripted, options: { seed } },
 	{ name: `scripted fresh compact, seed ${String(seed)}`, game: chessGame({ games: 1, fresh: true, compact: true }), drivers: scripted, options: { seed } },
-	{ name: `fake, seed ${String(seed)}`, game, drivers: fake(seed), options: { seed } },
+	{ name: `fake, seed ${String(seed)}`, game: chessGame(), drivers: fake(seed), options: { seed } },
 ]);
 const TEAMS = { name: "fake teams, seed 13", game: chessGame({ games: 1, maxPlies: 40, teams: true, showLegalMoves: true, showThreats: true, coach: true }), drivers: fake(13), options: { seed: 13 } };
 const NO_BRAIN = { name: "fake no brain, seed 13", game: chessGame({ games: 1, maxPlies: 40, brain: false }), drivers: fake(13), options: { seed: 13 } };

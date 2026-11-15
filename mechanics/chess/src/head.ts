@@ -5,6 +5,7 @@ import { defineHead, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
+import { chessMetrics } from "./metrics.ts";
 import { EndReason, MoveClass, Result } from "./model.ts";
 
 const options = Type.Object({
@@ -102,6 +103,43 @@ const ColourSchema = Type.Union([Type.Literal("white"), Type.Literal("black")]);
 
 const Reason = Type.Optional(Type.String({ maxLength: 400, description: "A short reason, for the record." }));
 
+const events = {
+	game_started: Type.Object({ game: Type.Integer(), white: Type.String(), black: Type.String() }),
+	move_played: Type.Object({
+		game: Type.Integer(),
+		ply: Type.Integer({ description: "The half-move's number in its game, from 1." }),
+		colour: ColourSchema,
+		by: Type.String(),
+		san: Type.String(),
+		written: Type.String({ description: "The move as the seat wrote it ('' for a forfeit move)." }),
+		fen: Type.String({ description: "The position after the move." }),
+		forfeit: Type.Boolean(),
+	}),
+	move_refused: Type.Object({ game: Type.Integer(), ply: Type.Integer(), colour: ColourSchema, by: Type.String(), written: Type.String(), count: Type.Integer({ description: "The seat's refused moves in this game so far, this one included." }) }),
+	move_scored: Type.Object({
+		game: Type.Integer(),
+		ply: Type.Integer(),
+		colour: ColourSchema,
+		by: Type.String(),
+		san: Type.String(),
+		best: Type.String(),
+		bestValue: Type.Number(),
+		playedValue: Type.Number(),
+		loss: Type.Number(),
+		class: MoveClass,
+	}),
+	game_ended: Type.Object({ ...GameRecord.properties, pgn: Type.String() }),
+	match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+	coach_review: Type.Object({ game: Type.Integer(), side: Type.String(), losses: Type.Integer({ description: "The side's moves that lost material by the baseline (loss 1 or more)." }), text: Type.String() }),
+};
+
+/**
+ * The event schemas of chess, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type ChessEvents = typeof events;
+
 /**
  * The head of chess: everything that can be read without running a handler.
  *
@@ -147,35 +185,8 @@ export const chessHead = defineHead({
 		save: (state: ChessState) => structuredClone(state),
 		load: (data): ChessState => structuredClone(data),
 	},
-	events: {
-		game_started: Type.Object({ game: Type.Integer(), white: Type.String(), black: Type.String() }),
-		move_played: Type.Object({
-			game: Type.Integer(),
-			ply: Type.Integer({ description: "The half-move's number in its game, from 1." }),
-			colour: ColourSchema,
-			by: Type.String(),
-			san: Type.String(),
-			written: Type.String({ description: "The move as the seat wrote it ('' for a forfeit move)." }),
-			fen: Type.String({ description: "The position after the move." }),
-			forfeit: Type.Boolean(),
-		}),
-		move_refused: Type.Object({ game: Type.Integer(), ply: Type.Integer(), colour: ColourSchema, by: Type.String(), written: Type.String(), count: Type.Integer({ description: "The seat's refused moves in this game so far, this one included." }) }),
-		move_scored: Type.Object({
-			game: Type.Integer(),
-			ply: Type.Integer(),
-			colour: ColourSchema,
-			by: Type.String(),
-			san: Type.String(),
-			best: Type.String(),
-			bestValue: Type.Number(),
-			playedValue: Type.Number(),
-			loss: Type.Number(),
-			class: MoveClass,
-		}),
-		game_ended: Type.Object({ ...GameRecord.properties, pgn: Type.String() }),
-		match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
-		coach_review: Type.Object({ game: Type.Integer(), side: Type.String(), losses: Type.Integer({ description: "The side's moves that lost material by the baseline (loss 1 or more)." }), text: Type.String() }),
-	},
+	events,
+	metrics: chessMetrics(events),
 	// The baseline's verdict and the refused attempts are for the human and the reporter only.
 	audiences: { move_scored: ["human"], move_refused: ["human"], coach_review: ["human"] },
 	provides: [BrainSourceService],
