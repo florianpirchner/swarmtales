@@ -17,7 +17,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none; variants are options of `tictactoeGame` | nine oracle files match at level 3 |
 | [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with nine params | six oracle files match at level 3 |
 | [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with five params | five oracle files match at level 3 |
-| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | a game family with five params | the oracle files of the arms `solo` and `nobrain` match at level 3; the silent file of the crew arm at level 3 |
+| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | a game family with five params | all eight oracle files match at level 3 |
 | [Lanterns](#lanterns) | cooperation under hidden information | 6 (two teams of three) | `clue-grid`, `team-channel`, `strategy-brain` | none; variants are options of `lanternsGame` | four oracle files match at level 3 |
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 | [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
@@ -96,11 +96,11 @@ games, private notes, or nothing. A crew of reference bots plays every deal too,
 - Params of the game family: `games`, `brain` (`crew`, `solo`, `nobrain`), `strikes` (`soft`: every misfire from the
   second on costs 3 points; `hard`: the third strike ends the game), `aid` (each own slot shows the chance that a
   play lights it now), `maxWords`. The defaults give the game of the old platform.
-- Proof: the three oracle files of the arms `solo` and `nobrain` match at level 3, one of them up to its cut; the
-  silent file of the crew arm matches at level 3 (its chat locks come through M4-64); the briefings are
-  byte-identical.
+- Proof: all eight oracle files match at level 3 (the three arms, the aid, hard strikes and the silent file; one up
+  to its cut); the briefings and the retro question are byte-identical.
 - Links: [folder](games/harbor-lights/), [README](games/harbor-lights/README.md),
   [oracle files](oracles/harbor-lights/).
+
 ## Lanterns
 
 Two teams of three residents (amber: A01 to A03, teal: A04 to A06) play a match of four games of an original

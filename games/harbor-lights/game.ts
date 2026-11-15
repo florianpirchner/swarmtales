@@ -96,7 +96,7 @@ export function harborLightsGame(options: HarborLightsOptions = {}) {
 		grants: { resident: ["viewTowers", "giveSignal", "playSlot", "discardSlot", ...chat, ...(keeps ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: keeps ? ["writeBrain"] : [],
 		// The seat on turn has news; several seats act in one pass when the turn moves along the roster. The reset line comes first, then the brain's lines before those of the chat, as the old hook numbers ordered them.
-		scheduler: { id: "turns", options: { passes: 8, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }] } },
+		scheduler: { id: "turns", options: { passes: 8, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "hint-towers" }] } },
 		// Up to two turns a tick for a seat (viewTowers and an action each), and room for a retro post and the brain in the same tick.
 		limits: { maxCallsPerTick: 12 },
 		// About 55 actions a game at eight passes a tick, a move timer of two ticks, and a retro per game.

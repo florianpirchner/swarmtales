@@ -48,6 +48,8 @@ describe("carried byte for byte", () => {
 		// The old entry set no output cap: the default of 4000 stands.
 		expect(harborLightsGame().model).toBe("anthropic/haiku");
 		expect(sha256(SIGNAL_QUESTION)).toBe("472d5080970458f4ff5c6c6529a5fd66a4d973afbfc20acbb51a3e752b0f7c83");
+		// The old hook numbers of the turn lines: the brain (300), the hint towers (350), the team chat (400).
+		expect(harborLightsGame().scheduler?.options).toMatchObject({ inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "hint-towers" }] });
 	});
 
 	it("gives every old variant name by its params, and the old registry default by the default params", () => {

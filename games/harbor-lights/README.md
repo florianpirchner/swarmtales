@@ -22,9 +22,9 @@ swt run games/harbor-lights/game.ts --fake
 |---|---|
 | `game.ts` | `harborLightsGame(options)`, the family `harborLightsFamily` and its default export (three games, the crew brain) |
 | `briefing.ts` | what a seat reads before the run starts, as a function of the arm, the strikes and the number of residents |
-| `test/oracle.test.ts` | the files of the arms `solo` and `nobrain` of `oracles/harbor-lights/` at level 3 (`harbor-lights-nobrain-s37.json` up to its cut), and the silent file (see below) |
+| `test/oracle.test.ts` | every file of `oracles/harbor-lights/` at level 3 (`harbor-lights-nobrain-s37.json` up to its cut) |
 | `test/carried.test.ts` | the sha256 of the twenty-four briefings and of the retro question against the old platform, the tool lists, the model block, the params behind every old variant name |
-| `test/harbor-lights.test.ts` | the carried game test of the arms `solo` and `nobrain` (roster order) |
+| `test/harbor-lights.test.ts` | the carried game test of the three arms, the retro question, the aid and hard strikes (roster order) |
 | `test/standing.test.ts`, `test/fake.test.ts` | the standing checks on one game, and the fake run of each arm |
 
 ## Params
@@ -42,9 +42,14 @@ The id is always `harbor-lights`; a variant is a set of params of the family, no
 The seed (31 when absent) and the run length (`games * 33 + 7` ticks; the match ends the run earlier) are options of
 `harborLightsGame`, not params.
 
-## What is proven, and what comes with M4-24
+## What is proven
 
-The files of the arms `solo` and `nobrain` match at level 3. The silent file is the registry default, the crew arm:
-until M4-64 the crew's quiet chat tools are closed by the lock handler of `hint-towers`' pipeline, which writes no
-lock events, so the file matches at level 2, and at level 3 once its eight lock events of `hint-towers` are taken
-out. The crew files, the aid and hard strikes are issue M4-24.
+Every file of `oracles/harbor-lights/` matches at level 3: the crew arm (`-g1-s103`, `-g1-s110`), `solo`, `nobrain`
+(`-nobrain-s37` up to its cut), the aid (`-nobrain-aid-g1-s103`), hard strikes (`-hard-strikes-s13`) and the silent
+file, which also exercises the move timer (`maxIdleMinutes: 2`, `maxConsecutiveForfeits: 24`). The crew's quiet chat
+tools are locked through `ctx.access` while a game runs (M4-64), with the lock events of the old platform.
+
+The turn lines keep the old hook numbers: the brain's lines, then the hint towers' status and record, then the team
+chat. The load order alone would put the chat first (the strategy brain uses the team channel, the hint towers use the
+brain), so the scheduler's `inputs` names `hint-towers` after `strategy-brain`; without it the crew files differ at
+level 2 where a game begins with unread chat posts.
