@@ -2,14 +2,13 @@
 /**
  * The byte-identity list of the port (M4 specification 2.2): the sha256 of every carried prompt file, of the prompt
  * table, of the options, event and state schemas, computed on the old platform (branch `legacy`), and the tools with
- * their parameters as the old body declared them. Until the mechanic exists (issue M4-38) the head is checked.
+ * their parameters as the old body declared them.
  */
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
-import { holdemHead } from "../src/index.ts";
-import { defined } from "./support.ts";
+import { holdem } from "../src/index.ts";
 
 const sha256 = (value: string | Buffer): string => createHash("sha256").update(value).digest("hex");
 const PROMPTS = join(import.meta.dirname, "..", "prompts");
@@ -32,20 +31,20 @@ describe("carried byte for byte", () => {
 	it("has the prompt files of the old platform and no other", () => {
 		const found = Object.fromEntries(filesOf(PROMPTS).map((file) => [relative(PROMPTS, file).split("\\").join("/"), sha256(readFileSync(file))]));
 		expect(found).toEqual(OLD_PROMPTS);
-		expect(sha256(JSON.stringify(defined(holdemHead.prompts, "prompts")))).toBe("ec5121626e8eb43e423ff73ba5f48d225bcc51a58c648ff4e6dd195885f5fd11");
-		expect(Object.keys(defined(holdemHead.prompts, "prompts")).map((id) => `${id}.md`).sort()).toEqual(Object.keys(OLD_PROMPTS).sort());
+		expect(sha256(JSON.stringify(holdem.head.prompts))).toBe("ec5121626e8eb43e423ff73ba5f48d225bcc51a58c648ff4e6dd195885f5fd11");
+		expect(Object.keys(holdem.head.prompts).map((id) => `${id}.md`).sort()).toEqual(Object.keys(OLD_PROMPTS).sort());
 	});
 
 	it("has the tools, the options, the events, the state and the audiences of the old platform", () => {
-		const tools = Object.entries(defined(holdemHead.tools, "tools")).map(([name, tool]) => [name, tool.description, tool.for, JSON.stringify(tool.params)]);
+		const tools = holdem.head.tools.map((tool) => [tool.name, tool.description, tool.for, JSON.stringify(tool.parameters)]);
 		expect(tools).toEqual([
 			["viewTable", "holdem/tools/viewTable", ["resident"], '{"type":"object","properties":{}}'],
 			["act", "holdem/tools/act", ["resident"], `{"type":"object","required":["action"],"properties":{"action":${MOVE},"reason":{"type":"string","maxLength":400,"description":"A short reason, for the record (never shown to the other players)."}}}`],
 		]);
-		expect(sha256(JSON.stringify(holdemHead.options))).toBe("e3b4495867585d8913af7422c15db8c4bd5d9783274c3159ab5c6a4870803878");
-		expect(sha256(JSON.stringify(holdemHead.events))).toBe("f9ca96b10b6bd152f9b52f80a9259f370f376c3bec3703784782496857d00e1e");
-		expect(sha256(JSON.stringify(holdemHead.state))).toBe("37b58b84da13a4ed00e005b600da13350f171f08c83421892389f3dc8439535f");
-		expect(JSON.stringify(holdemHead.audiences)).toBe('{"cards_dealt":["human"],"decision_scored":["human"],"game_scored":["human"]}');
-		expect([holdemHead.id, holdemHead.summary]).toEqual(["holdem", "Fixed-limit Texas Hold'em for solo seats: seeded and duplicate deals, private hole cards, betting, showdown, an equity baseline for the report."]);
+		expect(sha256(JSON.stringify(holdem.options))).toBe("e3b4495867585d8913af7422c15db8c4bd5d9783274c3159ab5c6a4870803878");
+		expect(sha256(JSON.stringify(holdem.events))).toBe("f9ca96b10b6bd152f9b52f80a9259f370f376c3bec3703784782496857d00e1e");
+		expect(sha256(JSON.stringify(holdem.head.state))).toBe("37b58b84da13a4ed00e005b600da13350f171f08c83421892389f3dc8439535f");
+		expect(JSON.stringify(holdem.head.audiences)).toBe('{"cards_dealt":["human"],"decision_scored":["human"],"game_scored":["human"]}');
+		expect([holdem.id, holdem.head.summary]).toEqual(["holdem", "Fixed-limit Texas Hold'em for solo seats: seeded and duplicate deals, private hole cards, betting, showdown, an equity baseline for the report."]);
 	});
 });
