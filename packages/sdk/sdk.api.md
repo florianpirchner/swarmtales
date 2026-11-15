@@ -379,6 +379,9 @@ export interface GrantTweak<T extends string = string> {
 export type HookSlot<F> = F | Ordered<F> | readonly (F | Ordered<F>)[];
 
 // @public
+export function inSchemaOrder<T extends TSchema>(schema: T, value: Static<T>): Static<T>;
+
+// @public
 export interface InstanceParts<M extends MechanicShape> {
     readonly head: PluginHead;
     readonly options: M["options"];

@@ -2,8 +2,9 @@
 /**
  * The standing checks of liar's dice, in process (M4 specification 4.3): the log replays equal, and a run resumed
  * from every tick boundary writes the log of the straight run. The scripted runs get both checks on a match of one
- * game (the game file plays three), the fake runs the replay: their resume from every boundary is proven through the
- * command line over the games list (`apps/cli/test/standing.test.ts`).
+ * game (the game file plays three), the fake runs too: the fake run of seed 7 found the bid of `dice_called` in
+ * sorted key order after a resume (A43); the command line proves the same over the games list
+ * (`apps/cli/test/standing.test.ts`).
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
@@ -22,7 +23,7 @@ describe("liar's dice: the standing checks", () => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	});
 
-	it.each(RUNS.filter((run) => run.name.startsWith("scripted")))("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each(RUNS)("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
 	});
 });

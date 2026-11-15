@@ -20,29 +20,12 @@ const RUNS = [
 	{ name: "scripted, no brain, seed 67", game: rosterGame({ brain: false }), drivers: (): { resident: typeof player } => ({ resident: player }), options: { seed: 67 } },
 ];
 
-/**
- * Open, found by this check: resumed from any boundary, the run writes the straight run's events with the keys of
- * some payload objects in another order. `clue-grid` loads its snapshot with `structuredClone`, and a snapshot file
- * sorts the keys, so the grid's cards (`{ by, owner, revealed, word }`), the clue records and the game results come
- * back sorted, and the events written from them later (`clue_closed`, `clue_game_ended`, `clue_match_ended`) carry
- * the sorted order. The values are the same. The fix belongs to `mechanics/clue-grid` (a load that rebuilds the
- * state in the order of its schema); this test turns red when it lands, and then expects no problem.
- */
-function keyOrderOnly(problem: string): boolean {
-	const [, left = "", right = ""] = problem.split("\n").map((line) => line.trim());
-	const sorted = (_key: string, inner: unknown): unknown => (typeof inner === "object" && inner !== null && !Array.isArray(inner) ? Object.fromEntries(Object.entries(inner).sort(([a], [b]) => (a < b ? -1 : 1))) : inner);
-	const canonical = (line: string): string => JSON.stringify(JSON.parse(line), sorted);
-	return left !== right && canonical(left) === canonical(right);
-}
-
 describe("Lanterns: the standing checks", () => {
 	it.each(RUNS)("$name: the log replays equal", async ({ game, drivers, options }) => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	});
 
-	it.each(RUNS.filter((run) => run.name.startsWith("scripted")))("$name: resumed from every boundary, the first line that differs differs only in the order of its keys (open)", async ({ game, drivers, options }) => {
-		const problems = await checkResumeEveryBoundary(game, drivers, options);
-		expect(problems.length).toBeGreaterThan(0);
-		expect(problems.filter((problem) => !keyOrderOnly(problem))).toEqual([]);
+	it.each(RUNS.filter((run) => run.name.startsWith("scripted")))("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
 	});
 });

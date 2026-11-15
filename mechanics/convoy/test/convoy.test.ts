@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 import { Type } from "typebox";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
-import { fakeDriver, idleDriver, play, readOracle, testKernel, type TestKernel } from "@swarmtales/testkit";
+import { checkResumeEveryBoundary, fakeDriver, idleDriver, play, readOracle, testKernel, type TestKernel } from "@swarmtales/testkit";
 import { convoyGame, ofType, SEATS } from "./support.ts";
 
 const SILENT = resolve(import.meta.dirname, "../../../oracles/convoy/convoy-g1-s13-silent.json");
@@ -140,5 +140,9 @@ describe("the timer and the table", () => {
 		for (const tool of ["viewConvoy", "proposeCrew", "speak", "voteConfidence", "playCrewCard", "audit", "accuse"]) expect(accepted.some((payload) => payload.includes(`"as":"${tool}"`)), tool).toBe(true);
 		expect(run.end).toMatchObject({ reason: "limit", limit: "convoy.match" });
 		expect(ofType(run.events, "convoy_match_ended")).toHaveLength(1);
+	});
+
+	it("resumed from every boundary of a fake game, writes the straight log: the cards of convoy_game_ended keep their key order (A43)", async () => {
+		expect(await checkResumeEveryBoundary(convoyGame({ games: 1 }, { brain: true }), (kernel) => ({ resident: fakeDriver(kernel, 3) }), { seed: 3 })).toEqual([]);
 	});
 });

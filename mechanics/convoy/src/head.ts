@@ -3,7 +3,7 @@
 import { Type } from "typebox";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
-import { defineHead, type CtxOf, type ViewOf } from "@swarmtales/sdk";
+import { defineHead, inSchemaOrder, type CtxOf, type ViewOf } from "@swarmtales/sdk";
 import { CardKind, ConvoySlice, PlayRecord, Role, SeatReference, StageRecord, Vote, type ConvoyState } from "./model.ts";
 
 const Seat = Type.String({ minLength: 1, maxLength: 8 });
@@ -76,6 +76,8 @@ export const convoyHead = defineHead({
 			due: false,
 		};
 	},
+	// A snapshot file sorts the keys: the state comes back in the order of its schema, so the events written from it equal the straight run's (A43).
+	snapshot: { save: (state: ConvoyState) => structuredClone(state), load: (data): ConvoyState => inSchemaOrder(ConvoySlice, data) },
 	events: {
 		convoy_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), roles: Type.Record(Type.String(), Role, { description: "The secret deal (audience human)." }) }),
 		convoy_crew_proposed: Type.Object({ game: Type.Integer(), stage: Type.Integer(), lead: Type.String(), crew: Type.Array(Type.String()), proposal: Type.Integer(), missed: Type.Boolean() }),

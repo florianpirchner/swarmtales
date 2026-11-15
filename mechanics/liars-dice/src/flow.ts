@@ -216,7 +216,8 @@ export function callLiar(ctx: Ctx, say: string | undefined, missed: boolean, tic
 	const loser = count >= bid.quantity ? seat : state.bidder;
 	const dice = Object.fromEntries(Object.entries(state.dice).filter(([, own]) => own.length > 0).map(([owner, own]) => [owner, [...own].sort((a, b) => a - b)]));
 	state.log.push({ kind: "liar", round: state.round, seat, bidder: state.bidder, bid: { ...bid }, count, dice, loser, ...tail });
-	ctx.emit("dice_called", { game: state.game, round: state.round, seat, bidder: state.bidder, bid: { ...bid }, count, dice, loser, ...tail });
+	// The bid in the order of its schema: after a resume the standing bid comes back from a snapshot file with sorted keys (A43).
+	ctx.emit("dice_called", { game: state.game, round: state.round, seat, bidder: state.bidder, bid: { quantity: bid.quantity, face: bid.face }, count, dice, loser, ...tail });
 	state.counts[loser] = Math.max(0, (state.counts[loser] ?? 0) - 1);
 	if ((state.counts[loser] ?? 0) === 0) {
 		state.out.push(loser);

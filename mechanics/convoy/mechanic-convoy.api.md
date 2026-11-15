@@ -212,7 +212,73 @@ running: Type.TBoolean;
 finished: Type.TBoolean;
 held: Type.TBoolean;
 due: Type.TBoolean;
-}>, never, {
+}>, {
+rejected?: {
+lead: string;
+crew: string[];
+};
+seats: string[];
+game: number;
+roles: Record<string, "loyal" | "saboteur">;
+talk: {
+stage: number;
+from: string;
+text: string;
+}[];
+phase: "idle" | "propose" | "talk" | "vote" | "play" | "accuse";
+opened: number;
+stage: number;
+lead: string;
+nextLead: number;
+proposals: number;
+crew: string[];
+votes: Record<string, "yes" | "no">;
+firstVotes: Record<string, "yes" | "no">;
+noVote: string[];
+plays: Record<string, "safe" | "damage">;
+lastDamage: Record<string, number>;
+owing: string[];
+told: string[];
+briefed: string[];
+stages: {
+rejected?: {
+lead: string;
+crew: string[];
+};
+noVote?: string[];
+audit?: {
+seat: string;
+card: "safe" | "damage";
+by: string;
+};
+stage: number;
+lead: string;
+crew: string[];
+votes: Record<string, "yes" | "no">;
+damage: number;
+damaged: boolean;
+}[];
+sealed: {
+game: number;
+stage: number;
+seat: string;
+card: "safe" | "damage";
+role: "loyal" | "saboteur";
+missed: boolean;
+mayDamage: boolean;
+}[];
+missed: Record<string, number>;
+log: string[];
+seenLog: Record<string, number>;
+spoken: Record<string, number>;
+auditUsed: boolean;
+accusations: Record<string, string[]>;
+scores: Record<string, number>;
+running: boolean;
+finished: boolean;
+held: boolean;
+due: boolean;
+}, {
 convoy_game_started: Type.TObject<{
 game: Type.TInteger;
 seats: Type.TArray<Type.TString>;

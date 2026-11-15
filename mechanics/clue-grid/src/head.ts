@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /** The head of the `clue-grid` mechanic: its options, its state with the snapshot, its events, services, prompts and tools. */
 import { Type } from "typebox";
-import { defineHead, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
+import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
@@ -111,7 +111,8 @@ export const clueGridHead = defineHead({
 	},
 	snapshot: {
 		save: (state: ClueState) => copyState(state),
-		load: (data): ClueState => copyState(data),
+		// A snapshot file sorts the keys: the state comes back in the order of its schema, so the events written from it equal the straight run's (A43).
+		load: (data): ClueState => inSchemaOrder(ClueSlice, data),
 	},
 	events,
 	// Sealed: the key, the keeper's targets and reasons, the full clue records (they carry the targets) and the reference.
