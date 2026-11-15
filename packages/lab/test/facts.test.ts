@@ -171,13 +171,19 @@ describe("factsOf", () => {
 		expect(factsOf(MANIFEST, records, {})).toMatchObject({
 			"models.requests": 3, "models.failedRequests": 1, "models.contextResets": 1,
 			"models.inputTokens": 150, "models.outputTokens": 20, "models.cacheReadTokens": 10, "models.cacheWriteTokens": 2, "models.costUsd": 0.75,
+			"models.requests.resident:A01": 2, "models.costUsd.resident:A01": 0.75, "models.requests.resident:A02": 1, "models.costUsd.resident:A02": 0,
 		});
 		const model = { provider: "anthropic", requestedId: "haiku", resolvedId: "m", params: { temperature: 1, topP: "provider-default", maxOutputTokens: 1024, thinking: "off" }, pricing: "pi-ai@1" } as const;
 		const driven: RunManifest = { ...MANIFEST, actors: MANIFEST.actors.map((actor) => ({ ...actor, driver: "model", model })) };
-		expect(factsOf(driven, EVENTS, {})).toMatchObject({ "models.requests": 0, "models.failedRequests": 0, "models.costUsd": 0, "models.inputTokens": 0 });
+		expect(factsOf(driven, EVENTS, {})).toMatchObject({ "models.requests": 0, "models.failedRequests": 0, "models.costUsd": 0, "models.inputTokens": 0, "models.requests.resident:A02": 0, "models.costUsd.resident:A02": 0 });
+		// P454: a Director's asker counts like the driver, per actor and in the run; an actor without a model that asked nothing has no key, and a run without a driver none at all.
+		const warden = actorId("director", "warden");
+		const asked = factsOf({ ...driven, actors: [...driven.actors.slice(0, 1), ...MANIFEST.actors.slice(1)] }, log([[0, "@swarmtales/models/director", "request", warden, {}], [0, "@swarmtales/models/director", "response", warden, usage(10, 0.125)]]), {});
+		expect(asked).toMatchObject({ "models.requests": 1, "models.costUsd": 0.125, "models.requests.director:warden": 1, "models.costUsd.director:warden": 0.125, "models.requests.resident:A01": 0, "models.costUsd.resident:A01": 0 });
+		expect(["models.requests.resident:A02" in asked, Object.keys(factsOf(MANIFEST, EVENTS, {})).filter((key) => key.startsWith("models.requests."))]).toEqual([false, []]);
 		// A `response` that is not what the driver writes: the counts stand, the sums are not measured.
 		const broken = factsOf(MANIFEST, log([[0, DRIVER, "response", A01, usage(100, 0.25)], [0, DRIVER, "response", A01, { input: "many" }]]), {});
-		expect(broken).toMatchObject({ "models.requests": 0, "models.inputTokens": "absent", "models.costUsd": "absent" });
+		expect(broken).toMatchObject({ "models.requests": 0, "models.inputTokens": "absent", "models.costUsd": "absent", "models.requests.resident:A01": 0, "models.costUsd.resident:A01": "absent" });
 	});
 
 	it("keeps a generic key when a plugin is named like one", () => {

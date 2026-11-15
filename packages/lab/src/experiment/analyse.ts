@@ -47,14 +47,16 @@ function contrastOf(spec: ExperimentSpec): readonly string[] {
 
 // The effect of one metric; `n` is what the pass rule counts (complete pairs, or runs in each arm). No effect when
 // the statistics need more values than there are.
-function effectOf(spec: ExperimentSpec, rows: readonly Row[], metric: string, over: Over): { readonly estimator: string; readonly n: number; readonly effect: Effect | undefined } {
+function effectOf(spec: ExperimentSpec, rows: readonly Row[], metric: string, over: Over): { readonly estimator: string; readonly n: number; readonly effect: Effect | undefined; readonly nPerArm?: [number, number] } {
 	const [treatment = "", control] = contrastOf(spec);
 	const b = cells(rows, treatment, metric, over);
 	if (control === undefined) {
 		const values = [...b.values()];
 		const [estimate, se] = values.length < 2 ? [0, 0] : [mean(values), sd(values) / Math.sqrt(values.length)];
 		const half = t95(values.length - 1) * se;
-		return { estimator: "mean of the arm", n: values.length, effect: values.length < 2 ? undefined : { estimate, se, n: values.length, interval95: [estimate - half, estimate + half], p: 1, test: "none" } };
+		// The mean of values that are never negative (a count) is not below zero: its interval is cut there.
+		const low = values.every((value) => value >= 0) ? Math.max(0, estimate - half) : estimate - half;
+		return { estimator: "mean of the arm", n: values.length, effect: values.length < 2 ? undefined : { estimate, se, n: values.length, interval95: [low, estimate + half], p: 1, test: "none" } };
 	}
 	const a = cells(rows, control, metric, over);
 	if (spec.design === "paired") {
@@ -63,26 +65,27 @@ function effectOf(spec: ExperimentSpec, rows: readonly Row[], metric: string, ov
 		return { estimator: "mean of the paired differences, treatment minus control", n: keys.length, effect: keys.length < 2 ? undefined : pairedEffect(of(a), of(b)) };
 	}
 	const n = Math.min(a.size, b.size);
-	return { estimator: "difference of the arm means, treatment minus control", n, effect: n < 2 ? undefined : unpairedEffect([...a.values()], [...b.values()]) };
+	return { estimator: "difference of the arm means, treatment minus control", n, nPerArm: [b.size, a.size], effect: n < 2 ? undefined : unpairedEffect([...a.values()], [...b.values()]) };
 }
 
 // Every deviation from the plan: a run that is not included, and an included run that gives the primary metric no
 // number (the metric is absent, or its facts were not passed in), so that a smaller n is never silent.
-function deviationsOf(spec: ExperimentSpec, rows: readonly Row[]): ExperimentResults["deviations"] {
-	return rows.flatMap(({ record, run, facts }) => {
+function deviationsOf(spec: ExperimentSpec, rows: readonly Row[], started: ExperimentState["started"] = []): ExperimentResults["deviations"] {
+	const lost = started.map(({ planned, reservedUsd }) => ({ at: `${planned.arm}-s${planned.seed}-r${planned.replicate}`, what: `a run of this cell was started and has no record; its reservation of ${reservedUsd} USD stays in the sum of the experiment`, why: "the process ended before the run did" }));
+	return [...lost, ...rows.flatMap(({ record, run, facts }) => {
 		if (record.status !== "included") return [{ at: run, what: `the run is ${record.status}${record.replaces === undefined ? "" : ", and it was the one replacement"}`, why: record.reason ?? "no reason recorded" }];
 		if (typeof facts?.values[spec.metrics.primary] === "number") return [];
 		return [{ at: run, what: `the run is included and has no value of ${spec.metrics.primary}`, why: "the metric is absent in the run, or the facts of the run were not read; the run is left out of the estimates" }];
-	});
+	})];
 }
 
 function estimatesOf(spec: ExperimentSpec, rows: readonly Row[]): ExperimentResults["estimates"] {
 	return [spec.metrics.primary, ...spec.metrics.secondary].flatMap((metric, index) =>
 		(["included", "finished"] as const).flatMap((over) => {
-			const { estimator, effect } = effectOf(spec, rows, metric, over);
+			const { estimator, effect, nPerArm } = effectOf(spec, rows, metric, over);
 			if (effect === undefined) return [];
 			const { estimate, se, n, test, p, interval95: [low, high] } = effect;
-			return [{ metric, role: index === 0 ? ("primary" as const) : ("secondary" as const), contrast: [...contrastOf(spec)], estimator, estimate, se, interval: [low, high] satisfies [number, number], n, test, p, over }];
+			return [{ metric, role: index === 0 ? ("primary" as const) : ("secondary" as const), contrast: [...contrastOf(spec)], estimator, estimate, se, interval: [low, high] satisfies [number, number], n, ...(nPerArm === undefined ? {} : { nPerArm }), test, p, over }];
 		}),
 	);
 }
@@ -112,19 +115,22 @@ function guardrailOf(guardrail: Guardrail, arm: string, runs: readonly Row[]): E
 	return { metric: guardrail.metric, ...(guardrail.per === undefined ? {} : { per: guardrail.per }), arm, value, held };
 }
 
-// The guardrails of the spec, and one row that does not hold per arm and refusal code outside `allowedRefusals`.
+// The guardrail of the refusal codes for one arm: held when no included run was refused with a code outside the
+// list. The value is the mean number of such refusals per run that was read; "absent" (and not held) without one.
+function refusalsOf(allowed: readonly string[], arm: string, runs: readonly Row[]): ExperimentResults["guardrails"][number] {
+	const read = runs.flatMap(({ facts }) => (facts === undefined ? [] : [Object.entries(facts.values).filter(([key]) => key.startsWith(REFUSALS) && !allowed.includes(key.slice(REFUSALS.length)))]));
+	const codes = [...new Set(read.flatMap((entries) => entries.map(([key]) => key.slice(REFUSALS.length))))].sort();
+	const value = read.length === 0 ? ("absent" as const) : mean(read.map((entries) => entries.reduce((sum, [, count]) => sum + (typeof count === "number" ? count : 0), 0)));
+	return { metric: REFUSALS.slice(0, -1), arm, value, held: read.length > 0 && codes.length === 0, codes };
+}
+
+// The guardrails of the spec, and one row per arm for the refusal codes when the spec has `allowedRefusals`.
 function guardrailsOf(spec: ExperimentSpec, rows: readonly Row[]): ExperimentResults["guardrails"] {
 	const arms = spec.arms.map((arm) => arm.id);
 	const included = (arm: string) => rows.filter(({ record }) => record.status === "included" && record.planned.arm === arm);
 	const limits = spec.metrics.guardrails.flatMap((guardrail) => (guardrail.arm === undefined ? arms : [guardrail.arm]).map((arm) => guardrailOf(guardrail, arm, included(arm))));
 	const allowed = spec.allowedRefusals;
-	if (allowed === undefined) return limits;
-	const refusals = arms.flatMap((arm) => {
-		const counts = included(arm).map(({ facts }) => facts?.values ?? {});
-		const keys = [...new Set(counts.flatMap((values) => Object.keys(values)))].filter((key) => key.startsWith(REFUSALS) && !allowed.includes(key.slice(REFUSALS.length)));
-		return keys.map((metric) => ({ metric, arm, value: mean(counts.map((values) => (typeof values[metric] === "number" ? values[metric] : 0))), held: false }));
-	});
-	return [...limits, ...refusals];
+	return allowed === undefined ? limits : [...limits, ...arms.map((arm) => refusalsOf(allowed, arm, included(arm)))];
 }
 
 function toleranceOf(spec: ExperimentSpec, rows: readonly Row[], baseline: NoiseFloor | undefined): ExperimentResults["tolerance"] {
@@ -146,7 +152,11 @@ function toleranceOf(spec: ExperimentSpec, rows: readonly Row[], baseline: Noise
  * estimate that the statistics cannot compute (fewer than two pairs, or two runs in an arm) has no row; the pass
  * rule then reads `no-verdict`, as it does below `pass.minN`. A metric that only one arm exports is `"absent"` in
  * the other and gives no estimate. An included run without a number for the primary metric is left out of the
- * estimates and listed in `deviations`. A guardrail that does not hold never changes the verdict.
+ * estimates and listed in `deviations`, and so is every open `started` line of the state (a run a killed process
+ * left without a record). A guardrail that does not hold never changes the verdict. An unpaired estimate carries
+ * the n of each arm (`nPerArm`). The interval of the mean of one arm is cut at zero when no value of the arm is
+ * negative. With `allowedRefusals` the guardrails end with one row per arm of the metric `run.refusals`: held or
+ * not, with the codes outside the list.
  *
  * @param state - The state of the experiment, as `runExperiment` returned it or `readExperimentState` read it.
  * @param facts - The facts of the runs that could be read (`readRun` of each record's folder).
@@ -185,6 +195,6 @@ export function analyse(state: ExperimentState, facts: readonly RunFacts[], base
 		...(pass === undefined ? {} : { pass }),
 		guardrails: guardrailsOf(spec, rows),
 		...(tolerance === undefined ? {} : { tolerance }),
-		deviations: deviationsOf(spec, rows),
+		deviations: deviationsOf(spec, rows, state.started),
 	});
 }

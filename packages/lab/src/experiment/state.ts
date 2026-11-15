@@ -35,6 +35,10 @@ const Played = Type.Object(
 	},
 	{ additionalProperties: false, description: "The record of one played run" },
 );
+const Started = Type.Object(
+	{ planned: Planned, reservedUsd: Type.Number({ minimum: 0, description: "What the run reserved of the experiment's total: its cost cap, or the largest cost a record held when it started" }) },
+	{ additionalProperties: false, description: "The `started` line of one run: written before the run starts and taken out when its record is written" },
+);
 
 /**
  * The schema of the state file `experiment.json` of an experiment's folder.
@@ -47,6 +51,11 @@ export const ExperimentStateSchema = Type.Object(
 		specHash: Type.String({ description: "The sha256 of the canonical JSON of the spec without `budget` and `concurrency`" }),
 		runs: Type.Array(Played, { description: "The records, in the order the runs ended" }),
 		spentUsd: Type.Number({ minimum: 0, description: "The sum of the costs of the records" }),
+		started: Type.Optional(
+			Type.Array(Started, {
+				description: "The runs that were started and have no record yet. A line that is still here when the experiment is run again belongs to a process that was killed: it stays, its reservation counts in full against `budget.totalUsd`, and the run is played again. Only a person takes such a line out, after reading what the run cost. Absent in a file written before M4",
+			}),
+		),
 		code: Type.Optional(
 			Type.Object(
 				{ commit: Type.String({ description: "The commit of the platform's source tree, or `unknown`" }), kernelRevision: Type.Integer({ minimum: 1, description: "The runtime revision of the kernel" }) },

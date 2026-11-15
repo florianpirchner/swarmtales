@@ -87,9 +87,14 @@ describe("analyse", () => {
 			{ metric: "models.costUsd", arm: "open", value: 0.01, held: true },
 			{ metric: "models.requests", per: "toy.decisions", arm: "control", value: 1.3, held: true },
 			{ metric: "models.requests", per: "toy.decisions", arm: "open", value: 2, held: false },
-			{ metric: "run.refusals.STEP_LIMIT", arm: "open", value: 3, held: false },
+			{ metric: "run.refusals", arm: "control", value: 0, held: true, codes: [] },
+			{ metric: "run.refusals", arm: "open", value: 3, held: false, codes: ["STEP_LIMIT"] },
 		]);
 		expect(read.pass?.verdict).toBe("kept");
+		// Without a run that was read nothing is known: the guardrail is absent and does not hold. Without the list it has no row.
+		expect(analyse(table(SPEC, [...CONTROL, ["open", 1, 15], ["open", 2, 23], ["open", 3, 31]]).state, []).guardrails.at(-1)).toEqual({ metric: "run.refusals", arm: "open", value: "absent", held: false, codes: [] });
+		expect(results({ ...SPEC, allowedRefusals: [] }, [...CONTROL, ["open", 1, 15], ["open", 2, 23], ["open", 3, 31]]).guardrails.at(-1)?.codes).toEqual(["STEP_LIMIT", "TOOL_LOCKED"]);
+		expect(results(parseExperimentSpec(JSON.parse(JSON.stringify({ ...SPEC, allowedRefusals: undefined }))), [...CONTROL, ["open", 1, 15], ["open", 2, 23], ["open", 3, 31]]).guardrails.map((row) => row.metric)).not.toContain("run.refusals");
 	});
 
 	it("summarizes a replicates design and compares it with the noise floor; unpaired arms get a permutation p", () => {
@@ -104,6 +109,24 @@ describe("analyse", () => {
 		const unpaired = results({ ...SPEC, design: "unpaired" }, [...CONTROL, ["open", 1, 31], ["open", 2, 41], ["open", 3, 51]]);
 		expect(unpaired.estimates[0]).toMatchObject({ estimate: 21, n: 6, test: "label-permutation exact", p: 0.1 });
 		expect(unpaired.pass).toMatchObject({ n: 3, verdict: "kept" });
+		// P449: an unpaired estimate names the n of each arm, treatment first; a paired one and the mean of one arm have one n.
+		expect([unpaired.estimates[0]?.nPerArm, near.estimates[0]?.nPerArm]).toEqual([[3, 3], undefined]);
+		expect(results({ ...SPEC, design: "unpaired" }, [...CONTROL, ["open", 1, 31], ["open", 2, 41], ["open", 3, "absent"]]).estimates[0]).toMatchObject({ n: 5, nPerArm: [2, 3] });
+		expect(results(SPEC, [...CONTROL, ["open", 1, 15], ["open", 2, 23], ["open", 3, 31]]).estimates[0]?.nPerArm).toBeUndefined();
+	});
+
+	it("P449: the interval of the mean of a count is cut at zero; one with a negative value is not", () => {
+		const spec: ExperimentSpec = { ...BASE, arms: [{ id: "control", params: {}, control: true }], design: "replicates", metrics: { ...SPEC.metrics, secondary: [] } };
+		const [low, high] = results(spec, [["control", 1, 0], ["control", 2, 0], ["control", 3, 6]]).estimates[0]?.interval ?? [];
+		expect([low, high?.toFixed(3)]).toEqual([0, "10.606"]);
+		expect(results(spec, [["control", 1, -1], ["control", 2, 0], ["control", 3, 6]]).estimates[0]?.interval[0]).toBeLessThan(0);
+	});
+
+	it("B14: a `started` line a killed process left is a deviation of the results", () => {
+		const { state, facts } = table(SPEC, [...CONTROL, ["open", 1, 15], ["open", 2, 23], ["open", 3, 31]]);
+		const started = [{ planned: { index: 0, arm: "open", seed: 2, replicate: 0, params: {} }, reservedUsd: 0.1 }];
+		expect(analyse({ ...state, started }, facts).deviations).toEqual([{ at: "open-s2-r0", what: "a run of this cell was started and has no record; its reservation of 0.1 USD stays in the sum of the experiment", why: "the process ended before the run did" }]);
+		expect(analyse(state, facts).deviations).toEqual([]);
 	});
 
 	it("B6: an included run without a value of the primary metric is a deviation, not a silent smaller n", () => {

@@ -42,8 +42,14 @@ export interface RunFacts {
 }
 
 const KERNEL = "kernel";
-/** The record source of the model driver (`RESIDENT_RECORDS.id` of `models`, which the lab may not import). */
-const DRIVER = "@swarmtales/models/resident";
+/** The record sources of the model driver and of a Director's asker (`RESIDENT_RECORDS.id` and `DIRECTOR_MODEL_RECORDS.id` of `models`, which the lab may not import). */
+const DRIVERS: readonly string[] = ["@swarmtales/models/resident", "@swarmtales/models/director"];
+/**
+ * The prefixes of the keys per actor: `models.requests.<actor id>` and `models.costUsd.<actor id>`.
+ *
+ * @public
+ */
+export const ACTOR_KEYS = { requests: "models.requests.", costUsd: "models.costUsd." } as const;
 
 const Refusal = Type.Object({ code: Type.String({ description: "The refusal code" }) }, { description: "What the lab reads of a `tool_refused` payload" });
 const tokens = (description: string) => Type.Integer({ minimum: 0, description });
@@ -70,17 +76,36 @@ function runValues(events: readonly Envelope[]): Record<string, FactValue> {
 	return values;
 }
 
-// The counts and sums of the model driver. A run without a model driver has every key "absent"; a `response` the
-// lab cannot read makes the sums "absent", because a sum over the rest would be a number nobody measured.
+// The sum of one field over the `response` records, or "absent" when one of them is not what the driver writes: a
+// sum over the rest would be a number nobody measured.
+function summed(responses: readonly Envelope[], field: (typeof SUMS)[number][1]): FactValue {
+	let sum = 0;
+	for (const { payload } of responses) {
+		if (!Check(Usage, payload)) return "absent";
+		sum += payload[field];
+	}
+	return sum;
+}
+
+// The requests and the cost of every actor that has a model or wrote a record: an actor that asked nothing reads 0.
+function actorValues(manifest: RunManifest, records: readonly Envelope[]): [string, FactValue][] {
+	const actors = new Set<string>([...manifest.actors.filter((actor) => actor.model !== undefined).map((actor) => actor.id), ...records.map((event) => event.actor)]);
+	return [...actors].flatMap((actor): [string, FactValue][] => {
+		const own = records.filter((event) => event.actor === actor);
+		return [[`${ACTOR_KEYS.requests}${actor}`, count(own, "request")], [`${ACTOR_KEYS.costUsd}${actor}`, summed(own.filter((event) => event.type === "response"), "costUsd")]];
+	});
+}
+
+// The counts and sums of the model driver and of the Directors' asker, for the run and per actor. A run without a
+// model driver has every key of the run "absent" and no key per actor.
 function modelValues(manifest: RunManifest, events: readonly Envelope[]): Record<string, FactValue> {
-	const records = events.filter((event) => event.source === DRIVER);
+	const records = events.filter((event) => DRIVERS.includes(event.source));
 	const driven = records.length > 0 || manifest.actors.some((actor) => actor.model !== undefined);
-	const usages = records.filter((event) => event.type === "response").map((event) => (Check(Usage, event.payload) ? event.payload : undefined));
-	const read = usages.filter((usage) => usage !== undefined);
-	const whole = driven && read.length === usages.length;
+	const responses = records.filter((event) => event.type === "response");
 	return Object.fromEntries([
 		...DRIVER_COUNTS.map(([key, type]): [string, FactValue] => [key, driven ? count(records, type) : "absent"]),
-		...SUMS.map(([key, field]): [string, FactValue] => [key, whole ? read.reduce((sum, usage) => sum + usage[field], 0) : "absent"]),
+		...SUMS.map(([key, field]): [string, FactValue] => [key, driven ? summed(responses, field) : "absent"]),
+		...(driven ? actorValues(manifest, records) : []),
 	]);
 }
 
@@ -105,7 +130,10 @@ function metricValues(manifest: RunManifest, events: readonly Envelope[], metric
  * The rule of "absent". A metric whose mechanic the run did not load (its plugin id is not in `manifest.plugins`)
  * has no row. A metric whose mechanic is loaded and whose `compute` returns `undefined` (or no finite number) is
  * `"absent"`. A count that is truly zero is `0`. The `models.*` keys are `"absent"` when the run has no model
- * driver: no actor of the manifest has a model and the log holds no record of the driver.
+ * driver: no actor of the manifest has a model and the log holds no record of the driver. A run with one has two
+ * more keys for every actor that has a model or wrote a record, `models.requests.<actor id>` and
+ * `models.costUsd.<actor id>` ({@link ACTOR_KEYS}): an actor that made no request reads `0`. The records of a
+ * Director's asker count like those of the model driver, in the keys of the run too.
  *
  * @param manifest - The manifest of the run.
  * @param events - The envelopes of the log, in log order.

@@ -11,7 +11,7 @@ export { type ExperimentSpec, ExperimentSpecSchema, parseExperimentSpec, parseLa
 export { type Effect, pairedEffect, share, unpairedEffect } from "./stats/effect.ts";
 export { BOOTSTRAP_SEED, summarize } from "./stats/summary.ts";
 export { shareWithinNoise, type Tolerance, withinNoise } from "./stats/tolerance.ts";
-export { factsOf, type FactValue, type RunFacts } from "./facts/facts.ts";
+export { ACTOR_KEYS, factsOf, type FactValue, type RunFacts } from "./facts/facts.ts";
 export { readRun } from "./facts/read.ts";
 export { COMPARE_FIELDS, comparable } from "./experiment/compare.ts";
 export { type PlannedRun, planRuns } from "./experiment/plan.ts";

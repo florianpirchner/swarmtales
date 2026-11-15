@@ -70,7 +70,7 @@ function estimates(results: ExperimentResults, spec: ExperimentSpec): readonly s
 			const found = results.estimates.find((estimate) => estimate.metric === metric && estimate.over === over);
 			const head = [code(metric), index === 0 ? "primary" : "secondary", over];
 			if (found === undefined) return [...head, ABSENT, ABSENT, ABSENT, ABSENT, ABSENT, ""];
-			return [...head, shown(found.estimate), shown(found.se), `${shown(found.interval[0])} to ${shown(found.interval[1])}`, String(found.n), shown(found.p), `${found.estimator}; ${found.test}`];
+			return [...head, shown(found.estimate), shown(found.se), `${shown(found.interval[0])} to ${shown(found.interval[1])}`, found.nPerArm === undefined ? String(found.n) : `${found.nPerArm.join(" and ")} (per arm)`, shown(found.p), `${found.estimator}; ${found.test}`];
 		}),
 	);
 	// The rule `missed-decision` excludes by what residents did, so the gated row is conditioned on their play: the report says so where it applies.
@@ -118,7 +118,7 @@ function tolerance(results: ExperimentResults): readonly string[] {
  * @public
  */
 export function renderSeriesReport(results: ExperimentResults, spec: ExperimentSpec): string {
-	const guardrails = results.guardrails.map((row) => [code(row.metric), row.per === undefined ? "" : code(row.per), code(row.arm), shown(row.value), row.held ? "held" : "not held"]);
+	const guardrails = results.guardrails.map((row) => [code(row.metric), row.per === undefined ? "" : code(row.per), code(row.arm), shown(row.value), row.held ? "held" : `not held${(row.codes ?? []).length === 0 ? "" : `: ${(row.codes ?? []).join(", ")}`}`]);
 	const deviations = results.deviations.map((row) => [row.at, row.what, row.why]);
 	return [
 		`# Experiment ${spec.id}`,

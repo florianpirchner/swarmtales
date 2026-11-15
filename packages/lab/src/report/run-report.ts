@@ -4,7 +4,7 @@
  * last section, and at this milestone nothing writes it.
  */
 import type { RunManifest } from "@swarmtales/contracts";
-import type { RunFacts } from "../facts/facts.ts";
+import { ACTOR_KEYS, type RunFacts } from "../facts/facts.ts";
 import { code, section, shown, table } from "./format.ts";
 
 /**
@@ -61,12 +61,20 @@ function header(facts: RunFacts, manifest: RunManifest): readonly string[] {
 	];
 }
 
-// The actors with their drivers and models, and the spend of the run. The facts hold no value per actor, so the
-// money is one line for the run.
+const perActor = (key: string): boolean => key.startsWith(ACTOR_KEYS.requests) || key.startsWith(ACTOR_KEYS.costUsd);
+
+// The actors with their drivers and models, what each asked and cost, and the spend of the run. An actor without
+// a model reads "absent" in both columns: it could not ask.
 function spend(facts: RunFacts, manifest: RunManifest): readonly string[] {
-	const rows = manifest.actors.map((actor) => [code(actor.id), code(actor.driver), actor.model === undefined ? "none" : `${actor.model.provider} ${code(actor.model.resolvedId)}`]);
-	const { "models.costUsd": cost, "models.requests": requests } = facts.values;
-	return [...table(["Actor", "Driver", "Model"], rows, "no actor"), "", `The run: ${shown(cost)} USD in ${shown(requests)} model requests. The facts hold no spend per actor.`];
+	const { values } = facts;
+	const rows = manifest.actors.map((actor) => [
+		code(actor.id),
+		code(actor.driver),
+		actor.model === undefined ? "none" : `${actor.model.provider} ${code(actor.model.resolvedId)}`,
+		shown(values[`${ACTOR_KEYS.requests}${actor.id}`]),
+		shown(values[`${ACTOR_KEYS.costUsd}${actor.id}`]),
+	]);
+	return [...table(["Actor", "Driver", "Model", "Requests", "Cost (USD)"], rows, "no actor"), "", `The run: ${shown(values["models.costUsd"])} USD in ${shown(values["models.requests"])} model requests.`];
 }
 
 /**
@@ -75,7 +83,8 @@ function spend(facts: RunFacts, manifest: RunManifest): readonly string[] {
  *
  * @remarks
  * Pure: facts and manifest in, Markdown out. The facts table has one row per key of `facts.values`, in their
- * order; a value that was not measured is printed as the word `absent`, never as a zero. The report ends with
+ * order, without the keys per actor (`models.requests.<actor id>`, `models.costUsd.<actor id>`): those stand in
+ * the table of the spend, one row per actor. A value that was not measured is printed as the word `absent`, never as a zero. The report ends with
  * {@link LOOPHOLE_HEADING} and {@link NO_LOOPHOLE_PART}.
  *
  * @param facts - The facts of the run, as `readRun` computed them.
@@ -93,7 +102,7 @@ function spend(facts: RunFacts, manifest: RunManifest): readonly string[] {
  */
 export function renderRunReport(facts: RunFacts, manifest: RunManifest, titles: Readonly<Record<string, { readonly title: string; readonly unit?: string }>>): string {
 	const entries = Object.entries(facts.values);
-	const rows = entries.map(([key, value]) => {
+	const rows = entries.filter(([key]) => !perActor(key)).map(([key, value]) => {
 		const { title, unit } = titleOf(key, titles);
 		return [code(key), title, unit ?? "", shown(value)];
 	});

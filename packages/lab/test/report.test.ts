@@ -23,7 +23,7 @@ const MANIFEST: RunManifest = {
 };
 const FACTS: RunFacts = {
 	run: "toy-open-s1-r0", manifestHash: A, head: B, game: "toy", seed: 1, replicate: 0, arm: "open", end: { reason: "limit", limit: "maxTicks", tick: 9 },
-	values: { "run.ticks": 9, "run.toolRefusals": 0, "run.refusals.TOOL_LOCKED": 2, "models.requests": 20, "models.costUsd": 0.0123456, "toy.score": 7.5, "toy.decisions": "absent", "brain.writes": "absent" },
+	values: { "run.ticks": 9, "run.toolRefusals": 0, "run.refusals.TOOL_LOCKED": 2, "models.requests": 20, "models.costUsd": 0.0123456, "models.requests.resident:A01": 20, "models.costUsd.resident:A01": 0.0123456, "toy.score": 7.5, "toy.decisions": "absent", "brain.writes": "absent" },
 };
 const TITLES = { "toy.score": { title: "Score", unit: "points" }, "toy.decisions": { title: "Decisions" } };
 
@@ -88,12 +88,12 @@ describe("the run report", () => {
 
 			## Spend
 
-			| Actor | Driver | Model |
-			| --- | --- | --- |
-			| \`resident:A01\` | \`model\` | anthropic \`claude-haiku\` |
-			| \`director:host\` | \`scripted\` | none |
+			| Actor | Driver | Model | Requests | Cost (USD) |
+			| --- | --- | --- | --- | --- |
+			| \`resident:A01\` | \`model\` | anthropic \`claude-haiku\` | 20 | 0.01235 |
+			| \`director:host\` | \`scripted\` | none | absent | absent |
 
-			The run: 0.01235 USD in 20 model requests. The facts hold no spend per actor.
+			The run: 0.01235 USD in 20 model requests.
 
 			## Loophole candidates (unverified)
 
@@ -204,6 +204,16 @@ describe("the series report", () => {
 		expect(renderSeriesReport(RESULTS, { ...SPEC, shareAt: 100 })).toContain("| `control` | 0 | 2 | 0 | 0 to 0.6576 |");
 		expect(renderSeriesReport({ ...RESULTS, values: [] }, { ...SPEC, shareAt: 5 })).toContain("| `open` | absent | 0 | absent | absent |");
 		expect(renderSeriesReport(RESULTS, SPEC)).not.toContain(heading);
+	});
+
+	it("P449, the refusal codes: an unpaired estimate prints the n of each arm, and the guardrail of the refusal codes the codes outside the list", () => {
+		const [estimate] = RESULTS.estimates;
+		const unpaired: ExperimentResults = { ...RESULTS, estimates: estimate === undefined ? [] : [{ ...estimate, n: 24, nPerArm: [12, 11] }], guardrails: [{ metric: "run.refusals", arm: "control", value: 0, held: true, codes: [] }, { metric: "run.refusals", arm: "open", value: 1.5, held: false, codes: ["NOT_OPEN", "STEP_LIMIT"] }] };
+		const report = renderSeriesReport(unpaired, SPEC);
+		expect(report).toContain("| 0.5734 to 6.927 | 12 and 11 (per arm) | 0.0424 |");
+		expect(report).toContain("| `run.refusals` |  | `control` | 0 | held |\n| `run.refusals` |  | `open` | 1.5 | not held: NOT_OPEN, STEP_LIMIT |");
+		// A file written before M4 has neither field: it parses and prints as it did.
+		expect(renderSeriesReport(RESULTS, SPEC)).toContain("| 0.5734 to 6.927 | 2 | 0.0424 |");
 	});
 
 	it("prints absent in the column of an arm that does not export a metric, and for an estimate that is missing", () => {

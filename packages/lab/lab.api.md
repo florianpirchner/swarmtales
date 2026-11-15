@@ -13,6 +13,12 @@ import { TSchema } from 'typebox';
 import { Type } from 'typebox';
 
 // @public
+export const ACTOR_KEYS: {
+    readonly requests: "models.requests.";
+    readonly costUsd: "models.costUsd.";
+};
+
+// @public
 export function analyse(state: ExperimentState, facts: readonly RunFacts[], baseline?: NoiseFloor): ExperimentResults;
 
 // @public
@@ -83,6 +89,7 @@ export const ExperimentResultsSchema: Type.TObject<{
         se: Type.TNumber;
         interval: Type.TTuple<[Type.TNumber, Type.TNumber]>;
         n: Type.TInteger;
+        nPerArm: Type.TOptional<Type.TArray<Type.TInteger>>;
         test: Type.TString;
         p: Type.TNumber;
         over: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"finished">]>;
@@ -99,6 +106,7 @@ export const ExperimentResultsSchema: Type.TObject<{
         arm: Type.TString;
         value: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
         held: Type.TBoolean;
+        codes: Type.TOptional<Type.TArray<Type.TString>>;
     }>>;
     tolerance: Type.TOptional<Type.TObject<{
         kind: Type.TUnion<[Type.TLiteral<"mean">, Type.TLiteral<"share">]>;
@@ -255,6 +263,16 @@ export const ExperimentStateSchema: Type.TObject<{
         costUsd: Type.TNumber;
     }>>;
     spentUsd: Type.TNumber;
+    started: Type.TOptional<Type.TArray<Type.TObject<{
+        planned: Type.TObject<{
+            index: Type.TInteger;
+            arm: Type.TString;
+            seed: Type.TInteger;
+            replicate: Type.TInteger;
+            params: Type.TRecord<"^.*$", Type.TUnknown>;
+        }>;
+        reservedUsd: Type.TNumber;
+    }>>>;
     code: Type.TOptional<Type.TObject<{
         commit: Type.TString;
         kernelRevision: Type.TInteger;

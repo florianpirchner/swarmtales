@@ -5,7 +5,7 @@
  * run, three failed runs stop the series, an excluded run is replaced once, and runs that do not compare stop it.
  */
 import { generateKeyPairSync } from "node:crypto";
-import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { jsonHash } from "@swarmtales/chain";
@@ -318,6 +318,33 @@ describe("runExperiment, follow-ups of the M2 reviews", () => {
 		const coded: PlayRun = () => Promise.reject(new SwtError({ code: "SWT-C025", summary: "the ledger cannot be read", why: "A test.", fix: "None." }));
 		expect(await refusal(runExperiment(SPEC, coded, { directory: root(), metrics: METRICS }))).toMatch(/^SWT-E007/);
 		expect(readExperimentState(roots.at(-1) ?? "")?.spentUsd.toFixed(1)).toBe("0.3");
+	});
+});
+
+describe("runExperiment, the `started` line (M2 review B14)", () => {
+	it("writes the line before the run and takes it out with the record; the line of a killed process stays, counts in full, and its run is played again", async () => {
+		const [directory, plan, file] = [root(), planRuns(SPEC), "experiment.json"];
+		const during: unknown[] = [];
+		let killed = "";
+		const first = player(directory, (_run, call) => {
+			during.push(readExperimentState(directory)?.started?.map((line) => [cell(line.planned), line.reservedUsd]));
+			if (call === 2) killed = readFileSync(join(directory, file), "utf8");
+			return call === 3 ? { fail: "ledger" } : {};
+		});
+		expect(await refusal(runExperiment(SPEC, first.play, { directory, metrics: METRICS }))).toMatch(/^SWT-C025 /);
+		expect(during).toEqual(plan.slice(0, 3).map((run) => [[cell(run), 0.1]]));
+		const [, second] = plan;
+		// A run with a record and a run that was refused leave no line, and the file has no key, as one written before M4.
+		expect([readExperimentState(directory)?.runs.length, readFileSync(join(directory, file), "utf8").includes("started")]).toEqual([2, false]);
+		// The process is killed inside the second run: the file is the one of that moment. 0.01 spent + 0.10 of the line + 0.10 fit under 0.215 once.
+		writeFileSync(join(directory, file), killed);
+		const tight = { ...SPEC, budget: { ...SPEC.budget, totalUsd: 0.215 } };
+		const again = player(join(directory, "again"));
+		expect(await refusal(runExperiment(tight, again.play, { directory, metrics: METRICS }))).toMatch(/^SWT-E004 .*0\.0200 spent \+ 0\.10 reserved \+ 0\.10 for the run is above 0\.21/);
+		expect(again.seen.calls).toEqual([second]);
+		const state = await runExperiment(SPEC, again.play, { directory, metrics: METRICS });
+		expect([state.runs.map((run) => run.status), state.spentUsd.toFixed(2), state.started]).toEqual([["included", "included", "included", "included"], "0.04", [{ planned: second, reservedUsd: 0.1 }]]);
+		expect(readExperimentState(directory)).toEqual(state);
 	});
 });
 

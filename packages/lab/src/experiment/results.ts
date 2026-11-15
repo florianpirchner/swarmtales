@@ -36,7 +36,8 @@ const Estimate = Type.Object(
 		estimate: number("The estimate, with full precision"),
 		se: number("The standard error"),
 		interval: interval("The 95 % interval"),
-		n: Type.Integer({ minimum: 0, description: "Complete pairs, or runs" }),
+		n: Type.Integer({ minimum: 0, description: "Complete pairs, the runs of the one arm, or for an unpaired estimate the runs of both arms together" }),
+		nPerArm: Type.Optional(Type.Array(Type.Integer({ minimum: 0, description: "The runs of one arm that have a value" }), { minItems: 2, maxItems: 2, description: "For an unpaired estimate: the n of each arm, in the order of `contrast`. The pass rule counts the smaller one. Absent in a file written before M4" })),
 		test: text("The test the p value comes from"),
 		p: Type.Number({ minimum: 0, maximum: 1, description: "The p value" }),
 		over,
@@ -61,6 +62,7 @@ const GuardrailResult = Type.Object(
 		arm: text("The arm"),
 		value: value("The mean of the arm"),
 		held: Type.Boolean({ description: "Whether the guardrail held" }),
+		codes: Type.Optional(Type.Array(text("A refusal code"), { description: "Only in the row of the refusal codes (`run.refusals`): the codes outside `allowedRefusals` that the included runs of the arm were refused with; empty when the guardrail held" })),
 	},
 	{ additionalProperties: false, description: "One guardrail of one arm" },
 );

@@ -3,7 +3,7 @@
  * The runner of an experiment: plays the plan with an injected player, holds every cap by code before a run
  * starts, and rewrites the state file after every run, so a stopped experiment continues without replaying.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { type MetricDefinition, type RunManifest, SwtError } from "@swarmtales/contracts";
 import { badRunFolder, capReached, estimateAboveCap, notComparable, RunRefused, seriesBroken } from "../errors.ts";
@@ -20,6 +20,8 @@ const LEAK = "SWT-X030";
 const COST_LIMIT = "models.budget";
 const BROKEN = 3;
 const EPSILON = 1e-9;
+
+type StartedLine = NonNullable<ExperimentState["started"]>[number];
 
 /**
  * What a player reports about one run: its folder and its cost.
@@ -78,7 +80,9 @@ function exclusion(spec: ExperimentSpec, facts: RunFacts): string | undefined {
 }
 
 class Series {
+	/** The state without its `started` lines. */
 	state: ExperimentState;
+	private lines: readonly StartedLine[];
 	stop: SwtError | undefined;
 	private readonly play: PlayRun;
 	private readonly options: ExperimentOptions;
@@ -87,13 +91,17 @@ class Series {
 	private readonly firsts = new Map<string, RunManifest>();
 	private inFlight = 0;
 	private failures = 0;
+	/** The reservations of the `started` lines an earlier, killed process left: held in full, for good. */
+	private readonly lostUsd: number;
 
-	constructor(state: ExperimentState, play: PlayRun, options: ExperimentOptions) {
+	constructor(state: ExperimentState, lines: readonly StartedLine[], play: PlayRun, options: ExperimentOptions) {
 		this.state = state;
+		this.lines = lines;
 		this.play = play;
 		this.options = options;
 		this.planLength = planRuns(state.spec).length;
 		this.queue = openRuns(state.spec, state.runs);
+		this.lostUsd = lines.reduce((sum, line) => sum + line.reservedUsd, 0);
 		for (const record of state.runs) if (record.status !== "stopped") this.first(manifestOf(resolveRunFolder(options.directory, record.directory)));
 		// The failures in a row at the end of an earlier call still count: a continue of a broken series pays one run, not three.
 		this.failures = state.runs.length - 1 - state.runs.findLastIndex((record) => record.status === "included");
@@ -164,10 +172,26 @@ class Series {
 		return this.judge({ planned, directory, costUsd: outcome.costUsd, ...replaces });
 	}
 
-	private add(record: RunRecord): void {
-		this.state = { ...this.state, runs: [...this.state.runs, record], spentUsd: this.state.spentUsd + record.costUsd };
+	// The state with its `started` lines; a state without one has no such key, as a file written before M4.
+	get whole(): ExperimentState {
+		return this.lines.length === 0 ? this.state : { ...this.state, started: [...this.lines] };
+	}
+
+	// Writes the state file with the `started` lines as given: one more before a run starts, one fewer when it has its record.
+	// A state without a record and without a line has no file: a first run that was refused leaves the folder as it found it.
+	private write(lines: readonly StartedLine[]): void {
+		this.lines = lines;
+		const file = join(this.options.directory, STATE_FILE);
 		mkdirSync(this.options.directory, { recursive: true });
-		writeFileSync(join(this.options.directory, STATE_FILE), `${JSON.stringify(this.state, null, "\t")}\n`);
+		if (lines.length === 0 && this.state.runs.length === 0) rmSync(file, { force: true });
+		else writeFileSync(file, `${JSON.stringify(this.whole, null, "\t")}\n`);
+	}
+
+	// The record of a run and the end of its `started` line, in one write; a run that was refused only loses its line.
+	private add(line: StartedLine, record: RunRecord | undefined): void {
+		if (record !== undefined) this.state = { ...this.state, runs: [...this.state.runs, record], spentUsd: this.state.spentUsd + record.costUsd };
+		this.write(this.lines.filter((other) => other !== line));
+		if (record === undefined) return;
 		if (record.status === "excluded" && record.replaces === undefined) this.queue.unshift(replacementOf(record.planned, this.planLength));
 		this.failures = record.status === "included" ? 0 : this.failures + 1;
 		if (this.failures >= BROKEN) this.stop ??= seriesBroken(`${BROKEN} runs in a row were excluded or failed; the last: ${record.reason ?? "no reason"}`);
@@ -180,18 +204,23 @@ class Series {
 			if (planned === undefined) return;
 			// A run may report more than its cap (the meter stops before the next request, not inside one): once one did, every run reserves the largest cost seen.
 			const needUsd = Math.max(perRunUsd, ...this.state.runs.map((record) => record.costUsd));
-			const reservedUsd = this.inFlight * needUsd;
+			const reservedUsd = this.lostUsd + this.inFlight * needUsd;
 			if (this.state.spentUsd + reservedUsd + needUsd > totalUsd + EPSILON) {
 				this.stop = capReached(this.state.spentUsd, reservedUsd, needUsd, totalUsd);
 				return;
 			}
+			// The `started` line is in the file before the player is called: a process killed inside the run leaves it there.
+			const line: StartedLine = { planned, reservedUsd: needUsd };
+			this.write([...this.lines, line]);
 			this.inFlight++;
 			const record = await this.one(planned);
 			this.inFlight--;
-			if (record !== undefined) this.add(record);
+			this.add(line, record);
 		}
 	}
 }
+
+const codeOf = (saved: ExperimentState | undefined): Pick<ExperimentState, "code"> => (saved?.code === undefined ? {} : { code: saved.code });
 
 /**
  * Runs the plan of a spec, resumable: a run that has a record in `experiment.json` is not played again.
@@ -210,6 +239,9 @@ class Series {
  * Of a state file only the records are trusted: the spec is the caller's and what is spent is the sum of the records. The file
  * is bound to the spec without `budget` and `concurrency` (decision A18), so a series continues under a changed cap or pace.
  * The failures in a row at the end of an earlier call count on. When the experiment stops, the runs in flight end first and the state file holds them.
+ * Before a run starts, its `started` line (the planned run and its reservation) is written to the state file; the line goes when the run has its record
+ * or was refused. A line that is in the file when the experiment is run again is a run of a killed process: it stays in the file, its reservation
+ * counts in full against `budget.totalUsd` at every later start, and its planned run is played again (the analysis lists it as a deviation).
  *
  * @param spec - The experiment spec.
  * @param play - Plays one planned run.
@@ -240,8 +272,8 @@ export async function runExperiment(spec: ExperimentSpec, play: PlayRun, options
 	if (saved !== undefined && saved.specHash !== specHash) throw badRunFolder(options.directory, `${STATE_FILE} was written for another spec (hash ${saved.specHash}, not ${specHash})`);
 	// Of a saved state only the records count: the spec is the caller's (its hash was just checked) and what is spent is their sum, so an edited file cannot raise a cap.
 	const runs = saved?.runs ?? [];
-	const series = new Series({ ...saved, spec, specHash, runs, spentUsd: runs.reduce((sum, record) => sum + record.costUsd, 0) }, play, options);
+	const series = new Series({ spec, specHash, runs, spentUsd: runs.reduce((sum, record) => sum + record.costUsd, 0), ...codeOf(saved) }, saved?.started ?? [], play, options);
 	await Promise.all(Array.from({ length: spec.concurrency ?? 1 }, () => series.worker()));
 	if (series.stop !== undefined) throw series.stop;
-	return series.state;
+	return series.whole;
 }
