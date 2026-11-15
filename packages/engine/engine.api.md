@@ -35,6 +35,7 @@ export const DIRECTOR_RECORDS: RecordSource;
 // @public
 export interface DirectorDriverInput {
     readonly ask: AskModel;
+    readonly facts?: (key: string) => unknown;
     readonly game: ResolvedGame;
 }
 

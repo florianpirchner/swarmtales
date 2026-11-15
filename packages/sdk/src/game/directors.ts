@@ -85,7 +85,7 @@ export function resolveDirectors(input: DirectorsInput): { readonly directors: r
 			return;
 		}
 		const { options, issues: wrong } = parsed(definition, use.options, root);
-		const unheard = definition.on.filter((trigger) => !events.includes(trigger.event)).map((trigger) => triggerWithoutEvent({ director: name, event: trigger.event, path: root, declared: events }));
+		const unheard = definition.on.flatMap((trigger) => ("event" in trigger && !("tool" in trigger) && !events.includes(trigger.event) ? [triggerWithoutEvent({ director: name, event: trigger.event, path: root, declared: events })] : []));
 		issues.push(...wrong, ...unheard);
 		if (options === undefined || directors.some((director) => director.name === name)) return;
 		directors.push({ name, actor: actorId(DIRECTOR_KIND, name), definition, options, limits: use.limits ?? definition.limits, model: use.model });

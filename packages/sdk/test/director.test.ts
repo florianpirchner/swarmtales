@@ -2,7 +2,7 @@
 import { SwtError, type GameData, type SchedulerDefinition, type ToolOutcome } from "@swarmtales/contracts";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { defineDirector } from "../src/director/define.ts";
+import { defineDirector, directorContext } from "../src/director/define.ts";
 import { defineGame } from "../src/game/define-game.ts";
 import { DIRECTOR_TAKE } from "../src/game/directors.ts";
 import { resolveGame } from "../src/game/resolve.ts";
@@ -54,12 +54,12 @@ const failure = (run: () => unknown): readonly string[] => {
 
 describe("defineDirector", () => {
 	it("gives back the head, parses options with defaults, and runs the body", async () => {
-		expect([warden.id, warden.summary, warden.limits, warden.on[0]?.event, warden.on[0]?.where?.(null), silent.limits]).toEqual(["warden", "Comments on a proposal.", { maxCalls: 3 }, "votes.proposed", false, {}]);
+		expect([warden.id, warden.summary, warden.limits, warden.on.map((trigger) => ("event" in trigger ? [trigger.event, trigger.where?.(null)] : [])), silent.limits]).toEqual(["warden", "Comments on a proposal.", { maxCalls: 3 }, [["votes.proposed", false]], {}]);
 		expect([warden.parseOptions(undefined), warden.parseOptions({ tone: "warm" }), silent.parseOptions({})]).toEqual([{ tone: "dry" }, { tone: "warm" }, {}]);
 		expect(failure(() => warden.parseOptions({ tone: 3, ton: "x" }))).toEqual(["SWT-G020 options.ton", "SWT-G020 options.tone"]);
 		expect(failure(() => warden.parseOptions([]))).toEqual(["SWT-G020 options"]);
 		const firings = [{ n: 1, tick: 2, event: "votes.proposed", payload: {} }];
-		const ctx = { name: "host", options: { tone: "dry" }, tick: 2, firings };
+		const ctx = { name: "host", options: { tone: "dry" }, tick: 2, firings, facts: {} };
 		expect([warden.system(ctx), warden.input(ctx), warden.fallback(ctx), warden.fallback({ ...ctx, firings: [] }), silent.fallback(ctx)]).toEqual(["You are host, dry.", "tick 2: votes.proposed", { line: "..." }, undefined, undefined]);
 		const calls: unknown[] = [];
 		const call = (tool: string, params: unknown): Promise<ToolOutcome> => Promise.resolve({ ok: false, code: "TOOL_NOT_GRANTED", message: String(calls.push([tool, params])) });
@@ -99,5 +99,14 @@ describe("resolveGame with Directors", () => {
 		expect(fails({ directors: [{ use: "warden" }], scheduler: { id: "turns", options: { kinds: ["resident", "director"] } } })).toEqual(["no error"]);
 		expect(fails({ directors: [{ use: "warden", options: { tone: 1 } }] })).toEqual(["SWT-G020 directors[0].options.tone"]);
 		expect(fails({ directors: [{ use: "warden" }], scheduler: { id: "none" } })).toEqual(["SWT-G020 scheduler.id"]);
+	});
+
+	it("keeps the head's triggers and facts, and makes a context with the listed facts only (M5-06)", () => {
+		const looker = defineDirector({ id: "looker", summary: "Looks.", on: [{ every: 2 }, { event: "tool_called", tool: "post" }, { event: "votes.proposed" }, { every: 3 }], facts: ["votes.count"], output: Type.Null({ description: "Nothing" }) }, { system: () => "s", input: () => "i", act: () => Promise.resolve() });
+		expect([looker.on.length, looker.facts, silent.facts]).toEqual([4, ["votes.count"], []]);
+		const director = { name: "eye", actor: "director:eye" as const, definition: looker, options: {}, limits: {}, model: undefined };
+		const read: string[] = [];
+		const ctx = directorContext(director, { tick: 4, firings: [] }, (key) => (read.push(key), 9));
+		expect([ctx, read, directorContext(director, { tick: 1, firings: [], question: { dm: 2 } })]).toEqual([{ name: "eye", options: {}, tick: 4, firings: [], facts: { "votes.count": 9 } }, ["votes.count"], { name: "eye", options: {}, tick: 1, firings: [], question: { dm: 2 }, facts: {} }]);
 	});
 });

@@ -93,6 +93,12 @@ export interface BodyParts<M extends MechanicShape, F extends Readonly<Record<st
 }
 
 // @public
+export interface CallTrigger extends DirectorTrigger {
+    readonly event: "tool_called";
+    readonly tool: string;
+}
+
+// @public
 export function checkSchema(game: unknown): {
     readonly data: GameData | undefined;
     readonly issues: readonly SwtIssue[];
@@ -196,6 +202,7 @@ export interface DirectorBody<O extends TSchema, A extends TSchema> {
 
 // @public
 export interface DirectorContext<O> {
+    readonly facts: Readonly<Record<string, unknown>>;
     readonly firings: readonly Firing[];
     readonly name: string;
     readonly options: O;
@@ -204,14 +211,18 @@ export interface DirectorContext<O> {
 }
 
 // @public
+export const directorContext: (director: ResolvedDirector, at: Pick<DirectorContext<unknown>, "tick" | "firings" | "question">, read?: (key: string) => unknown) => DirectorContext<unknown>;
+
+// @public
 export interface DirectorDefinition {
     act(answer: unknown, ctx: DirectorActContext<unknown>): Promise<void>;
     readonly answers: string | undefined;
+    readonly facts: readonly string[];
     fallback(ctx: DirectorContext<unknown>): unknown;
     readonly id: string;
     input(ctx: DirectorContext<unknown>): string;
     readonly limits: DirectorLimits;
-    readonly on: readonly DirectorTrigger[];
+    readonly on: readonly (DirectorTrigger | TickTrigger | CallTrigger)[];
     readonly options: TSchema;
     readonly output: TSchema;
     parseOptions(raw: unknown): Readonly<Record<string, JsonValue>>;
@@ -225,9 +236,10 @@ export function directorGrants(grants: Readonly<Record<string, readonly Canonica
 // @public
 export interface DirectorHead<O extends TSchema, A extends TSchema> {
     readonly answers?: string;
+    readonly facts?: readonly string[];
     readonly id: string;
     readonly limits?: DirectorLimits;
-    readonly on: readonly DirectorTrigger[];
+    readonly on: readonly (DirectorTrigger | TickTrigger | CallTrigger)[];
     readonly options?: O;
     readonly output: A;
     readonly summary: string;
@@ -1101,6 +1113,11 @@ export interface TextSource {
         };
     };
     readonly path: string;
+}
+
+// @public
+export interface TickTrigger {
+    readonly every: number;
 }
 
 // @public

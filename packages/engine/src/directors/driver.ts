@@ -6,7 +6,7 @@
  * Beside it, the answerer port of the stage `review`, which asks the Director that answers a review.
  */
 import type { ActorDriver, AskModel, DriverTable, ModelAnswer, RecordSource, ReviewPort } from "@swarmtales/contracts";
-import { DIRECTOR_TAKE, parseTake, type DirectorContext, type ResolvedDirector, type ResolvedGame } from "@swarmtales/sdk";
+import { DIRECTOR_TAKE, directorContext, parseTake, type DirectorContext, type ResolvedDirector, type ResolvedGame } from "@swarmtales/sdk";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
 
@@ -41,6 +41,8 @@ export interface DirectorDriverInput {
 	readonly game: ResolvedGame;
 	/** The model port: `createAsker` or `scriptedAsker` of the models package, or a function of a test. */
 	readonly ask: AskModel;
+	/** Reads a fact of the run, `(key) => kernel.fact(key)`, for the facts a Director's head lists; left out: a Director reads none. */
+	readonly facts?: (key: string) => unknown;
 }
 
 // What the model's answer is worth: the value to act on, when there is one, and the record `answered`.
@@ -52,13 +54,13 @@ function settle(director: ResolvedDirector, ctx: DirectorContext<unknown>, answe
 }
 
 // The driver of one Director; `take` is the name its grant shows for the tool of the plugin `directors`.
-function driverOf(director: ResolvedDirector, take: string, ask: AskModel): ActorDriver {
+function driverOf(director: ResolvedDirector, take: string, { ask, facts }: DirectorDriverInput): ActorDriver {
 	const { definition } = director;
 	return async (activation) => {
 		const taken = await activation.call(take, {});
 		const firings = taken.ok ? (parseTake(taken.reply)?.firings ?? []) : [];
 		if (firings.length === 0) return;
-		const ctx: DirectorContext<unknown> = { name: director.name, options: director.options, tick: activation.tick, firings };
+		const ctx = directorContext(director, { tick: activation.tick, firings }, facts);
 		const question = { system: definition.system(ctx), input: definition.input(ctx), output: definition.output };
 		activation.record(DIRECTOR_RECORDS.id, "asked", { firings: firings.map((firing) => firing.n) } satisfies Static<typeof AskedSchema>);
 		const { value, record } = settle(director, ctx, await ask(activation, question));
@@ -89,7 +91,7 @@ function driverOf(director: ResolvedDirector, take: string, ask: AskModel): Acto
  */
 export function createDirectorDrivers(input: DirectorDriverInput): DriverTable {
 	const take = input.game.definition.names[DIRECTOR_TAKE] ?? "take";
-	return Object.fromEntries((input.game.directors ?? []).map((director) => [director.actor, driverOf(director, take, input.ask)]));
+	return Object.fromEntries((input.game.directors ?? []).map((director) => [director.actor, driverOf(director, take, input)]));
 }
 
 const ReviewAskedSchema = Type.Object({ answerer: Type.String({ description: "Who answers" }), question: Type.Unknown({ description: "The question of the review, as data" }) }, { additionalProperties: false, description: "A review of a call asks its answerer; the lane is held until the answer is in" });
@@ -132,7 +134,7 @@ export function createReviewPort(input: DirectorDriverInput): ReviewPort {
 			const director = of(answerer);
 			if (director === undefined) return { ok: false };
 			const { tick } = record(REVIEW_RECORDS.id, "asked", { answerer, question });
-			const ctx: DirectorContext<unknown> = { name: director.name, options: director.options, tick, firings: [], question };
+			const ctx = directorContext(director, { tick, firings: [], question }, input.facts);
 			const answer = await input.ask({ actor: director.actor, tick, basis: call.seq, detail: {}, inputs: [], tools: [], call: () => Promise.resolve({ ok: false, code: "TOOL_NOT_GRANTED" }), record }, { system: director.definition.system(ctx), input: director.definition.input(ctx), output: director.definition.output });
 			const fits = answer.ok && Check(director.definition.output, answer.value);
 			record(REVIEW_RECORDS.id, "answered", answer.ok ? { answerer, ok: fits, ...(fits ? { answer: answer.value } : { reason: "invalid" }), costUsd: answer.costUsd } : { answerer, ok: false, costUsd: 0, reason: answer.reason });

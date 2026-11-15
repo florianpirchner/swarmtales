@@ -2,16 +2,18 @@
 /**
  * The plugin `directors`: the queue of every Director of a game. Game resolution adds it, last in load order, to a
  * game that has a Director. It listens to the events the Directors' triggers name and queues a firing for each
- * Director that keeps the event; `news` says that a Director has something queued; with the tool `take` a Director
- * (its driver) takes its queue and is counted. A firing has a number of its own, from 1 per Director, and no place
+ * Director that keeps the event, at the start of every n-th tick for a trigger `every`, and in its stage handler
+ * `after` for a trigger on a resident's call of a tool; `news` says that a Director has something queued; with the
+ * tool `take` a Director (its driver) takes its queue and is counted. A firing has a number of its own, from 1 per Director, and no place
  * on the log (decision A34). Queue, counts and numbers are the plugin's slice, so a resumed run goes on with them. It is written by hand as a `ResolvedPlugin`, like `roster`: it asks no model and calls no body
  * function of a Director but `where`.
  */
-import { SwtError, type Envelope, type KernelTool, type Listener, type PluginInstance, type PluginPort, type ResolvedPlugin } from "@swarmtales/contracts";
+import { kindOf, SwtError, type Envelope, type KernelTool, type Listener, type PluginInstance, type PluginPort, type ResolvedPlugin, type ToolCall } from "@swarmtales/contracts";
 import { Type, type Static } from "typebox";
 import { Value } from "typebox/value";
 import { sliceMismatch } from "../errors.ts";
 import type { ResolvedDirector } from "../game/types.ts";
+import { RESIDENT_KIND } from "../mechanic/context.ts";
 
 const ID = "directors";
 const PACKAGE = "@swarmtales/sdk";
@@ -109,9 +111,10 @@ function createRun(port: PluginPort, directors: readonly ResolvedDirector[]) {
 	const byActor = new Map<string, string>(directors.map((director) => [director.actor, director.name]));
 	const queueOf = (name: string) => state.queue[name] ?? [];
 	const callsOf = (name: string): number => state.calls[name] ?? 0;
-	const fire = (director: ResolvedDirector, event: string, envelope: Envelope): void => {
+	// `kept` says whether a trigger of the Director keeps the firing.
+	const fire = (director: ResolvedDirector, kept: boolean, event: string, envelope: Pick<Envelope, "tick" | "payload">): void => {
 		const { name, limits } = director;
-		if (!director.definition.on.some((trigger) => trigger.event === event && (trigger.where?.(envelope.payload) ?? true))) return;
+		if (!kept) return;
 		if (limits.maxCalls !== undefined && callsOf(name) >= limits.maxCalls) {
 			if (state.skipped.includes(name)) return;
 			state.skipped.push(name);
@@ -144,6 +147,23 @@ function createRun(port: PluginPort, directors: readonly ResolvedDirector[]) {
 
 type Run = ReturnType<typeof createRun>;
 
+// Whether a trigger keeps a firing of `event`; `tools` are the bare and the canonical name of a call.
+const keeps = (trigger: ResolvedDirector["definition"]["on"][number], event: string, payload: unknown, tools: readonly string[] = []): boolean => "event" in trigger && trigger.event === event && (!("tool" in trigger) || tools.includes(trigger.tool)) && (trigger.where?.(payload) ?? true);
+
+// The hook `tickStarted`: a firing for each Director with a trigger `every` that divides the tick.
+function ticked(run: Run, port: PluginPort, directors: readonly ResolvedDirector[]): void {
+	for (const director of directors) {
+		const every = director.definition.on.flatMap((trigger) => ("every" in trigger && port.tick() % trigger.every === 0 ? [trigger.every] : []))[0];
+		run.fire(director, every !== undefined, "every", { tick: port.tick(), payload: { every } });
+	}
+}
+
+// The stage handler `after`: a firing of `tool_called` for each Director with a trigger on the tool of a resident's call.
+function called(run: Run, port: PluginPort, directors: readonly ResolvedDirector[], call: ToolCall): void {
+	const payload = { actor: call.actor, as: call.as, params: call.params };
+	for (const director of directors) run.fire(director, kindOf(call.actor) === RESIDENT_KIND && director.definition.on.some((trigger) => keeps(trigger, "tool_called", payload, [call.name, call.tool])), "tool_called", { tick: port.tick(), payload });
+}
+
 const takeTool = (run: Run): KernelTool => ({
 	name: TAKE,
 	description: "Takes the events that fired your triggers since you took them last.",
@@ -162,13 +182,13 @@ const takeTool = (run: Run): KernelTool => ({
 
 // One listener per distinct trigger event that a loaded plugin declares; the schema is the declaring plugin's own object.
 function listenersOf(run: Run, directors: readonly ResolvedDirector[], plugins: readonly ResolvedPlugin[]): readonly Listener[] {
-	const named = new Set(directors.flatMap((director) => director.definition.on.map((trigger) => trigger.event)));
+	const named = new Set(directors.flatMap((director) => director.definition.on.flatMap((trigger) => ("event" in trigger ? [trigger.event] : []))));
 	return plugins.flatMap((plugin) =>
 		Object.entries(plugin.events).flatMap(([type, schema]): Listener[] => {
 			const event = `${plugin.id}.${type}`;
 			if (!named.has(event)) return [];
 			const fireAll = (envelope: Envelope): void => {
-				for (const director of directors) run.fire(director, event, envelope);
+				for (const director of directors) run.fire(director, director.definition.on.some((trigger) => keeps(trigger, event, envelope.payload)), event, envelope);
 			};
 			return [{ source: plugin.id, type, schema, run: fireAll }];
 		}),
@@ -181,8 +201,8 @@ function instanceOf(port: PluginPort, directors: readonly ResolvedDirector[], pl
 		tools: [takeTool(run)],
 		services: [],
 		listeners: listenersOf(run, directors, plugins),
-		hooks: { news: (actor) => run.waiting(actor) },
-		stages: {},
+		hooks: { news: (actor) => run.waiting(actor), tickStarted: [{ run: () => { ticked(run, port, directors); } }] },
+		stages: { after: (call) => { called(run, port, directors, call); } },
 		jobs: {},
 		limits: [],
 		facts: {},
@@ -196,7 +216,8 @@ function instanceOf(port: PluginPort, directors: readonly ResolvedDirector[], pl
  * @param directors - The Directors of the game, from `resolveDirectors`; at least one.
  * @param plugins - The other plugins of the game: an event a trigger names is found here, by `<plugin id>.<event type>`.
  * @param version - The version of the sdk package, for the manifest.
- * @returns The plugin: the tool `take`, the event `skipped`, a listener per trigger event, the hook `news` and a slice.
+ * @returns The plugin: the tool `take`, the event `skipped`, a listener per trigger event, the hooks `news` and
+ * `tickStarted`, the stage handler `after` and a slice.
  * At load nothing is checked; in a run, `load` of its slice throws `SWT-M024` for saved state of another form.
  *
  * @public

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * `defineDirector(head, body)`: the definition of a Director. A Director is a model actor that is no resident: it
- * is woken by events of the game's mechanics, asks its model once, and acts only through tools of its grant. The
- * head is data (id, triggers, the schema of the answer, limits); the body builds the question and acts on the
+ * is woken by events of the game's mechanics, every n ticks or by a resident's call, asks its model once, and acts
+ * only through tools of its grant. The head is data (id, triggers, the facts it reads, the schema of the answer,
+ * limits); the body builds the question and acts on the
  * answer. Nothing here runs a model: game resolution reads the definition, the plugin `directors` queues the
  * firings, and the Director's driver asks and calls `act`.
  */
@@ -11,6 +12,7 @@ import { Type, type Static, type TSchema } from "typebox";
 import { Clone, Default, Errors } from "typebox/value";
 import { optionMismatch } from "../errors.ts";
 import { isJson } from "../game/family.ts";
+import type { ResolvedDirector } from "../game/types.ts";
 
 /**
  * What wakes a Director: one event type of a mechanic of the game.
@@ -25,6 +27,33 @@ export interface DirectorTrigger {
 }
 
 /**
+ * What wakes a Director every n ticks: a firing at the start of every tick whose number is a multiple of `every`
+ * (ticks count from 0), after the tick's jobs and before its first pass, so the Director acts in its slot `start`
+ * (the old `schedule: { every }`). The firing's `event` is `every` and its payload `{ every }`.
+ *
+ * @public
+ */
+export interface TickTrigger {
+	/** The ticks between two firings, a whole number from 1. */
+	readonly every: number;
+}
+
+/**
+ * What wakes a Director when a resident calls a tool (decision A63, the old `causingTool`): the kernel's
+ * `tool_called` with a tool filter. It fires when the call has reached `execute` (its `tool_result`, or a refusal
+ * there): the plugin `directors` sees a call in its stage handler `after`, as no plugin listens to a kernel event. A
+ * call refused before `execute` does not fire. The firing's payload is `{ actor, as, params }`, the params checked.
+ *
+ * @public
+ */
+export interface CallTrigger extends DirectorTrigger {
+	/** The kernel event of a call; `where` reads the payload `{ actor, as, params }`. */
+	readonly event: "tool_called";
+	/** The tool, by its bare name (`postBoard`) or its canonical name. */
+	readonly tool: string;
+}
+
+/**
  * One event that fired a trigger of a Director. It holds no place on the log (decision A34): the event is the line
  * of that tick with that type and payload.
  *
@@ -35,7 +64,7 @@ export interface Firing {
 	readonly n: number;
 	/** The tick of the event. */
 	readonly tick: number;
-	/** `<mechanic>.<event>`, as the trigger names it. */
+	/** `<mechanic>.<event>`, as the trigger names it; `tool_called` for a {@link CallTrigger}, `every` for a {@link TickTrigger}. */
 	readonly event: string;
 	/** The payload of the event. */
 	readonly payload: unknown;
@@ -67,6 +96,8 @@ export interface DirectorContext<O> {
 	readonly tick: number;
 	/** The firings since the Director was asked last, in log order. */
 	readonly firings: readonly Firing[];
+	/** The values of the facts its head lists (`<mechanic>.<fact>`, `Kernel.fact`), read when the context is made; no other fact. Read-only. */
+	readonly facts: Readonly<Record<string, unknown>>;
 	/** The question of the review the Director answers (`answers` of the head); left out outside a review, where `firings` is empty. */
 	readonly question?: JsonValue;
 }
@@ -93,8 +124,10 @@ export interface DirectorHead<O extends TSchema, A extends TSchema> {
 	readonly summary: string;
 	/** The schema of its options, an object schema; without it the Director takes none. */
 	readonly options?: O;
-	/** The triggers; at least one, else the Director is never woken. */
-	readonly on: readonly DirectorTrigger[];
+	/** The triggers; at least one, else the Director is never woken but to answer a review. */
+	readonly on: readonly (DirectorTrigger | TickTrigger | CallTrigger)[];
+	/** The facts of the game it reads, `<mechanic>.<fact>`: its sight; a key no mechanic computes fails the activation (`SWT-R015`). */
+	readonly facts?: readonly string[];
 	/** The schema the model's answer must fit. */
 	readonly output: A;
 	/** The limits of the definition; the `limits` of a use replace them. */
@@ -132,8 +165,10 @@ export interface DirectorDefinition {
 	readonly summary: string;
 	/** The schema of its options; an empty object schema when the head has none. */
 	readonly options: TSchema;
-	/** The triggers. */
-	readonly on: readonly DirectorTrigger[];
+	/** The triggers; game resolution checks the events of the event triggers. */
+	readonly on: readonly (DirectorTrigger | TickTrigger | CallTrigger)[];
+	/** The facts it reads; `[]` when the head lists none. */
+	readonly facts: readonly string[];
 	/** The schema the model's answer must fit. */
 	readonly output: TSchema;
 	/** The limits of the definition; `{}` when the head has none. */
@@ -212,6 +247,7 @@ export function defineDirector(head: DirectorHead<TSchema, TSchema>, body: Direc
 		summary: head.summary,
 		options,
 		on: head.on,
+		facts: head.facts ?? [],
 		output: head.output,
 		limits: head.limits ?? {},
 		answers: head.answers,
@@ -222,3 +258,17 @@ export function defineDirector(head: DirectorHead<TSchema, TSchema>, body: Direc
 		fallback: (ctx) => body.fallback?.(ctx),
 	};
 }
+
+/**
+ * The context of one question of a Director, as its driver and the answerer port of the engine make it: the name,
+ * the options of the use and the values of the facts its head lists.
+ *
+ * @param director - The Director of the resolved game.
+ * @param at - The tick, the firings, and the question of a review (left out outside a review).
+ * @param read - Reads a fact of the run (`(key) => kernel.fact(key)`); left out: `facts` is empty.
+ * @returns The context for `system`, `input` and `fallback`.
+ * @throws SwtError `SWT-R015` of the kernel, from `read`, for a listed fact that no loaded mechanic computes.
+ *
+ * @public
+ */
+export const directorContext = (director: ResolvedDirector, at: Pick<DirectorContext<unknown>, "tick" | "firings" | "question">, read?: (key: string) => unknown): DirectorContext<unknown> => ({ name: director.name, options: director.options, ...at, facts: Object.fromEntries(read === undefined ? [] : director.definition.facts.map((key) => [key, read(key)])) });
