@@ -158,7 +158,7 @@ export const ChannelsSlice = Type.Object(
 		memos: Type.Array(Memo, { description: "Every transfer with a memo, oldest first" }),
 		notes: Type.Array(Note, { description: "Every note of a Director, oldest first" }),
 	},
-	{ description: "The board, the message counter, the direct messages, the inboxes, the seen marks, the groups, the memos and the notes" },
+	{ description: "The board, the message counter, the direct messages, the inboxes, the seen markers, the groups, the memos and the notes" },
 );
 
 /**

@@ -16,7 +16,7 @@ two halves: this is the first (M5-21); `blame` and its judge come with the secon
 | Id | `receipts` |
 | Summary | Receipts the city verifies, for transfers, treasuries, solved levels and delivered direct messages, and showReceipt. |
 | Requires | `channels` (from [channels](../channels/README.md)) |
-| Uses when loaded | `identity`, `allowance`, `exile` (from [exile](../exile/README.md)) |
+| Uses when loaded | `identity`, `allowance` (from [marks](../marks/README.md)), `exile` (from [exile](../exile/README.md)) |
 | Provides | `receipt-source` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |

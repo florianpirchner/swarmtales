@@ -4,6 +4,542 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export function activeOn(book: Book, level: number): boolean;
+
+// @public
+export interface Allowance {
+    level: number;
+    remaining: number;
+    since?: number;
+}
+
+// @public
+export interface Book {
+    readonly levelOf: (agent: string) => number;
+    readonly overrides: ReadonlyMap<number, number>;
+    readonly rules: Rules | undefined;
+    readonly tick: number;
+}
+
+// @public
+export function canAfford(state: MarksState, book: Book, agent: string, channel: Channel): boolean;
+
+// @public
+export type Channel = "board" | "group" | "dm" | "receipt";
+
+// @public
+export const DEFAULT_RECEIPT_PRICE = 1;
+
+// @public
+export const marks: MechanicDefinition<"marks", Type.TObject<{
+rules: Type.TOptional<Type.TObject<{
+fromLevel: Type.TInteger;
+perLevel: Type.TOptional<Type.TInteger>;
+perRun: Type.TOptional<Type.TInteger>;
+prices: Type.TObject<{
+board: Type.TInteger;
+group: Type.TInteger;
+dm: Type.TInteger;
+receipt: Type.TOptional<Type.TInteger>;
+}>;
+ranges: Type.TOptional<Type.TArray<Type.TObject<{
+fromLevel: Type.TInteger;
+perLevel: Type.TOptional<Type.TInteger>;
+prices: Type.TOptional<Type.TObject<{
+board: Type.TInteger;
+group: Type.TInteger;
+dm: Type.TInteger;
+receipt: Type.TOptional<Type.TInteger>;
+}>>;
+refill: Type.TOptional<Type.TObject<{
+marks: Type.TInteger;
+everyMinutes: Type.TInteger;
+}>>;
+}>>>;
+}>>;
+levels: Type.TArray<Type.TObject<{
+level: Type.TInteger;
+perLevel: Type.TInteger;
+}>>;
+startLevel: Type.TInteger;
+}>, {
+marks_spent: Type.TObject<{
+agent: Type.TString;
+channel: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"dm">, Type.TLiteral<"receipt">]>;
+remaining: Type.TNumber;
+}>;
+}, never>;
+
+// @public
+export type MarksCtx = CtxOf<typeof marksHead>;
+
+// @public
+export const marksHead: MechanicHead<"marks", Type.TObject<{
+rules: Type.TOptional<Type.TObject<{
+fromLevel: Type.TInteger;
+perLevel: Type.TOptional<Type.TInteger>;
+perRun: Type.TOptional<Type.TInteger>;
+prices: Type.TObject<{
+board: Type.TInteger;
+group: Type.TInteger;
+dm: Type.TInteger;
+receipt: Type.TOptional<Type.TInteger>;
+}>;
+ranges: Type.TOptional<Type.TArray<Type.TObject<{
+fromLevel: Type.TInteger;
+perLevel: Type.TOptional<Type.TInteger>;
+prices: Type.TOptional<Type.TObject<{
+board: Type.TInteger;
+group: Type.TInteger;
+dm: Type.TInteger;
+receipt: Type.TOptional<Type.TInteger>;
+}>>;
+refill: Type.TOptional<Type.TObject<{
+marks: Type.TInteger;
+everyMinutes: Type.TInteger;
+}>>;
+}>>>;
+}>>;
+levels: Type.TArray<Type.TObject<{
+level: Type.TInteger;
+perLevel: Type.TInteger;
+}>>;
+startLevel: Type.TInteger;
+}>, Type.TObject<{
+allowances: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+remaining: Type.TNumber;
+since: Type.TOptional<Type.TInteger>;
+}>>;
+shown: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+}>>;
+}>, MarksState, {
+marks_spent: Type.TObject<{
+agent: Type.TString;
+channel: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"dm">, Type.TLiteral<"receipt">]>;
+remaining: Type.TNumber;
+}>;
+}, {
+readonly "marks/status/marks": readonly ["remaining", "budget"];
+readonly "marks/task/marks-level": readonly ["budget", "board", "group", "dm", "receipt"];
+readonly "marks/task/marks-level-refill": readonly ["budget", "board", "group", "dm", "receipt", "regain"];
+readonly "marks/task/marks-run": readonly ["budget", "board", "group", "dm", "receipt"];
+}, [], readonly [ServiceDefinition<"allowance", {
+readonly left: {
+readonly kind: "query";
+readonly summary: "The resident's marks in the current window, or null where marks do not apply (old `left` of `marks`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+remaining: Type.TNumber;
+budget: Type.TNumber;
+}>, Type.TNull]>;
+};
+readonly priceOf: {
+readonly kind: "query";
+readonly summary: "What a message on the channel costs the resident now, or null where marks do not apply (old `priceOf` of `marks`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+channel: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"dm">, Type.TLiteral<"receipt">]>;
+}>;
+readonly output: Type.TUnion<[Type.TNumber, Type.TNull]>;
+};
+}>], readonly [ServiceDefinition<"progression", {
+readonly levelOf: {
+readonly kind: "query";
+readonly summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly isFinished: {
+readonly kind: "query";
+readonly summary: "Whether the resident has passed the last level (old `isFinished`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly hasPassed: {
+readonly kind: "query";
+readonly summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly hasSolved: {
+readonly kind: "query";
+readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly passed: {
+readonly kind: "query";
+readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly lastProgress: {
+readonly kind: "query";
+readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly currentAct: {
+readonly kind: "query";
+readonly summary: "The first level of the latest act that has begun.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly actStart: {
+readonly kind: "query";
+readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly door: {
+readonly kind: "query";
+readonly summary: "The level whose door is shut, or null.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly doorShut: {
+readonly kind: "query";
+readonly summary: "Whether a door holds residents back now.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly openDoor: {
+readonly kind: "command";
+readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly releaseDoor: {
+readonly kind: "command";
+readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+readonly unlock: {
+readonly kind: "command";
+readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly ranking: {
+readonly kind: "query";
+readonly summary: "The ranking: the banished last, then by points, by level and by id.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+rank: Type.TInteger;
+points: Type.TInteger;
+level: Type.TInteger;
+}>>;
+};
+readonly holdersBehind: {
+readonly kind: "query";
+readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TObject<{
+holder: Type.TString;
+level: Type.TInteger;
+piece: Type.TString;
+}>>;
+};
+readonly nextPenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next wrong code costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly nextBlamePenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next lost blame costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly chargeBlame: {
+readonly kind: "command";
+readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly endAct: {
+readonly kind: "command";
+readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isOpenOnClock: {
+readonly kind: "query";
+readonly summary: "Whether the level's door is open on the door clock now.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly opensAt: {
+readonly kind: "query";
+readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TInteger;
+};
+readonly bounds: {
+readonly kind: "query";
+readonly summary: "The start level, the last playable level and the seats at the end.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+startLevel: Type.TInteger;
+lastLevel: Type.TInteger;
+survivors: Type.TInteger;
+}>;
+};
+}>, ServiceDefinition<"channels", {
+readonly post: {
+readonly kind: "command";
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+}>;
+readonly output: Type.TObject<{
+postSeq: Type.TInteger;
+}>;
+};
+readonly notify: {
+readonly kind: "command";
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+readonly input: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly dmRecords: {
+readonly kind: "query";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+tick: Type.TInteger;
+answered: Type.TBoolean;
+}>>;
+};
+readonly createCityGroup: {
+readonly kind: "command";
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+readonly input: Type.TObject<{
+name: Type.TString;
+members: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+};
+readonly removeCityGroup: {
+readonly kind: "command";
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly postGroupAsCity: {
+readonly kind: "command";
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly group: {
+readonly kind: "query";
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+id: Type.TString;
+name: Type.TString;
+founder: Type.TString;
+treasurer: Type.TString;
+members: Type.TArray<Type.TString>;
+removed: Type.TBoolean;
+}>, Type.TNull]>;
+};
+readonly groupPost: {
+readonly kind: "query";
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+group: Type.TString;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly couldRead: {
+readonly kind: "query";
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+readonly input: Type.TObject<{
+group: Type.TString;
+reader: Type.TString;
+number: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+}>], Readonly<Record<symbol, never>>>;
+
+// @public
+export const MarksOptions: Type.TObject<{
+    rules: Type.TOptional<Type.TObject<{
+        fromLevel: Type.TInteger;
+        perLevel: Type.TOptional<Type.TInteger>;
+        perRun: Type.TOptional<Type.TInteger>;
+        prices: Type.TObject<{
+            board: Type.TInteger;
+            group: Type.TInteger;
+            dm: Type.TInteger;
+            receipt: Type.TOptional<Type.TInteger>;
+        }>;
+        ranges: Type.TOptional<Type.TArray<Type.TObject<{
+            fromLevel: Type.TInteger;
+            perLevel: Type.TOptional<Type.TInteger>;
+            prices: Type.TOptional<Type.TObject<{
+                board: Type.TInteger;
+                group: Type.TInteger;
+                dm: Type.TInteger;
+                receipt: Type.TOptional<Type.TInteger>;
+            }>>;
+            refill: Type.TOptional<Type.TObject<{
+                marks: Type.TInteger;
+                everyMinutes: Type.TInteger;
+            }>>;
+        }>>>;
+    }>>;
+    levels: Type.TArray<Type.TObject<{
+        level: Type.TInteger;
+        perLevel: Type.TInteger;
+    }>>;
+    startLevel: Type.TInteger;
+}>;
+
+// @public
+export interface MarksState {
+    readonly allowances: Map<string, Allowance>;
+    readonly shown: Map<string, number>;
+}
+
+// @public
+export function priceOf(book: Book, level: number, channel: Channel): number;
+
+// @public
+export interface Prices {
+    readonly board: number;
+    readonly dm: number;
+    readonly group: number;
+    readonly receipt?: number | undefined;
+}
+
+// @public
+interface Range_2 {
+    readonly fromLevel: number;
+    readonly perLevel?: number | undefined;
+    readonly prices?: Prices | undefined;
+    readonly refill?: Refill | undefined;
+}
+export { Range_2 as Range }
+
+// @public
+export interface Refill {
+    readonly everyMinutes: number;
+    readonly marks: number;
+}
+
+// @public
+export interface Rules {
+    readonly fromLevel: number;
+    readonly perLevel?: number | undefined;
+    readonly perRun?: number | undefined;
+    readonly prices: Prices;
+    readonly ranges?: readonly Range_2[] | undefined;
+}
+
+// @public
+export function runWide(book: Book): boolean;
+
+// @public
+export function spend(state: MarksState, book: Book, agent: string, channel: Channel): Status | undefined;
+
+// @public
+export interface Status {
+    readonly budget: number;
+    readonly remaining: number;
+}
+
+// @public
+export function statusOf(state: MarksState, book: Book, agent: string): Status | undefined;
+
+// @public
+export interface Terms {
+    readonly budget: number;
+    readonly prices: Readonly<Record<Channel, number>>;
+    readonly refill?: Refill;
+}
+
+// @public
+export function termsOn(book: Book, level: number): Terms;
+
 // (No @packageDocumentation comment for this package)
 
 ```

@@ -94,11 +94,11 @@ describe("no service cycle (M5, 4.6)", () => {
 		expect([...CONTRACTS]).toEqual(["allowance", "brain-source", "consensus-source", "identity", "notices", "receipt-source"]);
 	});
 
-	it("counts no edge through a shared contract; counted, the repository has the cycles of errata J1 and those through receipt-source", () => {
+	it("counts no edge through a shared contract; counted, the repository has the cycles of errata J1 and those through receipt-source and allowance", () => {
 		expect(edgesOf(heads).filter((edge) => CONTRACTS.has(edge.service))).toEqual([]);
 		const all = serviceCycles(heads, () => true);
 		expect(all.length).toBeGreaterThan(0);
-		expect(all.every((cycle) => /-\((consensus|brain|receipt)-source\)->/.test(cycle))).toBe(true);
+		expect(all.every((cycle) => /-\((consensus-source|brain-source|receipt-source|allowance)\)->/.test(cycle))).toBe(true);
 	});
 
 	it("fails on a fixture of two heads that use each other", () => {

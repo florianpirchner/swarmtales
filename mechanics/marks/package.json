@@ -7,9 +7,10 @@
 	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
+		"kind": "mechanic",
 		"class": "game",
 		"layer": "L3",
-		"mechanics": []
+		"mechanics": ["marks"]
 	},
 	"exports": {
 		".": {
@@ -26,5 +27,18 @@
 		"build": "tsdown",
 		"api": "api-extractor run",
 		"api:update": "api-extractor run --local"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-contracts": "workspace:*",
+		"@swarmtales/mechanic-channels": "workspace:*",
+		"@swarmtales/mechanic-progression": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/mechanic-ledger": "workspace:*",
+		"@swarmtales/mechanic-receipts": "workspace:*",
+		"@swarmtales/testkit": "workspace:*"
 	}
 }
