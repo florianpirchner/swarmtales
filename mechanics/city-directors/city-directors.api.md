@@ -5,12 +5,74 @@
 ```ts
 
 import { DirectorDefinition } from '@swarmtales/sdk';
+import { Firing } from '@swarmtales/sdk';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { NoOptions } from '@swarmtales/sdk';
 import { PromptLookup } from '@swarmtales/contracts';
+import { ServiceDefinition } from '@swarmtales/contracts';
 import { Static } from 'typebox';
+import { TArray } from 'typebox';
+import { TEnum } from 'typebox';
+import { TInteger } from 'typebox';
+import { TObject } from 'typebox';
+import { TString } from 'typebox';
 import { Type } from 'typebox';
 
 // @public
 export function budgetLine(options: GamemakerOptions, residents: readonly string[], notes: readonly GamemakerNote[], tick: number): string;
+
+// @public
+export const confessor: DirectorDefinition;
+
+// @public
+export const ConfessorAnswerSchema: Type.TObject<{
+    items: Type.TArray<Type.TObject<{
+        ref: Type.TInteger;
+        labels: Type.TArray<Type.TString>;
+        targets: Type.TOptional<Type.TArray<Type.TString>>;
+    }>>;
+}>;
+
+// @public
+export interface ConfessorDials {
+    readonly label?: string;
+    readonly maxChars?: number;
+}
+
+// @public
+export type ConfessorOptions = Static<typeof ConfessorOptionsSchema>;
+
+// @public
+export function confessorOptions(prompts: PromptLookup, dials?: ConfessorDials): ConfessorOptions;
+
+// @public
+export const ConfessorOptionsSchema: Type.TObject<{
+    label: Type.TString;
+    maxChars: Type.TInteger;
+    system: Type.TString;
+    texts: Type.TObject<{
+        input: Type.TString;
+        round: Type.TString;
+        named: Type.TString;
+        context: Type.TString;
+        statements: Type.TString;
+        dm: Type.TString;
+        board: Type.TString;
+        group: Type.TString;
+    }>;
+}>;
+
+// @public
+export interface ConfessorSight {
+    readonly statements?: readonly StatementEvent[];
+}
+
+// @public
+export function conversationKey(statement: Statement): string | undefined;
+
+// @public
+export function defineConfessor(sight?: ConfessorSight): DirectorDefinition;
 
 // @public
 export function defineGamemaker(sight?: GamemakerSight): DirectorDefinition;
@@ -158,6 +220,19 @@ export interface GamemakerTexts {
 export function gamemakerTexts(lookup: PromptLookup): GamemakerTexts;
 
 // @public
+export const HistoryFact: Type.TArray<Type.TObject<{
+    conversation: Type.TString;
+    statements: Type.TArray<Type.TObject<{
+        ref: Type.TInteger;
+        agent: Type.TString;
+        source: Type.TUnion<[Type.TLiteral<"dm">, Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"cast">]>;
+        to: Type.TArray<Type.TString>;
+        group: Type.TOptional<Type.TString>;
+        text: Type.TString;
+    }>>;
+}>>;
+
+// @public
 export interface HoldoutTiming {
     readonly fallbackMinutes: number;
     readonly graceMinutes: number;
@@ -165,6 +240,121 @@ export interface HoldoutTiming {
     readonly stallMinutes: number;
     readonly voteMinutes: number;
 }
+
+// @public
+export const interpretations: MechanicDefinition<"interpretations", NoOptions, {
+interpretation: TObject<    {
+ref: TInteger;
+agent: TString;
+source: TEnum<["thought", "aside", "dm", "board", "group", "cast"]>;
+labels: TArray<TEnum<["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"]>>;
+targets: TArray<TString>;
+classifier: TString;
+}>;
+interpretation_round: TObject<    {
+round: TInteger;
+classifier: TString;
+statements: TInteger;
+labeled: TInteger;
+}>;
+interpretation_error: TObject<    {
+round: TInteger;
+message: TString;
+}>;
+}, "interpret">;
+
+// @public
+export const interpretationsHead: MechanicHead<"interpretations", NoOptions, Type.TObject<{
+history: Type.TArray<Type.TObject<{
+conversation: Type.TString;
+statements: Type.TArray<Type.TObject<{
+ref: Type.TInteger;
+agent: Type.TString;
+source: Type.TUnion<[Type.TLiteral<"dm">, Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"cast">]>;
+to: Type.TArray<Type.TString>;
+group: Type.TOptional<Type.TString>;
+text: Type.TString;
+}>>;
+}>>;
+}>, {
+history: {
+statements: {
+group?: string;
+ref: number;
+agent: string;
+source: "dm" | "board" | "group" | "cast";
+to: string[];
+text: string;
+}[];
+conversation: string;
+}[];
+}, {
+interpretation: Type.TObject<{
+ref: Type.TInteger;
+agent: Type.TString;
+source: Type.TEnum<["thought", "aside", "dm", "board", "group", "cast"]>;
+labels: Type.TArray<Type.TEnum<["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"]>>;
+targets: Type.TArray<Type.TString>;
+classifier: Type.TString;
+}>;
+interpretation_round: Type.TObject<{
+round: Type.TInteger;
+classifier: Type.TString;
+statements: Type.TInteger;
+labeled: Type.TInteger;
+}>;
+interpretation_error: Type.TObject<{
+round: Type.TInteger;
+message: Type.TString;
+}>;
+}, Readonly<Record<symbol, never>>, [], [], readonly [ServiceDefinition<"identity", {
+readonly nameOf: {
+readonly kind: "query";
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly display: {
+readonly kind: "query";
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly resolve: {
+readonly kind: "query";
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+}>], {
+interpret: Type.TObject<{
+round: Type.TInteger;
+classifier: Type.TString;
+statements: Type.TArray<Type.TObject<{
+ref: Type.TInteger;
+agent: Type.TString;
+source: Type.TUnion<[Type.TLiteral<"dm">, Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"cast">]>;
+to: Type.TArray<Type.TString>;
+group: Type.TOptional<Type.TString>;
+text: Type.TString;
+}>>;
+items: Type.TArray<Type.TObject<{
+ref: Type.TInteger;
+labels: Type.TArray<Type.TString>;
+targets: Type.TOptional<Type.TArray<Type.TString>>;
+}>>;
+error: Type.TOptional<Type.TString>;
+}>;
+}>;
+
+// @public
+export const LABELS: readonly ["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"];
 
 // @public
 export interface LookParts {
@@ -188,11 +378,39 @@ export function notesUsed(notes: readonly GamemakerNote[], to: string, tick: num
 export type PenaltyLadder = number | readonly number[];
 
 // @public
+export const ResidentsFact: Type.TArray<Type.TObject<{
+    id: Type.TString;
+    name: Type.TUnion<[Type.TString, Type.TNull]>;
+}>>;
+
+// @public
 export interface ResidentTrack {
     readonly lastActive?: number;
     readonly levelSince: number;
     readonly wrongOnLevel: number;
 }
+
+// @public
+export type Statement = Static<typeof StatementSchema>;
+
+// @public
+export const STATEMENT_EVENTS: readonly ["channels.dm_sent", "channels.board_post", "channels.group_post", "cast.cast_dm"];
+
+// @public
+export type StatementEvent = (typeof STATEMENT_EVENTS)[number];
+
+// @public
+export function statementOf(firing: Firing, isResident: (id: string) => boolean): Statement | undefined;
+
+// @public
+export const StatementSchema: Type.TObject<{
+    ref: Type.TInteger;
+    agent: Type.TString;
+    source: Type.TUnion<[Type.TLiteral<"dm">, Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"cast">]>;
+    to: Type.TArray<Type.TString>;
+    group: Type.TOptional<Type.TString>;
+    text: Type.TString;
+}>;
 
 // (No @packageDocumentation comment for this package)
 

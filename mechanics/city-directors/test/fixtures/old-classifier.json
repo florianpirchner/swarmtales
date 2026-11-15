@@ -1,0 +1,1298 @@
+{
+	"source": "legacy test/fixtures/old-engine/overseers-classifier.json.gz, the case \"asks with the old prompts\" of test/overseers/classifier.test.ts",
+	"prompts": [
+		"Round 1 (minute 0). Residents: A01, A02 (called Maren), A03, A04.\n\nStatements of this round:\n#2 A01 thinks (private): \"I will hold my fragment back.\"\n#3 A02 says to itself (private): \"an aside\"\n#4 A01 DM to A02: \"Door 2 is 1234\"\n#5 A02 DM to A01: \"no\"\n#6 A03 on the public board: \"A02 cheated!\"\n#8 A03 in group G1: \"Let us meet.\"\n#9 A01 DM to C1: \"Hello cast\"",
+		"Round 2 (minute 1). Residents: A01, A02 (called Maren), A03, A04.\n\nEarlier messages of these conversations (context only, do not label):\n#4 A01 DM to A02: \"Door 2 is 1234\"\n#5 A02 DM to A01: \"no\"\n#8 A03 in group G1: \"Let us meet.\"\n\nStatements of this round:\n#27 A01 DM to A02: \"deal\"\n#28 A04 in group G1: \"Agreed.\"",
+		"Round 3 (minute 2). Residents: A01, A02 (called Maren), A03, A04.\n\nEarlier messages of these conversations (context only, do not label):\n#4 A01 DM to A02: \"Door 2 is 1234\"\n#5 A02 DM to A01: \"no\"\n#27 A01 DM to A02: \"deal\"\n\nStatements of this round:\n#40 A01 DM to A02: \"message 0 of minute 2\"\n#41 A02 DM to A03: \"message 1 of minute 2\"\n#42 A03 DM to A01: \"message 2 of minute 2\"\n#43 A01 DM to A02: \"message 3 of minute 2\"\n#44 A02 DM to A03: \"message 4 of minute 2\"\n#45 A03 DM to A01: \"message 5 of minute 2\"\n#46 A01 DM to A02: \"message 6 of minute 2\"\n#47 A02 DM to A03: \"message 7 of minute 2\"\n#48 A03 DM to A01: \"message 8 of minute 2\"\n#49 A01 DM to A02: \"message 9 of minute 2\"\n#50 A02 DM to A03: \"message 10 of minute 2\"\n#51 A03 DM to A01: \"message 11 of minute 2\"\n#52 A01 DM to A02: \"message 12 of minute 2\"\n#53 A02 DM to A03: \"message 13 of minute 2\"\n#54 A03 DM to A01: \"message 14 of minute 2\"\n#55 A01 DM to A02: \"message 15 of minute 2\"\n#56 A02 DM to A03: \"message 16 of minute 2\"\n#57 A03 DM to A01: \"message 17 of minute 2\"\n#58 A01 DM to A02: \"message 18 of minute 2\"\n#59 A02 DM to A03: \"message 19 of minute 2\"\n#60 A03 DM to A01: \"message 20 of minute 2\"\n#61 A01 DM to A02: \"message 21 of minute 2\"\n#62 A02 DM to A03: \"message 22 of minute 2\"\n#63 A03 DM to A01: \"message 23 of minute 2\"\n#64 A01 DM to A02: \"message 24 of minute 2\"\n#65 A02 DM to A03: \"message 25 of minute 2\"\n#66 A03 DM to A01: \"message 26 of minute 2\"\n#67 A01 DM to A02: \"message 27 of minute 2\"\n#68 A02 DM to A03: \"message 28 of minute 2\"\n#69 A03 DM to A01: \"message 29 of minute 2\"\n#70 A01 DM to A02: \"message 30 of minute 2\"\n#71 A02 DM to A03: \"message 31 of minute 2\"\n#72 A03 DM to A01: \"message 32 of minute 2\"\n#73 A01 DM to A02: \"message 33 of minute 2\"\n#74 A02 DM to A03: \"message 34 of minute 2\"\n#75 A03 DM to A01: \"message 35 of minute 2\"\n#76 A01 DM to A02: \"message 36 of minute 2\"\n#77 A02 DM to A03: \"message 37 of minute 2\"\n#78 A03 DM to A01: \"message 38 of minute 2\"\n#79 A01 DM to A02: \"message 39 of minute 2\"\n#80 A02 DM to A03: \"message 40 of minute 2\"\n#81 A03 DM to A01: \"message 41 of minute 2\"\n#82 A01 DM to A02: \"message 42 of minute 2\"\n#83 A02 DM to A03: \"message 43 of minute 2\"\n#84 A03 DM to A01: \"message 44 of minute 2\"\n#85 A01 DM to A02: \"message 45 of minute 2\"\n#86 A02 DM to A03: \"message 46 of minute 2\"\n#87 A03 DM to A01: \"message 47 of minute 2\"\n#88 A01 DM to A02: \"message 48 of minute 2\"\n#89 A02 DM to A03: \"message 49 of minute 2\"\n#90 A03 DM to A01: \"message 50 of minute 2\"\n#91 A01 DM to A02: \"message 51 of minute 2\"\n#92 A02 DM to A03: \"message 52 of minute 2\"\n#93 A03 DM to A01: \"message 53 of minute 2\"\n#94 A01 DM to A02: \"message 54 of minute 2\"\n#95 A02 DM to A03: \"message 55 of minute 2\"\n#96 A03 DM to A01: \"message 56 of minute 2\"\n#97 A01 DM to A02: \"message 57 of minute 2\"\n#98 A02 DM to A03: \"message 58 of minute 2\"\n#99 A03 DM to A01: \"message 59 of minute 2\"",
+		"Round 3 (minute 2). Residents: A01, A02 (called Maren), A03, A04.\n\nEarlier messages of these conversations (context only, do not label):\n#4 A01 DM to A02: \"Door 2 is 1234\"\n#5 A02 DM to A01: \"no\"\n#27 A01 DM to A02: \"deal\"\n\nStatements of this round:\n#100 A01 DM to A02: \"message 60 of minute 2\"\n#101 A02 DM to A03: \"message 61 of minute 2\"\n#102 A03 DM to A01: \"message 62 of minute 2\"\n#103 A01 DM to A02: \"message 63 of minute 2\"\n#104 A02 DM to A03: \"message 64 of minute 2\"\n#105 A03 DM to A01: \"message 65 of minute 2\"\n#106 A01 DM to A02: \"message 66 of minute 2\"\n#107 A02 DM to A03: \"message 67 of minute 2\"\n#108 A03 DM to A01: \"message 68 of minute 2\"\n#109 A01 DM to A02: \"message 69 of minute 2\"\n#110 A02 DM to A03: \"message 70 of minute 2\"\n#111 A03 DM to A01: \"message 71 of minute 2\"\n#112 A01 DM to A02: \"message 72 of minute 2\"\n#113 A02 DM to A03: \"message 73 of minute 2\"\n#114 A03 DM to A01: \"message 74 of minute 2\"\n#115 A01 DM to A02: \"message 75 of minute 2\"\n#116 A02 DM to A03: \"message 76 of minute 2\"\n#117 A03 DM to A01: \"message 77 of minute 2\"\n#118 A01 DM to A02: \"message 78 of minute 2\"\n#119 A02 DM to A03: \"message 79 of minute 2\"\n#120 A03 DM to A01: \"message 80 of minute 2\"\n#121 A01 DM to A02: \"message 81 of minute 2\"\n#122 A02 DM to A03: \"message 82 of minute 2\"\n#123 A03 DM to A01: \"message 83 of minute 2\"\n#124 A01 DM to A02: \"message 84 of minute 2\"\n#125 A02 DM to A03: \"message 85 of minute 2\"\n#126 A03 DM to A01: \"message 86 of minute 2\"\n#127 A01 DM to A02: \"message 87 of minute 2\"\n#128 A02 DM to A03: \"message 88 of minute 2\"\n#129 A03 DM to A01: \"message 89 of minute 2\"\n#130 A01 DM to A02: \"message 90 of minute 2\"\n#131 A02 DM to A03: \"message 91 of minute 2\"\n#132 A03 DM to A01: \"message 92 of minute 2\"\n#133 A01 DM to A02: \"message 93 of minute 2\"\n#134 A02 DM to A03: \"message 94 of minute 2\"\n#135 A03 DM to A01: \"message 95 of minute 2\"\n#136 A01 DM to A02: \"message 96 of minute 2\"\n#137 A02 DM to A03: \"message 97 of minute 2\"\n#138 A03 DM to A01: \"message 98 of minute 2\"\n#139 A01 DM to A02: \"message 99 of minute 2\"\n#140 A02 DM to A03: \"message 100 of minute 2\"\n#141 A03 DM to A01: \"message 101 of minute 2\"\n#142 A01 DM to A02: \"message 102 of minute 2\"\n#143 A02 DM to A03: \"message 103 of minute 2\"\n#144 A03 DM to A01: \"message 104 of minute 2\"\n#145 A01 DM to A02: \"message 105 of minute 2\"\n#146 A02 DM to A03: \"message 106 of minute 2\"\n#147 A03 DM to A01: \"message 107 of minute 2\"\n#148 A01 DM to A02: \"message 108 of minute 2\"\n#149 A02 DM to A03: \"message 109 of minute 2\"\n#150 A03 DM to A01: \"message 110 of minute 2\"\n#151 A01 DM to A02: \"message 111 of minute 2\"\n#152 A02 DM to A03: \"message 112 of minute 2\"\n#153 A03 DM to A01: \"message 113 of minute 2\"\n#154 A01 DM to A02: \"message 114 of minute 2\"\n#155 A02 DM to A03: \"message 115 of minute 2\"\n#156 A03 DM to A01: \"message 116 of minute 2\"\n#157 A01 DM to A02: \"message 117 of minute 2\"\n#158 A02 DM to A03: \"message 118 of minute 2\"\n#159 A03 DM to A01: \"message 119 of minute 2\"",
+		"Round 3 (minute 2). Residents: A01, A02 (called Maren), A03, A04.\n\nEarlier messages of these conversations (context only, do not label):\n#4 A01 DM to A02: \"Door 2 is 1234\"\n#5 A02 DM to A01: \"no\"\n#27 A01 DM to A02: \"deal\"\n\nStatements of this round:\n#160 A01 DM to A02: \"message 120 of minute 2\"\n#161 A02 DM to A03: \"message 121 of minute 2\"\n#162 A03 DM to A01: \"message 122 of minute 2\"\n#163 A01 DM to A02: \"message 123 of minute 2\"\n#164 A02 DM to A03: \"message 124 of minute 2\"\n#165 A03 DM to A01: \"message 125 of minute 2\"\n#166 A01 DM to A02: \"message 126 of minute 2\"\n#167 A02 DM to A03: \"message 127 of minute 2\"\n#168 A03 DM to A01: \"message 128 of minute 2\"\n#169 A01 DM to A02: \"message 129 of minute 2\"",
+		"Round 4 (minute 3). Residents: A01, A02 (called Maren), A03, A04.\n\nEarlier messages of these conversations (context only, do not label):\n#160 A01 DM to A02: \"message 120 of minute 2\"\n#163 A01 DM to A02: \"message 123 of minute 2\"\n#166 A01 DM to A02: \"message 126 of minute 2\"\n#169 A01 DM to A02: \"message 129 of minute 2\"\n\nStatements of this round:\n#267 A02 DM to A01: \"last words\""
+	],
+	"events": [
+		{
+			"type": "interpretation",
+			"ref": 2,
+			"agent": "A01",
+			"source": "thought",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 3,
+			"agent": "A02",
+			"source": "aside",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 5,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 6,
+			"agent": "A03",
+			"source": "board",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 9,
+			"agent": "A01",
+			"source": "cast",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation_round",
+			"round": 1,
+			"classifier": "test/classifier",
+			"statements": 7,
+			"labeled": 5
+		},
+		{
+			"type": "interpretation",
+			"ref": 27,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation_round",
+			"round": 2,
+			"classifier": "test/classifier",
+			"statements": 2,
+			"labeled": 1
+		},
+		{
+			"type": "interpretation",
+			"ref": 41,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 43,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 45,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 46,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 47,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 50,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 51,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 53,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 54,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 55,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 57,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 58,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 59,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 61,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 62,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 65,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 66,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 67,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 69,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 71,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 73,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 74,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 75,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 78,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 79,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 81,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 82,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 83,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 85,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 86,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 87,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 89,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 90,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 93,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 94,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 95,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 97,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 99,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 101,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 102,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 103,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 106,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 107,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 109,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 110,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 111,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 113,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 114,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 115,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 117,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 118,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 121,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 122,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 123,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 125,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 127,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 129,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 130,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 131,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 134,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 135,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 137,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 138,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 139,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 141,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 142,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 143,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 145,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 146,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 149,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 150,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 151,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 153,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 155,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 157,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 158,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A01",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 159,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 162,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A01",
+				"A02"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 163,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 165,
+			"agent": "A03",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 166,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A02",
+				"A03"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 167,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation",
+			"ref": 169,
+			"agent": "A01",
+			"source": "dm",
+			"labels": [
+				"threat",
+				"accusation"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation_round",
+			"round": 3,
+			"classifier": "test/classifier",
+			"statements": 130,
+			"labeled": 83
+		},
+		{
+			"type": "interpretation",
+			"ref": 267,
+			"agent": "A02",
+			"source": "dm",
+			"labels": [
+				"promise"
+			],
+			"targets": [
+				"A04"
+			],
+			"classifier": "test/classifier"
+		},
+		{
+			"type": "interpretation_round",
+			"round": 4,
+			"classifier": "test/classifier",
+			"statements": 1,
+			"labeled": 1
+		}
+	]
+}

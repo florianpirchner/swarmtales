@@ -619,6 +619,9 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk

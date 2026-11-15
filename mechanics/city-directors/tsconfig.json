@@ -19,6 +19,9 @@
 			"path": "../../packages/sdk"
 		},
 		{
+			"path": "../contracts"
+		},
+		{
 			"path": "../../packages/testkit"
 		}
 	]
