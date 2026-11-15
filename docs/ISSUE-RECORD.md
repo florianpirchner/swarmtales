@@ -397,6 +397,27 @@ Measured by issue M5-00 with the counter of the budget gate (`scripts/lib/budget
 | `contracts` | 993 | about 40 | | none |
 | `mechanics/contracts` | 135 (with the three contracts of M5-00: `identity`, `allowance`, `receipt-source`) | | | none |
 
+## The kernel gate of M5
+
+Written by issue M5-05 (decision A20, A51). Measured with the counter of the budget gate (`scripts/lib/budget.ts`)
+over the tree of each squash commit on `rewrite/develop`; the counter of `packages/kernel/test/budget.test.ts` gives
+the same 1472 on `816903d`. The kernel lines of M5 are those of the three issues that 1.3 of `12-m5-spec.md` allows;
+no other merged issue of M5 changed `packages/kernel/src/` (M5-00, -08, -12 and -13 leave it at their parent's count).
+
+| Issue | Commit | Kernel | Planned | Sdk | Engine | Why it cannot live in a mechanic |
+|---|---|---:|---:|---:|---:|---|
+| M5-01, the hook `runEnded` | `abb7d14` | 1402 to 1409 (+7) | 8 | +4 | 0 | the end of a run is the kernel's: only `#finish` in `lifecycle.ts` knows that the run ends (limit reached or last tick over) before `run_ended` is written; a mechanic can listen to `tick_ended` but cannot tell the last tick from a run that a limit stops, and no event comes after `run_ended`. Two of the lines put the hook into the ordered hook table (`parts.ts`, `loader.ts`) as the other ordered hooks are |
+| M5-02, staged calls | `cf8742e` | 1409 to 1446 (+37) | 65 | 0 | 0 | a call of actor `script` must run through the whole pipeline (lock, grant, stages, `tool_called`, steps) as a resident's call, at the end of the outermost step of plugin code and inside the lane; a mechanic has no port to submit a call and cannot hook the end of another plugin's step. The list of waiting calls also blocks a snapshot, which only the kernel takes |
+| M5-04, the stage `review` | `816903d` | 1446 to 1472 (+26) | 15 | +27 | +19 | the answer of a Director is awaited inside the call, between the rule stages and `execute`, with the lane held; only the dispatch of the kernel holds the lane and the stage order, and a refusal of the stage is logged under the old stage names. About 11 of the lines keep the staged drain synchronous while `runCall` may now await a question, and refuse a staged call of a reviewed tool (errata J11, J23; booked by A66) |
+| **M5** | | **1402 to 1472 (+70)** | **88** | **+31** | **+19** | engine total 3869 to 3989 of 4100 |
+
+The gate of `packages/kernel/test/budget.test.ts` is set to **1472**, the measured count (it was 1420 from M1-38 and
+1490, the cap of A51, from M5-02, erratum J12). Its test "passes a kernel at the gate and fails one line above it"
+counts a scratch kernel of 1472 code lines as within the gate and one of 1473 as over it. The 18 lines of A51 that
+M5 did not use are not held for a later issue: from now on a pull request that adds a kernel line raises the gate,
+with an issue that names the missing extension point (`CLAUDE.md`, "Limits"). The hard limit stays 1500, 28 lines
+above the gate.
+
 ## The gate of M3
 
 The six done-whens of `refactoring-before-release/10-m3-spec.md` and the test that proves each. All of them run
