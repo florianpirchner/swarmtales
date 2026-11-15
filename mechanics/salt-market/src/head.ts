@@ -3,7 +3,7 @@
 import { Type } from "typebox";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
-import { defineHead, type CtxOf, type ViewOf } from "@swarmtales/sdk";
+import { defineHead, inSchemaOrder, type CtxOf, type ViewOf } from "@swarmtales/sdk";
 import { Bundle, Later, MarketSlice, Offer, Pledge, Profile, Reference, type MarketState } from "./model.ts";
 
 const options = Type.Object({
@@ -125,6 +125,8 @@ export const saltMarketHead = defineHead({
 		gameScores: {},
 		lastResult: "",
 	}),
+	// A snapshot file sorts the keys: the state comes back in the order of its schema, so the events written from it equal the straight run's (A43).
+	snapshot: { save: (state: MarketState) => structuredClone(state), load: (data): MarketState => inSchemaOrder(MarketSlice, data) },
 	events: {
 		market_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), profiles: Type.Record(Type.String(), Profile, { description: "Values, contracts and start bundles (sealed: audience human)." }) }),
 		market_round_started: Type.Object({ game: Type.Integer(), round: Type.Integer(), spoils: Type.String() }),

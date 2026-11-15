@@ -1,6 +1,6 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. Twelve games run on the new platform today, each with a scripted
+The catalogue of the games that run on Swarm Tales. Thirteen games run on the new platform today, each with a scripted
 or sampled player in place of a model. The first live runs on this platform are those of the gate of milestone M2
 ([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding or a recorded moment yet:** a finding appears
 on a card only when it is reproduced on this platform, with n, standard error and a link.
@@ -25,6 +25,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none; variants are options of `holdemGame` | the five oracle files without the aid match at level 3 |
 | [Convoy](#convoy) | hidden information and bluff | 6 | `convoy`, `strategy-brain` | none; variants are options of `convoyGame` | four oracle files match at level 3 |
 | [Nine men's morris](#nine-mens-morris) | board games, all information public | 6 (two teams of three), 2, or 1 against the search | `morris`, `consensus`, `team-channel`, `strategy-brain`, `morris-referee` | none; variants are options of `morrisGame` | all five oracle files match at level 3 |
+| [Salt Market](#salt-market) | markets, bids and economics | 4 | `salt-market`, `strategy-brain` | none; variants are options of `saltMarketGame` | four oracle files match at level 3 |
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
 old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
@@ -218,10 +219,25 @@ built-in search on side O, are variants.
   are byte-identical. A played match of two teams of three is covered only by the silent file.
 - Links: [folder](games/morris-teams/), [README](games/morris-teams/README.md), [oracle files](oracles/morris-teams/).
 
+## Salt Market
+
+Four solo traders (A01 to A04) play a match of negotiation games. In each game every trader holds a bundle of five
+goods, values them in secret and has a secret contract; the goods each one needs sit with the others. All goods move
+through a bank that executes an offer only when both sides hold what it moves. Part of each trader's goods arrives as a
+shipment in a later round and can be sold early only on credit (a plain promise or escrow); big trades pay a tax; one
+good spoils every round; the deal rotates, so every trader plays every position once in four games. Every game starts
+from a fresh context; a trader's only memory is a short private strategy brain. The mechanic scores every game against
+the optimal allocation, for the report only.
+
+- Variants are options of `saltMarketGame`: the games, the rounds, no spoilage, no brain (the control arm).
+- Proof: the four oracle files match at level 3, three of them up to their cut after game 2; the briefings are
+  byte-identical.
+- Links: [folder](games/salt-market/), [README](games/salt-market/README.md), [oracle files](oracles/salt-market/).
+
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families. Ten are ported so far, marked in bold; the Hello Game and the city slice are new and are
+five families. Eleven are ported so far, marked in bold; the Hello Game and the city slice are new and are
 not among the fifteen.
 
 | Family | Games |
@@ -230,7 +246,7 @@ not among the fifteen.
 | Board games, all information public | **chess (ported)**, **nine men's morris (ported)**, **tic-tac-toe teams (ported)** |
 | Hidden information and bluff | **Hold'em (ported)**, **Liar's Dice (ported)**, **Convoy (ported)** |
 | Cooperation under hidden information | **Harbor Lights (ported)**, **Lanterns (ported)** |
-| Markets, bids and economics | **Econ Lab (ported)**, Salt Market, Blind Bid, **Quarry (ported)**, Ember Tricks |
+| Markets, bids and economics | **Econ Lab (ported)**, **Salt Market (ported)**, Blind Bid, **Quarry (ported)**, Ember Tricks |
 
 Until a game is ported, its rules, runs and findings are readable at the tag
 [`v0-final`](https://github.com/florianpirchner/swarmtales/tree/v0-final) under `stories/<name>/`.

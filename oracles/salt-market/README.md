@@ -17,3 +17,7 @@ The seeded profiles are visible: `market_game_started` carries every trader's va
 
 Not covered: games 3 and 4 of a played match, promises and escrow beyond the one gift and the one settled promise in
 `salt-market-s45.json`, other game and round counts by name.
+
+The game (M4-49, `games/salt-market/test/oracle.test.ts`) matches all four files at level 3, three up to their cut. No
+mapping of `call.endsTurn` is needed: no tool of the old `salt-market` mechanic set the flag, so the files and today's
+calls agree on its absence.

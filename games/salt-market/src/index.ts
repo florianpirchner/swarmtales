@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game: Salt Market. The issues of milestone M4 fill this package.
+ * Game: Salt Market, a negotiation game for four solo traders.
  *
  * @packageDocumentation
  */
-export {};
+export { saltMarketGame, default, type SaltMarketOptions } from "../game.ts";
+export { briefings, SEATS } from "../briefing.ts";

@@ -615,7 +615,146 @@ feesPaid: Type.TInteger;
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 gameScores: Type.TRecord<"^.*$", Type.TNumber>;
 lastResult: Type.TString;
-}>, never, {
+}>, {
+seats: string[];
+game: number;
+round: number;
+opened: number;
+running: boolean;
+finished: boolean;
+held: boolean;
+due: boolean;
+profiles: Record<string, {
+values: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+contract: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+start: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+shipment: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+arrives: number;
+}>;
+holdings: Record<string, {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+}>;
+offers: {
+later?: {
+round: number;
+goods: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+escrow: boolean;
+};
+by?: string;
+game: number;
+round: number;
+id: string;
+from: string;
+to: string;
+give: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+get: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+note: string;
+status: "open" | "accepted" | "declined" | "withdrawn" | "expired";
+}[];
+pledges: {
+game: number;
+due: number;
+id: string;
+from: string;
+to: string;
+goods: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+escrow: boolean;
+status: "pending" | "kept" | "broken";
+offer: string;
+delivered: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+fromShipment: {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+};
+}[];
+reserved: Record<string, {
+salt: number;
+cloth: number;
+copper: number;
+spice: number;
+wax: number;
+}>;
+arrived: string[];
+counter: number;
+spoils: string;
+spoilLog: string[];
+spoiled: Record<string, number>;
+says: Record<string, number>;
+inbox: Record<string, string[]>;
+briefed: string[];
+told: Record<string, number>;
+stats: Record<string, {
+offers: number;
+says: number;
+trades: number;
+taxPaid: number;
+feesPaid: number;
+}>;
+scores: Record<string, number>;
+gameScores: Record<string, number>;
+lastResult: string;
+}, {
 market_game_started: Type.TObject<{
 game: Type.TInteger;
 seats: Type.TArray<Type.TString>;
