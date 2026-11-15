@@ -6,6 +6,6 @@
  */
 export { arrange, InputEntrySchema, turns, TurnsOptions, type InputEntry } from "./turns/index.ts";
 
-export { createDirectorDrivers, DIRECTOR_RECORDS, type DirectorDriverInput } from "./directors/driver.ts";
+export { createDirectorDrivers, createReviewPort, DIRECTOR_RECORDS, REVIEW_RECORDS, type DirectorDriverInput } from "./directors/driver.ts";
 
 export { buildManifest, type ManifestRun } from "./run/index.ts";

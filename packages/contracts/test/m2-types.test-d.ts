@@ -50,7 +50,8 @@ export type Equalities = [
 	Holds<Same<RunManifest["actors"][number]["textHashes"], Record<string, string>>>,
 	// What M2 adds to the two interfaces is optional, and nothing else became optional or required.
 	Holds<Same<OptionalKeys<KernelDefinition>, "records">>,
-	Holds<Same<OptionalKeys<KernelPorts>, "sinks" | "limits" | "redact">>,
+	// M5 adds the answerer port of the stage `review` (M5-04), optional like the ports of M2.
+	Holds<Same<OptionalKeys<KernelPorts>, "sinks" | "limits" | "redact" | "review">>,
 	Holds<Same<KernelDefinition["records"], readonly RecordSource[] | undefined>>,
 	Holds<Same<KernelPorts["limits"], readonly RunLimit[] | undefined>>,
 	Holds<Same<KernelPorts["redact"], ((text: string) => string) | undefined>>,

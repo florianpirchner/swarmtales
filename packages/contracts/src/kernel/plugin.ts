@@ -6,7 +6,7 @@ import type { ActorId } from "./actor.ts";
 import type { Envelope, InputLine } from "./envelope.ts";
 import type { EventSchemas } from "./event-def.ts";
 import type { ProvidedService } from "./service.ts";
-import type { CanonicalTool, KernelTool, Refusal, ToolCall, ToolOutcome } from "./tool.ts";
+import type { Answerable, CanonicalTool, KernelTool, Refusal, ReviewQuestion, ToolCall, ToolOutcome } from "./tool.ts";
 
 /**
  * A registration with its place: it runs after the registrations of the same point of the named plugin ids.
@@ -75,6 +75,12 @@ export interface StageHandlers {
 	lock?(call: ToolCall): Refusal | undefined;
 	/** Refuses a call whose arguments are checked. */
 	rule?(call: ToolCall): Refusal | undefined;
+	/**
+	 * Reviews a call of any tool after `rule`: a question to an answerer, a refusal, or undefined (the call goes on).
+	 * A refusal, or a `decide` of the question that refuses, ends the call at stage `guard`. The handlers run in load
+	 * order, before the tool's own review.
+	 */
+	review?(call: ToolCall, answerable: Answerable): ReviewQuestion | Refusal | undefined;
 	/** Sees the result of a call, also after a refused execute. */
 	after?(call: ToolCall, outcome: ToolOutcome): void;
 }

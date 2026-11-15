@@ -380,6 +380,7 @@ export function replay(input: ReplayInput): Promise<ReplayResult>;
 
 // @public
 export interface ReplayInput {
+    readonly answerers?: readonly string[];
     readonly game: ResolvedGame | Game | GameData;
     readonly log: readonly Envelope[];
     readonly ports?: Pick<KernelPorts, "limits" | "sinks">;

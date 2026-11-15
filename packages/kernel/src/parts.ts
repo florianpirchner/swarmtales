@@ -9,7 +9,7 @@
  * plugin's `create`); the caller, wherever it reaches into an instance or a tool itself and so knows the owner
  * (a tool's `prepare`, `rule` and `execute`, a job, `news`, `toAct`, a limit, a fact, a slice).
  */
-import type { ActorId, CanonicalTool, EventSink, KernelDefinition, KernelTool, RunEnd, SnapshotSlice, ToolSpec } from "@swarmtales/contracts";
+import type { ActorId, CanonicalTool, Envelope, EventSink, KernelDefinition, KernelTool, ReviewPort, RunEnd, SnapshotSlice, ToolSpec } from "@swarmtales/contracts";
 import type { createAccess } from "./access.ts";
 import type { createActors } from "./actors.ts";
 import type { createClock } from "./clock.ts";
@@ -25,6 +25,9 @@ export interface Frame {
 	readonly causedBy?: number;
 	readonly tool?: CanonicalTool;
 }
+
+/** Writes one event of a record source in the frame; `step` runs the writing, so a sink that throws ends the run (`createRecorder` in `ports.ts`). */
+export type Recorder = (frame: Frame, source: string, type: string, payload: unknown, step: <T>(code: () => T) => T) => Envelope;
 
 /** Part 1: the append-only log with its frames, listeners and sinks (`log.ts`). */
 export type Log = ReturnType<typeof createLog>;
@@ -111,8 +114,8 @@ export interface Parts {
 export type LoaderParts = Pick<Parts, "log" | "actors" | "access" | "services" | "clock" | "staged">;
 /** What `portFor` builds one plugin's port from. */
 export type PluginPortParts = LoaderParts & Pick<Parts, "definition" | "hasJob">;
-/** What `createDispatch` gets. The grant of an actor is `actors.spec(id)?.grant`. */
-export type DispatchParts = Pick<Parts, "definition" | "log" | "actors" | "access" | "steps" | "loaded" | "fail" | "staged">;
+/** What `createDispatch` gets: also the writer of the records and the answerer port of the stage `review`. The grant of an actor is `actors.spec(id)?.grant`. */
+export type DispatchParts = Pick<Parts, "definition" | "log" | "actors" | "access" | "steps" | "loaded" | "fail" | "staged"> & { readonly record: Recorder; readonly review: ReviewPort };
 /** What `createLifecycle` gets. */
 export type LifecycleParts = Pick<Parts, "definition" | "log" | "clock" | "steps" | "loaded" | "sinks" | "settle">;
 /** What `createSchedulerPort` gets beside the lifecycle. */

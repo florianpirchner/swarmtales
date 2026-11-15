@@ -67,7 +67,7 @@ interface World {
 	readonly dispatch: Dispatch;
 	readonly trace: string[];
 	readonly failures: unknown[];
-	readonly staged: { [K in "lock" | "rule" | "after"]: NonNullable<StageHandlers[K]>[] };
+	readonly staged: { [K in "lock" | "rule" | "review" | "after"]: NonNullable<StageHandlers[K]>[] };
 	readonly set: { stepsLeft: number; mayAct: boolean; locked: boolean; rule: Refusal | undefined; execute: () => ToolOutcome; first?: unknown };
 	probe(actor: ActorId, tool: string): boolean;
 	call(as: string, params?: unknown, more?: Partial<Submission>): Promise<ToolOutcome>;
@@ -79,7 +79,7 @@ function world(): World {
 	const log = fakeLog();
 	const trace: string[] = [];
 	const failures: unknown[] = [];
-	const staged: World["staged"] = { lock: [], rule: [], after: [] };
+	const staged: World["staged"] = { lock: [], rule: [], review: [], after: [] };
 	const set: World["set"] = { stepsLeft: 99, mayAct: true, locked: false, rule: undefined, execute: () => ({ ok: true, reply: "done" }) };
 	const prepare = (raw: unknown): PreparedCall | undefined => (typeof raw === "number" ? { params: { cell: raw }, rule: () => set.rule, execute: () => set.execute() } : undefined);
 	const tool = (name: string, free: boolean): LoadedTool => ({ canonical: `@x/grid/grid/${name}`, owner: "grid", tool: { name, description: name, parameters: Type.Number(), free, prepare } });
@@ -107,6 +107,8 @@ function world(): World {
 		loaded: { order: ["grid"], instances: new Map(), limits: [], hooks: () => [], tools: new Map(tools.map((entry) => [entry.canonical, entry])), byShownName: new Map(tools.map((entry) => [definition.names[entry.canonical] ?? "", [entry]])), stages: (stage) => staged[stage] },
 		fail: (error) => (failures.push(error), set.first),
 		staged: [],
+		record: unused,
+		review: { answers: unused, ask: unused },
 	};
 	const dispatch = createDispatch(parts);
 	return {

@@ -30,6 +30,7 @@ export const SDK_ERRORS = {
 	"SWT-D001": "a Director's trigger names an event that no mechanic of the game declares",
 	"SWT-D002": "the name of a Director is taken by another Director or by a grant, or its `use` names no definition",
 	"SWT-D003": "the game has a Director and its scheduler activates no actor of kind `director`",
+	"SWT-D004": "a review of a mechanic names an answerer that no Director of the game answers",
 	"SWT-M010": "an event type is reserved by the kernel or declared twice",
 	"SWT-M011": "the head's `package` is not the package's name",
 	"SWT-M012": "the body of a mechanic does not fit its head",
@@ -171,6 +172,22 @@ export function directorName(input: { readonly name: string; readonly path: stri
  */
 export function directorNeverActivated(input: { readonly scheduler: string; readonly directors: readonly string[] }): SwtIssue {
 	return issue("SWT-D003", `the game has the Director(s) ${quoted(input.directors)}, and the scheduler "${input.scheduler}" activates no actor of kind \`director\``, "A Director acts only inside an activation, and a scheduler activates the actor kinds its options name.", 'Name the kind in the scheduler options, for `turns`: `afterBlocks: ["director"]`.', { path: "scheduler.options" });
+}
+
+/**
+ * `SWT-D004`: a review of a mechanic names an answerer that no Director of the game answers.
+ *
+ * @param input - The mechanic, its use and the answerer.
+ * @param input.mechanic - The id of the mechanic whose tool or pipeline has the review.
+ * @param input.path - The data path of the use, for example `mechanics[2]`.
+ * @param input.answerer - The answerer the review names.
+ * @param input.answered - The answerers the Directors of the game are.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function noAnswerer(input: { readonly mechanic: string; readonly path: string; readonly answerer: string; readonly answered: readonly string[] }): SwtIssue {
+	return issue("SWT-D004", `the mechanic "${input.mechanic}" has a review answered by "${input.answerer}", and no Director of the game answers it`, `A review asks a Director whose head says \`answers: "${input.answerer}"\`; the Directors of the game answer: ${quoted(input.answered)}.`, `${meant(input.answerer, input.answered)}add the Director that answers "${input.answerer}" to \`directors\`.`, { path: input.path }, { answerer: input.answerer });
 }
 
 /**

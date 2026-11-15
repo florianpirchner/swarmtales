@@ -4,7 +4,7 @@
  * protect the kernel (3.2). Whatever does not fit is `SWT-R002`; the one thing left out is a listener of a plugin that
  * is not loaded (decision 10 of section 11).
  */
-import { closest, KERNEL_EVENTS, SwtError, type CanonicalTool, type KernelDefinition, type Ordered, type PluginHooks, type PluginInstance, type RunLimit, type StageHandlers } from "@swarmtales/contracts";
+import { closest, KERNEL_EVENTS, SwtError, type CanonicalTool, type KernelDefinition, type Ordered, type PluginHooks, type PluginInstance, type Refusal, type ReviewAnswer, type ReviewQuestion, type RunLimit, type StageHandlers } from "@swarmtales/contracts";
 import { guarded, misfit, twoToAct } from "./errors.ts";
 import { ordered } from "./order.ts";
 import type { LoadedTool, LoaderParts, OrderedHook } from "./parts.ts";
@@ -99,11 +99,22 @@ function placeHooks<A extends readonly unknown[], R>(instances: Instances, pick:
 	return ordered([...instances].flatMap(([plugin, instance]) => (pick(instance.hooks) ?? []).map((hook) => ({ ...hook, plugin, run: (...args: A): R => guarded(plugin, () => hook.run(...args)) }))));
 }
 
+/**
+ * Runs the review of a plugin like `guarded`, and guards the `decide` of the question it gives too.
+ *
+ * @param plugin - The id of the plugin the review belongs to.
+ * @param review - The review.
+ * @returns The question with a guarded `decide`, a refusal, or undefined.
+ * @throws SwtError `SWT-R003` as `guarded`.
+ */
+export const guardedReview = (plugin: string, review: () => ReviewQuestion | Refusal | undefined): ReviewQuestion | Refusal | undefined => [guarded(plugin, review)].map((asked) => (asked === undefined || "ok" in asked ? asked : { ...asked, decide: (answer: ReviewAnswer) => guarded(plugin, () => asked.decide?.(answer)) }))[0];
+
 function stageTable(instances: Instances): StageTable {
 	const all = [...instances].map(([plugin, instance]) => ({ plugin, stages: instance.stages }));
 	return {
 		lock: all.flatMap(({ plugin, stages }) => (stages.lock === undefined ? [] : [(call) => guarded(plugin, () => stages.lock?.(call))])),
 		rule: all.flatMap(({ plugin, stages }) => (stages.rule === undefined ? [] : [(call) => guarded(plugin, () => stages.rule?.(call))])),
+		review: all.flatMap(({ plugin, stages }) => (stages.review === undefined ? [] : [(call, answerable) => guardedReview(plugin, () => stages.review?.(call, answerable))])),
 		after: all.flatMap(({ plugin, stages }) => (stages.after === undefined ? [] : [(call, outcome) => guarded(plugin, () => stages.after?.(call, outcome))])),
 	};
 }

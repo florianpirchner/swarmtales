@@ -8,7 +8,7 @@ import { jsonHash } from "@swarmtales/chain";
 import { actorId, SwtError, type ActorSpec, type GameData, type JsonValue, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
 import { Value } from "typebox/value";
 import { directorsPlugin } from "../director/plugin.ts";
-import { gameSchemaMismatch, optionMismatch, paramOverride } from "../errors.ts";
+import { gameSchemaMismatch, noAnswerer, optionMismatch, paramOverride } from "../errors.ts";
 import { RESIDENT_KIND } from "../mechanic/context.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 import { appendRoster } from "../roster/index.ts";
@@ -155,6 +155,12 @@ function builtGame(input: ResolveInput): { readonly game: Game | GameData; reado
 // The tool `take` of the plugin `directors` as the name steps see a tool.
 const TAKE: NamedTool = { canonical: DIRECTOR_TAKE, name: "take", shown: "take", owner: DIRECTORS_PLUGIN, for: [], path: "directors" };
 
+// One `SWT-D004` per review of a mechanic whose answerer no Director of the game answers (a mistake of the game's author).
+function unanswered(steps: ReturnType<typeof mechanicSteps>, directors: readonly ResolvedDirector[]): readonly SwtIssue[] {
+	const answered = directors.flatMap((director) => (director.definition.answers === undefined ? [] : [director.definition.answers]));
+	return steps.used.flatMap(({ definition, index }) => [...new Set(definition.head.answerers)].filter((answerer) => !answered.includes(answerer)).map((answerer) => noAnswerer({ mechanic: definition.id, path: `mechanics[${String(index)}]`, answerer, answered })));
+}
+
 // One `SWT-G013` per Director whose grant holds a tool of a mechanic that is shown as `take`: its `take` would reach that tool.
 function takeClashes(steps: ReturnType<typeof mechanicSteps>, directors: readonly ResolvedDirector[]): readonly SwtIssue[] {
 	const grants = Object.fromEntries(Object.entries(directorGrants(steps.grants.grants, directors)).filter(([grant]) => directors.some((director) => director.name === grant)));
@@ -218,7 +224,7 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
  * @param input - The game or the family, the overrides of its params, the installed mechanics (for a data game), the Director definitions, the schedulers by id, the prompt lookup, the seed, the package versions and the record sources.
  * @returns The kernel definition, the data form with defaults filled, the texts, the briefings, the Directors, the key of the win fact and the effective params.
  * @throws SwtError One error with every issue found, sorted by data path (`SWT-G001` to `SWT-G032`, `SWT-D001` to
- * `SWT-D003`, `SWT-M010`, `SWT-P003`, and what the prompt lookup reports). A game that fails its schema is reported with the schema issues
+ * `SWT-D004`, `SWT-M010`, `SWT-P003`, and what the prompt lookup reports). A game that fails its schema is reported with the schema issues
  * alone, and so are overrides that do not fit (`SWT-G041`): an unknown param, a value of the wrong type, or any
  * override for a game that is no family.
  *
@@ -244,7 +250,7 @@ export function resolveGame(input: ResolveInput): ResolvedGame {
 	const scheduler = schedulerOf(data, input.schedulers);
 	const events = steps.used.flatMap((entry) => Object.keys(entry.definition.events).map((type) => `${entry.definition.id}.${type}`));
 	const directors = resolveDirectors({ data, definitions: { ...input.directors, ...builder?.directors }, events, scheduler: scheduler.definition === undefined ? undefined : scheduler });
-	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...named.issues, ...directors.issues, ...takeClashes(steps, directors.directors), ...steps.issues, ...scheduler.issues];
+	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...named.issues, ...directors.issues, ...takeClashes(steps, directors.directors), ...unanswered(steps, directors.directors), ...steps.issues, ...scheduler.issues];
 	if (issues.length > 0 || scheduler.definition === undefined) throw new SwtError(sorted(issues));
 	return assembled(input, { params, data, residents: residents.ids, actors: actors.actors, directors: directors.directors, steps, scheduler, definition: scheduler.definition });
 }

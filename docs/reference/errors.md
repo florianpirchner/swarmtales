@@ -234,6 +234,14 @@ The game has a Director and its scheduler activates no actor of kind `director`.
 - **Fix:** Name the kind in the scheduler options, for `turns`: `afterBlocks: ["director"]`.
 - **Named in:** `packages/sdk`
 
+### SWT-D004
+
+A review of a mechanic names an answerer that no Director of the game answers.
+
+- **Why:** A review asks a Director whose head says `answers: "{answerer}"`; the Directors of the game answer: {answered}.
+- **Fix:** Add the Director that answers "{answerer}" to `directors`.
+- **Named in:** `packages/sdk`
+
 ## R: Run and kernel
 
 ### SWT-R001

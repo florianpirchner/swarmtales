@@ -10,6 +10,7 @@ import { InputNote } from '@swarmtales/contracts';
 import { OrderedNote } from '@swarmtales/contracts';
 import { RecordSource } from '@swarmtales/contracts';
 import { ResolvedGame } from '@swarmtales/sdk';
+import { ReviewPort } from '@swarmtales/contracts';
 import { RunManifest } from '@swarmtales/contracts';
 import { SchedulerDefinition } from '@swarmtales/contracts';
 import { Static } from 'typebox';
@@ -24,6 +25,9 @@ export function buildManifest(resolved: ResolvedGame, run: ManifestRun): RunMani
 
 // @public
 export function createDirectorDrivers(input: DirectorDriverInput): DriverTable;
+
+// @public
+export function createReviewPort(input: DirectorDriverInput): ReviewPort;
 
 // @public
 export const DIRECTOR_RECORDS: RecordSource;
@@ -64,6 +68,9 @@ export interface ManifestRun {
     readonly systemPrompts?: Readonly<Record<string, string>>;
     readonly toolSpecs?: Readonly<Record<string, readonly ToolSpec[]>>;
 }
+
+// @public
+export const REVIEW_RECORDS: RecordSource;
 
 // @public
 export const turns: SchedulerDefinition<TurnsOptions>;

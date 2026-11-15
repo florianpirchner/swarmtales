@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * `replay`: plays a run again from its log alone and compares the new log with it, line by line. The inputs of a
- * replay are the tool calls and the events of the record sources; everything else is produced again. No model, no
- * asker and no script takes part.
+ * a replay are the tool calls and the events of the record sources; everything else is produced again. No model, no
+ * asker and no script takes part: the answer to a review is fed from the records of the call.
  */
-import { SwtError, type Activation, type ActorDriver, type Envelope, type GameData, type Kernel, type KernelPorts, type RecordSource, type ResumeInput, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
-import { turns } from "@swarmtales/engine";
+import { SwtError, type Activation, type ActorDriver, type Envelope, type GameData, type Kernel, type KernelPorts, type RecordSource, type ResumeInput, type ReviewAnswer, type ReviewPort, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
+import { REVIEW_RECORDS, turns } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { resolveGame, type Game, type ResolvedGame } from "@swarmtales/sdk";
@@ -36,6 +36,12 @@ export interface ReplayInput {
 	 * manifest). Left out: none, and a log that ended at such a limit differs at its `limit_reached`.
 	 */
 	readonly ports?: Pick<KernelPorts, "limits" | "sinks">;
+	/**
+	 * The answerers of the stage `review` the run had (`ReviewPort.answers`); left out: the answerers of the game's
+	 * Directors (`answers`), as `createReviewPort` of the engine gives them. A run played without an answerer port
+	 * passes `[]`.
+	 */
+	readonly answerers?: readonly string[];
 }
 
 /**
@@ -131,10 +137,12 @@ function place(plan: Plan, turn: Turn | undefined, event: Envelope, inTick: bool
 	else plan.between.at(-1)?.push(event);
 }
 
-// Sorts the inputs of a log by where they are made again.
+// Sorts the inputs of a log by where they are made again. A record caused by a call is a record of the stage
+// `review`: the replay's answerer port writes it again inside that call.
 function planOf(log: readonly Envelope[], sources: ReadonlySet<string>): Plan {
 	const plan: Plan = { turns: new Map(), between: [[]], ticks: 0 };
 	const open = new Map<number, Turn>();
+	const calls = new Set<number>();
 	let inTick = false;
 	const steps: Readonly<Record<string, (event: Envelope) => void>> = {
 		tick_started: () => {
@@ -151,11 +159,14 @@ function planOf(log: readonly Envelope[], sources: ReadonlySet<string>): Plan {
 			if (turn !== undefined) turn.closed = event.seq;
 			open.delete(event.causedBy ?? 0);
 		},
-		tool_called: (event) => { place(plan, open.get(event.causedBy ?? 0), event, inTick); },
+		tool_called: (event) => {
+			calls.add(event.seq);
+			place(plan, open.get(event.causedBy ?? 0), event, inTick);
+		},
 	};
 	for (const event of log) {
 		if (event.source === "kernel") steps[event.type]?.(event);
-		else if (sources.has(event.source)) place(plan, open.get(event.causedBy ?? 0), event, inTick);
+		else if (sources.has(event.source) && !calls.has(event.causedBy ?? 0)) place(plan, open.get(event.causedBy ?? 0), event, inTick);
 	}
 	return plan;
 }
@@ -195,6 +206,30 @@ async function repeat(kernel: Kernel, activation: Activation, event: Envelope): 
 	if (kernel.log.length < event.seq - 1) await reach(kernel, event.seq);
 	if (event.source === "kernel") await activation.call(String(field(event.payload, "as")), field(event.payload, "params"));
 	else activation.record(event.source, event.type, event.payload);
+}
+
+// The answerer port of a replay: it asks nothing. A question of a call writes the records that call caused in the
+// log again, each at its line, up to the next record `answered` of the engine's review source, and answers what that
+// record holds; a call that asked twice (a review handler, then the tool's own review) takes them in turn.
+function reviewsOf(log: readonly Envelope[], sources: ReadonlySet<string>, answerers: readonly string[], kernel: () => Kernel | undefined): ReviewPort {
+	const taken = new Map<number, number>();
+	return {
+		answers: (answerer) => answerers.includes(answerer),
+		async ask({ call, record }) {
+			const caused = log.filter((event) => event.causedBy === call.seq && sources.has(event.source)).slice(taken.get(call.seq) ?? 0);
+			const last = caused.findIndex((event) => event.source === REVIEW_RECORDS.id && event.type === "answered");
+			const mine = last < 0 ? caused : caused.slice(0, last + 1);
+			taken.set(call.seq, (taken.get(call.seq) ?? 0) + mine.length);
+			for (const event of mine) {
+				const now = kernel();
+				if (now !== undefined && now.log.length < event.seq - 1) await reach(now, event.seq);
+				record(event.source, event.type, event.payload);
+			}
+			const answered = mine.at(-1)?.payload;
+			const answer: ReviewAnswer = last >= 0 && field(answered, "ok") === true ? { ok: true, answer: field(answered, "answer") } : { ok: false };
+			return answer;
+		},
+	};
 }
 
 // One input between two ticks: a call through `submit`, a record through `Kernel.record`.
@@ -276,10 +311,15 @@ function resolved(input: ReplayInput): ResolvedGame {
 export async function replay(input: ReplayInput): Promise<ReplayResult> {
 	const crashed = cutOff(input.log);
 	if (crashed !== undefined) throw crashed;
-	const { definition } = resolved(input);
+	const game = resolved(input);
+	const { definition } = game;
 	const sources = new Set((input.records ?? definition.records ?? []).map((source) => source.id));
 	const plan = planOf(input.log, sources);
-	const kernel = createKernel(definition, { ...input.ports, redact: (text) => text }, input.resume);
+	const answerers = input.answerers ?? (game.directors ?? []).flatMap((director) => (director.definition.answers === undefined ? [] : [director.definition.answers]));
+	const made: { kernel?: Kernel } = {};
+	const review = reviewsOf(input.log, sources, answerers, () => made.kernel);
+	const kernel = createKernel(definition, { ...input.ports, redact: (text) => text, review }, input.resume);
+	made.kernel = kernel;
 	const start = startOf(input.log, input.resume === undefined ? 0 : kernel.log.length);
 	await playAgain(kernel, plan, definition.actors.map((actor) => actor.id), start).catch(() => undefined);
 	const log = kernel.log.all();

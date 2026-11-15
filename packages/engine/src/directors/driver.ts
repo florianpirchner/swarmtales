@@ -3,8 +3,9 @@
  * The driver of a Director: what one activation of a Director does. It takes the firings the plugin `directors`
  * queued, asks the model once through the port `AskModel`, and hands an answer that fits to the Director's `act`,
  * whose only way into the run is a tool call of the activation. The engine imports no model: the asker is given.
+ * Beside it, the answerer port of the stage `review`, which asks the Director that answers a review.
  */
-import type { ActorDriver, AskModel, DriverTable, ModelAnswer, RecordSource } from "@swarmtales/contracts";
+import type { ActorDriver, AskModel, DriverTable, ModelAnswer, RecordSource, ReviewPort } from "@swarmtales/contracts";
 import { DIRECTOR_TAKE, parseTake, type DirectorContext, type ResolvedDirector, type ResolvedGame } from "@swarmtales/sdk";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
@@ -89,4 +90,53 @@ function driverOf(director: ResolvedDirector, take: string, ask: AskModel): Acto
 export function createDirectorDrivers(input: DirectorDriverInput): DriverTable {
 	const take = input.game.definition.names[DIRECTOR_TAKE] ?? "take";
 	return Object.fromEntries((input.game.directors ?? []).map((director) => [director.actor, driverOf(director, take, input.ask)]));
+}
+
+const ReviewAskedSchema = Type.Object({ answerer: Type.String({ description: "Who answers" }), question: Type.Unknown({ description: "The question of the review, as data" }) }, { additionalProperties: false, description: "A review of a call asks its answerer; the lane is held until the answer is in" });
+
+const ReviewAnsweredSchema = Type.Object({ answerer: Type.String({ description: "Who answered" }), ok: Type.Boolean({ description: "True when the answer fits the Director's `output`" }), answer: Type.Optional(Type.Unknown({ description: "The answer, with `ok`" })), costUsd: Type.Number({ minimum: 0, description: "What the question cost, in US dollars" }), reason: Type.Optional(Type.Union([Type.Literal("limit"), Type.Literal("invalid"), Type.Literal("error")], { description: "Why there is no answer" })) }, { additionalProperties: false, description: "The answer to a review came in; without `ok` the reviewer gets `{ ok: false }` and decides" });
+
+/**
+ * The record source of the answerer port: `asked` before the answerer is asked, `answered` when the answer is in,
+ * both inside the call under review. Pass it to the `records` of game resolution, else the first question ends the
+ * run (`SWT-R017`).
+ *
+ * @public
+ */
+export const REVIEW_RECORDS: RecordSource = Object.freeze({ id: "@swarmtales/engine/review", events: { asked: ReviewAskedSchema, answered: ReviewAnsweredSchema } });
+
+/**
+ * The answerer port of a game (`KernelPorts.review`): the answerer of a review is the Director whose head says
+ * `answers: "<answerer>"`. One question: the record `asked`; the Director's `system` and `input` with the question
+ * in `ctx.question`, asked through the model port as the Director, in a stand-in activation that records into the
+ * call and calls no tool (the cost counts under the Director's limits); the record `answered`. An answer that fails
+ * or does not fit `output` is `{ ok: false }` for the reviewer, which decides; the Director's `fallback` is not used.
+ *
+ * @param input - The resolved game and the model port.
+ * @returns The port; it answers no name for a game without a Director that has `answers`.
+ * @throws Nothing itself. `ask` rejects, which fails the run, when `system`, `input` or the asker throws, and with
+ * `SWT-R017` when `REVIEW_RECORDS` is not declared in the run.
+ * @example
+ * ```ts
+ * const game = resolveGame({ game, schedulers: { turns }, prompts, records: [DIRECTOR_RECORDS, REVIEW_RECORDS] });
+ * const kernel = createKernel(game.definition, { review: createReviewPort({ game, ask }) });
+ * ```
+ *
+ * @public
+ */
+export function createReviewPort(input: DirectorDriverInput): ReviewPort {
+	const of = (answerer: string): ResolvedDirector | undefined => input.game.directors?.find((director) => director.definition.answers === answerer);
+	return {
+		answers: (answerer) => of(answerer) !== undefined,
+		async ask({ answerer, question, call, record }) {
+			const director = of(answerer);
+			if (director === undefined) return { ok: false };
+			const { tick } = record(REVIEW_RECORDS.id, "asked", { answerer, question });
+			const ctx: DirectorContext<unknown> = { name: director.name, options: director.options, tick, firings: [], question };
+			const answer = await input.ask({ actor: director.actor, tick, basis: call.seq, detail: {}, inputs: [], tools: [], call: () => Promise.resolve({ ok: false, code: "TOOL_NOT_GRANTED" }), record }, { system: director.definition.system(ctx), input: director.definition.input(ctx), output: director.definition.output });
+			const fits = answer.ok && Check(director.definition.output, answer.value);
+			record(REVIEW_RECORDS.id, "answered", answer.ok ? { answerer, ok: fits, ...(fits ? { answer: answer.value } : { reason: "invalid" }), costUsd: answer.costUsd } : { answerer, ok: false, costUsd: 0, reason: answer.reason });
+			return answer.ok && fits ? { ok: true, answer: answer.value } : { ok: false };
+		},
+	};
 }

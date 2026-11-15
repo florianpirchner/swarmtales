@@ -5,7 +5,9 @@ import type { JsonValue, RandomSource } from "../values.ts";
 import type { ActorId } from "./actor.ts";
 
 /**
- * The stages of a tool call, in order. The first milestone has handlers for `lock`, `rule` and `after` only.
+ * The stages of a tool call, in order. Handlers exist for `lock`, `rule`, `after` and the stage `review`, which
+ * stands where `guard` and `consult` stand: a refusal of a review handler is logged at `guard`, one of a tool's own
+ * review at `consult`.
  *
  * @public
  */
@@ -116,8 +118,50 @@ export interface ToolSpec {
 }
 
 /**
+ * The answer to a question of the stage `review`, as its asker gets it: the answer, or `ok: false` when the answerer
+ * failed or gave an answer that does not fit.
+ *
+ * @public
+ */
+export type ReviewAnswer =
+	| {
+			/** The answerer answered, and the answer fits. */
+			readonly ok: true;
+			/** The answer. */
+			readonly answer: unknown;
+	  }
+	| {
+			/** There is no answer to go on. */
+			readonly ok: false;
+	  };
+
+/**
+ * A question of the stage `review`: it is asked before the call runs, answered by an actor that is not the caller,
+ * and the lane is held until the answer is in. What a review returns instead of a question: `undefined`, the call
+ * goes on and nothing is asked (a skip); a refusal, the call ends.
+ *
+ * @public
+ */
+export interface ReviewQuestion {
+	/** Who answers: the name an answerer of the run answers to (`KernelPorts.review`). */
+	readonly answerer: string;
+	/** The question, as data. */
+	readonly question: JsonValue;
+	/** Decides on the answer; a refusal ends the call at the stage of the review. Left out: the call goes on. */
+	decide?(answer: ReviewAnswer): Refusal | undefined;
+}
+
+/**
+ * Says whether an answerer of the run answers to the name; a review that is told no can refuse or let the call go
+ * on without a question.
+ *
+ * @public
+ */
+export type Answerable = (answerer: string) => boolean;
+
+/**
  * A tool bound to one checked call: what `KernelTool.prepare` returns. The kernel calls `rule`, then the plugins'
- * `rule` handlers, then `execute`, each as its own step.
+ * `rule` handlers, then the review handlers and `review`, then `execute`, each as its own step.
  *
  * @public
  */
@@ -126,8 +170,10 @@ export interface PreparedCall {
 	readonly params: unknown;
 	/** The tool's own rule; undefined: the call may run. */
 	rule(): Refusal | undefined;
-	/** Runs the call. */
-	execute(): ToolOutcome;
+	/** The tool's own review, after the review handlers of the plugins; a refusal, or a `decide` that refuses, is logged at stage `consult`. Left out: none. */
+	review?(answerable: Answerable): ReviewQuestion | Refusal | undefined;
+	/** Runs the call; `answer` is the answer to the tool's own review, left out when it asked nothing. */
+	execute(answer?: ReviewAnswer): ToolOutcome;
 }
 
 /**
@@ -144,6 +190,8 @@ export interface KernelTool {
 	readonly parameters: TSchema;
 	/** True for a read-only look: no step is counted and its answer wakes nobody. */
 	readonly free: boolean;
+	/** The answerer of the tool's own review (`PreparedCall.review`); left out: it has none. A staged call of a tool with one is refused (`TOOL_NOT_GRANTED` at stage `lock`), since a staged call is not awaited. */
+	readonly answerer?: string;
 	/** Converts the raw arguments, checks them and binds the call; undefined: they do not fit the schema. */
 	prepare(raw: unknown, actor: ActorId): PreparedCall | undefined;
 	/** A legal call now, for the fake driver; undefined: none. It must not change state. */

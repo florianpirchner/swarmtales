@@ -31,6 +31,7 @@ import { RandomSource } from '@swarmtales/contracts';
 import { RecordSource } from '@swarmtales/contracts';
 import { Refusal } from '@swarmtales/contracts';
 import { ResolvedPlugin } from '@swarmtales/contracts';
+import { ReviewAnswer } from '@swarmtales/contracts';
 import { RunEnd } from '@swarmtales/contracts';
 import { RunLimit } from '@swarmtales/contracts';
 import { SchedulePort } from '@swarmtales/contracts';
@@ -195,12 +196,14 @@ export interface DirectorContext<O> {
     readonly firings: readonly Firing[];
     readonly name: string;
     readonly options: O;
+    readonly question?: JsonValue;
     readonly tick: number;
 }
 
 // @public
 export interface DirectorDefinition {
     act(answer: unknown, ctx: DirectorActContext<unknown>): Promise<void>;
+    readonly answers: string | undefined;
     fallback(ctx: DirectorContext<unknown>): unknown;
     readonly id: string;
     input(ctx: DirectorContext<unknown>): string;
@@ -218,6 +221,7 @@ export function directorGrants(grants: Readonly<Record<string, readonly Canonica
 
 // @public
 export interface DirectorHead<O extends TSchema, A extends TSchema> {
+    readonly answers?: string;
     readonly id: string;
     readonly limits?: DirectorLimits;
     readonly on: readonly DirectorTrigger[];
@@ -542,7 +546,17 @@ export function mechanicNotInstalled(input: {
 export interface MechanicPipeline<M extends MechanicShape> {
     after?(call: StageCall, outcome: ToolOutcome, ctx: MechanicContext<M>): void;
     lock?(call: StageCall, ctx: MechanicContext<M>): Refusal | undefined;
+    readonly review?: MechanicReview<StageCall, MechanicContext<M>>;
     rule?(call: StageCall, ctx: MechanicContext<M>): Refusal | undefined;
+}
+
+// @public
+export interface MechanicReview<Input, Ctx> {
+    readonly answerer: string;
+    ask(input: Input, ctx: Ctx, answerable: boolean): {
+        readonly question: JsonValue;
+    } | Refusal | undefined;
+    decide?(answer: ReviewAnswer, input: Input, ctx: Ctx): Refusal | undefined;
 }
 
 // @public
@@ -613,6 +627,14 @@ export interface NamedTool {
 export type Needs<Keys, Part> = [Keys] extends [never] ? unknown : Part;
 
 // @public
+export function noAnswerer(input: {
+    readonly mechanic: string;
+    readonly path: string;
+    readonly answerer: string;
+    readonly answered: readonly string[];
+}): SwtIssue;
+
+// @public
 export type None = Readonly<Record<symbol, never>>;
 
 // @public
@@ -675,6 +697,7 @@ export function payloadMismatch(input: {
 
 // @public
 export interface PluginHead {
+    readonly answerers?: readonly string[];
     readonly audiences: Readonly<Record<string, readonly string[]>>;
     readonly events: EventSchemas;
     readonly id: string;
@@ -887,6 +910,7 @@ export const SDK_ERRORS: {
     readonly "SWT-D001": "a Director's trigger names an event that no mechanic of the game declares";
     readonly "SWT-D002": "the name of a Director is taken by another Director or by a grant, or its `use` names no definition";
     readonly "SWT-D003": "the game has a Director and its scheduler activates no actor of kind `director`";
+    readonly "SWT-D004": "a review of a mechanic names an answerer that no Director of the game answers";
     readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
     readonly "SWT-M011": "the head's `package` is not the package's name";
     readonly "SWT-M012": "the body of a mechanic does not fit its head";
@@ -1070,7 +1094,8 @@ export interface ToolDeclaration<Params extends TSchema = TSchema> {
 // @public
 export interface ToolHandlers<M extends MechanicShape, Params extends TSchema> {
     check?(params: Static<Params>, ctx: ToolContext<M>): Refusal | undefined;
-    run(params: Static<Params>, ctx: ToolContext<M>): ToolOutcome;
+    readonly review?: MechanicReview<Static<Params>, ToolContext<M>>;
+    run(params: Static<Params>, ctx: ToolContext<M>, answer?: ReviewAnswer): ToolOutcome;
     sample?(ctx: ToolContext<M>, random: RandomSource): (Static<Params> & JsonValue) | undefined;
 }
 

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import * as errors from "../src/errors.ts";
 
 /** The G, M and P codes of section 2.11 and of the errata E24 and E25, written out so that a code dropped from the catalogue fails here. */
-const CODES_OF_M1 = ["G001", "G002", "G003", "G010", "G011", "G012", "G013", "G014", "G020", "G021", "G022", "G030", "G031", "G032", "G041", "D001", "D002", "D003", "M010", "M011", "M012", "M013", "M014", "M021", "M022", "M023", "M024", "M025", "P003"].map((code) => `SWT-${code}`);
+const CODES_OF_M1 = ["G001", "G002", "G003", "G010", "G011", "G012", "G013", "G014", "G020", "G021", "G022", "G030", "G031", "G032", "G041", "D001", "D002", "D003", "D004", "M010", "M011", "M012", "M013", "M014", "M021", "M022", "M023", "M024", "M025", "P003"].map((code) => `SWT-${code}`);
 
 const mismatch = { path: "mechanics[0].options.size", message: 'must be an integer from 2 to 10, got "3x3"' };
 const samples: readonly SwtIssue[] = [
@@ -32,6 +32,7 @@ const samples: readonly SwtIssue[] = [
 	errors.directorName({ name: "wardn", path: "directors[0].use", taken: "unknown", known: ["warden"] }),
 	errors.directorName({ name: "human", path: "directors[0]", taken: "grant" }),
 	errors.directorNeverActivated({ scheduler: "turns", directors: ["host"] }),
+	errors.noAnswerer({ mechanic: "city", path: "mechanics[1]", answerer: "judge", answered: ["guard"] }),
 	errors.eventTypeTaken({ mechanic: "clash", type: "run_ended" }),
 	errors.packageMismatch({ mechanic: "grid-game", declared: "@acme/grid", actual: "@swarmtales/mechanic-grid-game" }),
 	errors.bodyMismatch({ mechanic: "marks", part: "tool", name: "pay", problem: "missing" }),

@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * Part 4, dispatch: one lane and the fixed pipeline of a tool call. Every call is `tool_called`, then the stages
- * `limit`, `lock`, `parse`, `rule`, `execute` and `after`, then `tool_result`; a refusal at any stage is one
- * `tool_refused` and ends the call. Each step of plugin code runs in its own outermost frame, so the listeners of
+ * `limit`, `lock`, `parse`, `rule`, `review`, `execute` and `after`, then `tool_result`; a refusal at any stage is one
+ * `tool_refused` and ends the call. The lane is held while a review awaits its answer. Each step of plugin code runs in its own outermost frame, so the listeners of
  * what one step emitted run before the next step. A throw breaks the lane for good.
  */
-import { INVALID_ARGUMENTS, STEP_LIMIT, SwtError, TOOL_LOCKED, TOOL_NOT_GRANTED, TOOL_UNKNOWN, type ActorId, type PreparedCall, type Refusal, type Stage, type StagedOutcome, type Submission, type ToolCall, type ToolOutcome } from "@swarmtales/contracts";
+import { INVALID_ARGUMENTS, STEP_LIMIT, SwtError, TOOL_LOCKED, TOOL_NOT_GRANTED, TOOL_UNKNOWN, type ActorId, type PreparedCall, type Refusal, type ReviewAnswer, type Stage, type StagedOutcome, type Submission, type ToolCall, type ToolOutcome } from "@swarmtales/contracts";
 import { guarded, kernelFailed } from "./errors.ts";
+import { guardedReview } from "./loader.ts";
 import type { DispatchParts, Frame, LoadedTool } from "./parts.ts";
 
 /** What dispatch remembers of each actor's last call. */
@@ -24,6 +25,8 @@ interface Running {
 	readonly call: Submission;
 	/** The seq of its `tool_called`. */
 	readonly seq: number;
+	/** True for a staged call: it is run at once, so its reviews are told that no answerer answers. */
+	readonly staged: boolean;
 	/** Runs one step in the frame of the call. */
 	inChain<T>(code: () => T): T;
 }
@@ -41,6 +44,9 @@ interface Ready {
 	readonly owner: string;
 }
 
+/** A call after the stage `review`: refused, or ready with the answer to the tool's own review. */
+type Reviewed = Stop | (Ready & { readonly answer: ReviewAnswer | undefined });
+
 function frameOf(actor: ActorId, causedBy: number | undefined, found: LoadedTool | undefined): Frame {
 	return { actor, ...(causedBy === undefined ? {} : { causedBy }), ...(found === undefined ? {} : { tool: found.canonical }) };
 }
@@ -57,11 +63,11 @@ function kernelRefusal(parts: DispatchParts, code: string): Refusal {
 	return detail === undefined ? { ok: false, code } : { ok: false, code, detail };
 }
 
-// The kernel's own checks of the stage `lock`.
-function locked(parts: DispatchParts, call: Submission, found: LoadedTool | undefined): Refusal | undefined {
-	if ((parts.loaded.byShownName.get(call.as)?.length ?? 0) === 0) return kernelRefusal(parts, TOOL_UNKNOWN);
-	if (found === undefined) return kernelRefusal(parts, TOOL_NOT_GRANTED);
-	if (!parts.actors.mayAct(call.actor) || parts.access.isLocked(call.actor, found.canonical)) return kernelRefusal(parts, TOOL_LOCKED);
+// The kernel's own checks of the stage `lock`. A tool with its own review cannot be staged: a staged call is not awaited.
+function locked(parts: DispatchParts, run: Running, found: LoadedTool | undefined): Refusal | undefined {
+	if ((parts.loaded.byShownName.get(run.call.as)?.length ?? 0) === 0) return kernelRefusal(parts, TOOL_UNKNOWN);
+	if (found === undefined || (run.staged && found.tool.answerer !== undefined)) return kernelRefusal(parts, TOOL_NOT_GRANTED);
+	if (!parts.actors.mayAct(run.call.actor) || parts.access.isLocked(run.call.actor, found.canonical)) return kernelRefusal(parts, TOOL_LOCKED);
 	return undefined;
 }
 
@@ -89,34 +95,45 @@ function bind(parts: DispatchParts, run: Running, found: LoadedTool, call: ToolC
 function checks(parts: DispatchParts, run: Running, found: LoadedTool | undefined): Ready | Stop {
 	const { actor, as, params } = run.call;
 	if (found?.tool.free !== true && !parts.steps.step(actor)) return { stage: "limit", refusal: kernelRefusal(parts, STEP_LIMIT) };
-	const refusal = locked(parts, run.call, found);
+	const refusal = locked(parts, run, found);
 	if (refusal !== undefined || found === undefined) return { stage: "lock", refusal: refusal ?? kernelRefusal(parts, TOOL_NOT_GRANTED) };
 	const call: ToolCall = { tool: found.canonical, name: found.tool.name, as, owner: found.owner, actor, params, seq: run.seq };
 	const veto = vetoOf(parts, "lock", run, call);
 	return veto === undefined ? bind(parts, run, found, call) : { stage: "lock", refusal: veto };
 }
 
-// Runs one call through the pipeline.
-function runCall(parts: DispatchParts, memory: Memory, call: Submission): ToolOutcome {
-	const { log } = parts;
-	const { actor, as } = call;
-	const found = resolve(parts, actor, as);
-	const basis = call.basis ?? log.length;
-	const called = log.run(frameOf(actor, call.causedBy, found), () => log.emit("kernel", "tool_called", { as, params: call.params ?? null }, { basis }));
-	const chain = frameOf(actor, called.seq, found);
-	const run: Running = { call, seq: called.seq, inChain: (code) => log.run(chain, code) };
-	if (found?.tool.free === true) memory.looked.add(actor);
-	else memory.looked.delete(actor);
-	memory.ended.delete(actor);
-	const refused = (stage: Stage, refusal: Refusal): Refusal => {
-		const payload = { as, stage, code: refusal.code, ...(refusal.detail === undefined ? {} : { detail: refusal.detail }) };
-		memory.answers.set(actor, run.inChain(() => log.emit("kernel", "tool_refused", payload)).seq);
-		return refusal;
+// The stage `review` of a call that passed `rule`, from the review at `index` on: the review handlers (a refusal at
+// `guard`), then the tool's own review (at `consult`), each in its own frame. A question is answered by the answerer
+// port with the lane held; a staged call is told that no answerer answers, and a question of it gets `{ ok: false }`
+// at once, so the drain stays synchronous. The answer to the tool's own review goes to `execute`.
+function reviewed(parts: DispatchParts, run: Running, ready: Ready, index = 0): Reviewed | Promise<Reviewed> {
+	const handlers = parts.loaded.stages("review");
+	const stage = index < handlers.length ? "guard" : "consult";
+	const review = handlers[index] ?? ((_call: ToolCall, answerable: (answerer: string) => boolean) => guardedReview(ready.owner, () => ready.prepared.review?.(answerable)));
+	const asked = run.inChain(() => review(ready.checked, (answerer) => !run.staged && parts.review.answers(answerer)));
+	if (asked !== undefined && "ok" in asked) return { stage, refusal: asked };
+	const next = (answer: ReviewAnswer | undefined): Reviewed | Promise<Reviewed> => {
+		const veto = answer && run.inChain(() => asked?.decide?.(answer));
+		if (veto !== undefined) return { stage, refusal: veto };
+		return stage === "consult" ? { ...ready, answer } : reviewed(parts, run, ready, index + 1);
 	};
-	const ready = checks(parts, run, found);
-	if ("stage" in ready) return refused(ready.stage, ready.refusal);
-	const outcome = run.inChain(() => guarded(ready.owner, () => ready.prepared.execute()));
-	if (!outcome.ok) refused("execute", outcome);
+	if (asked === undefined || run.staged) return next(asked && { ok: false });
+	return parts.review.ask({ answerer: asked.answerer, question: asked.question, call: ready.checked, record: (source, type, payload) => parts.record({ actor: ready.checked.actor, causedBy: run.seq, tool: ready.checked.tool }, source, type, payload, (code) => code()) }).then(next);
+}
+
+// Writes the refusal of a call and remembers its seq as the actor's last answer.
+function refused(parts: DispatchParts, memory: Memory, run: Running, { stage, refusal }: Stop): Refusal {
+	const payload = { as: run.call.as, stage, code: refusal.code, ...(refusal.detail === undefined ? {} : { detail: refusal.detail }) };
+	memory.answers.set(run.call.actor, run.inChain(() => parts.log.emit("kernel", "tool_refused", payload)).seq);
+	return refusal;
+}
+
+// The stages `execute` and `after` of a reviewed call, then its `tool_result`.
+function executed(parts: DispatchParts, memory: Memory, run: Running, ready: Reviewed): ToolOutcome {
+	if ("stage" in ready) return refused(parts, memory, run, ready);
+	const { actor, as } = run.call;
+	const outcome = run.inChain(() => guarded(ready.owner, () => ready.prepared.execute(ready.answer)));
+	if (!outcome.ok) refused(parts, memory, run, { stage: "execute", refusal: outcome });
 	for (const handler of parts.loaded.stages("after")) {
 		run.inChain(() => {
 			handler(ready.checked, outcome);
@@ -125,9 +142,27 @@ function runCall(parts: DispatchParts, memory: Memory, call: Submission): ToolOu
 	if (!outcome.ok) return outcome;
 	const ends = outcome.endsTurn === true;
 	const payload = { as, reply: outcome.reply, ...(ends ? { endsTurn: true } : {}) };
-	memory.answers.set(actor, run.inChain(() => log.emit("kernel", "tool_result", payload)).seq);
+	memory.answers.set(actor, run.inChain(() => parts.log.emit("kernel", "tool_result", payload)).seq);
 	if (ends) memory.ended.add(actor);
 	return outcome;
+}
+
+// Runs one call through the pipeline; it awaits only an answer of the stage `review`, so a staged call runs at once.
+function runCall(parts: DispatchParts, memory: Memory, call: Submission, staged = false): ToolOutcome | Promise<ToolOutcome> {
+	const { log } = parts;
+	const { actor, as } = call;
+	const found = resolve(parts, actor, as);
+	const basis = call.basis ?? log.length;
+	const called = log.run(frameOf(actor, call.causedBy, found), () => log.emit("kernel", "tool_called", { as, params: call.params ?? null }, { basis }));
+	const chain = frameOf(actor, called.seq, found);
+	const run: Running = { call, seq: called.seq, staged, inChain: (code) => log.run(chain, code) };
+	if (found?.tool.free === true) memory.looked.add(actor);
+	else memory.looked.delete(actor);
+	memory.ended.delete(actor);
+	const ready = checks(parts, run, found);
+	if ("stage" in ready) return refused(parts, memory, run, ready);
+	const done = reviewed(parts, run, ready);
+	return done instanceof Promise ? done.then((later) => executed(parts, memory, run, later)) : executed(parts, memory, run, done);
 }
 
 // Runs the staged calls as the actor `script`, depth first: what a call and its `then` job stage runs before the
@@ -136,7 +171,8 @@ function settle(parts: DispatchParts, memory: Memory): void {
 	for (let next = parts.staged.shift(); next !== undefined; next = parts.staged.shift()) {
 		const behind = parts.staged.splice(0);
 		const { owner, as, params, causedBy, then } = next;
-		const outcome = runCall(parts, memory, { actor: "script", as, params, ...(causedBy === undefined ? {} : { causedBy }) });
+		const outcome = runCall(parts, memory, { actor: "script", as, params, ...(causedBy === undefined ? {} : { causedBy }) }, true);
+		if (outcome instanceof Promise) throw new TypeError("a staged call awaited an answer");
 		const job = then === undefined ? undefined : parts.loaded.instances.get(owner)?.jobs[then];
 		const data: StagedOutcome = outcome.ok ? { ok: true, reply: outcome.reply } : { ok: false, code: outcome.code, ...(outcome.detail === undefined ? {} : { detail: outcome.detail }) };
 		if (job !== undefined) parts.log.run({ actor: "script", causedBy: memory.answers.get("script") ?? parts.log.length }, () => { guarded(owner, () => { job(data); }); });
@@ -179,10 +215,10 @@ export function createDispatch(parts: DispatchParts) {
 		submit(given: Submission): Promise<ToolOutcome> {
 			// What the caller had seen when it decided: the log as it is now, not as it is when the calls before this one have run.
 			const call: Submission = { ...given, basis: given.basis ?? parts.log.length };
-			const next = queue.then(() => {
+			const next = queue.then(async () => {
 				if (failure !== undefined) throw new SwtError(kernelFailed(), { cause: failure.error });
 				try {
-					const outcome = runCall(parts, memory, call);
+					const outcome = await runCall(parts, memory, call);
 					settle(parts, memory);
 					return outcome;
 				} catch (error) {

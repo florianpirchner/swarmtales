@@ -6,7 +6,7 @@ import type { ActorId } from "./actor.ts";
 import type { Envelope, InputNote, OrderedNote } from "./envelope.ts";
 import type { EventSchemas } from "./event-def.ts";
 import type { ActorsView, SnapshotSlice } from "./plugin.ts";
-import type { ToolOutcome, ToolSpec } from "./tool.ts";
+import type { ReviewAnswer, ToolCall, ToolOutcome, ToolSpec } from "./tool.ts";
 
 /**
  * What a driver gets for one activation.
@@ -165,4 +165,42 @@ export interface EventSink {
 	write(event: Envelope): void;
 	/** Called once when the run has ended. */
 	close?(end: RunEnd): void;
+}
+
+/**
+ * One question of the stage `review`, as the kernel hands it to the answerer port.
+ *
+ * @public
+ */
+export interface ReviewRequest {
+	/** Who answers. */
+	readonly answerer: string;
+	/** The question, as data. */
+	readonly question: JsonValue;
+	/** The call under review, with its checked arguments. */
+	readonly call: ToolCall;
+	/**
+	 * Appends one declared event of a record source inside the call: its actor is the caller and it is caused by the
+	 * call's `tool_called`. The rules of `Activation.record` hold (SWT-R017, the redaction, the audience `["human"]`).
+	 */
+	readonly record: (source: string, type: string, payload: unknown) => Envelope;
+}
+
+/**
+ * The answerer port of the stage `review` (`KernelPorts.review`). The kernel awaits `ask` with the lane held: no
+ * other call runs until the answer is in.
+ *
+ * @remarks
+ * What an implementer must do. `answers` is pure and gives the same answer for the whole run. `ask` writes the
+ * question and the answer as records through `request.record` before it resolves, so that a replay can feed the
+ * answer from the log and ask nothing, and resolves `{ ok: false }` for an answer that failed or does not fit; it
+ * never rejects for a failure of the answerer.
+ *
+ * @public
+ */
+export interface ReviewPort {
+	/** Says whether an answerer of this run answers to the name. */
+	answers(answerer: string): boolean;
+	/** Asks the question and resolves with the answer. */
+	ask(request: ReviewRequest): Promise<ReviewAnswer>;
 }

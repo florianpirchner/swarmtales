@@ -5,7 +5,7 @@ import type { ActorId, ActorSpec } from "./actor.ts";
 import type { Envelope } from "./envelope.ts";
 import type { EventSchemas } from "./event-def.ts";
 import type { LogView, ResolvedPlugin, RunLimit } from "./plugin.ts";
-import type { DriverTable, EventSink, SchedulerDefinition } from "./ports.ts";
+import type { DriverTable, EventSink, ReviewPort, SchedulerDefinition } from "./ports.ts";
 import type { CanonicalTool, ToolOutcome, ToolSpec } from "./tool.ts";
 
 /**
@@ -172,6 +172,8 @@ export interface KernelPorts {
 	 * the pattern redaction `redactSecrets`. The type is the `Redact` of `redact.ts`.
 	 */
 	readonly redact?: (text: string) => string;
+	/** The answerer port of the stage `review`; left out: no answerer answers, so every review is told no. */
+	readonly review?: ReviewPort;
 }
 
 /**

@@ -7,9 +7,10 @@
  */
 import type { TSchema } from "typebox";
 import { Check, Errors, Parse } from "typebox/value";
-import { SwtError, type ActorId, type Listener, type ServiceDefinition } from "@swarmtales/contracts";
+import { SwtError, type ActorId, type Answerable, type Listener, type ServiceDefinition } from "@swarmtales/contracts";
 import { factMismatch, payloadMismatch, serviceMismatch, sliceMismatch } from "../errors.ts";
 import type { FactView, MechanicContext, MechanicShape, ToolContext } from "./context-types.ts";
+import { bindReview } from "./hooks.ts";
 import type { InstanceParts, MechanicKit, SliceSpec } from "./parts.ts";
 
 /**
@@ -144,6 +145,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>, bind
 				description: variables === undefined ? declared.description : parts.texts.render(id, declared.description, {}, variables),
 				parameters: declared.parameters,
 				free: declared.free,
+				...(handlers.review === undefined ? {} : { answerer: handlers.review.answerer }),
 				prepare(raw, actor) {
 					const converted = bind.convertArguments(declared.parameters, raw);
 					let params;
@@ -153,7 +155,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>, bind
 						return undefined;
 					}
 					const ctx = bind.contextFor(parts, actor);
-					return { params, rule: () => handlers.check?.(params, ctx), execute: () => handlers.run(params, ctx) };
+					return { params, rule: () => handlers.check?.(params, ctx), execute: (answer) => handlers.run(params, ctx, answer), review: (answerable: Answerable) => (handlers.review === undefined ? undefined : bindReview(handlers.review, params, ctx, answerable)) };
 				},
 				...(handlers.sample === undefined ? {} : { sample: (actor, random) => handlers.sample?.(bind.contextFor(parts, actor), random) }),
 			};

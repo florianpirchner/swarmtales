@@ -7,16 +7,13 @@
 import { redactSecrets, redactValue, SwtError } from "@swarmtales/contracts";
 import type { ActorId, Envelope, InputLine, InputNote, JsonValue, KernelDefinition, OpenActivation, OrderedNote, SchedulerPort, ToolOutcome } from "@swarmtales/contracts";
 import { guarded, misfit, noRecord } from "./errors.ts";
-import type { Frame, Lifecycle, Log, SchedulerPortParts } from "./parts.ts";
+import type { Frame, Lifecycle, Log, Recorder, SchedulerPortParts } from "./parts.ts";
 import { rngFor } from "./random.ts";
 
 const KERNEL: Frame = { actor: "kernel" };
 
 /** Runs code of the port; what it throws ends the run before it is thrown on. */
 type Step = <T>(code: () => T) => T;
-
-/** Writes one event of a record source in the frame; `step` runs the writing, so a sink that throws ends the run. */
-export type Recorder = (frame: Frame, source: string, type: string, payload: unknown, step: Step) => Envelope;
 
 /**
  * Creates the one writer of the record sources. A record is seen by no actor (the audience is `human`), and every

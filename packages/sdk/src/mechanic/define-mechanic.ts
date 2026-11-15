@@ -144,7 +144,7 @@ export function defineMechanic(head: AnyHead, body: ErasedBody): MechanicDefinit
 		options: erased.options,
 		events: erased.events,
 		// What a reader of the definition sees of the body without running it: which tools the fake driver can call.
-		head: frozenHead({ ...erased, tools: erased.tools.map((tool) => ({ ...tool, sampled: body.tools?.[tool.name]?.sample !== undefined })) }),
+		head: frozenHead({ ...erased, tools: erased.tools.map((tool) => ({ ...tool, sampled: body.tools?.[tool.name]?.sample !== undefined })), answerers: [...Object.values(body.tools ?? {}), body.pipeline ?? {}].flatMap((handlers) => (handlers.review === undefined ? [] : [handlers.review.answerer])) }),
 		parseOptions: (raw: unknown): unknown => parseOptions(erased, raw),
 		resolve(options: unknown, texts: PromptLookup, version: string, tools: ReadonlyMap<string, CanonicalTool> = new Map()): ResolvedPlugin {
 			if (!isJson(options)) throw new SwtError(optionMismatch({ owner: erased.id, package: erased.package, path: "options", message: "must be plain JSON data" }));

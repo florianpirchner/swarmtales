@@ -6,7 +6,7 @@
  * a mechanic follows from its head alone, so a helper outside the body takes `CtxOf<typeof head>`.
  */
 import type { Static, TObject, TSchema } from "typebox";
-import type { ActorId, CanonicalTool, Envelope, EventSchemas, EventsDefinition, InputLine, Listener, JsonValue, MetricDefinition, Ordered, PromptLookup, RandomSource, Refusal, ResolvedPlugin, RunEnd, ServiceDefinition, ToolOutcome } from "@swarmtales/contracts";
+import type { ActorId, CanonicalTool, Envelope, EventSchemas, EventsDefinition, InputLine, Listener, JsonValue, MetricDefinition, Ordered, PromptLookup, RandomSource, Refusal, ResolvedPlugin, ReviewAnswer, RunEnd, ServiceDefinition, ToolOutcome } from "@swarmtales/contracts";
 import type { MechanicUse } from "../game/types.ts";
 import type { FactView, MechanicContext, MechanicShape, PromptKeys, ServiceImplementation, Setup, Shape, StateSetup, ToolContext } from "./context-types.ts";
 
@@ -193,6 +193,8 @@ export interface DeclaredTool {
  * @public
  */
 export interface PluginHead {
+	/** The answerers its reviews name, from the body (`defineMechanic` sets it; a head alone does not say): game resolution refuses a game in which no Director answers one. */
+	readonly answerers?: readonly string[];
 	/** The id of the plugin. */
 	readonly id: string;
 	/** The npm name of its package. */
@@ -224,6 +226,23 @@ export interface PluginHead {
 }
 
 /**
+ * A review of the stage `review`: a question asked before a call runs, answered by a Director of the game whose
+ * head says `answers: "<answerer>"`; the lane is held until the answer is in. A tool's own review gets the checked
+ * arguments, a review in the pipeline the call. A refusal of `ask` or `decide` ends the call (logged at stage
+ * `consult` for a tool's own review, at `guard` for one in the pipeline).
+ *
+ * @public
+ */
+export interface MechanicReview<Input, Ctx> {
+	/** Who answers. */
+	readonly answerer: string;
+	/** The question; undefined: the call goes on and nothing is asked (a skip). `answerable` is false when no answerer of the run answers. */
+	ask(input: Input, ctx: Ctx, answerable: boolean): { readonly question: JsonValue } | Refusal | undefined;
+	/** Decides on the answer, also on `{ ok: false }` when the answerer failed; left out: the call goes on. */
+	decide?(answer: ReviewAnswer, input: Input, ctx: Ctx): Refusal | undefined;
+}
+
+/**
  * The handlers of one declared tool.
  *
  * @public
@@ -231,10 +250,12 @@ export interface PluginHead {
 export interface ToolHandlers<M extends MechanicShape, Params extends TSchema> {
 	/** The tool's own rule (stage `rule`), checked before `run`; undefined: the call may run. */
 	check?(params: Static<Params>, ctx: ToolContext<M>): Refusal | undefined;
+	/** The tool's own review, after the reviews of the pipelines; `run` gets its answer. */
+	readonly review?: MechanicReview<Static<Params>, ToolContext<M>>;
 	/** A legal call now, for the fake driver; undefined: none. It must not change state. */
 	sample?(ctx: ToolContext<M>, random: RandomSource): (Static<Params> & JsonValue) | undefined;
-	/** Runs the call (stage `execute`): emits events and returns the reply, or a refusal. */
-	run(params: Static<Params>, ctx: ToolContext<M>): ToolOutcome;
+	/** Runs the call (stage `execute`): emits events and returns the reply, or a refusal; `answer` is the answer to its own review, left out when it asked nothing. */
+	run(params: Static<Params>, ctx: ToolContext<M>, answer?: ReviewAnswer): ToolOutcome;
 }
 
 /**
@@ -302,6 +323,8 @@ export interface MechanicPipeline<M extends MechanicShape> {
 	lock?(call: StageCall, ctx: MechanicContext<M>): Refusal | undefined;
 	/** Refuses a call whose arguments are checked. */
 	rule?(call: StageCall, ctx: MechanicContext<M>): Refusal | undefined;
+	/** Reviews a call of any tool after `rule` (the guard of a game over tools of other mechanics, by bare name). */
+	readonly review?: MechanicReview<StageCall, MechanicContext<M>>;
 	/** Sees the result of a call, also when `run` refused. */
 	after?(call: StageCall, outcome: ToolOutcome, ctx: MechanicContext<M>): void;
 }

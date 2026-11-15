@@ -65,6 +65,9 @@ export interface ActorsView {
 }
 
 // @public
+export type Answerable = (answerer: string) => boolean;
+
+// @public
 export type AskModel = (activation: Activation, question: ModelQuestion) => Promise<ModelAnswer>;
 
 // @public
@@ -395,6 +398,7 @@ export interface KernelLimits {
 export interface KernelPorts {
     readonly limits?: readonly RunLimit[];
     readonly redact?: (text: string) => string;
+    readonly review?: ReviewPort;
     readonly sinks?: readonly EventSink[];
 }
 
@@ -450,6 +454,7 @@ export const KernelSnapshotSchema: Type.TObject<{
 
 // @public
 export interface KernelTool {
+    readonly answerer?: string;
     readonly description: string;
     readonly free: boolean;
     readonly name: string;
@@ -584,8 +589,9 @@ export interface PluginPort {
 
 // @public
 export interface PreparedCall {
-    execute(): ToolOutcome;
+    execute(answer?: ReviewAnswer): ToolOutcome;
     readonly params: unknown;
+    review?(answerable: Answerable): ReviewQuestion | Refusal | undefined;
     rule(): Refusal | undefined;
 }
 
@@ -656,6 +662,35 @@ export interface ResolvedPlugin {
 export interface ResumeInput {
     readonly log: readonly unknown[];
     readonly snapshot: unknown;
+}
+
+// @public
+export type ReviewAnswer = {
+    readonly ok: true;
+    readonly answer: unknown;
+} | {
+    readonly ok: false;
+};
+
+// @public
+export interface ReviewPort {
+    answers(answerer: string): boolean;
+    ask(request: ReviewRequest): Promise<ReviewAnswer>;
+}
+
+// @public
+export interface ReviewQuestion {
+    readonly answerer: string;
+    decide?(answer: ReviewAnswer): Refusal | undefined;
+    readonly question: JsonValue;
+}
+
+// @public
+export interface ReviewRequest {
+    readonly answerer: string;
+    readonly call: ToolCall;
+    readonly question: JsonValue;
+    readonly record: (source: string, type: string, payload: unknown) => Envelope;
 }
 
 // @public
@@ -870,6 +905,7 @@ export type StagedOutcome = {
 export interface StageHandlers {
     after?(call: ToolCall, outcome: ToolOutcome): void;
     lock?(call: ToolCall): Refusal | undefined;
+    review?(call: ToolCall, answerable: Answerable): ReviewQuestion | Refusal | undefined;
     rule?(call: ToolCall): Refusal | undefined;
 }
 

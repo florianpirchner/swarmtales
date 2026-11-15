@@ -16,7 +16,7 @@ import { createLifecycle } from "../src/lifecycle.ts";
 import { loadPlugins } from "../src/loader.ts";
 import { createLog } from "../src/log.ts";
 import type { Dispatch, Lifecycle, Loaded, Log, SliceParts } from "../src/parts.ts";
-import { createSchedulerPort } from "../src/ports.ts";
+import { createRecorder, createSchedulerPort } from "../src/ports.ts";
 import { createServices } from "../src/services.ts";
 import { restoreKernel, saveKernel } from "../src/slices.ts";
 import { createSteps } from "../src/steps.ts";
@@ -245,7 +245,7 @@ function wire(definition: KernelDefinition, resume?: { readonly snapshot: Kernel
 	const loaded = loadPlugins(definition, { log, actors, access, services: createServices(log), clock, staged: [] });
 	const steps = createSteps(definition.limits.maxCallsPerTick, actors.ids);
 	const life = createLifecycle({ definition, log, clock, steps, loaded, sinks, settle: () => undefined });
-	const dispatch = createDispatch({ definition, log, actors, access, steps, loaded, fail: (error) => { life.fail(error); }, staged: [] });
+	const dispatch = createDispatch({ definition, log, actors, access, steps, loaded, fail: (error) => { life.fail(error); }, staged: [], record: createRecorder(definition, log), review: { answers: () => false, ask: () => Promise.resolve({ ok: false }) } });
 	const instance = definition.scheduler.definition.create(definition.scheduler.options);
 	const toolSpecs = (grant: string) => access.grantsOf(grant).flatMap((tool) => (loaded.tools.get(tool) === undefined ? [] : [{ name: definition.names[tool] ?? tool, description: "", parameters: Empty }]));
 	const port = createSchedulerPort({ definition, log, actors, clock, loaded, dispatch, toolSpecs }, life);

@@ -121,7 +121,7 @@ function assemble(definition: KernelDefinition, ports: KernelPorts, prefix: read
 	const { gate, raise, note } = gateOf(createLifecycle({ definition, log, clock, steps, loaded, sinks, settle: () => { lane.settle(); } }, ports), run, () => clock.tick);
 	const shown = (tool: LoadedTool): string => definition.names[tool.canonical] ?? tool.tool.name;
 	const toolSpecs = (grant: string): readonly ToolSpec[] => access.grantsOf(grant).flatMap((name) => [loaded.tools.get(name)].flatMap((tool) => (tool === undefined ? [] : [{ name: shown(tool), description: tool.tool.description, parameters: tool.tool.parameters }])));
-	const lane = createDispatch({ definition, log, actors, access, steps, loaded, fail: note, staged });
+	const lane = createDispatch({ definition, log, actors, access, steps, loaded, fail: note, staged, record, review: ports.review ?? { answers: () => false, ask: () => Promise.resolve({ ok: false }) } });
 	// Every call, also the one of an activation whose driver is still running, is refused once the run failed or ended.
 	const submit: Dispatch["submit"] = async (call) => {
 		usable(run, "a call");

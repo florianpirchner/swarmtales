@@ -67,6 +67,8 @@ export interface DirectorContext<O> {
 	readonly tick: number;
 	/** The firings since the Director was asked last, in log order. */
 	readonly firings: readonly Firing[];
+	/** The question of the review the Director answers (`answers` of the head); left out outside a review, where `firings` is empty. */
+	readonly question?: JsonValue;
 }
 
 /**
@@ -97,6 +99,8 @@ export interface DirectorHead<O extends TSchema, A extends TSchema> {
 	readonly output: A;
 	/** The limits of the definition; the `limits` of a use replace them. */
 	readonly limits?: DirectorLimits;
+	/** The answerer of the stage `review` this Director is: it answers the questions of the reviews that name it, its answer fits `output`. */
+	readonly answers?: string;
 }
 
 /**
@@ -134,6 +138,8 @@ export interface DirectorDefinition {
 	readonly output: TSchema;
 	/** The limits of the definition; `{}` when the head has none. */
 	readonly limits: DirectorLimits;
+	/** The answerer of the stage `review` it is; undefined: none. */
+	readonly answers: string | undefined;
 	/**
 	 * Parses the options of one use and fills the defaults.
 	 *
@@ -208,6 +214,7 @@ export function defineDirector(head: DirectorHead<TSchema, TSchema>, body: Direc
 		on: head.on,
 		output: head.output,
 		limits: head.limits ?? {},
+		answers: head.answers,
 		parseOptions: (raw) => parseOptions(head.id, options, raw),
 		system: (ctx) => body.system(ctx),
 		input: (ctx) => body.input(ctx),
