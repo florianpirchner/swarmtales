@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game: liar's dice. The issues of milestone M4 fill this package.
+ * Game: liar's dice, the bluffing game with hidden dice for solo seats.
  *
  * @packageDocumentation
  */
-export {};
+export { default, liarsDiceGame, type LiarsDiceOptions } from "../game.ts";
+export { briefings, seatsOf } from "../briefing.ts";

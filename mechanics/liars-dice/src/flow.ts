@@ -145,7 +145,7 @@ export function score(ctx: Ctx, bid: Bid | undefined, missed: boolean, reason: s
 		resident: seat,
 		kind,
 		...(bid === undefined ? {} : { bid: { ...bid } }),
-		...(state.standing === undefined ? {} : { standing: { ...state.standing } }),
+		...(state.standing === undefined ? {} : { standing: { quantity: state.standing.quantity, face: state.standing.face } }),
 		dice: [...own],
 		unseen,
 		truth: round3(truth),

@@ -38,3 +38,8 @@ from the files alone re-rolled every round and confirmed each on every file:
 Not covered: three, five and six seats, decisions of real models (bluffs, remarks that lie), the codes behind a
 closed tool (`NOT_YOUR_TURN`, `NO_BID`, `NO_GAME`: a seat that is not on turn has `bid` and `liar` locked and is
 refused with `TOOL_LOCKED`).
+
+Registered difference (M4-20): no file of `oracles/` carries `call.endsTurn`, although the format above names it
+and the old mechanic set it (old `mechanics/liars-dice/src/index.ts`, lines 344 and 355). The flag is read from
+the reply, which level 2 compares ("end your turn now" ends the turn); the oracle test of the game writes it back
+into the file's call entries before it compares. Chess sets the flag too and takes the same mapping.

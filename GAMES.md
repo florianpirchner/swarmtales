@@ -17,8 +17,9 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none; variants are options of `tictactoeGame` | nine oracle files match at level 3 |
 | [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with nine params | six oracle files match at level 3 |
 | [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with five params | five oracle files match at level 3 |
-| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | a game family with five params | the oracle files of the arms `solo` and `nobrain` match at level 3; the silent file of the crew arm at level 2 |
+| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | a game family with five params | the oracle files of the arms `solo` and `nobrain` match at level 3; the silent file of the crew arm at level 3 |
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
+| [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
 old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
@@ -119,6 +120,21 @@ played by scripts, offline, and has no briefing. The full recut of the City come
   ported rules of the ledger, the talk, the deal and the burn ([`oracles/cityofkeys/`](oracles/cityofkeys/)).
 - Links: [folder](games/city-slice/), [README](games/city-slice/README.md), [`game.ts`](games/city-slice/game.ts).
 
+## Liar's dice
+
+Four solo seats (A01 to A04) play a match of liar's dice. Every round each seat rolls its dice in secret; the seats
+bid in turn on how many dice of a face the whole table holds, each bid higher than the last, until one calls the
+last bid a lie. The call shows every die and the wrong side loses a die; the last seat with dice wins the game.
+Ones are wild, and a bid may carry a public remark that need not be true. Every game starts from a fresh context; a
+seat's only memory is a short private strategy brain. The mechanic scores every decision against a simple
+probability baseline, for the report only.
+
+- Variants are options of `liarsDiceGame`: the seats (2 to 6, heads-up at 2), the games, the dice, no brain (the
+  control arm), no table talk.
+- Proof: the six oracle files match at level 3, three of them up to their cut, with one declared mapping (the files
+  lack the flag `endsTurn`, which follows from the reply); the briefings are byte-identical.
+- Links: [folder](games/liars-dice/), [README](games/liars-dice/README.md), [oracle files](oracles/liars-dice/).
+
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
@@ -129,7 +145,7 @@ not among the fifteen.
 |---|---|
 | Societies | City of Keys, Whispers |
 | Board games, all information public | chess, nine men's morris, **tic-tac-toe teams (ported)** |
-| Hidden information and bluff | Hold'em, Liar's Dice, Convoy |
+| Hidden information and bluff | Hold'em, **Liar's Dice (ported)**, Convoy |
 | Cooperation under hidden information | **Harbor Lights (ported)**, Lanterns |
 | Markets, bids and economics | **Econ Lab (ported)**, Salt Market, Blind Bid, **Quarry (ported)**, Ember Tricks |
 
