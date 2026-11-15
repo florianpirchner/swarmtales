@@ -1,0 +1,132 @@
+// SPDX-License-Identifier: Apache-2.0
+/**
+ * The standing checks of a game, in process: its log replays equal, and a run resumed from any tick boundary writes
+ * the log of the straight run. Each returns a list of problems, empty when the game holds, so any test framework can
+ * assert on it. The same two checks through the command line, and the fake run, are `apps/cli/test/standing.test.ts`
+ * over the games list `games/index.ts`.
+ */
+import type { DriverTable, Envelope, GameData, Kernel } from "@swarmtales/contracts";
+import type { Game } from "@swarmtales/sdk";
+import { play, testKernel, type PlayOptions } from "./play.ts";
+import { replay } from "./replay.ts";
+
+
+/**
+ * Makes the drivers of one run. It is called once for the straight run and once for every resumed run, so each run
+ * starts with fresh drivers: a driver must decide from what its activation shows (its tick, its inputs, the replies),
+ * not from what it counted before.
+ *
+ * @public
+ */
+export type StandingDrivers = (kernel: Kernel) => DriverTable;
+
+/**
+ * How a standing check plays: the options of `play` it passes on, and the boundaries it resumes from.
+ *
+ * @public
+ */
+export interface StandingOptions extends Pick<PlayOptions, "seed" | "prompts" | "installed" | "params" | "records"> {
+	/** The boundaries to resume from, as numbers of finished ticks; default: `sampleBoundaries` of the run's tick count. */
+	readonly boundaries?: readonly number[];
+}
+
+const plain = (value: unknown): unknown => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
+
+// A value as a snapshot file gives it back: written as JSON with the keys of every object sorted, and read again.
+function stored(value: unknown): unknown {
+	const sorted = (_key: string, inner: unknown): unknown => (typeof inner === "object" && inner !== null && !Array.isArray(inner) ? Object.fromEntries(Object.entries(inner).sort(([left], [right]) => (left < right ? -1 : 1))) : inner);
+	return JSON.parse(JSON.stringify(value, sorted));
+}
+
+const said = (event: Envelope | undefined): string => (event === undefined ? "nothing" : JSON.stringify(event));
+
+// The first line at which two logs differ, as one problem; nothing when they are equal.
+function difference(label: string, expected: readonly Envelope[], got: readonly Envelope[]): readonly string[] {
+	for (let index = 0; index < Math.max(expected.length, got.length); index++) {
+		const [left, right] = [said(expected[index]), said(got[index])];
+		if (left !== right) return [`${label}: line ${String(index + 1)} differs:\n  ${left}\n  ${right}`];
+	}
+	return [];
+}
+
+/**
+ * The boundaries a resume check takes from a run of `ticks` ticks: every boundary from 0 (before the first tick) to
+ * `ticks - 1` for a run of at most `every` ticks; for a longer run the first three, the last three and every tenth.
+ *
+ * @param ticks - The number of ticks the straight run played.
+ * @param every - Up to this many ticks every boundary is taken; 30 when left out.
+ * @returns The boundaries, as numbers of finished ticks, ascending.
+ *
+ * @public
+ */
+export function sampleBoundaries(ticks: number, every = 30): readonly number[] {
+	const all = Array.from({ length: Math.max(ticks, 0) }, (_, index) => index);
+	return ticks <= every ? all : all.filter((tick) => tick < 3 || tick >= ticks - 3 || tick % 10 === 0);
+}
+
+/**
+ * Replay: plays the game with the drivers and replays its log; the replayed log must be the log, line by line.
+ *
+ * @param game - The game, in its builder form or its data form (a family is built first).
+ * @param drivers - Makes the drivers of the run: a script of the game's tests, or the fake driver.
+ * @param options - The seed, the prompts, the installed mechanics, the params and the record sources.
+ * @returns The problems; empty when the replay is equal. A run without an accepted call is a problem: it proves nothing.
+ * @throws SwtError What `play` and `replay` throw.
+ * @example
+ * ```ts
+ * expect(await checkReplay(game, (kernel) => ({ resident: fakeDriver(kernel, 7) }), { seed: 7 })).toEqual([]);
+ * ```
+ *
+ * @public
+ */
+export async function checkReplay(game: Game | GameData, drivers: StandingDrivers, options: StandingOptions = {}): Promise<readonly string[]> {
+	const { events } = await play(game, { ...options, drivers });
+	if (!events.some((event) => event.type === "tool_result")) return ["replay: the run holds no accepted call, so its replay proves nothing"];
+	const again = await replay({ game, log: events, ...(options.records === undefined ? {} : { records: options.records }) });
+	return again.issue === undefined ? [] : [`replay: ${again.issue.summary}:\n  ${JSON.stringify(again.firstDifference?.expected)}\n  ${JSON.stringify(again.firstDifference?.got)}`];
+}
+
+/**
+ * Resume in process: plays the game one tick at a time and takes a snapshot at every boundary; then, for every
+ * boundary, a second kernel is created from the snapshot and the log up to it, and plays the rest with fresh drivers.
+ * Its log and its end must be those of the straight run. The snapshot is given as a snapshot file holds it (JSON,
+ * the keys of every object sorted), so a state that is saved as an object and read back in key order is found.
+ *
+ * @param game - The game, in its builder form or its data form (a family is built first).
+ * @param drivers - Makes the drivers of each run; see `StandingDrivers` for what a driver may depend on.
+ * @param options - As `checkReplay`, and the boundaries when not every sampled one is wanted.
+ * @returns The problems, at most one per boundary; empty when every resumed run equals the straight one. A run
+ * without a boundary, and a boundary the run did not have, are problems.
+ * @throws SwtError What `play` throws.
+ * @example
+ * ```ts
+ * expect(await checkResumeEveryBoundary(game, () => ({ resident: player }), { seed: 7 })).toEqual([]);
+ * ```
+ *
+ * @public
+ */
+export async function checkResumeEveryBoundary(game: Game | GameData, drivers: StandingDrivers, options: StandingOptions = {}): Promise<readonly string[]> {
+	const { boundaries, ...playing } = options;
+	const { kernel } = testKernel(game, playing);
+	const table = drivers(kernel);
+	const cuts: { readonly snapshot: unknown; readonly lines: number }[] = [];
+	while (kernel.ended === undefined) {
+		cuts.push({ snapshot: stored(kernel.snapshot()), lines: kernel.log.length });
+		await kernel.run(table, { ticks: 1 });
+	}
+	const straight = kernel.log.all();
+	if (cuts.length === 0) return ["resume: the run has no tick boundary"];
+	const problems: string[] = [];
+	for (const tick of boundaries ?? sampleBoundaries(cuts.length)) {
+		const cut = cuts[tick];
+		if (cut === undefined) {
+			problems.push(`resume from boundary ${String(tick)}: the run of ${String(cuts.length)} ticks has no such boundary`);
+			continue;
+		}
+		const resumed = await play(game, { ...playing, drivers, resume: { snapshot: cut.snapshot, log: straight.slice(0, cut.lines).map(plain) } });
+		const label = `resume from boundary ${String(tick)}`;
+		problems.push(...difference(label, straight, resumed.events));
+		if (JSON.stringify(resumed.end) !== JSON.stringify(kernel.ended)) problems.push(`${label}: ended with ${JSON.stringify(resumed.end)}, the straight run with ${JSON.stringify(kernel.ended)}`);
+	}
+	return problems;
+}

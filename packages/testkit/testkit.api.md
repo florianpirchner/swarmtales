@@ -52,6 +52,12 @@ export function checkPackage(definition: {
 }, packageJson: unknown): readonly string[];
 
 // @public
+export function checkReplay(game: Game | GameData, drivers: StandingDrivers, options?: StandingOptions): Promise<readonly string[]>;
+
+// @public
+export function checkResumeEveryBoundary(game: Game | GameData, drivers: StandingDrivers, options?: StandingOptions): Promise<readonly string[]>;
+
+// @public
 export function checkSnapshotRoundTrip(game: Game | GameData, driver: () => ActorDriver, cut: number, options?: ConformanceOptions): Promise<readonly string[]>;
 
 // @public
@@ -386,7 +392,18 @@ export interface ReplayResult {
 export function runOracle(oracle: Oracle, game: Game | GameData, level?: OracleLevel, options?: Pick<PlayOptions, "installed" | "prompts">): Promise<readonly OracleMismatch[]>;
 
 // @public
+export function sampleBoundaries(ticks: number, every?: number): readonly number[];
+
+// @public
 export function scriptedDriver(plan: Plan, record?: CallRecord[]): ActorDriver;
+
+// @public
+export type StandingDrivers = (kernel: Kernel) => DriverTable;
+
+// @public
+export interface StandingOptions extends Pick<PlayOptions, "seed" | "prompts" | "installed" | "params" | "records"> {
+    readonly boundaries?: readonly number[];
+}
 
 // @public
 export interface TestKernel {
