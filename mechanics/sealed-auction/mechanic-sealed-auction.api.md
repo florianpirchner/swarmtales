@@ -292,16 +292,16 @@ finished: Type.TBoolean;
 held: Type.TBoolean;
 due: Type.TBoolean;
 }>, {
-game: number;
+bids: Record<string, number>;
 lots: {
 worth?: number;
 number: number;
 kind: "first-price" | "second-price" | "common";
 values: Record<string, number>;
 }[];
-seats: string[];
 lot: number;
-bids: Record<string, number>;
+game: number;
+seats: string[];
 scores: Record<string, number>;
 coins: Record<string, number>;
 open: boolean;

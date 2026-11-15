@@ -102,7 +102,7 @@ threshold: number;
 deadlineMinute: number;
 visibility: "public" | "secret";
 openedAt: number;
-status: "passed" | "failed" | "open";
+status: "open" | "passed" | "failed";
 signers: string[];
 }[];
 }, {

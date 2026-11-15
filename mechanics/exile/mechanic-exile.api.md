@@ -105,19 +105,19 @@ text: string;
 factors: string[];
 };
 resident: string;
-since: number;
+by: string;
 until: number;
 ransomable: boolean;
 voters: string[];
 price: number;
 selfPrice: number;
+since: number;
 bequestPerHeir: number;
 texts: {
 exiled: string;
 will: string;
 ransomed: string;
 };
-by: string;
 payments: {
 payer: string;
 amount: number;
@@ -126,8 +126,8 @@ amount: number;
 gone: {
 resident: string;
 by: string;
-tick: number;
 bequeathed: string[];
+tick: number;
 }[];
 }, {
 readonly exiled: Type.TObject<{

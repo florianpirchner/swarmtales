@@ -217,13 +217,13 @@ due: Type.TBoolean;
 }>, {
 hand?: {
 number: number;
-street: "preflop" | "flop" | "turn" | "river";
 bet: number;
+street: "preflop" | "flop" | "turn" | "river";
+board: string[];
 seats: string[];
 button: number;
 holes: Record<string, string[]>;
 runout: string[];
-board: string[];
 folded: string[];
 invested: Record<string, number>;
 streetIn: Record<string, number>;
@@ -232,36 +232,35 @@ acted: string[];
 toAct: string;
 log: ({
 missed?: boolean;
-street: "preflop" | "flop" | "turn" | "river";
-done: "fold" | "check" | "call" | "bet" | "raise" | "small blind" | "big blind";
-seat: string;
-to: number;
 kind: "action";
+seat: string;
+done: "fold" | "check" | "call" | "bet" | "raise" | "small blind" | "big blind";
+to: number;
+street: "preflop" | "flop" | "turn" | "river";
 } | {
+kind: "board";
 street: "preflop" | "flop" | "turn" | "river";
 cards: string[];
-kind: "board";
 })[];
 over: boolean;
 };
-game: number;
 seats: string[];
-scores: Record<string, number>;
-decisions: {
 game: number;
-hand: number;
-street: "preflop" | "flop" | "turn" | "river";
-resident: string;
+decisions: {
 done: "fold" | "check" | "call" | "bet" | "raise";
+street: "preflop" | "flop" | "turn" | "river";
+missed: boolean;
 toCall: number;
+hand: number;
 pot: number;
+game: number;
+resident: string;
 opponents: number;
 equity: number;
 rangeEquity: number;
 potOdds: number;
 baseline: "fold" | "check" | "call" | "bet" | "raise";
 evLoss: number;
-missed: boolean;
 }[];
 opened: number;
 briefed: string[];
@@ -270,11 +269,11 @@ seenLog: Record<string, number>;
 seenResults: Record<string, number>;
 told: boolean;
 results: {
-hand: number;
 street: "preflop" | "flop" | "turn" | "river";
-pot: number;
-button: string;
 board: string[];
+button: string;
+hand: number;
+pot: number;
 shown: {
 seat: string;
 cards: string[];
@@ -284,6 +283,7 @@ winners: string[];
 net: Record<string, number>;
 showdown: boolean;
 }[];
+scores: Record<string, number>;
 gameScores: Record<string, number>;
 running: boolean;
 finished: boolean;

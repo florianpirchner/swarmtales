@@ -339,7 +339,6 @@ text: Type.TString;
 }>>;
 }>, {
 history: {
-conversation: string;
 statements: {
 group?: string;
 ref: number;
@@ -348,6 +347,7 @@ source: "dm" | "board" | "group" | "cast";
 to: string[];
 text: string;
 }[];
+conversation: string;
 }[];
 }, {
 interpretation: Type.TObject<{

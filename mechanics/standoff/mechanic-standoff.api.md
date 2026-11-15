@@ -272,9 +272,9 @@ claimed: string[];
 }[];
 ultimatums: {
 number: number;
-penalty: number;
 between: string[];
 until: number;
+penalty: number;
 debts: {
 level: number;
 holder: string;
