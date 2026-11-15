@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The data of the progression mechanic: the options (the game's levels and rules), the prompts, the state and its
- * snapshot slice. Carried from the old `mechanics/progression/src/model.ts`; the acts and the managed tools come with the second half of the port (M5-20).
+ * snapshot slice. Carried from the old `mechanics/progression/src/model.ts` without its migration of old snapshots (A56).
  */
 import { Type, type Static } from "typebox";
 
@@ -34,12 +34,18 @@ export const ProgressionOptions = Type.Object({
 	startLevel: Type.Integer({ minimum: 1, default: 1, description: "The level every resident starts on." }),
 	lastLevel: Type.Integer({ minimum: 0, default: 0, description: "The highest playable level; above it a resident counts as finished. 0 means the game's last level." }),
 	holdAfter: Type.Optional(Type.Integer({ minimum: 1, description: "A door after this level: who passes it waits until every resident has." })),
+	acts: Type.Array(Type.Integer({ minimum: 1, description: "A level" }), { default: [], description: "The first level of each act after the first." }),
 	penalty: Type.Optional(PenaltyLadder),
 	blamePenalty: Type.Optional(PenaltyLadder),
 	maxAttemptsPerWindow: Type.Integer({ minimum: 1, default: 3, description: "Wrong codes allowed in one window before submissions are refused." }),
 	attemptWindowMinutes: Type.Integer({ minimum: 1, default: 5, description: "Length of the window for wrong codes, in minutes." }),
 	survivors: Type.Integer({ minimum: 0, default: 0, description: "How many residents survive to the end (a seat in the ranking)." }),
 	finishedNotice: Type.String({ default: "", description: "The notice a resident gets once it has solved every level." }),
+	managed: Type.Array(Type.String({ description: "A tool name" }), {
+		default: [],
+		description:
+			"Tools no level lists that stay locked until a caller unlocks them (`unlock`), as the old engine kept every tool closed that neither the level nor an unlock opened; the tools a feature's own mechanic opens (votes, the seal, defy) are not listed.",
+	}),
 });
 
 /** The options as the mechanic reads them. */
@@ -62,6 +68,7 @@ export const PROGRESSION_PROMPTS = {
 	"progression/replies/problem-finished": [],
 	"progression/replies/problem-solved": [],
 	"progression/replies/active-tools": ["tools"],
+	"progression/replies/locked": [],
 	"progression/replies/status-all-solved": [],
 	"progression/replies/status-passed": ["level"],
 	"progression/replies/status-door": ["level", "minute"],
@@ -93,6 +100,15 @@ export interface Standing {
 	readonly solved: number[];
 	/** Minutes of wrong submissions, for the rate limit. */
 	readonly wrongAttempts: number[];
+	/** The tools a caller opened beyond the level's set. */
+	readonly extraTools: Set<string>;
+}
+
+/** One solved level, in the order solved. */
+export interface Solve {
+	readonly agent: string;
+	readonly level: number;
+	readonly tick: number;
 }
 
 /**
@@ -105,7 +121,15 @@ export interface ProgressionState {
 	readonly standings: Map<string, Standing>;
 	/** The level whose door is still shut. */
 	door: number | undefined;
-	/** Wrong codes and lost blames per resident (in the current act, once acts are ported). */
+	/** The shut door opens at the next tick whoever has passed it (an act's brake). */
+	doorReleased: boolean;
+	/** The tick each act began, by its first level. */
+	readonly actStarts: Map<number, number>;
+	/** The first levels of the acts that ended. */
+	readonly endedActs: Set<number>;
+	/** Every solved level, in the order solved (the old level receipts). */
+	readonly solves: Solve[];
+	/** Wrong codes and lost blames per resident in the current act. */
 	readonly offences: Map<string, { wrong: number; blames: number }>;
 	/** The task once per level: the level whose task was shown, and whether that was the finished notice. */
 	readonly delivered: Map<string, { level: number; finished: boolean }>;
@@ -118,6 +142,7 @@ const StandingSlice = Type.Object(
 		held: Type.Boolean({ description: "Waits at the door" }),
 		solved: Type.Array(Int, { description: "The levels solved" }),
 		wrongAttempts: Type.Array(Int, { description: "The minutes of wrong codes in the window" }),
+		extraTools: Type.Array(Type.String({ description: "A tool name" }), { description: "The tools opened beyond the level's set" }),
 	},
 	{ description: "One resident" },
 );
@@ -126,6 +151,10 @@ const StandingSlice = Type.Object(
 export const ProgressionSlice = Type.Object(
 	{
 		door: Type.Optional(Type.Integer({ description: "The level whose door is shut" })),
+		doorReleased: Type.Boolean({ description: "The shut door opens at the next tick" }),
+		actStarts: Type.Array(Type.Object({ fromLevel: Int, tick: Int }, { description: "One act begun" }), { description: "The acts begun" }),
+		endedActs: Type.Array(Int, { description: "The first levels of the acts ended" }),
+		solves: Type.Array(Type.Object({ agent: Id, level: Int, tick: Int }, { description: "One solved level" }), { description: "The solved levels in order" }),
 		standings: Type.Array(StandingSlice, { description: "Every resident, in roster order" }),
 		offences: Type.Array(Type.Object({ agent: Id, wrong: Int, blames: Int }, { description: "The offences of one resident" }), { description: "The wrong codes and lost blames counted for the penalty ladders" }),
 		delivered: Type.Array(Type.Object({ agent: Id, level: Int, finished: Type.Boolean({ description: "The finished notice was shown" }) }, { description: "One task shown" }), { description: "The tasks shown" }),
@@ -159,8 +188,8 @@ export function doorIn(options: Pick<Options, "lastLevel" | "levels" | "holdAfte
  * @returns The state.
  */
 export function freshState(residents: readonly string[], options: Options): ProgressionState {
-	const standings = new Map(residents.map((id): [string, Standing] => [id, { level: options.startLevel, held: false, solved: [], wrongAttempts: [] }]));
-	return { standings, door: doorIn(options), offences: new Map(), delivered: new Map() };
+	const standings = new Map(residents.map((id): [string, Standing] => [id, { level: options.startLevel, held: false, solved: [], wrongAttempts: [], extraTools: new Set() }]));
+	return { standings, door: doorIn(options), doorReleased: false, actStarts: new Map(), endedActs: new Set(), solves: [], offences: new Map(), delivered: new Map() };
 }
 
 /**
@@ -171,7 +200,11 @@ export function freshState(residents: readonly string[], options: Options): Prog
 export function saveState(state: ProgressionState): Slice {
 	return {
 		...(state.door === undefined ? {} : { door: state.door }),
-		standings: [...state.standings].map(([agent, entry]) => ({ agent, level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts] })),
+		doorReleased: state.doorReleased,
+		actStarts: [...state.actStarts].map(([fromLevel, tick]) => ({ fromLevel, tick })),
+		endedActs: [...state.endedActs],
+		solves: state.solves.map(({ agent, level, tick }) => ({ agent, level, tick })),
+		standings: [...state.standings].map(([agent, entry]) => ({ agent, level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts], extraTools: [...entry.extraTools] })),
 		offences: [...state.offences].map(([agent, count]) => ({ agent, wrong: count.wrong, blames: count.blames })),
 		delivered: [...state.delivered].map(([agent, entry]) => ({ agent, level: entry.level, finished: entry.finished })),
 	};
@@ -184,8 +217,12 @@ export function saveState(state: ProgressionState): Slice {
  */
 export function loadState(data: Slice): ProgressionState {
 	return {
-		standings: new Map(data.standings.map((entry): [string, Standing] => [entry.agent, { level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts] }])),
+		standings: new Map(data.standings.map((entry): [string, Standing] => [entry.agent, { level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts], extraTools: new Set(entry.extraTools) }])),
 		door: data.door,
+		doorReleased: data.doorReleased,
+		actStarts: new Map(data.actStarts.map((entry) => [entry.fromLevel, entry.tick])),
+		endedActs: new Set(data.endedActs),
+		solves: data.solves.map(({ agent, level, tick }) => ({ agent, level, tick })),
 		offences: new Map(data.offences.map((entry) => [entry.agent, { wrong: entry.wrong, blames: entry.blames }])),
 		delivered: new Map(data.delivered.map((entry) => [entry.agent, { level: entry.level, finished: entry.finished }])),
 	};

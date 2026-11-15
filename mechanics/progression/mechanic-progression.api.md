@@ -15,6 +15,19 @@ import { ToolOutcome } from '@swarmtales/contracts';
 import { Type } from 'typebox';
 
 // @public
+export const CastExtrasService: ServiceDefinition<"cast-extras", {
+readonly active: {
+readonly kind: "query";
+readonly summary: "Declared, revealed and not retired cast members in the game's order, with their public level.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+id: Type.TString;
+level: Type.TInteger;
+}>>;
+};
+}>;
+
+// @public
 export const LevelPiecesService: ServiceDefinition<"level-pieces", {
 readonly deal: {
 readonly kind: "command";
@@ -96,12 +109,14 @@ opensAt: Type.TOptional<Type.TInteger>;
 startLevel: Type.TInteger;
 lastLevel: Type.TInteger;
 holdAfter: Type.TOptional<Type.TInteger>;
+acts: Type.TArray<Type.TInteger>;
 penalty: Type.TOptional<Type.TUnion<[Type.TInteger, Type.TArray<Type.TInteger>]>>;
 blamePenalty: Type.TOptional<Type.TUnion<[Type.TInteger, Type.TArray<Type.TInteger>]>>;
 maxAttemptsPerWindow: Type.TInteger;
 attemptWindowMinutes: Type.TInteger;
 survivors: Type.TInteger;
 finishedNotice: Type.TString;
+managed: Type.TArray<Type.TString>;
 }>, {
 readonly submission: Type.TObject<{
 agent: Type.TString;
@@ -117,6 +132,17 @@ to: Type.TInteger;
 readonly level_entered: Type.TObject<{
 agent: Type.TString;
 level: Type.TInteger;
+}>;
+readonly act_started: Type.TObject<{
+fromLevel: Type.TInteger;
+residents: Type.TArray<Type.TString>;
+}>;
+readonly act_ended: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly tools_unlocked: Type.TObject<{
+agent: Type.TString;
+tools: Type.TArray<Type.TString>;
 }>;
 }, "getStatus" | "activeTools" | "getProblem" | "submitSolution" | "listAgents">;
 
@@ -140,6 +166,17 @@ readonly level_entered: Type.TObject<{
 agent: Type.TString;
 level: Type.TInteger;
 }>;
+readonly act_started: Type.TObject<{
+fromLevel: Type.TInteger;
+residents: Type.TArray<Type.TString>;
+}>;
+readonly act_ended: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly tools_unlocked: Type.TObject<{
+agent: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
 }>;
 
 // @public
@@ -155,20 +192,34 @@ opensAt: Type.TOptional<Type.TInteger>;
 startLevel: Type.TInteger;
 lastLevel: Type.TInteger;
 holdAfter: Type.TOptional<Type.TInteger>;
+acts: Type.TArray<Type.TInteger>;
 penalty: Type.TOptional<Type.TUnion<[Type.TInteger, Type.TArray<Type.TInteger>]>>;
 blamePenalty: Type.TOptional<Type.TUnion<[Type.TInteger, Type.TArray<Type.TInteger>]>>;
 maxAttemptsPerWindow: Type.TInteger;
 attemptWindowMinutes: Type.TInteger;
 survivors: Type.TInteger;
 finishedNotice: Type.TString;
+managed: Type.TArray<Type.TString>;
 }>, Type.TObject<{
 door: Type.TOptional<Type.TInteger>;
+doorReleased: Type.TBoolean;
+actStarts: Type.TArray<Type.TObject<{
+fromLevel: Type.TInteger;
+tick: Type.TInteger;
+}>>;
+endedActs: Type.TArray<Type.TInteger>;
+solves: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+tick: Type.TInteger;
+}>>;
 standings: Type.TArray<Type.TObject<{
 agent: Type.TString;
 level: Type.TInteger;
 held: Type.TBoolean;
 solved: Type.TArray<Type.TInteger>;
 wrongAttempts: Type.TArray<Type.TInteger>;
+extraTools: Type.TArray<Type.TString>;
 }>>;
 offences: Type.TArray<Type.TObject<{
 agent: Type.TString;
@@ -196,6 +247,17 @@ readonly level_entered: Type.TObject<{
 agent: Type.TString;
 level: Type.TInteger;
 }>;
+readonly act_started: Type.TObject<{
+fromLevel: Type.TInteger;
+residents: Type.TArray<Type.TString>;
+}>;
+readonly act_ended: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly tools_unlocked: Type.TObject<{
+agent: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
 }, {
 readonly "progression/tools/getStatus": readonly [];
 readonly "progression/tools/getProblem": readonly [];
@@ -212,6 +274,7 @@ readonly "progression/replies/submit-door-closed": readonly ["level", "minute"];
 readonly "progression/replies/problem-finished": readonly [];
 readonly "progression/replies/problem-solved": readonly [];
 readonly "progression/replies/active-tools": readonly ["tools"];
+readonly "progression/replies/locked": readonly [];
 readonly "progression/replies/status-all-solved": readonly [];
 readonly "progression/replies/status-passed": readonly ["level"];
 readonly "progression/replies/status-door": readonly ["level", "minute"];
@@ -499,6 +562,160 @@ level: Type.TInteger;
 }>;
 readonly output: Type.TBoolean;
 };
+readonly hasSolved: {
+readonly kind: "query";
+readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly passed: {
+readonly kind: "query";
+readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly lastProgress: {
+readonly kind: "query";
+readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly currentAct: {
+readonly kind: "query";
+readonly summary: "The first level of the latest act that has begun.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly actStart: {
+readonly kind: "query";
+readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly door: {
+readonly kind: "query";
+readonly summary: "The level whose door is shut, or null.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly doorShut: {
+readonly kind: "query";
+readonly summary: "Whether a door holds residents back now.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly openDoor: {
+readonly kind: "command";
+readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly releaseDoor: {
+readonly kind: "command";
+readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+readonly unlock: {
+readonly kind: "command";
+readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly ranking: {
+readonly kind: "query";
+readonly summary: "The ranking: the banished last, then by points, by level and by id.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+rank: Type.TInteger;
+points: Type.TInteger;
+level: Type.TInteger;
+}>>;
+};
+readonly holdersBehind: {
+readonly kind: "query";
+readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TObject<{
+holder: Type.TString;
+level: Type.TInteger;
+piece: Type.TString;
+}>>;
+};
+readonly nextPenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next wrong code costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly nextBlamePenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next lost blame costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly chargeBlame: {
+readonly kind: "command";
+readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly endAct: {
+readonly kind: "command";
+readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isOpenOnClock: {
+readonly kind: "query";
+readonly summary: "Whether the level's door is open on the door clock now.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly opensAt: {
+readonly kind: "query";
+readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TInteger;
+};
+readonly bounds: {
+readonly kind: "query";
+readonly summary: "The start level, the last playable level and the seats at the end.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+startLevel: Type.TInteger;
+lastLevel: Type.TInteger;
+survivors: Type.TInteger;
+}>;
+};
 }>], readonly [ServiceDefinition<"identity", {
 readonly nameOf: {
 readonly kind: "query";
@@ -688,6 +905,16 @@ resident: Type.TString;
 }>;
 readonly output: Type.TArray<Type.TString>;
 };
+}>, ServiceDefinition<"cast-extras", {
+readonly active: {
+readonly kind: "query";
+readonly summary: "Declared, revealed and not retired cast members in the game's order, with their public level.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+id: Type.TString;
+level: Type.TInteger;
+}>>;
+};
 }>], {
 getStatus: Type.TObject<{}>;
 activeTools: Type.TObject<{}>;
@@ -714,12 +941,14 @@ export const ProgressionOptions: Type.TObject<{
     startLevel: Type.TInteger;
     lastLevel: Type.TInteger;
     holdAfter: Type.TOptional<Type.TInteger>;
+    acts: Type.TArray<Type.TInteger>;
     penalty: Type.TOptional<Type.TUnion<[Type.TInteger, Type.TArray<Type.TInteger>]>>;
     blamePenalty: Type.TOptional<Type.TUnion<[Type.TInteger, Type.TArray<Type.TInteger>]>>;
     maxAttemptsPerWindow: Type.TInteger;
     attemptWindowMinutes: Type.TInteger;
     survivors: Type.TInteger;
     finishedNotice: Type.TString;
+    managed: Type.TArray<Type.TString>;
 }>;
 
 // @public
@@ -749,19 +978,178 @@ level: Type.TInteger;
 }>;
 readonly output: Type.TBoolean;
 };
+readonly hasSolved: {
+readonly kind: "query";
+readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly passed: {
+readonly kind: "query";
+readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly lastProgress: {
+readonly kind: "query";
+readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly currentAct: {
+readonly kind: "query";
+readonly summary: "The first level of the latest act that has begun.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly actStart: {
+readonly kind: "query";
+readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly door: {
+readonly kind: "query";
+readonly summary: "The level whose door is shut, or null.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly doorShut: {
+readonly kind: "query";
+readonly summary: "Whether a door holds residents back now.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly openDoor: {
+readonly kind: "command";
+readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly releaseDoor: {
+readonly kind: "command";
+readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+readonly unlock: {
+readonly kind: "command";
+readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly ranking: {
+readonly kind: "query";
+readonly summary: "The ranking: the banished last, then by points, by level and by id.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+rank: Type.TInteger;
+points: Type.TInteger;
+level: Type.TInteger;
+}>>;
+};
+readonly holdersBehind: {
+readonly kind: "query";
+readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TObject<{
+holder: Type.TString;
+level: Type.TInteger;
+piece: Type.TString;
+}>>;
+};
+readonly nextPenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next wrong code costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly nextBlamePenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next lost blame costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly chargeBlame: {
+readonly kind: "command";
+readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly endAct: {
+readonly kind: "command";
+readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isOpenOnClock: {
+readonly kind: "query";
+readonly summary: "Whether the level's door is open on the door clock now.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly opensAt: {
+readonly kind: "query";
+readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TInteger;
+};
+readonly bounds: {
+readonly kind: "query";
+readonly summary: "The start level, the last playable level and the seats at the end.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+startLevel: Type.TInteger;
+lastLevel: Type.TInteger;
+survivors: Type.TInteger;
+}>;
+};
 }>;
 
 // @public
 export interface ProgressionState {
+    readonly actStarts: Map<number, number>;
     readonly delivered: Map<string, {
         level: number;
         finished: boolean;
     }>;
     door: number | undefined;
+    doorReleased: boolean;
+    readonly endedActs: Set<number>;
     readonly offences: Map<string, {
         wrong: number;
         blames: number;
     }>;
+    // Warning: (ae-forgotten-export) The symbol "Solve" needs to be exported by the entry point index.d.ts
+    readonly solves: Solve[];
     // Warning: (ae-forgotten-export) The symbol "Standing" needs to be exported by the entry point index.d.ts
     readonly standings: Map<string, Standing>;
 }
@@ -805,8 +1193,8 @@ export const TOOL_ORDER: readonly ["getStatus", "getProblem", "submitSolution", 
 
 // Warnings were encountered during analysis:
 //
-// dist/index.d.ts:665:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
-// dist/index.d.ts:681:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:873:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:889:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

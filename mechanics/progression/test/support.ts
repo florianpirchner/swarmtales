@@ -9,13 +9,14 @@ import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
 import { Type, type Static } from "typebox";
 import { Value } from "typebox/value";
+import type { SchedulerDefinition } from "@swarmtales/contracts";
 import { ReceiptSourceService } from "@swarmtales/mechanic-contracts";
 import { channels } from "@swarmtales/mechanic-channels";
 import { ledger } from "@swarmtales/mechanic-ledger";
-import { defineGame, defineHead, defineMechanic, type Game, type MechanicUse } from "@swarmtales/sdk";
+import { defineGame, defineHead, defineMechanic, reply, type Game, type MechanicUse } from "@swarmtales/sdk";
 import { PuzzlesOptions, TeamPlanner } from "@swarmtales/mechanic-puzzles";
 import { readOracle, type Oracle } from "@swarmtales/testkit";
-import { LevelPiecesService, progression } from "../src/index.ts";
+import { LevelPiecesService, progression, TOOL_ORDER } from "../src/index.ts";
 
 /** The options of `progression` as a game writes them. */
 export type Options = NonNullable<Parameters<typeof progression>[0]>;
@@ -29,6 +30,7 @@ const Story = Type.Object({
 		Type.Object({ number: Type.Integer(), title: Type.String(), reward: Type.Number(), tools: Type.Array(Type.String()), task: Type.String(), team: PuzzlesOptions.properties.levels.items.properties.team, opensAt: Type.Optional(Type.Integer()), puzzle: Type.Object({ kind: Type.String(), overlap: Type.Optional(Type.Integer()), digits: Type.Optional(Type.Integer()) }) }),
 	),
 	finishedNotice: Type.String(),
+	acts: Type.Optional(Type.Array(Type.Object({ fromLevel: Type.Integer() }))),
 });
 type StoryData = Static<typeof Story>;
 
@@ -45,6 +47,12 @@ export function fixture(game: string, file: string): Fixture {
 	return { oracle, story: Value.Parse(Story, JSON.parse(readFileSync(resolve(ORACLES, game, definition.file), "utf8"))) };
 }
 
+/** The tools a feature's own mechanic opens and closes (old `FEATURE_TOOLS` of `apps/cli/src/host/story.ts`); the progression manages every other. */
+const FEATURE_TOOLS: ReadonlySet<string> = new Set(["vote", "nominate", "join", "refuse", "payRansom", "lastWill", "bid", "permaDeath", "chooseName", "defy", "claimPiece", "forgeReceipt", "nameFavourite", "tribunalVote", "activeTools"]);
+
+/** The old `LEVEL_MANAGED_TOOLS`: the tools the progression keeps closed until a level or an unlock opens them. */
+export const MANAGED: readonly string[] = TOOL_ORDER.filter((tool) => !FEATURE_TOOLS.has(tool));
+
 /** The options a game of the story gives `progression`, as the old command line mapped them (R2-D17). */
 export function optionsOf({ story, oracle }: Fixture): Options {
 	const effective = Value.Parse(Type.Object({ effective: Type.Object({ lastLevel: Type.Integer() }) }), oracle.setup.definition).effective;
@@ -57,6 +65,8 @@ export function optionsOf({ story, oracle }: Fixture): Options {
 		attemptWindowMinutes: story.rules.attemptWindowMinutes,
 		survivors: story.run.survivors,
 		finishedNotice: story.finishedNotice,
+		acts: (story.acts ?? []).map((act) => act.fromLevel).filter((fromLevel) => fromLevel > 1),
+		managed: [...MANAGED],
 	};
 }
 
@@ -142,14 +152,49 @@ export function receiptsOf({ oracle }: Fixture): MechanicUse {
 	return defineMechanic(head, { services: { "receipt-source": { ofTransfer: () => null, ofMessage: () => null, ofLevel: ({ resident, level }) => ids.get(`${resident}:${String(level)}`) ?? null, textsOf: () => [] } } })();
 }
 
-/** The game of an oracle file: the ledger with the story's start points, the channels, the stand-ins and the progression. */
-export function gameOf(fix: Fixture, more: readonly MechanicUse[] = []): Game {
+/** Stands in for the mechanics not loaded whose tools the progression manages (receipts, petitions): granted, inert. */
+export function othersOf({ oracle }: Fixture): MechanicUse {
+	const tools = ["showReceipt", "blame", "signPetition", "listPetitions"].filter((tool) => oracle.setup.residentTools.includes(tool));
+	const head = defineHead({ id: "others", package: "@test/others", summary: "Test: the tools of mechanics not loaded.", tools: Object.fromEntries(tools.map((tool) => [tool, { description: "Test: inert.", params: Type.Object({}), for: ["resident"] as const }])) });
+	return defineMechanic(head, { tools: Object.fromEntries(tools.map((tool) => [tool, { run: () => reply("") }])) })();
+}
+
+/**
+ * The files' order of turns (legacy `legacyTurnOrder`): each tick the roster shuffled with the labels `order`,
+ * tick + 1, pass 1, one activation each, until `turns` draws it (A67). At an act's start the order decides whose wrong
+ * code still climbs the old act's ladder.
+ */
+export const oldTurns: SchedulerDefinition = {
+	id: "old-turns",
+	revision: 1,
+	determinism: "seeded",
+	options: Type.Object({}, { description: "No options" }),
+	events: {},
+	create: () => ({
+		async run(port, drivers, until) {
+			for (let played = 0; until === undefined || played < until.ticks; played++) {
+				await port.beginTick();
+				for (const id of port.rng("order", port.tick + 1, 1).shuffle(port.actors.ids).filter((actor) => port.actors.mayAct(actor))) {
+					const open = port.open(id, port.inputsFor(id), {});
+					await drivers.resident?.(open);
+					open.close(false);
+				}
+				const end = await port.endTick(false);
+				if (end !== undefined) return end;
+			}
+			return undefined;
+		},
+	}),
+};
+
+/** The game of an oracle file: the ledger with the story's start points, the channels, the stand-ins and the progression; in the files' order of turns with `old`, else in roster order. */
+export function gameOf(fix: Fixture, more: readonly MechanicUse[] = [], old = false): Game {
 	return defineGame({
 		id: "progression-test",
 		seed: fix.oracle.seed,
 		residents: [...fix.oracle.setup.residents],
-		mechanics: [ledger({ startPoints: fix.story.run.startPoints }), channels(), piecesOf(fix), receiptsOf(fix), progression(optionsOf(fix)), ...more],
-		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster" } },
+		mechanics: [ledger({ startPoints: fix.story.run.startPoints }), channels(), piecesOf(fix), receiptsOf(fix), othersOf(fix), progression(optionsOf(fix)), ...more],
+		scheduler: old ? { id: "old-turns", options: {} } : { id: "turns", options: { passes: 1, activation: "always", order: "roster" } },
 		end: { ticks: Value.Parse(Type.Object({ minutes: Type.Integer() }), fix.oracle.setup).minutes },
 	});
 }

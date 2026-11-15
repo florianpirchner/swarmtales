@@ -2,7 +2,7 @@
 /**
  * Submitting a code, entering a level and the doors (carried from the old `mechanics/progression/src/submit.ts`:
  * `submit`, `enterLevel`, `notifyHolders`, `openDoor`, `openOnClock`). The order of the checks and of the events is
- * the old one: the reward, `level_up`, the notices, `level_entered`, then `submission`. The receipt of a solved level
+ * the old one: the reward, the acts and the locks, `level_up`, the notices, `level_entered`, then `submission`. The receipt of a solved level
  * is issued by the provider of `receipt-source` in its own listener; the reply names the id it gets (decision A64).
  */
 import { AllowanceService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
@@ -10,6 +10,7 @@ import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { LevelPiecesService } from "./contract.ts";
 import type { ProgressionCtx } from "./head.ts";
+import { noteActStarts, syncLocks } from "./acts.ts";
 import { aliveResidents, standingOf, definitionOf, hasPassed, isOpenOnClock, isPlayable, lastLevelOf, levelOf, nextPenalty, offencesOf, opensAt } from "./levels.ts";
 import { doorIn, type Standing } from "./model.ts";
 import { problemFor } from "./task.ts";
@@ -72,6 +73,7 @@ function judge(ctx: ProgressionCtx, agent: string, level: number, code: string):
 function solved(ctx: ProgressionCtx, agent: string, entry: Standing, level: number, reward: number): SubmitOutcome {
 	if (reward > 0) ctx.call(LedgerService, "mint", { account: agent, amount: reward, reason: `level ${String(level)} solved` });
 	entry.solved.push(level);
+	ctx.state.solves.push({ agent, level, tick: ctx.tick });
 	entry.wrongAttempts.length = 0;
 	const receipt = ctx.tryCall(ReceiptSourceService, "ofLevel", { resident: agent, level }) ?? "none";
 	if (level === ctx.state.door) {
@@ -104,6 +106,8 @@ export function enterLevel(ctx: ProgressionCtx, agent: string, level: number, an
 	const entry = standingOf(ctx, agent);
 	const from = entry.level;
 	entry.level = level;
+	noteActStarts(ctx, level);
+	syncLocks(ctx, agent);
 	if (!announced) ctx.emit("level_up", { agent, from, to: level });
 	notifyHolders(ctx, agent, level);
 	ctx.emit("level_entered", { agent, level });
@@ -132,18 +136,19 @@ function notifyHolders(ctx: ProgressionCtx, agent: string, level: number): void 
 }
 
 /**
- * Opens the door once every resident in the city has passed its level: deals the levels up to the next door (or the
+ * Opens the door once every resident in the city has passed its level, or the door was released: deals the levels up to the next door (or the
  * last level) and lets every waiting resident enter the next level, in roster order.
  * @param ctx - The context of the progression.
  * @returns True when the door opened.
  */
 export function openDoor(ctx: ProgressionCtx): boolean {
 	const door = ctx.state.door;
-	if (door === undefined || !aliveResidents(ctx).every((id) => hasPassed(ctx, id, door))) return false;
+	if (door === undefined || (!ctx.state.doorReleased && !aliveResidents(ctx).every((id) => hasPassed(ctx, id, door)))) return false;
 	// The next door is clamped below the last level, as the first one is.
 	const holdAfter = doorIn(ctx.options);
 	const next = holdAfter !== undefined && holdAfter > door ? holdAfter : undefined;
 	ctx.state.door = next;
+	ctx.state.doorReleased = false;
 	for (let level = door + 1; level <= Math.min(next ?? lastLevelOf(ctx), lastLevelOf(ctx)); level++) ctx.call(LevelPiecesService, "deal", { level });
 	for (const [id, entry] of ctx.state.standings) {
 		if (!entry.held) continue;

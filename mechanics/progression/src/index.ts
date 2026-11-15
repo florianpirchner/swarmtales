@@ -3,20 +3,23 @@
  * The `progression` mechanic: levels and their doors, `submitSolution` with the penalty ladder and the attempt
  * window, the looks `getStatus`, `getProblem`, `listAgents` and `activeTools`, and the task and status lines of a
  * turn. It asks `level-pieces` (the mechanic `puzzles`) for the codes and tasks, books through the ledger, speaks
- * through the channels, and provides `levelOf` for `marks`. The acts, the tool unlocks per level, the ranking service
- * and the end of the run come with the second half of the port (M5-20).
+ * through the channels, and provides the service `progression` (the levels for `marks`, the acts, the doors, the
+ * ranking, the blame's charge and the unlocks). On entering a level a resident's managed tools become the level's
+ * set; the acts begin with the first resident on their first level and all end with the run.
  *
  * @packageDocumentation
  */
 import { Type } from "typebox";
-import { defineMechanic } from "@swarmtales/sdk";
+import { ExileService } from "@swarmtales/mechanic-exile/contract";
+import { defineMechanic, refuse } from "@swarmtales/sdk";
+import { endAct, noteActStarts, syncLocks } from "./acts.ts";
 import { progressionHead } from "./head.ts";
-import { hasPassed, isFinished, levelOf } from "./levels.ts";
+import { progressionService } from "./services.ts";
 import { openDoor, openOnClock } from "./submit.ts";
 import { hasNewTask, markTaskShown, statusParts, taskLines } from "./task.ts";
 import { progressionTools } from "./tools.ts";
 
-export { LevelPiecesService, ProgressionEvents, ProgressionService } from "./contract.ts";
+export { CastExtrasService, LevelPiecesService, ProgressionEvents, ProgressionService } from "./contract.ts";
 export { progressionHead, type ProgressionCtx, type ProgressionToolCtx } from "./head.ts";
 export { ProgressionOptions, type ProgressionState } from "./model.ts";
 export { progressionTools, TOOL_ORDER } from "./tools.ts";
@@ -34,14 +37,20 @@ export { progressionTools, TOOL_ORDER } from "./tools.ts";
  */
 export const progression = defineMechanic(progressionHead, {
 	tools: progressionTools,
-	services: {
-		progression: {
-			levelOf: ({ resident }, ctx) => levelOf(ctx, resident),
-			isFinished: ({ resident }, ctx) => isFinished(ctx, resident),
-			hasPassed: ({ resident, level }, ctx) => hasPassed(ctx, resident, level),
+	services: { progression: progressionService },
+	pipeline: {
+		// The old `enabledTools`: at the gate a resident may still talk, but no longer submit.
+		lock: (call, ctx) => {
+			if (call.owner !== ctx.mechanic || call.tool !== "submitSolution" || call.resident === undefined) return undefined;
+			return ctx.tryCall(ExileService, "standing", { resident: call.resident })?.kind === "gate" ? refuse("TOOL_LOCKED", ctx.prompt("progression/replies/locked", {})) : undefined;
 		},
 	},
 	hooks: {
+		// The first act begins, then the locks follow the levels.
+		runStarted: (ctx) => {
+			noteActStarts(ctx, ctx.options.startLevel);
+			for (const id of ctx.residents.ids) syncLocks(ctx, id);
+		},
 		tickStarted: [
 			// The old arena opened the door only from the second minute on; then the door clock.
 			(ctx) => {
@@ -63,6 +72,10 @@ export const progression = defineMechanic(progressionHead, {
 			markTaskShown(ctx, resident);
 		},
 		news: (resident, ctx) => hasNewTask(ctx, resident),
+		// Every act begun ends with the run, in level order (old `closeActs`).
+		runEnded: (_end, ctx) => {
+			for (const fromLevel of [...ctx.state.actStarts.keys()].sort((a, b) => a - b)) endAct(ctx, fromLevel);
+		},
 	},
 	facts: {
 		levels: {

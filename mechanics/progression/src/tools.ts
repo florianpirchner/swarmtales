@@ -8,7 +8,7 @@ import type { RandomSource, Refusal, ToolOutcome } from "@swarmtales/contracts";
 import { AllowanceService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { refuse, reply } from "@swarmtales/sdk";
-import { LevelPiecesService } from "./contract.ts";
+import { CastExtrasService, LevelPiecesService } from "./contract.ts";
 import type { ProgressionToolCtx } from "./head.ts";
 import { standingOf, isFinished, isOpenOnClock, opensAt, rankOf } from "./levels.ts";
 import { submit, type SubmitOutcome } from "./submit.ts";
@@ -152,7 +152,8 @@ export const progressionTools = {
 		sample: sampleLook,
 		run: (_params: unknown, ctx: ProgressionToolCtx) => {
 			const self = residentOf(ctx);
-			return ok(ctx, ctx.residents.ids.map((id) => `${id}: level ${String(standingOf(ctx, id).level)}${id === self ? " (you)" : ""}`).join("\n"));
+			const listed = [...ctx.residents.ids.map((id) => ({ id, level: standingOf(ctx, id).level })), ...(ctx.tryCall(CastExtrasService, "active", {}) ?? [])];
+			return ok(ctx, listed.map((entry) => `${entry.id}: level ${String(entry.level)}${entry.id === self ? " (you)" : ""}`).join("\n"));
 		},
 	},
 };

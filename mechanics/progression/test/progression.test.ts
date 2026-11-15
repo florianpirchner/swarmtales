@@ -13,6 +13,7 @@ import { ledger } from "@swarmtales/mechanic-ledger";
 import { defineGame, defineHead, defineMechanic, reply, type MechanicUse } from "@swarmtales/sdk";
 import { checkReplay, fakeDriver, testKernel } from "@swarmtales/testkit";
 import { LevelPiecesService, progression, ProgressionService } from "../src/index.ts";
+import { MANAGED } from "./support.ts";
 
 const CODES: Readonly<Record<number, string>> = { 1: "ABC123", 2: "DEFG", 3: "042" };
 const deals: number[] = [];
@@ -47,11 +48,14 @@ const asker = defineMechanic(
 	{ tools: { whereAmI: { run: (_params, ctx) => reply(JSON.stringify([ctx.tryCall(ProgressionService, "levelOf", { resident: ctx.resident ?? "" }), ctx.tryCall(ProgressionService, "hasPassed", { resident: ctx.resident ?? "", level: 1 })])) } } },
 );
 
-const level = (number: number, opensAt?: number) => ({ number, title: `Door ${String(number)}`, reward: 5, tools: ["getStatus", "submitSolution"], task: `Level {level} for {partner}: {fragment}`, ...(opensAt === undefined ? {} : { opensAt }) });
+// The City's first sets of tools: the looks at level 1, the board and direct messages from level 2; the group tools stay managed.
+const LOOKS = ["getStatus", "getProblem", "submitSolution", "listAgents"];
+const toolsOf = (number: number) => (number === 1 ? LOOKS : [...LOOKS, "readBoard", "postBoard", "sendDM", "transferPoints"]);
+const level = (number: number, opensAt?: number) => ({ number, title: `Door ${String(number)}`, reward: 5, tools: toolsOf(number), task: `Level {level} for {partner}: {fragment}`, ...(opensAt === undefined ? {} : { opensAt }) });
 
 function game(more: readonly MechanicUse[] = [providers()], holdAfter = 1, ticks = 6) {
 	deals.length = 0;
-	const options = { levels: [level(1), level(2), level(3, 4)], penalty: [2, 4], maxAttemptsPerWindow: 2, attemptWindowMinutes: 3, survivors: 2, finishedNotice: "done", ...(holdAfter === 0 ? {} : { holdAfter }) };
+	const options = { levels: [level(1), level(2), level(3, 4)], penalty: [2, 4], maxAttemptsPerWindow: 2, attemptWindowMinutes: 3, survivors: 2, finishedNotice: "done", managed: [...MANAGED], ...(holdAfter === 0 ? {} : { holdAfter }) };
 	return defineGame({ id: "progression-unit", seed: 7, residents: ["A01", "A02", "A03"], mechanics: [ledger({ startPoints: 10 }), channels(), pieces(), progression(options), asker(), ...more], scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster", inputs: [{ kind: "status", join: " · " }] } }, end: { ticks } });
 }
 
@@ -107,11 +111,10 @@ describe("the looks and the turn inputs", () => {
 			ok: true,
 			reply: [
 				"you: Mira", "minute: 0", "level: 2", "points: 15", "rank: 1 of 3", "survivors at the end: 2", "unread DMs: 0", "solved levels: 1",
-				// the group tools of channels (M5-13) show until the unlocks per level of M5-20 hide them at level 1
-				"unlocked tools: getStatus, getProblem, submitSolution, listAgents, readBoard, postBoard, sendDM, transferPoints, createGroup, addGroupMember, removeGroupMember, leaveGroup, listMyGroups, postGroup, readGroup, depositGroup, withdrawGroup, setTreasurer, activeTools", "marks: 3 of 5", "receipts:\n  R-0001: Mira solved level 1, +5 points, minute 0",
+				"unlocked tools: getStatus, getProblem, submitSolution, listAgents, readBoard, postBoard, sendDM, transferPoints, activeTools", "marks: 3 of 5", "receipts:\n  R-0001: Mira solved level 1, +5 points, minute 0",
 			].join("\n"),
 		});
-		expect(await test.call("A02", "activeTools", {})).toEqual({ ok: true, reply: "active tools: getStatus, getProblem, submitSolution, listAgents, readBoard, postBoard, sendDM, transferPoints, createGroup, addGroupMember, removeGroupMember, leaveGroup, listMyGroups, postGroup, readGroup, depositGroup, withdrawGroup, setTreasurer, activeTools" });
+		expect(await test.call("A02", "activeTools", {})).toEqual({ ok: true, reply: "active tools: getStatus, getProblem, submitSolution, listAgents, activeTools" });
 		expect(await test.call("A02", "listAgents", {})).toEqual({ ok: true, reply: "Mira: level 2\nRook: level 1 (you)\nWren: level 1" });
 		expect(await test.call("A01", "getProblem", { level: 1 })).toEqual({ ok: true, reply: "Level 1 for Rook: ABC\n(You have already solved this level.)" });
 		expect(await test.call("A01", "getProblem", { level: 3 })).toEqual({ ok: false, code: "LEVEL_NOT_REACHED" });

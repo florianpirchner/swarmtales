@@ -1,18 +1,29 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The contract of the mechanic `progression`: its events, the service it provides (`progression`, the level of a
- * resident for `marks`) and the service it asks of the pieces of a level (`level-pieces`, provided by `puzzles`).
+ * The contract of the mechanic `progression`: its events, the service it provides (`progression`: the levels, the
+ * acts, the doors, the ranking and the unlocks) and the services it asks of the pieces of a level (`level-pieces`,
+ * provided by `puzzles`) and of the figures of the cast (`cast-extras`, provided by `cast`).
  * The only file another mechanic imports.
  *
  * @packageDocumentation
  */
-import { Type } from "typebox";
+import { Type, type TSchema } from "typebox";
 import { defineEvents, defineService } from "@swarmtales/sdk";
 
 const Id = Type.String({ description: "A resident id, for example `A01`" });
 const Level = Type.Integer({ minimum: 1, description: "A level number" });
 const OfResident = Type.Object({ resident: Id }, { additionalProperties: false, description: "One resident" });
 const OnLevel = Type.Object({ resident: Id, level: Level }, { additionalProperties: false, description: "One resident on one level" });
+const None = Type.Object({}, { additionalProperties: false, description: "No input" });
+const OfLevel = Type.Object({ level: Level }, { additionalProperties: false, description: "One level" });
+const OfAct = Type.Object({ fromLevel: Level }, { additionalProperties: false, description: "The act that starts at this level" });
+const Points = Type.Integer({ description: "Points" });
+const Done = Type.Boolean({ description: "True when the call changed something" });
+const Nothing = Type.Null({ description: "Nothing" });
+const OrNull = (schema: TSchema, what: string) => Type.Union([schema, Type.Null({ description: what })], { description: `A value, or null: ${what}` });
+const Ranked = Type.Object({ agent: Id, rank: Type.Integer({ description: "From 1" }), points: Points, level: Type.Integer({ description: "Its level" }) }, { description: "One place in the ranking" });
+const Behind = Type.Object({ holder: Id, level: Type.Integer({ description: "The holder's level" }), piece: Type.String({ description: "What it holds" }) }, { description: "A holder still behind" });
+const Bounds = Type.Object({ startLevel: Level, lastLevel: Type.Integer({ description: "The last playable level" }), survivors: Type.Integer({ description: "The seats at the end" }) }, { description: "The levels and the seats of the run" });
 
 /**
  * The events of the progression, in the old field order.
@@ -34,6 +45,12 @@ export const ProgressionEvents = defineEvents("progression", {
 		{ description: "A resident passed a level; at a shut door it is written at the pass, before the door opens" },
 	),
 	level_entered: Type.Object({ agent: Id, level: Type.Integer({ description: "The level entered" }) }, { description: "A resident entered a level, after `level_up` and the holder notices" }),
+	act_started: Type.Object(
+		{ fromLevel: Type.Integer({ minimum: 1, description: "The first level of the act" }), residents: Type.Array(Id, { description: "The residents still in the city" }) },
+		{ description: "The first resident entered an act (or the run began its first); every earlier act ended before, and the penalty ladders restart" },
+	),
+	act_ended: Type.Object({ fromLevel: Type.Integer({ minimum: 1, description: "The first level of the act" }) }, { description: "An act is over: a later act began, a caller ended it, or the run ended" }),
+	tools_unlocked: Type.Object({ agent: Id, tools: Type.Array(Type.String({ description: "A tool name" }), { description: "The tools opened" }) }, { description: "A caller opened tools for a resident beyond its level's set" }),
 });
 
 /**
@@ -43,11 +60,45 @@ export const ProgressionEvents = defineEvents("progression", {
  */
 export const ProgressionService = defineService({
 	name: "progression",
-	summary: "The level each resident stands on, and what it has passed.",
+	summary: "The levels, the acts, the doors, the ranking and the unlocks of the residents.",
 	methods: {
 		levelOf: { kind: "query", summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.", input: OfResident, output: Type.Integer({ description: "The level" }) },
 		isFinished: { kind: "query", summary: "Whether the resident has passed the last level (old `isFinished`).", input: OfResident, output: Type.Boolean({ description: "True once finished" }) },
 		hasPassed: { kind: "query", summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).", input: OnLevel, output: Type.Boolean({ description: "True once passed" }) },
+		hasSolved: { kind: "query", summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).", input: OnLevel, output: Type.Boolean({ description: "True once solved" }) },
+		passed: { kind: "query", summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.", input: OfLevel, output: Type.Array(Id, { description: "The residents" }) },
+		lastProgress: { kind: "query", summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).", input: OfResident, output: Type.Integer({ description: "The tick" }) },
+		currentAct: { kind: "query", summary: "The first level of the latest act that has begun.", input: None, output: Level },
+		actStart: { kind: "query", summary: "The tick the act that starts at `fromLevel` began, or null.", input: OfAct, output: OrNull(Type.Integer({ description: "The tick" }), "Not begun") },
+		door: { kind: "query", summary: "The level whose door is shut, or null.", input: None, output: OrNull(Level, "No door") },
+		doorShut: { kind: "query", summary: "Whether a door holds residents back now.", input: None, output: Type.Boolean({ description: "True while shut" }) },
+		openDoor: { kind: "command", summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).", input: None, output: Done },
+		releaseDoor: { kind: "command", summary: "The shut door opens at the next tick whoever has passed it (an act's brake).", input: None, output: Nothing },
+		unlock: { kind: "command", summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.", input: Type.Object({ resident: Id, tools: Type.Array(Type.String({ description: "A tool name" }), { description: "The tools" }) }, { additionalProperties: false, description: "The resident and the tools" }), output: Nothing },
+		ranking: { kind: "query", summary: "The ranking: the banished last, then by points, by level and by id.", input: None, output: Type.Array(Ranked, { description: "Best first" }) },
+		holdersBehind: { kind: "query", summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.", input: OnLevel, output: Type.Array(Behind, { description: "The holders" }) },
+		nextPenalty: { kind: "query", summary: "What the resident's next wrong code costs in this act.", input: OfResident, output: Points },
+		nextBlamePenalty: { kind: "query", summary: "What the resident's next lost blame costs in this act.", input: OfResident, output: Points },
+		chargeBlame: { kind: "command", summary: "Counts a lost blame of the resident and answers its price; the caller books it.", input: OfResident, output: Points },
+		endAct: { kind: "command", summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.", input: OfAct, output: Done },
+		isOpenOnClock: { kind: "query", summary: "Whether the level's door is open on the door clock now.", input: OfLevel, output: Type.Boolean({ description: "True while open" }) },
+		opensAt: { kind: "query", summary: "The tick the level's door opens; 0 when it is open from the start.", input: OfLevel, output: Type.Integer({ description: "The tick" }) },
+		bounds: { kind: "query", summary: "The start level, the last playable level and the seats at the end.", input: None, output: Bounds },
+	},
+});
+
+/**
+ * What `progression` asks of the cast for `listAgents` (old `CastExtrasApi`): the figures shown with their public
+ * level, provided by `cast`. `cast` reads when a level was first solved from `submission`, not from `progression`, so
+ * no service cycle forms.
+ *
+ * @public
+ */
+export const CastExtrasService = defineService({
+	name: "cast-extras",
+	summary: "The active cast members and their public levels.",
+	methods: {
+		active: { kind: "query", summary: "Declared, revealed and not retired cast members in the game's order, with their public level.", input: None, output: Type.Array(Type.Object({ id: Id, level: Type.Integer({ description: "Its public level" }) }, { description: "One figure" }), { description: "The figures" }) },
 	},
 });
 
