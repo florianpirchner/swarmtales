@@ -272,9 +272,9 @@ claimed: string[];
 }[];
 ultimatums: {
 number: number;
+penalty: number;
 between: string[];
 until: number;
-penalty: number;
 debts: {
 level: number;
 holder: string;
@@ -430,6 +430,18 @@ author: Type.TString;
 text: Type.TString;
 }>;
 readonly output: Type.TNull;
+};
+readonly deliver: {
+readonly kind: "command";
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
 };
 readonly dmRecords: {
 readonly kind: "query";

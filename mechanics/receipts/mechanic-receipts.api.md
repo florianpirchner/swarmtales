@@ -393,6 +393,18 @@ text: Type.TString;
 }>;
 readonly output: Type.TNull;
 };
+readonly deliver: {
+readonly kind: "command";
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+};
 readonly dmRecords: {
 readonly kind: "query";
 readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
@@ -975,6 +987,22 @@ readonly input: Type.TObject<{
 text: Type.TString;
 }>;
 readonly output: Type.TBoolean;
+};
+readonly revealFactor: {
+readonly kind: "command";
+readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+target: Type.TUnion<[Type.TLiteral<"board">, Type.TArray<Type.TString>]>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+agents: Type.TArray<Type.TString>;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TString;
+detail: Type.TString;
+}>]>;
 };
 }>], {
 showReceipt: Type.TObject<{

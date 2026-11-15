@@ -345,8 +345,8 @@ agree: boolean;
 bluff: boolean;
 }[];
 scores: Record<string, number>;
-out: string[];
 toAct: string;
+out: string[];
 log: ({
 round: number;
 starter: string;

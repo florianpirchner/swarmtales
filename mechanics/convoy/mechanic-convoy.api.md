@@ -131,7 +131,7 @@ posterior: Type.TRecord<"^.*$", Type.TNumber>;
 convoy_match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-}, "accuse" | "audit" | "viewConvoy" | "proposeCrew" | "speak" | "voteConfidence" | "playCrewCard">;
+}, "audit" | "accuse" | "viewConvoy" | "proposeCrew" | "speak" | "voteConfidence" | "playCrewCard">;
 
 // @public
 export type ConvoyCtx = CtxOf<typeof convoyHead>;
@@ -219,30 +219,15 @@ rejected?: {
 lead: string;
 crew: string[];
 };
-talk: {
-stage: number;
-from: string;
-text: string;
-}[];
+game: number;
+seats: string[];
+roles: Record<string, "loyal" | "saboteur">;
 stage: number;
 lead: string;
 crew: string[];
+missed: Record<string, number>;
 votes: Record<string, "yes" | "no">;
 noVote: string[];
-game: number;
-missed: Record<string, number>;
-seats: string[];
-roles: Record<string, "loyal" | "saboteur">;
-phase: "idle" | "propose" | "talk" | "vote" | "play" | "accuse";
-opened: number;
-nextLead: number;
-proposals: number;
-firstVotes: Record<string, "yes" | "no">;
-plays: Record<string, "safe" | "damage">;
-lastDamage: Record<string, number>;
-owing: string[];
-told: string[];
-briefed: string[];
 stages: {
 rejected?: {
 lead: string;
@@ -254,20 +239,36 @@ seat: string;
 card: "safe" | "damage";
 by: string;
 };
-damage: number;
 stage: number;
 lead: string;
 crew: string[];
 votes: Record<string, "yes" | "no">;
+damage: number;
 damaged: boolean;
 }[];
-sealed: {
+scores: Record<string, number>;
+talk: {
 stage: number;
+from: string;
+text: string;
+}[];
+phase: "idle" | "propose" | "talk" | "vote" | "play" | "accuse";
+opened: number;
+nextLead: number;
+proposals: number;
+firstVotes: Record<string, "yes" | "no">;
+plays: Record<string, "safe" | "damage">;
+lastDamage: Record<string, number>;
+owing: string[];
+told: string[];
+briefed: string[];
+sealed: {
+game: number;
+stage: number;
+missed: boolean;
 seat: string;
 card: "safe" | "damage";
-game: number;
 role: "loyal" | "saboteur";
-missed: boolean;
 mayDamage: boolean;
 }[];
 log: string[];
@@ -275,7 +276,6 @@ seenLog: Record<string, number>;
 spoken: Record<string, number>;
 auditUsed: boolean;
 accusations: Record<string, string[]>;
-scores: Record<string, number>;
 running: boolean;
 finished: boolean;
 held: boolean;
