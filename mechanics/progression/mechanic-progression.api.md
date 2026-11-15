@@ -329,13 +329,15 @@ readonly output: Type.TNull;
 };
 readonly dmRecords: {
 readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first.";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
 readonly input: Type.TObject<{}>;
 readonly output: Type.TArray<Type.TObject<{
 from: Type.TString;
 to: Type.TString;
 text: Type.TString;
 number: Type.TInteger;
+tick: Type.TInteger;
+answered: Type.TBoolean;
 }>>;
 };
 readonly createCityGroup: {
@@ -803,8 +805,8 @@ export const TOOL_ORDER: readonly ["getStatus", "getProblem", "submitSolution", 
 
 // Warnings were encountered during analysis:
 //
-// dist/index.d.ts:663:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
-// dist/index.d.ts:679:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:665:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:681:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
