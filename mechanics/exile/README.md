@@ -297,3 +297,6 @@ gate's close with the will read out, who stands where and who banished whom (a s
 keeps), the status line, and names through `identity`. `test/will.test.ts`: the will's refusals in the old order, the
 cap per heir, the will of the file, and the eleven carried prompt texts by their sha256 on `legacy`. The ledger as the
 keeper of the points is tested in `mechanics/ledger/test/exile-purse.test.ts`.
+`test/samples.test.ts`: what the fake driver (`swt run --fake`) may call at the gate. The `sample` of `payRansom`
+(the rest of a ransom, or all the caller holds) and of `lastWill` (a short text and the share per heir to one heir)
+each gives a call one time in four, and nothing, with nothing drawn, while no gate is open for it.

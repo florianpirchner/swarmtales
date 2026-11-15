@@ -682,3 +682,5 @@ notes in the slice with the migration from version 3.
 `test/sample.test.ts`: what the fake driver (`swt run --fake`) may call. The `sample` of `readBoard`, `postBoard`
 and `sendDM` (`src/samples.ts`) each gives a call one time in eight: a read since the last read, one of four short
 posts, one of four short messages to another resident that may act. A full mailbox still refuses a sampled message.
+The `sample` of `defy` (`src/defy.ts`) gives a short reason one time in eight once a Director left the resident a
+note, and nothing, with nothing drawn, while `defiance` is off or no note is there.

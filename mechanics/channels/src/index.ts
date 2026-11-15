@@ -18,7 +18,7 @@ import { Type } from "typebox";
 import { LedgerEvents } from "@swarmtales/mechanic-ledger/contract";
 import { defineMechanic } from "@swarmtales/sdk";
 import { ChannelsEvents, ChannelsService, NotesService } from "./contract.ts";
-import { defy, defyLock } from "./defy.ts";
+import { defy, defyLock, sampleDefy } from "./defy.ts";
 import { deliverFrom, sendDm, tellCollected } from "./dms.ts";
 import { addGroupMember, checkGroupPost, createGroup, leaveGroup, listMyGroups, postGroup, readGroup, removeGroupMember, setTreasurer } from "./group-actions.ts";
 import { groupSamples } from "./group-samples.ts";
@@ -123,7 +123,7 @@ export const channels = defineMechanic(channelsHead, {
 		depositGroup: { sample: samples.depositGroup, run: (params, ctx) => shownOutcome(ctx, depositGroup(ctx, params.groupId, params.amount)) },
 		withdrawGroup: { sample: samples.withdrawGroup, run: (params, ctx) => shownOutcome(ctx, withdrawGroup(ctx, params.groupId, resolved(ctx, params.target), params.amount)) },
 		setTreasurer: { sample: samples.setTreasurer, run: (params, ctx) => shownOutcome(ctx, setTreasurer(ctx, params.groupId, resolved(ctx, params.agent))) },
-		defy: { run: (params, ctx) => defy(ctx, params.reason, params.note) },
+		defy: { sample: sampleDefy, run: (params, ctx) => defy(ctx, params.reason, params.note) },
 		notify: { sample: sampleNotify, check: (params, ctx) => checkNotify(ctx, params.agent, params.text), run: (params, ctx) => runNotify(ctx, params.agent, params.text) },
 		boardNote: { sample: sampleBoardNote, check: (params, ctx) => checkBoardNote(ctx, params.text), run: (params, ctx) => runBoardNote(ctx, params.text) },
 	},

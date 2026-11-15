@@ -5,7 +5,7 @@
  * (`defiance`); a game mechanic that opens it to one resident only (the whisperer of Whispers) sets `defiance` and
  * locks it for the others in its own `lock` handler.
  */
-import type { Refusal, ToolOutcome } from "@swarmtales/contracts";
+import type { RandomSource, Refusal, ToolOutcome } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";
 import type { Ctx, ToolCtx } from "./head.ts";
 
@@ -38,4 +38,23 @@ export function defy(ctx: ToolCtx, reason: string, note: number | undefined): To
  */
 export function defyLock(tool: string, owner: string, ctx: Ctx): Refusal | undefined {
 	return owner === ctx.mechanic && tool === "defy" && !ctx.options.defiance ? refuse("TOOL_LOCKED", ctx.prompt("channels/replies/locked", {})) : undefined;
+}
+
+/** The share of the times the sample of `defy` is asked in which it gives a call. */
+const DEFY_RATE = 0.125;
+const DEFY_REASONS = ["My character keeps its own counsel and will not follow this order.", "I do not take orders from a voice I cannot see; I refuse this one."];
+
+/**
+ * What the fake driver (`--fake`) may call of `defy`: now and then a short reason in the resident's voice, once a
+ * Director has left the resident a note it could refuse. Without `defiance` or without such a note it gives nothing and
+ * draws nothing, so a run in which `defy` cannot be taken plays as before. No sample changes state.
+ *
+ * @param ctx - The context of the tool call.
+ * @param random - The fake driver's random stream.
+ * @returns The params, or undefined most of the time, for a caller that is no resident and when there is no order to refuse.
+ */
+export function sampleDefy(ctx: ToolCtx, random: RandomSource): { reason: string } | undefined {
+	const self = ctx.resident;
+	if (self === undefined || !ctx.options.defiance || !ctx.state.notes.some((note) => note.to === self)) return undefined;
+	return random.next() >= DEFY_RATE ? undefined : { reason: random.pick(DEFY_REASONS) };
 }

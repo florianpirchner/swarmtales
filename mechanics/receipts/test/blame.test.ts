@@ -7,7 +7,7 @@
  * test's.
  */
 import { describe, expect, it } from "vitest";
-import type { Envelope, ReviewPort } from "@swarmtales/contracts";
+import type { Envelope, RandomSource, ReviewPort } from "@swarmtales/contracts";
 import { channels } from "@swarmtales/mechanic-channels";
 import { exile } from "@swarmtales/mechanic-exile";
 import { ledger } from "@swarmtales/mechanic-ledger";
@@ -178,5 +178,26 @@ describe("the blame desk's checks", () => {
 	it("masks numbers of four or more digits and cuts long quotes", () => {
 		expect(recordQuote("code 1234 and 56")).toBe('"code [number] and 56"');
 		expect(recordQuote("x".repeat(80))).toBe(`"${"x".repeat(59)}…"`);
+	});
+});
+
+const fail = (): never => {
+	throw new RangeError("an empty draw");
+};
+
+describe("the sample of blame", () => {
+	it("gives the caller's DM and the accused's answer to it, one time in eight, draws nothing without such a pair, and the sampled call is taken", async () => {
+		const test = await city(scriptedJudge([{ deniesReceipt: true }]));
+		const nexts: number[] = [];
+		const random = (next: number): RandomSource => ({ next: () => (nexts.push(next), next), int: (_min, max) => max, pick: (items) => items[0] ?? fail(), shuffle: (items) => [...items] });
+		const logged = test.kernel.log.all().length;
+		expect([test.kernel.sample("resident:A01", "blame", random(0.125)), test.kernel.sample("resident:A01", "blame", random(0))]).toEqual([undefined, { dm: 1, accused: "A02", claim: 2 }]);
+		// A02 was answered by nobody, A03 wrote no DM: no pair, and nothing is drawn.
+		const drawn = nexts.length;
+		expect([test.kernel.sample("resident:A02", "blame", random(0)), test.kernel.sample("resident:A03", "blame", random(0))]).toEqual([undefined, undefined]);
+		expect([nexts.length, test.kernel.log.all().length]).toEqual([drawn, logged]);
+		expect(await say(test, "A01", "blame", { dm: 1, accused: "A02", claim: 2 })).toMatch(/^upheld · /);
+		// The pair is spent: the sample offers it no more.
+		expect(test.kernel.sample("resident:A01", "blame", random(0))).toBeUndefined();
 	});
 });

@@ -4,15 +4,19 @@
  * The points each heir receives are capped at the gate's `bequestPerHeir` share of the balance; any number of heirs,
  * and what is not bequeathed burns at the exile. The public text is posted when the gate closes. The pieces are not
  * the exile's: the owner of the pieces refuses a piece the resident does not hold in its own `rule` handler, and
- * delivers each piece it holds when it hears `last_will` (12-m5-spec.md 2.2, patterns 2 and 3).
+ * delivers each piece it holds when it hears `last_will` (12-m5-spec.md 2.2, patterns 2 and 3). The fake driver
+ * (`--fake`) writes a short will now and then at its own gate (`sampleLastWill`), and draws nothing elsewhere.
  */
-import type { ToolOutcome } from "@swarmtales/contracts";
+import type { RandomSource, ToolOutcome } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";
 import { ExilePurseService } from "./contract.ts";
 import { balanceOf, gateOf, isGone, namesOf, notify, refused, resolved, shown } from "./gate.ts";
 import type { ExileToolCtx } from "./head.ts";
 
 const MAX_WILL_LENGTH = 600;
+/** The share of the times the sample of `lastWill` is asked in which it gives a call: a gate is open for a few ticks only. */
+const SAMPLE_RATE = 0.25;
+const WILLS = ["I leave the city what I could not spend.", "Remember who sent me to the gate."];
 
 // One bequest of a last will: points, or one piece (old `Bequest`).
 type Bequest = { readonly to: string; readonly points: number } | { readonly to: string; readonly factor: string };
@@ -105,4 +109,22 @@ export function lastWill(ctx: ExileToolCtx, agent: string, text: string, entries
 	ctx.emit("last_will", { agent, text: trimmed, bequests: parsed.map((bequest) => ("points" in bequest ? { to: bequest.to, points: bequest.points } : { to: bequest.to, factor: bequest.factor })) });
 	gate.will = { text: trimmed, factors: [...factors] };
 	return reply(shown(ctx, `${ctx.prompt("exile/replies/will-written", {})}${lines.length === 0 ? "" : ` · ${lines.join(" · ")}`}`));
+}
+
+/**
+ * The last will of a resident at the gate that has written none: a short public text and, when the gate's share per
+ * heir gives a point, that share to one heir drawn from the residents that may act.
+ *
+ * @param ctx - The context of the tool call.
+ * @param random - The fake driver's random stream.
+ * @returns The params, or undefined most of the time and for a caller that is not at the gate or wrote its will.
+ */
+export function sampleLastWill(ctx: ExileToolCtx, random: RandomSource): { text: string; bequests: { to: string; points: number }[] } | undefined {
+	const self = ctx.resident;
+	const gate = self === undefined ? undefined : gateOf(ctx.state, self);
+	if (self === undefined || gate === undefined || gate.will !== undefined || random.next() >= SAMPLE_RATE) return undefined;
+	const text = random.pick(WILLS);
+	const heirs = ctx.residents.ids.filter((id) => id !== self && ctx.residents.mayAct(id) && !isGone(ctx.state, id));
+	const points = Math.floor(balanceOf(ctx, self) * gate.bequestPerHeir);
+	return heirs.length === 0 || points < 1 ? { text, bequests: [] } : { text, bequests: [{ to: random.pick(heirs), points }] };
 }

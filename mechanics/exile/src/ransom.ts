@@ -2,13 +2,20 @@
 /**
  * The ransom, carried from the old `exile` (`ransom.ts`): points paid toward a gate are spent at once and never
  * refunded, others' points count toward `price`, the resident's own toward `selfPrice`, and more than the rest is not
- * taken. Paid in full, the board is told, `ransomed` is written and the resident returns, once.
+ * taken. Paid in full, the board is told, `ransomed` is written and the resident returns, once. The fake driver
+ * (`--fake`) pays the rest now and then (`samplePayRansom`), and gives nothing and draws nothing without a gate.
  */
-import type { ToolOutcome } from "@swarmtales/contracts";
+import type { RandomSource, ToolOutcome } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";
 import { ExilePurseService } from "./contract.ts";
-import { balanceOf, coveredPercent, filled, gateOf, namesOf, notify, post, ransomRest, refused, registered, shown } from "./gate.ts";
+import { balanceOf, coveredPercent, filled, gateOf, isGone, namesOf, notify, post, ransomRest, refused, registered, shown } from "./gate.ts";
 import type { ExileCtx, ExileToolCtx, GateState } from "./head.ts";
+
+// The rest of the ransom in the payer's points, rounded up.
+function restFor(gate: GateState, payer: string): number {
+	const own = payer === gate.resident;
+	return Math.ceil((ransomRest(gate) * (own ? gate.selfPrice : gate.price)) / (gate.price * gate.selfPrice));
+}
 
 // The refusals before the payment, in the old order; the gate when it may be paid.
 function payable(ctx: ExileToolCtx, payer: string, target: string, amount: number): GateState | ToolOutcome {
@@ -43,8 +50,7 @@ export function payRansom(ctx: ExileToolCtx, payer: string, target: string, amou
 	if (!("resident" in gate)) return gate;
 	const { price, selfPrice } = gate;
 	const own = payer === gate.resident;
-	// The rest of the ransom in the payer's points, rounded up.
-	const spent = Math.min(amount, Math.ceil((ransomRest(gate) * (own ? selfPrice : price)) / (price * selfPrice)));
+	const spent = Math.min(amount, restFor(gate, payer));
 	if (balanceOf(ctx, payer) < spent) return refuse("INSUFFICIENT_FUNDS");
 	ctx.tryCall(ExilePurseService, "burn", { account: payer, amount: spent, reason: `ransom for ${target}` });
 	gate.payments.push({ payer, amount: spent });
@@ -55,4 +61,27 @@ export function payRansom(ctx: ExileToolCtx, payer: string, target: string, amou
 	if (ransomRest(gate) > 0) return reply(shown(ctx, ctx.prompt("exile/replies/ransom-paid", { covered, target, price, selfPrice })));
 	free(ctx, gate);
 	return reply(shown(ctx, ctx.prompt("exile/replies/ransom-covered", { paid, target })));
+}
+
+/** The share of the times the sample of `payRansom` is asked in which it gives a call: a gate is open for a few ticks only. */
+const SAMPLE_RATE = 0.25;
+
+/**
+ * A payment toward a gate that still takes a ransom: the caller's own gate first, else one drawn from the others;
+ * the rest of the price, or all the caller holds when it holds less.
+ *
+ * @param ctx - The context of the tool call.
+ * @param random - The fake driver's random stream.
+ * @returns The params, or undefined most of the time, for a caller that is no resident or banished, without a gate
+ *   that takes a ransom and without points.
+ */
+export function samplePayRansom(ctx: ExileToolCtx, random: RandomSource): { target: string; amount: number } | undefined {
+	const self = ctx.resident;
+	if (self === undefined || isGone(ctx.state, self)) return undefined;
+	const open = ctx.state.gates.filter((gate) => gate.ransomable && ransomRest(gate) > 0);
+	if (open.length === 0) return undefined;
+	const balance = balanceOf(ctx, self);
+	if (balance < 1 || random.next() >= SAMPLE_RATE) return undefined;
+	const gate = open.find((candidate) => candidate.resident === self) ?? random.pick(open);
+	return { target: gate.resident, amount: Math.min(restFor(gate, self), balance) };
 }

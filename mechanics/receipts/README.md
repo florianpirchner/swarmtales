@@ -231,7 +231,10 @@ and replay and resume at every boundary under the fake driver. [`test/blame.test
 real `ledger`, `channels`, `exile` and `progression` and a scripted judge: an upheld and a rejected blame with their
 records, notices, burns and the judge's question, the refusals in the old order, an absent and a failing judge with
 their stages, the order of delivery and claim, a group post the caller could not read, a DM not delivered yet, the
-delivery notice with its receipt and the unread DMs and the window in `getStatus`, and the desk's checks.
+delivery notice with its receipt and the unread DMs and the window in `getStatus`, the desk's checks, and the
+`sample` of `blame` for the fake driver: the caller's delivered DM and the accused's DM back, one time in eight, and
+nothing, with nothing drawn, without such a pair. The fake run of `test/receipts.test.ts` keeps `blame` locked: the
+in-process replay check plays without an answerer and replays with the game's judge as one.
 
 `test/receipts.test.ts` also shows `minRun`, with a stand-in provider of the service `deal` of `puzzles`
 (`carriesSecret`, errata J65, J110).

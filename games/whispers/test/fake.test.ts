@@ -27,10 +27,10 @@ const UNREACHED: Readonly<Record<string, string>> = {
 	signPetition: "locked: no door of Whispers opens it",
 	listPetitions: "locked: no door of Whispers opens it",
 	blame: "locked: no door of Whispers opens it",
+	defy: "open only to a resident a Director left a note, with defiance on, which Whispers sets from direction 10 only",
+	payRansom: "its sample finds no open gate of exile in the fake run of seed 7",
+	lastWill: "its sample finds no open gate of exile in the fake run of seed 7",
 	claimPiece: "open only with a piece seized by an ultimatum, a tool the gamemaker has from direction 10 only",
-	defy: "no sample yet (M5-76)",
-	payRansom: "no sample yet (M5-76)",
-	lastWill: "no sample yet (M5-76)",
 };
 
 /** The tools of the Directors a fake run reaches; `drawLot` and `permaDeath` are reached by the holdout file (`holdout.test.ts`). */

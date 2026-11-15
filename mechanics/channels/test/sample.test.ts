@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
-/** The `sample` of `readBoard`, `postBoard` and `sendDM`: what the fake driver (`--fake`) may call. Each gives a call one time in eight; the texts are short, and a message goes to another resident that may act. */
+/** The `sample` of `readBoard`, `postBoard`, `sendDM` and `defy`: what the fake driver (`--fake`) may call. Each gives a call one time in eight; the texts are short, a message goes to another resident that may act, and `defy` answers a note of a Director. */
 import { describe, expect, it } from "vitest";
 import type { RandomSource } from "@swarmtales/contracts";
+import { defineGame } from "@swarmtales/sdk";
 import { fakeDriver, testKernel } from "@swarmtales/testkit";
+import { channels } from "../src/index.ts";
 import { game, payloads, say } from "./support.ts";
 
 /** A random source with a fixed `next` that picks the first item and notes every list it was given. */
@@ -42,5 +44,24 @@ describe("the samples of channels", () => {
 		const called = events.filter((event) => event.type === "tool_called").length;
 		expect([payloads(events, "board_post").length, payloads(events, "dm_sent").length].every((count) => count > 0)).toBe(true);
 		expect(events.filter((event) => event.type === "tool_refused").length).toBeLessThan(called / 4);
+	});
+});
+
+// Three residents with `defy` open and a Director (`script`) that leaves notes.
+const defiant = defineGame({ id: "channels-defy", seed: 7, residents: 3, mechanics: [channels({ defiance: true })], grants: { script: ["notify"] }, scheduler: { id: "turns", options: { order: "roster" } }, end: { ticks: 4 } });
+
+describe("the sample of defy", () => {
+	it("gives a reason one time in eight once a Director left the resident a note, draws nothing before or with defy closed, and the sampled call is taken", async () => {
+		const closed = testKernel(game());
+		const test = testKernel(defiant);
+		let asked = 0;
+		const counted = (next: number): RandomSource => ({ ...fixed(next), next: () => (asked++, next) });
+		expect([closed.kernel.sample("resident:A02", "defy", counted(0)), test.kernel.sample("resident:A02", "defy", counted(0)), asked]).toEqual([undefined, undefined, 0]);
+		expect((await test.kernel.submit({ actor: "script", as: "notify", params: { agent: "A02", text: "A02, give your points to A03." } })).ok).toBe(true);
+		const lines = test.kernel.log.all().length;
+		const reason = test.kernel.sample("resident:A02", "defy", counted(0));
+		expect([test.kernel.sample("resident:A02", "defy", counted(0.125)), reason, test.kernel.sample("resident:A03", "defy", counted(0))]).toEqual([undefined, { reason: "My character keeps its own counsel and will not follow this order." }, undefined]);
+		expect(test.kernel.log.all()).toHaveLength(lines);
+		expect(await say(test, "A02", "defy", reason)).not.toMatch(/^[A-Z_]+:/);
 	});
 });

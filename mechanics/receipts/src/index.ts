@@ -21,6 +21,7 @@ import { receiptsHead } from "./head.ts";
 import { idFor, issue, issueDm, tell } from "./issue.ts";
 import { checkShowReceipt, sampleShow, showReceipt } from "./show.ts";
 import { blameReview, runBlame } from "./blame-tool.ts";
+import { sampleBlame } from "./blame-sample.ts";
 
 export { describeReceipt, partiesOf, receiptId, ReceiptSchema, type BodyOf, type Receipt, type ReceiptBody } from "./book.ts";
 export { JudgeQuestion, JudgeVerdict, ReceiptsEvents } from "./contract.ts";
@@ -44,7 +45,7 @@ const STATUS_ORDER = 600;
 export const receipts = defineMechanic(receiptsHead, {
 	tools: {
 		showReceipt: { check: checkShowReceipt, run: showReceipt, sample: sampleShow },
-		blame: { review: blameReview, run: runBlame },
+		blame: { review: blameReview, run: runBlame, sample: sampleBlame },
 	},
 	services: {
 		"receipt-source": {

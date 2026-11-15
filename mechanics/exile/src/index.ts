@@ -14,8 +14,8 @@ import { defineMechanic, refuse } from "@swarmtales/sdk";
 import { ExileService, type Standing } from "./contract.ts";
 import { banish, closeGates, gateOf, gateViews, isGone, registered, resolved, toGate } from "./gate.ts";
 import { exileHead, type ExileState } from "./head.ts";
-import { payRansom } from "./ransom.ts";
-import { lastWill } from "./will.ts";
+import { payRansom, samplePayRansom } from "./ransom.ts";
+import { lastWill, sampleLastWill } from "./will.ts";
 
 export { exileHead, type ExileCtx, type ExileState, type ExileToolCtx, type GateState } from "./head.ts";
 export type { BequestEntry } from "./will.ts";
@@ -48,9 +48,11 @@ function isOpen(state: ExileState, tool: string, resident: string): boolean {
 export const exile = defineMechanic(exileHead, {
 	tools: {
 		payRansom: {
+			sample: samplePayRansom,
 			run: ({ target, amount }, ctx) => (ctx.resident === undefined ? refuse("NO_RESIDENT") : payRansom(ctx, ctx.resident, resolved(ctx, target), amount)),
 		},
 		lastWill: {
+			sample: sampleLastWill,
 			run: ({ text, bequests }, ctx) => (ctx.resident === undefined ? refuse("NO_RESIDENT") : lastWill(ctx, ctx.resident, text, bequests)),
 		},
 	},
