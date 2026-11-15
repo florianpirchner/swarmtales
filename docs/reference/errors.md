@@ -422,6 +422,14 @@ The run is paused and the input of the Human Hand has ended; the run stopped wit
 - **Fix:** Resume with the hand file of the stopped run plus a `resume` line: add the line to the end of that file and give the whole file to `swt resume --hand`. A resumed run drops the first N tool lines of its hand file, N being the calls the human made before the snapshot, so a file that holds only the `resume` line is dropped whole and the run stops here again (docs/reference/cli.md, "The hand file").
 - **Named in:** `apps/cli`
 
+### SWT-X010
+
+A run of live models is resumed without `--budget`, or a fake run with it.
+
+- **Why:** A run is resumed the way it was played (decision A55): a live run plays on live under a cost cap of its own, counted from the resume; a fake run has no conversations to go on from.
+- **Fix:** Leave out `--budget` and the flags of a live run.
+- **Named in:** `apps/cli`
+
 ### SWT-X030
 
 A held key value occurs in files of a run folder.

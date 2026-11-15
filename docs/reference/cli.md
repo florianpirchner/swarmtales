@@ -26,6 +26,7 @@ Plays a game into a new run folder `<out>/<game id>-<NNN>`. With `--fake` the fa
 | `--json` | print the result as one JSON line |
 | `--hand <file>` | the Human Hand: a JSON-lines file, or `-` for standard input (see "The hand file") |
 | `--snapshot-at <ticks>` | write a snapshot after these numbers of finished ticks, a comma list: `--snapshot-at 2,6` |
+| `--pause-on <mechanic>.<event>` | pause at the boundary after the first tick in which that event of that mechanic is written: write a snapshot and stop with exit code 3 (decision A55). The Act I base of the City is `--pause-on progression.act_ended`. A mechanic the game does not load, or an event it does not declare, is `SWT-C003` |
 | `--provider <id>`, `--model <id>`, `--thinking <level>` | the model of a live run; `--thinking` is one of off, minimal, low, medium, high |
 | `--director-model <name>=<provider>/<model>[:<thinking>[:<output cap>]]` | the model of one Director of a live run, which replaces the model of its use in the game for this run and is named in the manifest; may be repeated. Without it a Director plays the model of its use, else the model of the run. A name of no Director of the game is `SWT-C026` |
 | `--budget <usd>` | the cost cap of a live run in US dollars; a live run needs one. The cap stops new requests and is not a ceiling. From runtime revision 5 no request is sent once the cost so far plus the dearest answer so far reaches the cap, and the run ends at `models.budget`; so a run can still pass its cap by three amounts: the first answer, which is sent before any cost is known; the answers of requests in flight together, each checked against the same total (the members of one block of `turns` with `blockSize` above 1, the activations of `parallel`); and an answer dearer than every one before it. An answer of a model with a price that comes without a cost closes the meter, and the run ends at `models.budget` too (from revision 6 the log holds that line as `cost_unknown`) |
@@ -38,11 +39,13 @@ Plays a game into a new run folder `<out>/<game id>-<NNN>`. With `--fake` the fa
 | 0 | the run finished |
 | 1 | an error before the run, or the log does not verify |
 | 2 | the run ended with the reason `error` |
-| 3 | the run is paused and the Human Hand has ended (`SWT-X009`); a snapshot is written |
+| 3 | the run is paused: the Human Hand has ended (`SWT-X009`), or `--pause-on`; a snapshot is written |
 | 4 | a live run wrote a key value into its folder (`SWT-X030`) |
 | 5 | a live run ended at its cost cap |
 
-A snapshot is the file `<run>/snapshots/t<ticks>.json`; it writes no event. A tick boundary is the moment before
+A snapshot is the file `<run>/snapshots/t<ticks>.json`; it writes no event. The snapshot of a live run also holds
+the section `sessions`: each resident's conversation as its session saved it, through the key broker's
+redaction, never a key. A tick boundary is the moment before
 the first tick and after each tick while the run has not ended, so a run that ends after 4 ticks has the boundaries
 0 to 3. A `--snapshot-at` value without a boundary writes nothing and gets a warning line on the error output:
 
@@ -54,8 +57,15 @@ The exit code stays what it was.
 
 ### `swt resume <run dir>`
 
-Plays a fake run on from a snapshot, into a new run folder beside the old one. The new log starts with the lines
-of the old one up to the snapshot, then the marker `run_resumed`. A run of live models cannot be resumed yet.
+Plays a run on from a snapshot, into a new run folder beside the old one. The new log starts with the lines of the
+old one up to the snapshot, then the marker `run_resumed`. A fake run plays on with the fake driver. A run of live
+models plays on live and needs `--budget` (`SWT-X010` without it, and for a fake run with it): its residents go on
+from the conversations in the snapshot's section `sessions` (`SWT-X008` for a snapshot without them), the game, the
+seed, the params and the replicate are the old run's, and `--provider`, `--model`, `--thinking`,
+`--director-model`, `--ledger` and `--purpose` are read as for `swt run`. The cap counts from the resume; the
+reservation line of the ledger names the old run as `base`; the marker names each actor whose model differs from the
+old run's under `replaced` (`<provider>/<model id>:<thinking>` before and now). A resumed run raises no runtime
+revision (A55).
 
 | Flag | What |
 |---|---|
@@ -64,14 +74,17 @@ of the old one up to the snapshot, then the marker `run_resumed`. A run of live 
 | `--ticks <n>` | stop after this many finished ticks |
 | `--out <dir>` | the folder that holds the new run folder; the one that holds the resumed run when left out |
 | `--json` | print the result as one JSON line |
-| `--hand <file>`, `--snapshot-at <ticks>` | as for `swt run`; the hand file is the one of the resumed run (see "The hand file") |
+| `--hand <file>`, `--snapshot-at <ticks>`, `--pause-on <mechanic>.<event>` | as for `swt run`; the hand file is the one of the resumed run (see "The hand file"); an event in the old run's lines is no reason to pause |
+| `--budget <usd>` and the other flags of a live run | as for `swt run`; a run of live models needs `--budget` |
 
 | Exit code | Meaning |
 |---|---|
 | 0 | the run finished |
 | 1 | an error before the run, or the log does not verify |
 | 2 | the run ended with the reason `error` |
-| 3 | the run stopped open: paused with the Human Hand ended (`SWT-X009`), or at `--ticks` |
+| 3 | the run stopped open: paused (the Human Hand ended, `SWT-X009`, or `--pause-on`), or at `--ticks` |
+| 4 | a live run wrote a key value into its folder (`SWT-X030`) |
+| 5 | a live run ended at its cost cap |
 
 ### `swt log verify <run dir>`
 
@@ -99,7 +112,10 @@ run whose metrics cannot be computed so is named in a line `metrics absent: <id>
 ### `swt replay <run dir>`
 
 Replays a run from its log with `--game <game file>` and prints `equal, <n> lines`, or the first line that
-differs. `--json` prints one JSON line.
+differs. `--json` prints one JSON line. With `--previous <run dir>`, the folder a resumed run went on from, the
+replay starts at the snapshot of that folder whose hash the manifest names and plays only the resumed run's own
+lines; the continuity of the two folders must hold (a run that did not resume, or a folder without that snapshot,
+is `SWT-C003`). The cost cap is then metered from the resume, as the resumed live run metered it.
 
 | Exit code | Meaning |
 |---|---|

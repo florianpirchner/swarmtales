@@ -74,11 +74,14 @@ export interface LoopInput {
 	readonly writeSnapshot: (tick: number) => Promise<void>;
 	/** Told of every tool line of the Human Hand, right after its call; nobody when absent. */
 	readonly called?: (call: HandCall) => void;
+	/** `--pause-on`: the loop pauses after the first tick that writes this event (its envelope `source` and `type`), named `name` as written; never when absent. */
+	readonly pauseOn?: { readonly source: string; readonly type: string; readonly name: string };
 }
 
 /**
- * A loop that stopped with the run still open: `paused` when the run is paused and the Human Hand has ended (a
- * snapshot was written), `ticks` when `LoopInput.ticks` ticks are finished.
+ * A loop that stopped with the run still open: `paused` when the run is paused and the Human Hand has ended, or
+ * after the tick that wrote the event of `pauseOn` (`on`; a snapshot was written either way), `ticks` when
+ * `LoopInput.ticks` ticks are finished.
  *
  * @public
  */
@@ -87,6 +90,8 @@ export interface LoopStop {
 	readonly stopped: "paused" | "ticks";
 	/** The number of finished ticks. */
 	readonly tick: number;
+	/** The event of `--pause-on` the run paused after, as written; absent for any other stop. */
+	readonly on?: string;
 }
 
 // One tool line: the call as the actor `human`, and what the kernel answered to whoever watches.
@@ -117,7 +122,9 @@ async function boundary(input: LoopInput, tick: number): Promise<boolean> {
  * ticks) are applied in their order, a tool line through `Kernel.submit` as the actor `human`, a `snapshot` line as
  * a snapshot; while the run is paused the next line is taken whatever its `at`, and when the input has ended the
  * loop writes a snapshot and stops; a snapshot is written when the boundary is in `snapshotAt`; one tick is played.
- * A snapshot writes no event, and a run without a Human Hand and without snapshots has the log of `Kernel.run`.
+ * With `pauseOn`, the boundary after the first tick that wrote that event writes a snapshot and stops the loop
+ * before anything else (decisions A22, A55). A snapshot writes no event, and a run without a Human Hand and without
+ * snapshots has the log of `Kernel.run`.
  *
  * @param input - The kernel, the drivers, the ticks to play, the Human Hand and the snapshots.
  * @returns The end of the run, or why the loop stopped with the run still open.
@@ -133,8 +140,16 @@ async function boundary(input: LoopInput, tick: number): Promise<boolean> {
 export async function runLoop(input: LoopInput): Promise<RunEnd | LoopStop> {
 	const { kernel } = input;
 	if (kernel.log.ofType("kernel", "run_started").length === 0) kernel.start();
+	const { pauseOn } = input;
+	const seen = (): number => (pauseOn === undefined ? 0 : kernel.log.ofType(pauseOn.source, pauseOn.type).length);
+	// An event of the log the run resumed from is no reason to pause: only one written by this loop's ticks is.
+	const before = seen();
 	while (kernel.ended === undefined) {
 		const { tick } = kernel;
+		if (pauseOn !== undefined && seen() > before) {
+			await input.writeSnapshot(tick);
+			return { stopped: "paused", tick, on: pauseOn.name };
+		}
 		if (await boundary(input, tick)) return { stopped: "paused", tick };
 		if (tick >= input.ticks) return { stopped: "ticks", tick };
 		await kernel.run(input.drivers, { ticks: 1 });

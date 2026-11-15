@@ -17,6 +17,13 @@ export const RUN_RECORDS: RecordSource = {
 				from: Type.String({ description: "The id of the run the snapshot was taken from" }),
 				snapshotHash: Type.String({ description: "The sha256 of the snapshot file, as the manifest of the resumed run names it" }),
 				tick: Type.Integer({ minimum: 0, description: "The number of finished ticks the run goes on from" }),
+				replaced: Type.Optional(
+					Type.Record(
+						Type.String({ description: "The actor id" }),
+						Type.Object({ from: Type.String({ description: "The model the base played: `<provider>/<model id>:<thinking>`" }), to: Type.String({ description: "The model the resumed run plays, in the same form" }) }, { additionalProperties: false, description: "A model that was replaced" }),
+						{ description: "A live resume: each actor whose model differs from the base's; absent when none does" },
+					),
+				),
 			},
 			{ additionalProperties: false, description: "The run goes on from a snapshot of another run folder" },
 		),

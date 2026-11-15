@@ -55,7 +55,7 @@ describe("swt --help", () => {
 		}
 		const run = await swt("run", "--help");
 		expect(run.out).toContain("  --snapshot-at <ticks>   write a snapshot after these numbers of finished ticks, a comma list");
-		expect(run.out).toContain("  3  the run is paused and the Human Hand has ended (`SWT-X009`); a snapshot is written");
+		expect(run.out).toContain("  3  the run is paused (the Human Hand has ended, `SWT-X009`, or `--pause-on`); a snapshot is written");
 		expect([await swt("run", GAME, "--help"), existsSync(join(cwd, "runs"))]).toEqual([run, false]);
 		expect((await swt("scan", "--help")).out.at(-1)).toBe("  3  nothing was scanned: no key variable is set");
 	});

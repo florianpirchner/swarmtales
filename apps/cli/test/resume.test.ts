@@ -93,13 +93,13 @@ describe("swt resume", () => {
 		expect(withoutMarker(events("paused/hand-003"))).toEqual(straight);
 	});
 
-	it("refuses a live folder, a snapshot or a game file of another game, a folder without a snapshot, and writes no folder", async () => {
+	it("refuses a live folder without --budget, a snapshot or a game file of another game, a folder without a snapshot, and writes no folder", async () => {
 		const source = scriptedSource({ "resident:A01": [say(), say(), say(), say()], "resident:A02": [act({ name: "guess", args: { value: 5 } }), say()], "director:herald": [say('{"line":"a guess"}')] });
 		const io = { cwd, now: () => new Date("2026-11-14T12:00:00.000Z"), out: () => undefined, err: () => undefined };
 		const live = await runLive({ file: GAME, seed: undefined, out: "live", json: false, provider: "anthropic", budget: 1, purpose: "smoke", replicate: 0, env: { ARENA_ANTHROPIC_API_KEY: `sk-${"k".repeat(37)}` }, source, snapshotAt: [2] }, io);
 		expect([live.code, readdirSync(join(cwd, "live/hand-001/snapshots"))]).toEqual([0, ["t2.json"]]);
 		const refused = await swt("resume", "live/hand-001", "--game", GAME, "--out", "none");
-		expect([refused.code, refused.issue, refused.err]).toEqual([1, "SWT-X008", expect.stringContaining("live resume is M5")]);
+		expect([refused.code, refused.issue, refused.err]).toEqual([1, "SWT-X010", expect.stringContaining("was given no `--budget`")]);
 		const codes = async (...args: readonly string[]): Promise<readonly [number, string | undefined]> => {
 			const { code, issue } = await swt("resume", ...args, "--out", "none");
 			return [code, issue];

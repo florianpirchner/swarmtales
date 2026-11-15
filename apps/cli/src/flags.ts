@@ -38,13 +38,15 @@ export const FLAGS = {
 	game: text("<game file>", "the game file of the run"),
 	hand: text("<file>", "the JSON-lines file of the Human Hand, or `-` for standard input"),
 	"snapshot-at": text("<ticks>", "write a snapshot after these numbers of finished ticks, a comma list"),
+	"pause-on": text("<mechanic>.<event>", "pause after the tick in which this event is first written: a snapshot, exit 3"),
 	snapshot: text("<file>", "the snapshot to resume from; the latest of the run folder when left out"),
 	ticks: text("<n>", "stop after this many finished ticks"),
 	previous: text("<run dir>", "the run folder this one was resumed from: the continuity is checked too"),
 	depth: text("<plies>", "the search depth of the chess reference engine, 1 to 64; 10 when left out"),
 };
 
-const LOOP = ["hand", "snapshot-at"] as const;
+const LOOP = ["hand", "snapshot-at", "pause-on"] as const;
+const LIVE = ["provider", "model", "thinking", "director-model", "budget", "ledger", "purpose"] as const;
 const ERROR = "an error before the work: the issues are printed";
 
 /**
@@ -57,18 +59,18 @@ export const COMMANDS = {
 	run: {
 		argument: "<game file>",
 		what: "play a game into a new run folder: with `--fake`, or with live models under `--budget`",
-		flags: ["fake", "seed", "set", "out", "json", ...LOOP, "provider", "model", "thinking", "director-model", "budget", "ledger", "purpose", "replicate"],
-		exits: { 0: "the run finished", 1: `${ERROR}; or the log does not verify`, 2: "the run ended with the reason `error`", 3: "the run is paused and the Human Hand has ended (`SWT-X009`); a snapshot is written", 4: "a live run wrote a key value into its folder", 5: "a live run ended at its cost cap" },
+		flags: ["fake", "seed", "set", "out", "json", ...LOOP, ...LIVE, "replicate"],
+		exits: { 0: "the run finished", 1: `${ERROR}; or the log does not verify`, 2: "the run ended with the reason `error`", 3: "the run is paused (the Human Hand has ended, `SWT-X009`, or `--pause-on`); a snapshot is written", 4: "a live run wrote a key value into its folder", 5: "a live run ended at its cost cap" },
 	},
 	resume: {
 		argument: "<run dir>",
-		what: "play a fake run on from a snapshot, into a new run folder beside the old one",
-		flags: ["game", "snapshot", "ticks", "out", "json", ...LOOP],
-		exits: { 0: "the run finished", 1: `${ERROR}; or the log does not verify`, 2: "the run ended with the reason `error`", 3: "the run stopped open: paused with the Human Hand ended (`SWT-X009`), or at `--ticks`" },
+		what: "play a run on from a snapshot into a new run folder beside the old one: a fake run, or a live run under `--budget`",
+		flags: ["game", "snapshot", "ticks", "out", "json", ...LOOP, ...LIVE],
+		exits: { 0: "the run finished", 1: `${ERROR}; or the log does not verify`, 2: "the run ended with the reason `error`", 3: "the run stopped open: paused (the Human Hand ended, `SWT-X009`, or `--pause-on`), or at `--ticks`", 4: "a live run wrote a key value into its folder", 5: "a live run ended at its cost cap" },
 	},
 	"log verify": { argument: "<run dir>", what: "check the hash chain of a run folder", flags: ["previous", "json"], exits: { 0: "the log holds and the run ended", 1: "the log is broken", 3: "the log holds and the run has no end" } },
 	report: { argument: "<run dir>", what: "write the report of a run into its folder", flags: ["game"], exits: { 0: "the report is written", 1: ERROR, 4: "a file of the folder holds a key value (`SWT-X030`)" } },
-	replay: { argument: "<run dir>", what: "replay a run from its log and compare", flags: ["game", "json"], exits: { 0: "the replayed log is equal", 1: "it differs (`SWT-C031`), the run is not replayable (`SWT-T005`, `SWT-T004`), or the folder does not verify" } },
+	replay: { argument: "<run dir>", what: "replay a run from its log and compare; a resumed run from the snapshot of `--previous`", flags: ["game", "previous", "json"], exits: { 0: "the replayed log is equal", 1: "it differs (`SWT-C031`), the run is not replayable (`SWT-T005`, `SWT-T004`), or the folder does not verify" } },
 	scan: { argument: "<folder>", what: "look through every file of a folder for the key values of the environment", flags: ["json"], exits: { 0: "no file holds a held key value", 1: "a file does (`SWT-X030`), or the folder is none", 3: "nothing was scanned: no key variable is set" } },
 	"experiment run": { argument: "<spec file>", what: "play the runs of an experiment that are still missing", flags: ["out", "ledger", "plan"], exits: { 0: "the plan is complete; with `--plan`, the plan is printed", 1: ERROR, 4: "a run wrote a key value into its folder", 6: "stopped at the experiment's cap, or after three failed runs" } },
 	"analyse chess": { argument: "<run dir>", what: "score every half-move of a chess run with the reference engine", flags: ["depth"], exits: { 0: "`analysis.json` and `ANALYSIS.md` are written", 1: ERROR, 4: "a file of the folder holds a key value (`SWT-X030`)" } },
@@ -313,19 +315,40 @@ export function liveFlags(flags: Flags): LiveFlags {
 }
 
 /**
- * Reads `--hand` and `--snapshot-at`, the flags of the run loop.
+ * Reads `--hand`, `--snapshot-at` and `--pause-on`, the flags of the run loop.
  *
  * @param flags - The flags as written.
- * @returns The file of the Human Hand (`-` for standard input) when the flag is there, and the numbers of finished ticks after which a snapshot is written.
- * @throws SwtError `SWT-C003` for a `--snapshot-at` that is no comma list of whole numbers.
+ * @returns The file of the Human Hand (`-` for standard input) when the flag is there, the numbers of finished ticks
+ * after which a snapshot is written, and the event of `--pause-on`.
+ * @throws SwtError `SWT-C003` for a `--snapshot-at` that is no comma list of whole numbers, and a `--pause-on` that is
+ * no `<mechanic>.<event>`.
  *
  * @public
  */
-export function loopFlags(flags: Flags): { readonly hand?: string; readonly snapshotAt: readonly number[] } {
+export function loopFlags(flags: Flags): { readonly hand?: string; readonly snapshotAt: readonly number[]; readonly pauseOn?: PauseOn } {
 	const ticks = flags["snapshot-at"]?.split(",") ?? [];
 	const bad = ticks.find((tick) => !/^\d{1,9}$/.test(tick));
 	if (bad !== undefined) throw new SwtError(badUsage({ problem: `\`--snapshot-at ${flags["snapshot-at"] ?? ""}\` is no comma list of whole numbers of ticks` }));
-	return { ...(flags.hand === undefined ? {} : { hand: flags.hand }), snapshotAt: ticks.map(Number) };
+	const pauseOn = flags["pause-on"] === undefined ? undefined : pauseOf(flags["pause-on"]);
+	return { ...(flags.hand === undefined ? {} : { hand: flags.hand }), snapshotAt: ticks.map(Number), ...(pauseOn === undefined ? {} : { pauseOn }) };
+}
+
+function pauseOf(value: string): PauseOn {
+	const [, mechanic, event] = /^([^.\s]+)\.([^.\s]+)$/.exec(value) ?? [];
+	if (mechanic === undefined || event === undefined) throw new SwtError(badUsage({ problem: `\`--pause-on ${value}\` is no \`<mechanic>.<event>\`` }));
+	return { mechanic, event };
+}
+
+/**
+ * What `--pause-on` names: an event of one mechanic of the game, by the mechanic's id and the event's type.
+ *
+ * @public
+ */
+export interface PauseOn {
+	/** The id of the mechanic in the game. */
+	readonly mechanic: string;
+	/** The type of the event. */
+	readonly event: string;
 }
 
 /**

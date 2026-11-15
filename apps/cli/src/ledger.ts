@@ -15,7 +15,10 @@ import { Check } from "typebox/value";
 const usd = (description: string): ReturnType<typeof Type.Number> => Type.Number({ minimum: 0, description });
 const Cap = Type.Object({ capUsd: usd("The most that all runs of the ledger may cost, in USD") }, { description: "The first line of a ledger" });
 const id = Type.Optional(Type.String({ minLength: 1, description: "What pairs a reservation with its cost line; absent in a line that is paired by the run's name" }));
-const Reserved = Type.Object({ run: Type.String({ description: "The run" }), id, reservedUsd: usd("The cost cap of the run, held until its cost line") }, { description: "The line written before a run starts" });
+const Reserved = Type.Object(
+	{ run: Type.String({ description: "The run" }), id, reservedUsd: usd("The cost cap of the run, held until its cost line"), base: Type.Optional(Type.String({ description: "The id of the run a resumed run goes on from" })) },
+	{ description: "The line written before a run starts" },
+);
 const Cost = Type.Object({ run: Type.String({ description: "The run; `legacy/...` for a run of the old platform, added by hand" }), id, costUsd: usd("What the run cost") }, { description: "The line written after a run ended" });
 // Sums of amounts with four decimals: a difference below this is the arithmetic, not money.
 const EPSILON = 1e-9;
@@ -50,9 +53,10 @@ export interface Ledger {
 	 *
 	 * @param run - The name of the run: `<experiment id>/<run id>`, or `<purpose>/<run id>` for a single run.
 	 * @param usd - The cost cap of the run.
+	 * @param base - For a resumed live run, the id of the run it goes on from; the line names it as `base`.
 	 * @throws SwtError `SWT-C025` when the ledger cannot be read, or when the costs, the open reservations and `usd` together are above the cap; nothing is written then.
 	 */
-	reserve(run: string, usd: number): void;
+	reserve(run: string, usd: number, base?: string): void;
 	/**
 	 * Writes the cost line of a run, which replaces its reservation in the sum: the last reservation this ledger
 	 * object wrote under the name, and no reservation another process wrote under the same name.
@@ -129,11 +133,11 @@ export function openLedger(file: string, now: () => Date): Ledger {
 	// The ids of the reservations this object wrote and has not settled, by the run's name.
 	const ids = new Map<string, string>();
 	return {
-		reserve(run, reservedUsd) {
+		reserve(run, reservedUsd, base) {
 			const { capUsd, heldUsd, open } = held(file);
 			if (heldUsd + reservedUsd > capUsd + EPSILON) throw new SwtError(ledgerRefused({ file, problem: `has no room for a run with a cap of ${reservedUsd.toFixed(2)} USD: ${heldUsd.toFixed(4)} USD of its ${capUsd.toFixed(2)} USD are spent or reserved` }));
 			const id = randomUUID();
-			write({ run, id, reservedUsd }, open);
+			write({ run, id, reservedUsd, ...(base === undefined ? {} : { base }) }, open);
 			ids.set(run, id);
 		},
 		settle(run, costUsd) {

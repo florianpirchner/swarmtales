@@ -14,12 +14,12 @@ import { jsonHash } from "@swarmtales/chain";
 import { formatIssue, redactSecrets, redactValue, SwtError, type AskModel, type DriverTable, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import { createDirectorDrivers, createReviewPort, DIRECTOR_RECORDS, REVIEW_RECORDS } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
-import { createAsker, createCostMeter, createKeyBroker, createModelDrivers, createToolDirector, DIRECTOR_MODEL_RECORDS, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type Spend } from "@swarmtales/models";
+import { createAsker, createCostMeter, createKeyBroker, createModelDrivers, createToolDirector, DIRECTOR_MODEL_RECORDS, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, parseSavedSessions, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type SavedSessions, type Spend } from "@swarmtales/models";
 import { nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
 import { DIRECTOR_TAKE, RESIDENT_KIND, type ResolvedGame } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
-import { loopOf, runManifest } from "./assembly.ts";
+import { loopOf, pauseEvent, runManifest, type LoopOptions } from "./assembly.ts";
 import { actorModels, type ActorModels } from "./director-models.ts";
 import type { LiveFlags } from "./flags.ts";
 import { handOf } from "./hand.ts";
@@ -27,6 +27,8 @@ import { scanFolder } from "./leak-scan.ts";
 import { openLedger } from "./ledger.ts";
 import type { HandSource, LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
+import type { LiveResume } from "./live-resume.ts";
+import { RUN_RECORDS } from "./records.ts";
 import { folderTexts, played, resolveFile, runFacts, whyOf, type RunInput } from "./run.ts";
 import { handLine, type HandCount } from "./watch.ts";
 import { confirmatoryDirty, readSourceTree, type SourceTree } from "./tree.ts";
@@ -54,7 +56,12 @@ export interface LiveInput extends RunInput, LiveFlags {
 	readonly experiment?: NonNullable<RunManifest["experiment"]>;
 	/** The commit and the state of the platform's source tree; asked from git (`readSourceTree`) when absent. A test passes one. */
 	readonly tree?: SourceTree;
+	/** Set for a live resume (`swt resume --budget`): what the run goes on from. */
+	readonly resumed?: LiveResume;
 }
+
+/** The model of an actor as the manifest names it. @public */
+export type ManifestModel = NonNullable<RunManifest["actors"][number]["model"]>;
 
 /**
  * What a live run came to.
@@ -109,7 +116,7 @@ function promptsOf(game: ResolvedGame, texts: PromptLookup): Readonly<Record<str
 	return Object.fromEntries(actors.filter((actor) => actor.kind === RESIDENT_KIND).map((actor) => [actor.id, systemPrompt({ id: actor.id.slice(actor.kind.length + 1), passes, briefing: game.briefings[actor.id] ?? "" }, texts)]));
 }
 
-function modelOf(settings: ModelSettings): NonNullable<RunManifest["actors"][number]["model"]> {
+function modelOf(settings: ModelSettings): ManifestModel {
 	const params = { temperature: "provider-default", topP: "provider-default", maxOutputTokens: settings.maxOutputTokens, thinking: settings.thinking } as const;
 	return { provider: settings.provider, requestedId: settings.requestedId, resolvedId: settings.modelId, params, pricing: pricing() };
 }
@@ -207,6 +214,8 @@ interface Prepared {
 	readonly redact: Redact;
 	readonly tree: SourceTree;
 	readonly hand: HandSource | undefined;
+	readonly pauseOn: LoopOptions["pauseOn"];
+	readonly saved: SavedSessions | undefined;
 }
 
 // The limits of a Director's use; none for another actor.
@@ -218,11 +227,17 @@ async function prepared(input: LiveInput, io: CliIo, broker: KeyBroker): Promise
 	if (input.purpose === "confirmatory" && input.experiment === undefined) throw new SwtError(confirmatoryAlone());
 	const tree = input.tree ?? readSourceTree();
 	if (input.purpose === "confirmatory" && tree.dirty !== false) throw new SwtError(confirmatoryDirty(tree));
-	const { game, texts } = await resolveFile(input, io, [RESIDENT_RECORDS, DIRECTOR_RECORDS, DIRECTOR_MODEL_RECORDS, REVIEW_RECORDS]);
+	const { game, texts } = await resolveFile(input, io, [RESIDENT_RECORDS, DIRECTOR_RECORDS, DIRECTOR_MODEL_RECORDS, REVIEW_RECORDS, ...(input.resumed === undefined ? [] : [RUN_RECORDS])]);
 	const models = settingsOf(input, game, broker);
 	// A Director asks its model; its cost counts on the meter of the run, under its own `maxCostUsd`.
 	const ask = createAsker(models.source, meter, (actor) => limitsOf(game, actor));
-	return { game, texts, ...models, ask, systemPrompts: promptsOf(game, texts), meter, redact: broker.redact, tree, hand: handOf(input.hand, game, io) };
+	return { game, texts, ...models, ask, systemPrompts: promptsOf(game, texts), meter, redact: broker.redact, tree, ...loopParts(input, game, io, broker.redact) };
+}
+
+// The Human Hand (without the lines a resumed run had applied), the event of `--pause-on`, and a resume's saved sessions.
+function loopParts(input: LiveInput, game: ResolvedGame, io: CliIo, redact: Redact): Pick<Prepared, "hand" | "pauseOn" | "saved"> {
+	const { resumed } = input;
+	return { hand: handOf(input.hand, game, io, resumed?.hand), pauseOn: input.pauseOn === undefined ? undefined : pauseEvent(game, input.pauseOn), saved: resumed === undefined ? undefined : parseSavedSessions(resumed.sessions, redact) };
 }
 
 // Steps three and four: the kernel is created (the manifest holds its tool specs), then the manifest is written with the folder. Nothing is started.
@@ -241,7 +256,8 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 		},
 	};
 	// The answerer of a review is a Director (`answers`), asked through the asker with the facts of the run.
-	const kernel: Kernel = createKernel(game.definition, { sinks: [sink, ...(input.sinks ?? [])], limits: [meter.limit], redact, review: createReviewPort({ game, ask: run.ask, facts: (key) => kernel.fact(key) }) });
+	const { resumed } = input;
+	const kernel: Kernel = createKernel(game.definition, { sinks: [sink, ...(input.sinks ?? [])], limits: [meter.limit], redact, review: createReviewPort({ game, ask: run.ask, facts: (key) => kernel.fact(key) }) }, resumed?.input);
 	if (game.win !== undefined) kernel.fact(game.win);
 	const facts = {
 		...runFacts(directory, io.now),
@@ -255,8 +271,9 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 		...(input.experiment === undefined ? {} : { experiment: input.experiment }),
 	};
 	const manifest = runManifest(game, facts, RESIDENT_DRIVER);
-	const folder = openRunFolder(directory, manifest, { now: io.now, game: game.data, texts: folderTexts(game), redact });
+	const folder = openRunFolder(directory, resumed === undefined ? manifest : { ...manifest, resumedFrom: { snapshotHash: resumed.snapshotHash } }, { now: io.now, game: game.data, texts: folderTexts(game), redact, ...resumed?.folder });
 	folders.push(folder);
+	resumed?.began(kernel, facts.models);
 	return { kernel, folder };
 }
 
@@ -269,7 +286,7 @@ interface Trace {
 function reserved(input: LiveInput, io: CliIo, name: string, capUsd: number, open: () => ReturnType<typeof opened>): ReturnType<typeof opened> & { readonly settle: (costUsd: number) => void } {
 	const ledger = input.ledger === undefined ? undefined : openLedger(resolve(io.cwd, input.ledger), io.now);
 	const settle = (costUsd: number): void => ledger?.settle(name, costUsd);
-	ledger?.reserve(name, capUsd);
+	ledger?.reserve(name, capUsd, input.resumed?.base);
 	try {
 		return { ...open(), settle };
 	} catch (error) {
@@ -297,13 +314,16 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace
 	const { kernel, folder, settle } = reserved(input, io, name, meter.capUsd, () => opened(input, io, run, directory));
 	trace.scan = () => scanFolder(directory, (text) => broker.leaks(text));
 	const play = async (): Promise<Awaited<ReturnType<typeof played>>> => {
-		kernel.start();
-		const models = createModelDrivers({ kernel, actors: game.definition.actors, source, settings, systemPrompts, meter, redact, texts, hash: jsonHash });
-		models.fix();
+		// A resumed kernel has started; its residents go on from their saved conversations, whose prompts were fixed before.
+		if (run.saved === undefined) kernel.start();
+		const models = createModelDrivers({ kernel, actors: game.definition.actors, source, settings, systemPrompts, meter, redact, texts, hash: jsonHash, ...(run.saved === undefined ? {} : { saved: run.saved }) });
+		if (run.saved === undefined) models.fix();
 		// A Director that acts by tool use looks through a resident session of its own model; it is never given `take`.
 		const look = createToolDirector({ kernel, source, settings: run.actors.settings, limits: (actor) => limitsOf(game, actor), meter, redact, hidden: [game.definition.names[DIRECTOR_TAKE] ?? "take"] });
 		const drivers: DriverTable = { ...models.drivers, ...createDirectorDrivers({ game, ask, facts: (key) => kernel.fact(key), look }) };
-		return played(kernel, drivers, loopOf(game, kernel, () => folder, { hand: run.hand, snapshotAt: input.snapshotAt, warn: (line) => { io.err(redact(line)); } }));
+		// Every snapshot of a live run holds the residents' conversations, checked with the run's redaction.
+		const loop = loopOf(game, kernel, () => folder, { hand: run.hand, snapshotAt: input.snapshotAt, warn: (line) => { io.err(redact(line)); }, pauseOn: run.pauseOn, sessions: () => models.save(), redact });
+		return played(kernel, drivers, { ...loop, ticks: input.resumed?.ticks ?? loop.ticks });
 	};
 	const { end: last, issues, hand } = await play().finally(() => {
 		folder.close();

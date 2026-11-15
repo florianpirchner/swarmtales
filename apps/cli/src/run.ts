@@ -16,8 +16,9 @@ import { definitionsOf, isGameFamily, resolveGame, RESIDENT_KIND, type MechanicD
 import { fakeDriver } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
-import { loopOf, runManifest, type LoopOptions } from "./assembly.ts";
+import { loopOf, pauseEvent, runManifest, type LoopOptions } from "./assembly.ts";
 import { toolWithoutSample } from "./errors.ts";
+import type { PauseOn } from "./flags.ts";
 import { handEnded, handOf } from "./hand.ts";
 import { installedTable } from "./installed.ts";
 import { loadGame } from "./load-game.ts";
@@ -50,6 +51,8 @@ export interface RunInput {
 	readonly hand?: string;
 	/** `--snapshot-at`: the numbers of finished ticks after which a snapshot is written; none when absent. */
 	readonly snapshotAt?: readonly number[];
+	/** `--pause-on`: the event after whose first tick the run pauses; no pause when absent. */
+	readonly pauseOn?: PauseOn;
 }
 
 /**
@@ -166,7 +169,7 @@ export async function played(kernel: Kernel, drivers: DriverTable, loop: LoopOpt
 	const watch = watched(loop);
 	try {
 		const end = await runLoop({ kernel, drivers, ...watch.loop });
-		return { end, issues: "stopped" in end && end.stopped === "paused" ? [handEnded(end)] : [], ...watch.close(end) };
+		return { end, issues: "stopped" in end && end.stopped === "paused" && end.on === undefined ? [handEnded(end)] : [], ...watch.close(end) };
 	} catch (error) {
 		if (!(error instanceof SwtError) || kernel.ended === undefined) throw error;
 		return { end: kernel.ended, issues: error.issues, ...watch.close(kernel.ended) };
@@ -180,12 +183,13 @@ export async function played(kernel: Kernel, drivers: DriverTable, loop: LoopOpt
  *
  * @param kernel - The kernel of the run, for the reason of a limit.
  * @param end - The end of the run, or the stop of the run loop.
- * @returns "limit grid-game.match: the match is over", "tick limit" or "error"; for a stop "paused" or "open".
+ * @returns "limit grid-game.match: the match is over", "tick limit" or "error"; for a stop "paused", "paused on
+ * <mechanic>.<event>" or "open".
  *
  * @public
  */
 export function whyOf(kernel: Kernel, end: RunEnd | LoopStop): string {
-	if ("stopped" in end) return end.stopped === "paused" ? "paused" : "open";
+	if ("stopped" in end) return end.stopped === "paused" ? `paused${end.on === undefined ? "" : ` on ${end.on}`}` : "open";
 	if (end.reason !== "limit") return end.reason === "ticks" ? "tick limit" : "error";
 	const breach = kernel.log.all().findLast((event) => event.type === "limit_reached")?.payload;
 	return `limit ${end.limit ?? ""}${Check(Breach, breach) ? `: ${breach.reason}` : ""}`;
@@ -254,6 +258,8 @@ export interface FakePlay {
 	readonly snapshotAt?: readonly number[] | undefined;
 	/** The loop stops after this many finished ticks; the ticks of the game when absent. */
 	readonly ticks?: number | undefined;
+	/** The event of `--pause-on`, found by `pauseEvent`; no pause when absent. */
+	readonly pauseOn?: LoopOptions["pauseOn"];
 	/** Set for a resumed run. */
 	readonly resumed?: Resumed;
 }
@@ -296,7 +302,7 @@ export async function playFake(play: FakePlay, io: CliIo): Promise<number> {
 	const driver = resumed === undefined ? fake : resumed.began(kernel, fake);
 	// A Director that acts by tool use plays its look with the fake driver, from the `sample` functions of its tools.
 	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask, facts: (key) => kernel.fact(key), look: (activation) => fake(activation).then(() => undefined) }) };
-	const loop = loopOf(game, kernel, folder.opened, { hand: play.hand, snapshotAt: play.snapshotAt, warn: io.err });
+	const loop = loopOf(game, kernel, folder.opened, { hand: play.hand, snapshotAt: play.snapshotAt, warn: io.err, pauseOn: play.pauseOn });
 	const { end, issues, hand } = await played(kernel, drivers, { ...loop, ticks: play.ticks ?? loop.ticks }).finally(() => folder.opened()?.close());
 	const failed = whyOf(kernel, end) === "error";
 	const verdict = verifyRun(directory);
@@ -319,7 +325,8 @@ export async function playFake(play: FakePlay, io: CliIo): Promise<number> {
  * @returns The exit code: 0 the run finished, 1 its log does not verify, 2 it ended with the reason `error`, 3 it
  * is paused and the Human Hand has ended (`SWT-X009`): the folder holds a snapshot and verifies as unfinished.
  * @throws SwtError Before the run: `SWT-C001`, `SWT-C002`, `SWT-C030`, what game resolution reports (`SWT-G041` for a `--set` that fits no param), `SWT-R002`,
- * `SWT-R015` when `win.fact` names no fact, and `SWT-X008` for a `--hand` the game cannot take. No run folder is written then.
+ * `SWT-R015` when `win.fact` names no fact, `SWT-X008` for a `--hand` the game cannot take, and `SWT-C003` for a
+ * `--pause-on` that names no event of the game. No run folder is written then.
  *
  * @public
  */
@@ -327,6 +334,7 @@ export async function runFake(input: RunInput, io: CliIo): Promise<number> {
 	const { game, mechanics } = await resolveFile(input, io, [DIRECTOR_RECORDS, REVIEW_RECORDS]);
 	const hand = handOf(input.hand, game, io);
 	for (const warning of unsampled(game, mechanics)) io.err(formatIssue(warning).replace(/^error /, "warning "));
+	const pauseOn = input.pauseOn === undefined ? {} : { pauseOn: pauseEvent(game, input.pauseOn) };
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
-	return playFake({ game, directory, json: input.json, hand, snapshotAt: input.snapshotAt }, io);
+	return playFake({ game, directory, json: input.json, hand, snapshotAt: input.snapshotAt, ...pauseOn }, io);
 }
