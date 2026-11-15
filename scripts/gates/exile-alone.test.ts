@@ -3,7 +3,13 @@
  * Done-when 4 of milestone M3: `exile` names no other mechanic. The gate reads `mechanics/exile/package.json` and
  * every file under `mechanics/exile/src/` and finds no mechanic package, no import that leaves the package for
  * another one under `mechanics/`, and no mechanic, service, event or tool id of another mechanic in a string of
- * the code. The head has an empty `requires` and an empty `uses`. Comments are prose and are not read.
+ * the code. The head has an empty `requires`. Comments are prose and are not read.
+ *
+ * Since M5-15 (12-m5-spec.md, row 15: "the names in its texts through `identity`") the exile asks, through `uses`
+ * only, three services and no mechanic: `identity` of `mechanics/contracts`, the city's voice of the base mechanic
+ * `channels` through its `/contract`, and `exile-purse`, which its own contract defines and the ledger provides (the
+ * ledger imports the exile, so the exile cannot import the ledger). These two imports and three names are the only
+ * ones let through.
  */
 import { cpSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -14,9 +20,18 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { computedImportsOf, importsOf } from "../layers/workspace.ts";
 import { isSourceFile, listFiles, readText, REPO_ROOT } from "../lib/files.ts";
+import * as exileContract from "../../mechanics/exile/src/contract.ts";
 import { loadMechanics, readManifest } from "../mechanic-docs/head.ts";
 
 const EXILE = "mechanics/exile";
+/** The imports the exile may make of packages under `mechanics/` (M5-15). */
+const ALLOWED_IMPORTS: ReadonlySet<string> = new Set(["@swarmtales/mechanic-channels/contract", "@swarmtales/mechanic-contracts"]);
+/** The packages of those imports, which its manifest may name. */
+const ALLOWED_PACKAGES: ReadonlySet<string> = new Set(["@swarmtales/mechanic-channels", "@swarmtales/mechanic-contracts"]);
+/** The services the exile may list in `uses`: the purse its own contract defines, identity and the city's voice. */
+const ALLOWED_USES: ReadonlySet<string> = new Set(["ExilePurseService", "IdentityService", "ChannelsService"]);
+/** The names of the services the contract of the exile defines: its own, even when another mechanic provides one. */
+const OWN_SERVICES: ReadonlySet<string> = new Set(Object.values(exileContract).flatMap((value) => (typeof value === "object" && "methods" in value && typeof value.name === "string" ? [value.name] : [])));
 const Names = Type.Optional(Type.Record(Type.String(), Type.String()));
 const Manifest = Type.Object({ name: Type.String(), dependencies: Names, peerDependencies: Names, optionalDependencies: Names, devDependencies: Names });
 
@@ -37,7 +52,7 @@ async function foreignOf(root: string): Promise<Foreign> {
 	const ids = new Map<string, string>();
 	for (const { head } of others) {
 		ids.set(head.id, `the mechanic \`${head.id}\``);
-		for (const service of head.provides) ids.set(service.name, `the service \`${service.name}\` of \`${head.id}\``);
+		for (const service of head.provides) if (!OWN_SERVICES.has(service.name)) ids.set(service.name, `the service \`${service.name}\` of \`${head.id}\``);
 		for (const event of Object.keys(head.events)) ids.set(event, `the event \`${event}\` of \`${head.id}\``);
 		for (const tool of head.tools) ids.set(tool.name, `the tool \`${tool.name}\` of \`${head.id}\``);
 	}
@@ -56,7 +71,7 @@ function manifestOffences(root: string, foreign: Foreign): readonly string[] {
 	const fields = { dependencies: raw.dependencies, peerDependencies: raw.peerDependencies, optionalDependencies: raw.optionalDependencies, devDependencies: raw.devDependencies };
 	return Object.entries(fields).flatMap(([field, names]) =>
 		Object.keys(names ?? {})
-			.filter((name) => foreign.mechanics.has(name))
+			.filter((name) => foreign.mechanics.has(name) && !ALLOWED_PACKAGES.has(name))
 			.map((name) => `${EXILE}/package.json: ${field} names the mechanic package ${name}`),
 	);
 }
@@ -64,7 +79,7 @@ function manifestOffences(root: string, foreign: Foreign): readonly string[] {
 function importOffences(file: string, text: string, foreign: Foreign): readonly string[] {
 	const offences = importsOf(text).flatMap((specifier) => {
 		if (specifier.startsWith(".")) return posix.join(dirname(file), specifier).startsWith(`${EXILE}/`) ? [] : [`${file}: the import "${specifier}" leaves the package`];
-		const name = packageOf(specifier, foreign.packages);
+		const name = ALLOWED_IMPORTS.has(specifier) ? undefined : packageOf(specifier, foreign.packages);
 		return name === undefined ? [] : [`${file}: imports "${specifier}" of ${name}, a package under mechanics/`];
 	});
 	return computedImportsOf(text) === 0 ? offences : [...offences, `${file}: an import whose target is computed, so the gate cannot read it`];
@@ -88,13 +103,26 @@ function named(text: string, foreign: Foreign): string | undefined {
 	return owner === undefined ? undefined : `the mechanic \`${owner}\``;
 }
 
-/** A head that names a service to require or to use: any `requires` or `uses` that is not an empty list. */
+/** The two lists of a head, what each may hold, and the offence when it holds more. */
+const HEAD_LISTS: ReadonlyMap<string, { readonly allowed: ReadonlySet<string>; readonly message: string }> = new Map([
+	["requires", { allowed: new Set<string>(), message: "`requires` is not an empty list" }],
+	["uses", { allowed: ALLOWED_USES, message: "`uses` is not a list of the allowed services" }],
+]);
+
+/** Whether a `requires` or `uses` property is a list literal of allowed services only: none for `requires`. */
+function listFits(node: ts.PropertyAssignment | ts.ShorthandPropertyAssignment, allowed: ReadonlySet<string>): boolean {
+	if (!ts.isPropertyAssignment(node) || !ts.isArrayLiteralExpression(node.initializer)) return false;
+	return node.initializer.elements.every((element) => ts.isIdentifier(element) && allowed.has(element.text));
+}
+
+/** A head that requires a service, or uses one that is not allowed: `requires` not an empty list, `uses` not a list of the allowed. */
 function headOffences(file: string, source: ts.SourceFile): readonly string[] {
 	const offences: string[] = [];
 	const visit = (node: ts.Node): void => {
-		const key = (ts.isPropertyAssignment(node) || ts.isShorthandPropertyAssignment(node)) && ts.isIdentifier(node.name) ? node.name.text : undefined;
-		const empty = ts.isPropertyAssignment(node) && ts.isArrayLiteralExpression(node.initializer) && node.initializer.elements.length === 0;
-		if ((key === "requires" || key === "uses") && !empty) offences.push(`${file}: \`${key}\` is not an empty list`);
+		const property = ts.isPropertyAssignment(node) || ts.isShorthandPropertyAssignment(node) ? node : undefined;
+		const key = property !== undefined && ts.isIdentifier(property.name) ? property.name.text : undefined;
+		const offence = property === undefined ? undefined : HEAD_LISTS.get(key ?? "");
+		if (property !== undefined && offence !== undefined && !listFits(property, offence.allowed)) offences.push(`${file}: ${offence.message}`);
 		ts.forEachChild(node, visit);
 	};
 	visit(source);
@@ -135,7 +163,8 @@ describe("exile names no other mechanic (M3, done-when 4)", () => {
 		const head = (await loadMechanics(REPO_ROOT)).find((mechanic) => mechanic.folder === "exile")?.head;
 		expect(head?.id).toBe("exile");
 		expect(head?.requires).toEqual([]);
-		expect(head?.uses).toEqual([]);
+		expect(head?.uses.map((service) => service.name)).toEqual(["exile-purse", "identity", "channels"]);
+		expect([...OWN_SERVICES]).toEqual(["exile", "exile-purse"]);
 	});
 
 	it("does not pass on nothing: it knows the other mechanics and reads the code of exile", () => {
@@ -145,7 +174,7 @@ describe("exile names no other mechanic (M3, done-when 4)", () => {
 		for (const id of ["puzzles", "ledger", "court", "channels", "decisions", "humanHand", "factor_burned", "board_post", "transferPoints", "vote"]) expect(foreign.ids.has(id)).toBe(true);
 		for (const own of ["exile", "exiled"]) expect(foreign.ids.has(own)).toBe(false);
 		const files = listFiles(`${EXILE}/src`, isSourceFile);
-		expect(files).toEqual([`${EXILE}/src/contract.ts`, `${EXILE}/src/index.ts`]);
+		expect(files).toEqual(["contract", "gate", "head", "index", "ransom", "will"].map((name) => `${EXILE}/src/${name}.ts`));
 		const strings = files.flatMap((file) => stringsOf(ts.createSourceFile(file, readText(file), ts.ScriptTarget.Latest)));
 		expect(strings).toContain("exiled");
 		expect(strings).toContain("@swarmtales/mechanic-exile");
@@ -162,7 +191,8 @@ describe("exile names no other mechanic (M3, done-when 4)", () => {
 			[{ "src/pieces.ts": 'import type { Pieces } from "@swarmtales/mechanic-puzzles/contract";\nexport type Held = Pieces;\n' }, 'imports "@swarmtales/mechanic-puzzles/contract"'],
 			[{ "src/pieces.ts": 'export { puzzles } from "../../puzzles/src/index.ts";\n' }, "leaves the package"],
 			[{ "src/pieces.ts": 'export const load = (name: string): Promise<unknown> => import(name);\n' }, "computed"],
-			[{ "src/pieces.ts": 'import { ConsensusSource } from "@swarmtales/mechanic-contracts";\nexport const source = ConsensusSource;\n' }, "a package under mechanics/"],
+			[{ "src/pieces.ts": 'import { ChannelsService } from "@swarmtales/mechanic-channels";\nexport const source = ChannelsService;\n' }, "a package under mechanics/"],
+			[{ "src/pieces.ts": "declare const ConsensusSourceService: unknown;\nexport const head = { requires: [], uses: [IdentityService, ConsensusSourceService] };\n" }, "`uses` is not a list of the allowed services"],
 			[{ "src/pieces.ts": 'export const order = { after: ["puzzles"] };\n' }, 'the string "puzzles" names the mechanic `puzzles`'],
 			[{ "src/pieces.ts": 'export const burned = "factor_burned";\n' }, "names the event `factor_burned` of `puzzles`"],
 			[{ "src/pieces.ts": "export const prompt = (id: string): string => `puzzles/replies/${id}`;\n" }, "names the mechanic `puzzles`"],
@@ -170,7 +200,7 @@ describe("exile names no other mechanic (M3, done-when 4)", () => {
 			[{ "src/pieces.ts": 'export const tool = "transferPoints";\n' }, "names the tool `transferPoints` of `ledger`"],
 			[{ "src/pieces.ts": 'export const service = "channels";\n' }, "`channels`"],
 			[{ "src/pieces.ts": "declare const PiecesService: unknown;\nexport const head = { requires: [PiecesService], uses: [] };\n" }, "`requires` is not an empty list"],
-			[{ "src/pieces.ts": "declare const uses: readonly unknown[];\nexport const head = { requires: [], uses };\n" }, "`uses` is not an empty list"],
+			[{ "src/pieces.ts": "declare const uses: readonly unknown[];\nexport const head = { requires: [], uses };\n" }, "`uses` is not a list of the allowed services"],
 		];
 		for (const [files, message] of cases) {
 			const offences = exileOffences(fixture(files), foreign);
@@ -180,7 +210,7 @@ describe("exile names no other mechanic (M3, done-when 4)", () => {
 	});
 
 	it("does not read prose in a comment as a name, and takes the ids of exile itself", () => {
-		const text = '// The ledger and the puzzles listen; a court calls.\nexport const reason = "exiled";\nexport const head = { id: "exile", requires: [], uses: [] };\n';
+		const text = '// The ledger and the puzzles listen; a court calls.\nexport const reason = "exiled";\nexport const purse = "exile-purse";\nexport const head = { id: "exile", requires: [], uses: [] };\n';
 		expect(exileOffences(fixture({ "src/pieces.ts": text }), foreign)).toEqual([]);
 	});
 });

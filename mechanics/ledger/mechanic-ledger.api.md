@@ -218,6 +218,36 @@ ok: Type.TLiteral<false>;
 code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
 }>]>;
 };
+}>, ServiceDefinition<"exile-purse", {
+readonly balance: {
+readonly kind: "query";
+readonly summary: "The points of the account.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNumber;
+};
+readonly burn: {
+readonly kind: "command";
+readonly summary: "Burns points of the account.";
+readonly input: Type.TObject<{
+amount: Type.TInteger;
+reason: Type.TString;
+account: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly move: {
+readonly kind: "command";
+readonly summary: "Moves points the account holds to another.";
+readonly input: Type.TObject<{
+amount: Type.TInteger;
+reason: Type.TString;
+from: Type.TString;
+to: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
 }>], readonly [ServiceDefinition<"identity", {
 readonly nameOf: {
 readonly kind: "query";

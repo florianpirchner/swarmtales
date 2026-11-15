@@ -2,6 +2,7 @@
 /** The head of the `ledger` mechanic: its options, its state with the snapshot, its events, service, prompts and tool. */
 import { Type } from "typebox";
 import { IdentityService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
+import { ExilePurseService } from "@swarmtales/mechanic-exile/contract";
 import { defineHead, RosterService, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { restored, SYSTEM_ACCOUNT, type LedgerState } from "./book.ts";
 import { LedgerEvents, LedgerService } from "./contract.ts";
@@ -52,7 +53,8 @@ export const ledgerHead = defineHead({
 	requires: [RosterService],
 	// A name in place of an id in the texts and the target, and the receipt in the reply, when a provider is loaded.
 	uses: [IdentityService, ReceiptSourceService],
-	provides: [LedgerService],
+	// The points a ransom burns and a last will moves at the gate of `exile`.
+	provides: [LedgerService, ExilePurseService],
 	tools: {
 		transferPoints: {
 			description: "ledger/tools/transferPoints",

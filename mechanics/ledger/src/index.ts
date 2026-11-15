@@ -12,7 +12,7 @@
 import { Type } from "typebox";
 import type { RandomSource, Refusal } from "@swarmtales/contracts";
 import { IdentityService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
-import { ExileEvents } from "@swarmtales/mechanic-exile/contract";
+import { clearsAway, ExileEvents } from "@swarmtales/mechanic-exile/contract";
 import { defineMechanic, refuse, reply, RosterService } from "@swarmtales/sdk";
 import { balanceOf, book, memoCarriesDigits, SYSTEM_ACCOUNT, type LedgerEntry } from "./book.ts";
 import { ledgerHead, type LedgerCtx, type LedgerToolCtx } from "./head.ts";
@@ -119,12 +119,24 @@ export const ledger = defineMechanic(ledgerHead, {
 				return { ok: true as const, txId: bookEntry(ctx, input.from, input.to, input.amount, input.reason, false, input.idempotencyKey).txId };
 			},
 		},
+		"exile-purse": {
+			balance: (input, ctx) => balanceOf(ctx.state, input.account),
+			burn: (input, ctx) => {
+				bookEntry(ctx, input.account, SYSTEM_ACCOUNT, input.amount, input.reason, true);
+				return null;
+			},
+			move: (input, ctx) => {
+				bookEntry(ctx, input.from, input.to, input.amount, input.reason, false);
+				return null;
+			},
+		},
 	},
 	listeners: (kit) => [
 		// The points of a banished resident are gone: its whole balance is burned, as the old exile did. Nothing is
-		// booked for a balance of 0 or less.
-		kit.listen(ExileEvents, "exiled", ({ agent }, ctx) => {
-			const balance = balanceOf(ctx.state, agent);
+		// booked for a balance of 0 or less, nor for a strike that keeps (the holdout trial: the points stay).
+		kit.listen(ExileEvents, "exiled", (exiled, ctx) => {
+			const agent = exiled.agent;
+			const balance = clearsAway(exiled) ? balanceOf(ctx.state, agent) : 0;
 			if (balance > 0) bookEntry(ctx, agent, SYSTEM_ACCOUNT, balance, `exiled ${agent}`, true);
 		}),
 	],

@@ -16,7 +16,7 @@ through the service `ledger`, so the log explains every balance.
 | Summary | Points per account and bookings between accounts. |
 | Requires | `roster` |
 | Uses when loaded | `identity`, `receipt-source` |
-| Provides | `ledger` |
+| Provides | `ledger`, `exile-purse` |
 | State | kept, snapshot slice version 1 |
 | Games | [city-slice](../../games/city-slice/README.md) |
 
@@ -139,6 +139,16 @@ Points per account and bookings between accounts.
 | `mint` | command | account: string, amount: number > 0, reason: string, idempotencyKey?: string | null | Creates points: start points, rewards, grants; writes `ledger_entry`. |
 | `burn` | command | account: string, amount: number > 0, reason: string, idempotencyKey?: string | null | Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`. |
 | `move` | command | from: string, to: string, amount: number > 0, reason: string, idempotencyKey?: string | { ok: true, txId: string } or { ok: false, code: "INSUFFICIENT_FUNDS" } | Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`. |
+
+### `exile-purse`
+
+The points a ransom burns and a will moves.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `balance` | query | account: string | number | The points of the account. |
+| `burn` | command | account: string, amount: integer, reason: string | null | Burns points of the account. |
+| `move` | command | from: string, to: string, amount: integer, reason: string | null | Moves points the account holds to another. |
 
 <!-- /generated:services -->
 

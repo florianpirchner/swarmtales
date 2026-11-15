@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-/** The `exile` mechanic: the service, the event, the suspension and the slice (offline, a test mechanic banishes). */
+/** The `exile` mechanic: `banish`, the event, the suspension and the slice (offline, a test mechanic banishes). */
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import type { Envelope } from "@swarmtales/contracts";
@@ -90,7 +90,7 @@ describe("the slice", () => {
 		const log: readonly unknown[] = first.kernel.log.all().map((event): unknown => JSON.parse(JSON.stringify(event)));
 		const resumed = start({ snapshot, log });
 		expect(resumed.kernel.snapshot()).toEqual(snapshot);
-		expect(JSON.stringify(snapshot)).toContain('{"exiled":["A04"]}');
+		expect(JSON.stringify(snapshot)).toContain('"gone":[{"resident":"A04","by":"judge","tick":0,"bequeathed":[]}]');
 		expect(resumed.fact("judge.view")).toEqual({ exiled: ["A04"], a04: true, a04Present: false, a01Present: true });
 		expect(await resumed.call("A02", "strike", { target: "A04" })).toMatchObject({ ok: false, code: "ALREADY_EXILED" });
 		expect(await resumed.call("A02", "strike", { target: "A03" })).toMatchObject({ ok: true });
@@ -99,10 +99,11 @@ describe("the slice", () => {
 });
 
 describe("the head", () => {
-	it("names no other mechanic: no option, no tool, nothing required or used", () => {
+	it("names no game mechanic: no option, nothing required, and only the keeper of the points, the names and the city's voice used", () => {
 		expect(exileHead.id).toBe(ExileService.name);
-		expect([exileHead.requires, exileHead.uses, exileHead.tools, exileHead.options, exileHead.prompts]).toEqual([undefined, undefined, undefined, undefined, undefined]);
-		expect(Object.keys(exileHead.events ?? {})).toEqual(["exiled"]);
+		expect([exileHead.requires, exileHead.options]).toEqual([undefined, undefined]);
+		expect(exileHead.uses?.map((service) => service.name)).toEqual(["exile-purse", "identity", "channels"]);
+		expect(Object.keys(exileHead.events ?? {})).toEqual(["exiled", "exile_gate", "ransom_paid", "ransomed", "last_will"]);
 		expect(ExileService.methods.banish.output).toBe(BanishResult);
 	});
 });

@@ -166,6 +166,8 @@ describe("the load order of the city slice (done-when 5)", () => {
 		const provider = (service: string): number => order.findIndex((entry) => entry.provides.some((provided) => provided.name === service));
 		const late = order.flatMap((entry, index) => [...entry.requires, ...entry.uses].filter((service) => provider(service.name) >= index).map((service) => `${entry.id} before ${service.name}`));
 		expect(late).toEqual([]);
-		expect(order.find((entry) => entry.id === "exile")).toMatchObject({ requires: [], uses: [] });
+		// The exile requires nothing; since M5-15 it asks, when they are loaded, a keeper of the points, the names and the city's voice.
+		const exile = order.find((entry) => entry.id === "exile");
+		expect([exile?.requires, exile?.uses.map((service) => service.name)]).toEqual([[], ["exile-purse", "identity", "channels"]]);
 	});
 });
