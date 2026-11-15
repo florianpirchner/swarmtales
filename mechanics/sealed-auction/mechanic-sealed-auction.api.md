@@ -4,6 +4,475 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
+
+// @public
+export const AuctionSlice: Type.TObject<{
+    seats: Type.TArray<Type.TString>;
+    game: Type.TInteger;
+    lots: Type.TArray<Type.TObject<{
+        number: Type.TInteger;
+        kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+        values: Type.TRecord<"^.*$", Type.TInteger>;
+        worth: Type.TOptional<Type.TInteger>;
+    }>>;
+    lot: Type.TInteger;
+    open: Type.TBoolean;
+    opened: Type.TInteger;
+    owing: Type.TArray<Type.TString>;
+    told: Type.TArray<Type.TString>;
+    briefed: Type.TArray<Type.TString>;
+    bids: Type.TRecord<"^.*$", Type.TNumber>;
+    reasons: Type.TRecord<"^.*$", Type.TString>;
+    results: Type.TArray<Type.TObject<{
+        number: Type.TInteger;
+        kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+        bids: Type.TRecord<"^.*$", Type.TInteger>;
+        winner: Type.TOptional<Type.TString>;
+        price: Type.TInteger;
+        profit: Type.TNumber;
+        tie: Type.TBoolean;
+        missed: Type.TArray<Type.TString>;
+    }>>;
+    coins: Type.TRecord<"^.*$", Type.TNumber>;
+    scores: Type.TRecord<"^.*$", Type.TNumber>;
+    gameScores: Type.TRecord<"^.*$", Type.TNumber>;
+    running: Type.TBoolean;
+    finished: Type.TBoolean;
+    held: Type.TBoolean;
+    due: Type.TBoolean;
+}>;
+
+// @public
+export type AuctionState = Static<typeof AuctionSlice>;
+
+// @public
+export function curseFreeCeiling(estimate: number, bidders: number, rules: Rules): number;
+
+// @public
+export function dealLots(kinds: readonly LotKind[], seats: readonly string[], rules: Rules, draw: DrawSource): Lot[];
+
+// @public
+export interface DrawSource {
+    int(min: number, max: number): number;
+}
+
+// @public
+export function equilibriumBid(value: number, bidders: number, rules: Rules): number;
+
+// @public
+export const Lot: Type.TObject<{
+    number: Type.TInteger;
+    kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+    values: Type.TRecord<"^.*$", Type.TInteger>;
+    worth: Type.TOptional<Type.TInteger>;
+}>;
+
+// @public
+export type Lot = Static<typeof Lot>;
+
+// @public
+export const LotKind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+
+// @public
+export type LotKind = Static<typeof LotKind>;
+
+// @public
+export const LotResult: Type.TObject<{
+    number: Type.TInteger;
+    kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+    bids: Type.TRecord<"^.*$", Type.TInteger>;
+    winner: Type.TOptional<Type.TString>;
+    price: Type.TInteger;
+    profit: Type.TNumber;
+    tie: Type.TBoolean;
+    missed: Type.TArray<Type.TString>;
+}>;
+
+// @public
+export type LotResult = Static<typeof LotResult>;
+
+// @public
+export const Reference: Type.TObject<{
+    firstPrice: Type.TObject<{
+        lots: Type.TInteger;
+        efficiency: Type.TNumber;
+        shading: Type.TNumber;
+        equilibriumShading: Type.TNumber;
+        overbids: Type.TInteger;
+    }>;
+    secondPrice: Type.TObject<{
+        lots: Type.TInteger;
+        efficiency: Type.TNumber;
+        truthfulness: Type.TNumber;
+        overbids: Type.TInteger;
+        underbids: Type.TInteger;
+        capped: Type.TInteger;
+    }>;
+    common: Type.TObject<{
+        lots: Type.TInteger;
+        cursed: Type.TInteger;
+        winnerProfit: Type.TNumber;
+        bidToEstimate: Type.TNumber;
+        aboveCeiling: Type.TInteger;
+    }>;
+    revenue: Type.TNumber;
+    surplus: Type.TNumber;
+    unspent: Type.TNumber;
+    missed: Type.TInteger;
+}>;
+
+// @public
+export type Reference = Static<typeof Reference>;
+
+// @public
+export function referenceOf(lots: readonly Lot[], results: readonly LotResult[], seats: readonly string[], rules: Rules, coins: Readonly<Record<string, number>>): Reference;
+
+// @public
+export function resolveLot(lot: Lot, bids: Readonly<Record<string, number>>, seats: readonly string[], rules: Rules, missed: readonly string[], pick: (tied: readonly string[]) => string): LotResult;
+
+// @public
+export interface Rules {
+    readonly noise: number;
+    readonly purse: number;
+    readonly reserve: number;
+    readonly valueMax: number;
+    readonly valueMin: number;
+    readonly worthMax: number;
+    readonly worthMin: number;
+}
+
+// @public
+export const sealedAuction: MechanicDefinition<"sealed-auction", Type.TObject<{
+games: Type.TInteger;
+lots: Type.TArray<Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>>;
+purse: Type.TInteger;
+valueMin: Type.TInteger;
+valueMax: Type.TInteger;
+worthMin: Type.TInteger;
+worthMax: Type.TInteger;
+noise: Type.TInteger;
+reserve: Type.TInteger;
+deadline: Type.TInteger;
+}>, {
+game_started: Type.TObject<{
+game: Type.TInteger;
+lots: Type.TArray<Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>>;
+purse: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+}>;
+lots_dealt: Type.TObject<{
+game: Type.TInteger;
+lots: Type.TArray<Type.TObject<{
+number: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+values: Type.TRecord<"^.*$", Type.TInteger>;
+worth: Type.TOptional<Type.TInteger>;
+}>>;
+}>;
+lot_opened: Type.TObject<{
+game: Type.TInteger;
+lot: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+}>;
+bid_placed: Type.TObject<{
+game: Type.TInteger;
+lot: Type.TInteger;
+resident: Type.TString;
+amount: Type.TInteger;
+reason: Type.TOptional<Type.TString>;
+}>;
+lot_resolved: Type.TObject<{
+worth: Type.TOptional<Type.TInteger>;
+number: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+bids: Type.TRecord<"^.*$", Type.TInteger>;
+winner: Type.TOptional<Type.TString>;
+price: Type.TInteger;
+profit: Type.TNumber;
+tie: Type.TBoolean;
+missed: Type.TArray<Type.TString>;
+game: Type.TInteger;
+}>;
+game_ended: Type.TObject<{
+game: Type.TInteger;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+totals: Type.TRecord<"^.*$", Type.TNumber>;
+coins: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+game_scored: Type.TObject<{
+game: Type.TInteger;
+reference: Type.TObject<{
+firstPrice: Type.TObject<{
+lots: Type.TInteger;
+efficiency: Type.TNumber;
+shading: Type.TNumber;
+equilibriumShading: Type.TNumber;
+overbids: Type.TInteger;
+}>;
+secondPrice: Type.TObject<{
+lots: Type.TInteger;
+efficiency: Type.TNumber;
+truthfulness: Type.TNumber;
+overbids: Type.TInteger;
+underbids: Type.TInteger;
+capped: Type.TInteger;
+}>;
+common: Type.TObject<{
+lots: Type.TInteger;
+cursed: Type.TInteger;
+winnerProfit: Type.TNumber;
+bidToEstimate: Type.TNumber;
+aboveCeiling: Type.TInteger;
+}>;
+revenue: Type.TNumber;
+surplus: Type.TNumber;
+unspent: Type.TNumber;
+missed: Type.TInteger;
+}>;
+}>;
+match_ended: Type.TObject<{
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+}, "viewAuction" | "bid">;
+
+// @public
+export type SealedAuctionCtx = CtxOf<typeof sealedAuctionHead>;
+
+// @public
+export const sealedAuctionHead: MechanicHead<"sealed-auction", Type.TObject<{
+games: Type.TInteger;
+lots: Type.TArray<Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>>;
+purse: Type.TInteger;
+valueMin: Type.TInteger;
+valueMax: Type.TInteger;
+worthMin: Type.TInteger;
+worthMax: Type.TInteger;
+noise: Type.TInteger;
+reserve: Type.TInteger;
+deadline: Type.TInteger;
+}>, Type.TObject<{
+seats: Type.TArray<Type.TString>;
+game: Type.TInteger;
+lots: Type.TArray<Type.TObject<{
+number: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+values: Type.TRecord<"^.*$", Type.TInteger>;
+worth: Type.TOptional<Type.TInteger>;
+}>>;
+lot: Type.TInteger;
+open: Type.TBoolean;
+opened: Type.TInteger;
+owing: Type.TArray<Type.TString>;
+told: Type.TArray<Type.TString>;
+briefed: Type.TArray<Type.TString>;
+bids: Type.TRecord<"^.*$", Type.TNumber>;
+reasons: Type.TRecord<"^.*$", Type.TString>;
+results: Type.TArray<Type.TObject<{
+number: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+bids: Type.TRecord<"^.*$", Type.TInteger>;
+winner: Type.TOptional<Type.TString>;
+price: Type.TInteger;
+profit: Type.TNumber;
+tie: Type.TBoolean;
+missed: Type.TArray<Type.TString>;
+}>>;
+coins: Type.TRecord<"^.*$", Type.TNumber>;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+gameScores: Type.TRecord<"^.*$", Type.TNumber>;
+running: Type.TBoolean;
+finished: Type.TBoolean;
+held: Type.TBoolean;
+due: Type.TBoolean;
+}>, {
+lots: {
+worth?: number;
+number: number;
+kind: "first-price" | "second-price" | "common";
+values: Record<string, number>;
+}[];
+seats: string[];
+game: number;
+lot: number;
+open: boolean;
+opened: number;
+owing: string[];
+told: string[];
+briefed: string[];
+bids: Record<string, number>;
+reasons: Record<string, string>;
+results: {
+winner?: string;
+number: number;
+kind: "first-price" | "second-price" | "common";
+bids: Record<string, number>;
+price: number;
+profit: number;
+tie: boolean;
+missed: string[];
+}[];
+coins: Record<string, number>;
+scores: Record<string, number>;
+gameScores: Record<string, number>;
+running: boolean;
+finished: boolean;
+held: boolean;
+due: boolean;
+}, {
+game_started: Type.TObject<{
+game: Type.TInteger;
+lots: Type.TArray<Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>>;
+purse: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+}>;
+lots_dealt: Type.TObject<{
+game: Type.TInteger;
+lots: Type.TArray<Type.TObject<{
+number: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+values: Type.TRecord<"^.*$", Type.TInteger>;
+worth: Type.TOptional<Type.TInteger>;
+}>>;
+}>;
+lot_opened: Type.TObject<{
+game: Type.TInteger;
+lot: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+}>;
+bid_placed: Type.TObject<{
+game: Type.TInteger;
+lot: Type.TInteger;
+resident: Type.TString;
+amount: Type.TInteger;
+reason: Type.TOptional<Type.TString>;
+}>;
+lot_resolved: Type.TObject<{
+worth: Type.TOptional<Type.TInteger>;
+number: Type.TInteger;
+kind: Type.TUnion<[Type.TLiteral<"first-price">, Type.TLiteral<"second-price">, Type.TLiteral<"common">]>;
+bids: Type.TRecord<"^.*$", Type.TInteger>;
+winner: Type.TOptional<Type.TString>;
+price: Type.TInteger;
+profit: Type.TNumber;
+tie: Type.TBoolean;
+missed: Type.TArray<Type.TString>;
+game: Type.TInteger;
+}>;
+game_ended: Type.TObject<{
+game: Type.TInteger;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+totals: Type.TRecord<"^.*$", Type.TNumber>;
+coins: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+game_scored: Type.TObject<{
+game: Type.TInteger;
+reference: Type.TObject<{
+firstPrice: Type.TObject<{
+lots: Type.TInteger;
+efficiency: Type.TNumber;
+shading: Type.TNumber;
+equilibriumShading: Type.TNumber;
+overbids: Type.TInteger;
+}>;
+secondPrice: Type.TObject<{
+lots: Type.TInteger;
+efficiency: Type.TNumber;
+truthfulness: Type.TNumber;
+overbids: Type.TInteger;
+underbids: Type.TInteger;
+capped: Type.TInteger;
+}>;
+common: Type.TObject<{
+lots: Type.TInteger;
+cursed: Type.TInteger;
+winnerProfit: Type.TNumber;
+bidToEstimate: Type.TNumber;
+aboveCeiling: Type.TInteger;
+}>;
+revenue: Type.TNumber;
+surplus: Type.TNumber;
+unspent: Type.TNumber;
+missed: Type.TInteger;
+}>;
+}>;
+match_ended: Type.TObject<{
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+}, {
+readonly "sealed-auction/tools/viewAuction": readonly [];
+readonly "sealed-auction/tools/bid": readonly [];
+readonly "sealed-auction/game-head": readonly ["game", "games", "lots"];
+readonly "sealed-auction/rules": readonly ["purse", "lots", "reserve", "valueMin", "valueMax", "worthMin", "worthMax", "noise"];
+readonly "sealed-auction/task-first-price": readonly ["lot", "lots", "value", "coins"];
+readonly "sealed-auction/task-second-price": readonly ["lot", "lots", "value", "coins"];
+readonly "sealed-auction/task-common": readonly ["lot", "lots", "estimate", "coins", "noise"];
+}, [], readonly [ServiceDefinition<"brain-source", {
+readonly game: {
+readonly kind: "query";
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly hold: {
+readonly kind: "command";
+readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly release: {
+readonly kind: "command";
+readonly summary: "Lets a held game start. A no-op when nothing is held.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+}>], readonly [ServiceDefinition<"strategy-brain", {
+readonly gameStarted: {
+readonly kind: "command";
+readonly summary: "A game started: every resident of a team gets a fresh context with the briefing at the next turn.";
+readonly input: Type.TObject<{
+game: Type.TInteger;
+first: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly briefing: {
+readonly kind: "query";
+readonly summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly gameEnded: {
+readonly kind: "command";
+readonly summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).";
+readonly input: Type.TObject<{
+game: Type.TInteger;
+summary: Type.TString;
+moves: Type.TOptional<Type.TArray<Type.TInteger>>;
+line: Type.TOptional<Type.TArray<Type.TArray<Type.TString>>>;
+review: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+}>;
+readonly output: Type.TNull;
+};
+}>], {
+viewAuction: Type.TObject<{}>;
+bid: Type.TObject<{
+amount: Type.TInteger;
+reason: Type.TOptional<Type.TString>;
+}>;
+}>;
+
+// @public
+export type SealedAuctionView = ViewOf<typeof sealedAuctionHead>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
