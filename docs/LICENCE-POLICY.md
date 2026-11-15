@@ -69,7 +69,7 @@ judged package by package.
 
 ## In CI
 
-The workflow `.github/workflows/licences.yml` runs the gate as its own job, `licence gate`, on every pull request
+The workflow `.github/workflows/licences.yml` runs the gate as its own job, `Licence gate`, on every pull request
 (to any branch) and on every push to `main`, `develop` and, until the switch of decision A5, `rewrite/develop`
 (decision A69). It installs with `pnpm install --frozen-lockfile` and runs `pnpm check:licences`, which exits
 non-zero on any offence above; it needs no network beyond the install, because the packages of other platforms are
@@ -78,7 +78,7 @@ licence long before the full check of `check.yml` (which runs the gate too) is d
 
 The job blocks a merge only once it is a required status check. **The owner sets this by hand**: on GitHub,
 Settings, Branches, the protection rule of `main` and of `develop` (and of `rewrite/develop` until the switch),
-"Require status checks to pass before merging", with the check `licence gate` (and `check`). A build session
+"Require status checks to pass before merging", with the checks `Licence gate` and `check` (exact names). A build session
 cannot set branch protection.
 
 ## Exceptions

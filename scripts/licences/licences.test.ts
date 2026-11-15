@@ -258,7 +258,7 @@ describe("the licence gate in CI", () => {
 	it("runs the gate as its own job on every pull request and on pushes to the long-lived branches", () => {
 		expect(workflow.split("\n")[0]).toBe("# SPDX-License-Identifier: LicenseRef-SUL-1.0");
 		expect(workflow).toMatch(/^on:\n {2}pull_request:\n {2}push:\n {4}branches: \[main, develop, rewrite\/develop\]$/m);
-		expect(workflow).toMatch(/^ {2}licences:\n {4}name: licence gate$/m);
+		expect(workflow).toMatch(/^ {2}licences:\n {4}name: Licence gate$/m);
 		expect(workflow).toContain("run: pnpm install --frozen-lockfile");
 		expect(workflow).toContain("run: pnpm check:licences");
 		expect(workflow).not.toContain("continue-on-error");

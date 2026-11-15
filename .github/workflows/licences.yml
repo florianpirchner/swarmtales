@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   licences:
-    name: licence gate
+    name: Licence gate
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
