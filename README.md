@@ -137,3 +137,9 @@ ended replays equal except `hello/smoke/hello-game-002` (ended at its cost cap, 
 | `morris-teams/smoke/morris-teams-001` | 0.0969 | `morris.match` (one resident against the search at depth 3) |
 | `convoy/smoke/convoy-001` | 0.1973 | `convoy.match` |
 | `salt-market/smoke/salt-market-001` | 0.1831 | `salt-market.match` |
+
+## M4-70 live check of `markOwnOffers` (2026-11-15, decision A46, P478)
+
+Code commit `864ab0e8`, runtime revision 4, model `anthropic/haiku`, thinking medium. One run,
+`salt-market/check-m4-70/salt-market-001`, the default game with `--set markOwnOffers=true`, seed 41: 0.1746 USD of
+0.40; verifies, replays equal, clean under `swt scan`. Own-offer accepts 1 (the smoke had 4).
