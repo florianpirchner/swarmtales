@@ -30,4 +30,5 @@ export const GAMES: readonly GameEntry[] = [
 	{ name: "chess", file: "games/chess/game.ts", seeds: [13, 29], fakeSeeds: [7] },
 	{ name: "holdem", file: "games/holdem/game.ts", seeds: [7, 11], fakeSeeds: [7] },
 	{ name: "convoy", file: "games/convoy/game.ts", seeds: [53, 13], fakeSeeds: [7] },
+	{ name: "morris-teams", file: "games/morris-teams/game.ts", seeds: [13, 31], fakeSeeds: [7] },
 ];

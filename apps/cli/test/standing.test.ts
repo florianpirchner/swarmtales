@@ -35,12 +35,12 @@ const LIST = readFileSync(new URL("../../../games/index.ts", import.meta.url), "
 const LINE = /\{ name: "([^"]+)", file: "([^"]+)", seeds: \[[\d, ]*\], fakeSeeds: \[([\d, ]+)\] \}/g;
 const RUNS = [...LIST.matchAll(LINE)].flatMap(([, name = "", file = "", seeds = ""]) => seeds.split(",").map((seed) => ({ name, seed: Number(seed), file: fileURLToPath(new URL(`../../../${file}`, import.meta.url)) })));
 /**
- * Open: game to the boundaries from which its resumed log differs today. Tic-tac-toe teams at boundary 0: both
- * teams have a retro window open, `strategy-brain` saves its windows as an object, the snapshot file sorts the
+ * Open: game to the boundaries from which its resumed log differs today. Tic-tac-toe teams and nine men's morris
+ * at boundary 0: both teams have a retro window open, `strategy-brain` saves its windows as an object, the snapshot file sorts the
  * keys, and the two `resetCap` calls of the next tick swap. The fix belongs to `mechanics/strategy-brain`; the
  * entry goes with it (the test fails when the boundary resumes equal).
  */
-const OPEN: Readonly<Record<string, readonly number[]>> = { "tictactoe-teams": [0] };
+const OPEN: Readonly<Record<string, readonly number[]>> = { "tictactoe-teams": [0], "morris-teams": [0] };
 /** The run folder a command printed (`run: <folder>`), relative to the working directory. */
 const folderOf = (printed: Printed): string => (printed.out.at(-1) ?? "").replace(/^run: /, "");
 
@@ -89,5 +89,6 @@ describe("the standing checks through the command line", () => {
 			expect((await swt("replay", folderOf(resumed), "--game", file)).code, `boundary ${String(tick)}`).toBe(0);
 		}
 		expect(differing).toEqual(OPEN[name] ?? []);
-	}, 120_000);
+		// Nine men's morris takes about 160 s here: 21 boundaries of a fake run of 156 ticks and 18000 lines.
+	}, 300_000);
 });

@@ -22,3 +22,7 @@ of it replays exactly, tic-tac-toe covers the same consensus mechanic), a fixed 
 One difference from the recording: the `move_scored` events of `morris-teams-nobrain-solo-s13.json` are what
 today's referee writes; the recorded run, played on older code, scored some moves differently. The event is for
 the human only.
+
+Played by the game (M4-43): all five files match at level 3 with `games/morris-teams/test/oracle.test.ts`, the
+Referee loaded, and with no mapping. No file carries `call.endsTurn`, and neither the old `morris` nor its port sets
+it (a move is ended by the scheduler, as in tic-tac-toe teams).

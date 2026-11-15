@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game: nine men's morris played by two teams. The issues of milestone M4 fill this package.
+ * Game: nine men's morris played by two teams, two single residents, or a resident against the built-in search.
  *
  * @packageDocumentation
  */
-export {};
+export { default, morrisGame, ticksFor, type MorrisOptions } from "../game.ts";
+export { briefings, type BriefingInput, type Teams } from "../briefing.ts";
