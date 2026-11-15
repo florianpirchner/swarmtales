@@ -35,5 +35,5 @@ The specification of a milestone is written and challenged before its issues sta
 
 What the builders found against a specification is in its errata file:
 [`08-m1-spec-errata.md`](08-m1-spec-errata.md), [`09-m2-spec-errata.md`](09-m2-spec-errata.md),
-[`10-m3-spec-errata.md`](10-m3-spec-errata.md). [`RESUME.md`](RESUME.md) is the integrator's note on where the work
-stands.
+[`10-m3-spec-errata.md`](10-m3-spec-errata.md), [`11-m4-spec-errata.md`](11-m4-spec-errata.md).
+[`RESUME.md`](RESUME.md) is the integrator's note on where the work stands.

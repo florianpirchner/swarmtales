@@ -9,6 +9,9 @@ papers 01 to 07. Where this file decides something that the papers left open, se
 changes a decision that stands, the integrator ruled on it, and section 14 holds the ruling as the text of a
 decision row. Section 8 lists what only the owner can decide.
 
+**Errata:** [`11-m4-spec-errata.md`](11-m4-spec-errata.md) lists every difference between this file and the code
+that the builders and the integrator found (H1 to H43); where the two differ, the errata hold.
+
 Words as in the earlier specifications. An "old" path is a path on the branch `legacy` (read with
 `git show origin/legacy:<path>`). "Carried" means copied with at most import changes and the renames of M1
 section 8.1; carried lines do not count against the 400-line rule. "Ported" means the same design written against

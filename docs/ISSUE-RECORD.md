@@ -43,9 +43,12 @@ What the numbers of this table can and cannot say:
 
 - **Tokens have no split.** A session report gives one total (all kinds summed as the session reported them), its
   tool uses and its duration; it gives no split into input, output, cache read and cache write. The table has one
-  "Tokens (total)" column for that reason.
+  "Tokens (total)" column for that reason. The rows of M4 (171 to 228) take the one total that the notice of a
+  finished builder session gives (its token count and its duration); it names no kinds either.
 - **The integrator's own tokens are in no row:** merges, checks, briefs for builders, the fixes after a review and
-  the commits without an issue id were made in the integrator's session, which has no report here.
+  the commits without an issue id were made in the integrator's session, which has no report here. In M4 that holds
+  for both integrator sessions: their tokens are not split per issue, and the follow-up, prep and decision commits
+  they made say "not recorded".
 - **A session is matched to a row by its name** ("Build M1-35 tic-tac-toe port" is M1-35). The sessions that match
   no row are listed under "Sessions without a row".
 - **Wall time is short where a branch has one commit:** it then measures the wait for the merge, not the build. The
@@ -54,10 +57,21 @@ What the numbers of this table can and cannot say:
   viewer, the ported mechanics, the chain) is not told apart from new source.
 - **Cost is a dash in every row:** the sessions are not billed per token.
 
-All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `77d0307` of `rewrite/develop`
-(the specification of M4); the rows 85 to 129 were written from the history by issue M3-31, the rows 130 to 132 by
-issue M2-27, the rows 133 to 135 by issue M3-34, the rows 136 to 143 by issue M4-00, whose own commit has no row
-yet (owed, as the rows of M3-31, M2-27 and M3-34 were).
+The merges of the rows 1 to 163 are of 2026-11-14, those of the rows 164 to 228 of 2026-11-15; the times are UTC.
+The table is complete up to commit `41e6371` of `rewrite/develop` (M4-71); the rows 85 to 129 were written from the
+history by issue M3-31, the rows 130 to 132 by issue M2-27, the rows 133 to 135 by issue M3-34, the rows 136 to 143
+by issue M4-00, and the rows 144 to 228 by issue M4-63, whose own row is owed (the integrator adds it with the
+merge commit, as the rows of M3-31, M2-27, M3-34 and M4-00 were added).
+
+How the rows of M4 were filled. The lines come from `git show --shortstat` and `git show --numstat` of each commit,
+split by the rule above; row 209 also leaves out the vendored chess engine, which is carried. The builders of M4 ran
+in two integrator sessions. The first ran until the weekly usage limit of its model on 2026-11-15; no report of its
+builder sessions is here, so the rows 144 to 170 (merged before 05:32 UTC) say "not recorded". The second started at
+05:32 UTC; each of its builder sessions ended with a notice that names the issue ("Build M4-23 Harbor Lights game")
+and gives the session's tokens and duration, and the rows 171 to 228 take them, one session per issue. Three sessions
+sent two notices (they waited on their own background work); the numbers of a notice are of the whole session so far,
+so the last is taken. No challenger session is among the notices of the second session. Wall time is a dash in every
+row of M4: a builder's branch is removed after the merge, so its first commit is not known.
 
 | # | Issue | Title | Milestone | Commit | Merged | Tokens (total, M) | Cost (USD) | Wall time (h) | Agent time (h) | Lines | Source | Tests | Other | Note |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -204,6 +218,91 @@ yet (owed, as the rows of M3-31, M2-27 and M3-34 were).
 | 141 | M2-28 | Quarry: open quarries frozen per step (LH18) | M2 | `7652062` | 21:33 | not recorded | - | - | not recorded | +321 -19 | 48 | 163 | 128 | added by decision A29, beside the plan and beside M4; tokens and agent time not recorded: the usage file ends before the sessions of this issue |
 | 142 | M2-29 | No results of earlier games without a brain (LH19) | M2 | `7f63888` | 21:42 | not recorded | - | - | not recorded | +370 -32 | 49 | 179 | 170 | added by decision A29, beside the plan and beside M4; tokens and agent time not recorded: the usage file ends before the sessions of this issue |
 | 143 | M4 specification | M4 build specification, challenged: ten tabletop games, the scheduler sample, 64 issues; decisions A30 to A41 | M4 | `77d0307` | 21:43 | not recorded | - | - | not recorded | +1368 -1 | 0 | 0 | 1369 | specification commit; the usage file ends before its sessions |
+| 144 | M4-00 | Scaffold of M4 | M4 | `2b6e292` | 21:57 | not recorded | - | - | not recorded | +3008 -94 | 283 | 0 | 1971 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here; the scaffold; it writes the rows 136 to 143 |
+| 145 | M4-18 | Oracle additions: hold'em, Harbor Lights, Ember Tricks | M4 | `b53ff40` | 21:59 | not recorded | - | - | not recorded | +1745 -13 | 0 | 0 | 0 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here; the lines are oracle files only |
+| 146 | M4-17 | Oracle additions: chess | M4 | `12ae02c` | 22:15 | not recorded | - | - | not recorded | +2341 -26 | 0 | 0 | 0 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here; the lines are oracle files only |
+| 147 | M4-11 | Mechanic READMEs: outputs in the service tables | M4 | `f26bc1b` | 22:19 | not recorded | - | - | not recorded | +66 -14 | 25 | 18 | 37 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 148 | M4-01 | No log position 1: decisions | M4 | `8ee8d6e` | 22:22 | not recorded | - | - | not recorded | +52 -46 | 28 | 43 | 19 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 149 | M4-16 | The activation hooks | M4 | `c3f7b2b` | 22:25 | not recorded | - | - | not recorded | +238 -4 | 31 | 207 | 0 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 150 | M4-21 | Port: card-table | M4 | `c5bf1a1` | 22:28 | not recorded | - | - | not recorded | +1055 -9 | 410 | 226 | 164 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 151 | - | card-table README: outputs in the service table | M4 | `d32c8bf` | 22:38 | not recorded | - | - | not recorded | +1 -1 | 0 | 0 | 2 | integrator's commit, no issue id; follow-up of row 150 (M4-21) without the id |
+| 152 | M4-05 | Command line 1: swt replay, swt scan | M4 | `5739f0b` | 23:02 | not recorded | - | - | not recorded | +348 -3 | 213 | 138 | 0 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 153 | M2-30 | The cures of LH18 and LH19, measured: both effects stay without the loophole | M2 | `69b3c97` | 23:07 | not recorded | - | - | not recorded | +320 -11 | 0 | 0 | 331 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here; added by decision A29, beside the plan and beside M4; live spend 0.6515 USD, 24 runs (`games/a29-ledger.jsonl`, `docs/M2-CURES.md`), played on the code of `77d0307`; the run folders are on `data/runs` |
+| 154 | M4-02 | No log position 2: the Directors | M4 | `b158a5b` | 23:10 | not recorded | - | - | not recorded | +684 -337 | 171 | 270 | 557 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here; raises the runtime revision to 4 with M4-01 (row 148); the tag `runtime-r4` is owed (errata H41) |
+| 155 | M4-25 | Port: clue-grid | M4 | `3bbaa66` | 23:12 | not recorded | - | - | not recorded | +2409 -8 | 1428 | 390 | 383 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 156 | M4-22 | Port: hint-towers | M4 | `ac369c1` | 23:12 | not recorded | - | - | not recorded | +2257 -8 | 1334 | 412 | 346 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 157 | M4-27 | Port: chess 1 | M4 | `cb1ca13` | 23:12 | not recorded | - | - | not recorded | +2176 -8 | 1294 | 365 | 345 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 158 | M4-19 | Port: liars-dice | M4 | `9355d18` | 23:12 | not recorded | - | - | not recorded | +2458 -9 | 1230 | 311 | 337 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 159 | - | Lint in groups of eight folders: one process over all mechanics ran out of its heap | M4 | `5b19dfe` | 23:18 | not recorded | - | - | not recorded | +34 -2 | 31 | 3 | 2 | integrator's commit, no issue id |
+| 160 | M4-04 | sample functions for the mechanics ported before M4 | M4 | `2d3902f` | 23:18 | not recorded | - | - | not recorded | +268 -34 | 147 | 128 | 15 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 161 | - | liars-dice API report regenerated | M4 | `46fe177` | 23:38 | not recorded | - | - | not recorded | +38 -38 | 0 | 0 | 0 | integrator's commit, no issue id; the lines are an API report only |
+| 162 | - | Decision A42: issue M4-64, a lock on another mechanic's tool | M4 | `99bbc8f` | 23:38 | not recorded | - | - | not recorded | +2 -1 | 0 | 0 | 3 | integrator's commit, no issue id; decision A42 adds M4-64 |
+| 163 | M4-07 | Command line 2: swt --help, the hand's lines, fix texts | M4 | `326392a` | 23:39 | not recorded | - | - | not recorded | +572 -40 | 300 | 101 | 211 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 164 | M4-08 | Lab: facts per actor, n per arm, the guardrail, the started line | M4 | `563f21e` | 00:15 | not recorded | - | - | not recorded | +246 -59 | 188 | 86 | 13 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 165 | M4-41 | Port: morris | M4 | `12b4152` | 00:15 | not recorded | - | - | not recorded | +2663 -14 | 1504 | 327 | 263 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 166 | - | API reports regenerated after the merges | M4 | `7085906` | 00:21 | not recorded | - | - | not recorded | +38 -38 | 0 | 0 | 0 | integrator's commit, no issue id; the lines are API reports only |
+| 167 | M4-45 | Port: convoy 2 | M4 | `05bebdf` | 00:42 | not recorded | - | - | not recorded | +3123 -8 | 1741 | 392 | 435 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here; holds M4-44 too, which has no commit of its own (errata H32) |
+| 168 | M4-42 | Port: morris-referee | M4 | `93a729f` | 00:42 | not recorded | - | - | not recorded | +519 -7 | 108 | 234 | 154 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 169 | M4-06 | Standing checks: replay and resume from every boundary for every game | M4 | `2b77fed` | 00:42 | not recorded | - | - | not recorded | +500 -0 | 133 | 350 | 0 | built while the first integrator session of M4 ran (before 2026-11-15 05:32 UTC); its session reports are not here |
+| 170 | - | API reports regenerated after the merges | M4 | `b4bc00f` | 00:44 | not recorded | - | - | not recorded | +38 -38 | 0 | 0 | 0 | integrator's commit, no issue id; the lines are API reports only |
+| 171 | M4-64 | A lock on another mechanic's tool by its bare name | M4 | `7f85584` | 05:45 | 0.15 | - | - | 0.16 | +60 -26 | 46 | 28 | 9 | one builder session; added by decision A42, beside the plan |
+| 172 | M4-23 | Game: Harbor Lights, the arms of the series | M4 | `4c6fbd9` | 05:48 | 0.22 | - | - | 0.21 | +592 -10 | 210 | 312 | 80 | one builder session |
+| 173 | M4-20 | Game: liar's dice and its oracle files | M4 | `8a1c200` | 05:49 | 0.25 | - | - | 0.22 | +551 -13 | 155 | 312 | 86 | one builder session |
+| 174 | M4-37 | Port: holdem 1 | M4 | `6a23493` | 05:49 | 0.23 | - | - | 0.24 | +1850 -4 | 1110 | 277 | 7 | one builder session |
+| 175 | M4-47 | Port: salt-market 1 | M4 | `c5419cb` | 05:52 | 0.30 | - | - | 0.29 | +2629 -4 | 1520 | 347 | 6 | one builder session |
+| 176 | M4-26 | Game: Lanterns and its oracle files | M4 | `4256744` | 05:55 | 0.21 | - | - | 0.15 | +537 -7 | 141 | 329 | 74 | one builder session |
+| 177 | - | Decision A43: issue M4-65, state in schema key order after a resume | M4 | `8927d15` | 05:55 | not recorded | - | - | not recorded | +1 -0 | 0 | 0 | 1 | integrator's commit, no issue id; decision A43 adds M4-65 |
+| 178 | M4-24 | Harbor Lights: the crew arm and the options | M4 | `95d42b2` | 05:56 | 0.13 | - | - | 0.10 | +98 -36 | 2 | 105 | 27 | one builder session |
+| 179 | M4-29 | Game: chess and the five files that exist | M4 | `d8f1794` | 06:01 | 0.19 | - | - | 0.18 | +527 -8 | 150 | 295 | 85 | one builder session |
+| 180 | M4-38 | Port: holdem 2 | M4 | `8573a4d` | 06:02 | 0.20 | - | - | 0.20 | +1252 -23 | 588 | 251 | 327 | one builder session |
+| 181 | M4-48 | Port: salt-market 2 | M4 | `c13daf8` | 06:05 | 0.24 | - | - | 0.20 | +1638 -71 | 587 | 274 | 548 | one builder session |
+| 182 | M4-65 | State in schema key order after a resume (A43) | M4 | `843b5fd` | 06:15 | 0.16 | - | - | 0.30 | +177 -28 | 56 | 78 | 0 | one builder session; added by decision A43, beside the plan |
+| 183 | M4-39 | Game: hold'em and the five files that exist | M4 | `c050b69` | 06:15 | 0.17 | - | - | 0.20 | +576 -12 | 159 | 328 | 88 | one builder session |
+| 184 | M4-28 | Port: chess 2: teams, lists, threats, the coach | M4 | `b571d3c` | 06:15 | 0.18 | - | - | 0.22 | +191 -41 | 8 | 202 | 22 | one builder session |
+| 185 | M4-31 | Additions: Harbor Lights and Lanterns | M4 | `3040042` | 06:16 | 0.19 | - | - | 0.32 | +436 -15 | 113 | 323 | 15 | one builder session |
+| 186 | - | Resume note: the state of M4 after the change of integrator session | M4 | `16ca326` | 06:30 | not recorded | - | - | not recorded | +17 -0 | 0 | 0 | 17 | integrator's commit, no issue id; the resume note after the change of integrator session |
+| 187 | M4-46 | Game: Convoy and its oracle files | M4 | `0a7a0a6` | 06:39 | 0.16 | - | - | 0.15 | +546 -8 | 134 | 336 | 80 | one builder session |
+| 188 | M4-30 | Chess: the variants | M4 | `0669176` | 06:40 | 0.17 | - | - | 0.16 | +240 -79 | 127 | 138 | 48 | one builder session |
+| 189 | M4-35 | Port: sealed-auction | M4 | `8e22083` | 06:45 | 0.24 | - | - | 0.25 | +2055 -8 | 972 | 295 | 292 | one builder session |
+| 190 | M4-33 | Port: trick-play | M4 | `07d027a` | 06:49 | 0.30 | - | - | 0.33 | +2393 -9 | 1347 | 430 | 385 | one builder session |
+| 191 | M4-32 | Additions: chess | M4 | `5a7565a` | 06:50 | 0.17 | - | - | 0.16 | +297 -44 | 148 | 186 | 7 | one builder session |
+| 192 | - | Decision A44: turns without a call as a run fact; replay helpers into the testkit | M4 | `e71d2d8` | 06:50 | not recorded | - | - | not recorded | +1 -0 | 0 | 0 | 1 | integrator's commit, no issue id; decision A44 |
+| 193 | M4-43 | Game: nine men's morris and its oracle files | M4 | `1997ab8` | 06:52 | 0.20 | - | - | 0.36 | +679 -12 | 236 | 361 | 90 | one builder session |
+| 194 | M4-49 | Game: Salt Market and its oracle files | M4 | `abea0c7` | 06:53 | 0.19 | - | - | 0.19 | +651 -10 | 134 | 301 | 81 | one builder session |
+| 195 | M4-36 | Game: Blind Bid and its oracle files | M4 | `675d5bd` | 06:55 | 0.16 | - | - | 0.16 | +488 -8 | 134 | 276 | 83 | one builder session |
+| 196 | M4-40 | Hold'em: the aid and mixed tables | M4 | `3c9f3e8` | 06:59 | 0.13 | - | - | 0.09 | +135 -38 | 31 | 113 | 25 | one builder session |
+| 197 | M4-34 | Game: Ember Tricks and its oracle files | M4 | `bd65302` | 07:01 | 0.19 | - | - | 0.17 | +628 -9 | 191 | 361 | 78 | one builder session |
+| 198 | M4-09 | Report and result lines | M4 | `c6157fc` | 07:03 | 0.19 | - | - | 0.21 | +193 -48 | 157 | 72 | 4 | one builder session |
+| 199 | M4-66 | Key order after a resume, the rest (A43) | M4 | `617c742` | 07:16 | 0.16 | - | - | 0.35 | +97 -55 | 54 | 98 | 0 | one builder session; added by decision A45 (the second half of A43), beside the plan |
+| 200 | M4-10 | docs/reference/errors.md, generated and gated | M4 | `7083053` | 07:16 | 0.18 | - | - | 0.19 | +1275 -0 | 415 | 90 | 770 | one builder session; "Other" holds the generated page `docs/reference/errors.md` |
+| 201 | M4-58 | The rerun plan of M4 and its specs | M4 | `5b6336a` | 07:17 | 0.21 | - | - | 0.30 | +576 -15 | 64 | 77 | 447 | one builder session |
+| 202 | M4-50 | Additions: liar's dice and Blind Bid | M4 | `759e194` | 07:26 | 0.25 | - | - | 0.45 | +818 -261 | 368 | 604 | 22 | one builder session |
+| 203 | M4-53 | parallel 1: the sample scheduler (A30, A35) | M4 | `7156ef2` | 07:27 | 0.17 | - | - | 0.24 | +502 -6 | 238 | 257 | 11 | one builder session |
+| 204 | M4-14 | Sample 6: own Director, with its tutorial | M4 | `6f3f22c` | 07:28 | 0.19 | - | - | 0.19 | +617 -5 | 210 | 169 | 243 | one builder session |
+| 205 | M4-15 | The brain's option | M4 | `c1710a1` | 07:30 | 0.10 | - | - | 0.22 | +35 -5 | 13 | 23 | 3 | one builder session; the session reported twice (it waited on its own background work), the last report is taken |
+| 206 | M4-52 | Additions: nine men's morris and Convoy (Salt Market split to M4-67) | M4 | `9a898e2` | 07:48 | 0.21 | - | - | 0.32 | +537 -45 | 268 | 288 | 26 | one builder session; the session reported twice (it waited on its own background work), the last report is taken |
+| 207 | - | Decision A45: M4-52 split, issue M4-67 | M4 | `d6828da` | 07:48 | not recorded | - | - | not recorded | +1 -0 | 0 | 0 | 1 | integrator's commit, no issue id; decision A45 splits M4-52 and adds M4-67 |
+| 208 | M4-51 | Additions: Ember Tricks and hold'em | M4 | `8257d73` | 07:49 | 0.20 | - | - | 0.33 | +526 -27 | 199 | 332 | 22 | one builder session |
+| 209 | M4-56 | Chess analysis: the vendored engine | M4 | `a117951` | 07:51 | 0.18 | - | - | 0.21 | +3663 -6 | 665 | 289 | 92 | one builder session; the line columns leave out `third_party/garbochess/garbochess.js` (2515 lines, carried from `legacy`); "Lines" holds it |
+| 210 | M4-54 | Parallel scheduler 2: replay by the close line, resume by replay | M4 | `f7f29c1` | 07:51 | 0.16 | - | - | 0.40 | +301 -27 | 98 | 228 | 0 | one builder session |
+| 211 | M4-12 | Docs chores: quarry and econ-lab READMEs, RESUME, design checklist | M4 | `7c48fb4` | 07:56 | 0.11 | - | - | 0.07 | +62 -12 | 0 | 0 | 74 | one builder session |
+| 212 | M4-12 follow-up | the brain's retro is after each game but the last, in five game READMEs | M4 | `1c423dc` | 07:57 | not recorded | - | - | not recorded | +5 -5 | 0 | 0 | 10 | integrator's commit; follow-up of row 211 (M4-12) |
+| 213 | M4-57 | Viewer: ticks, overlapping activations | M4 | `62f203a` | 08:03 | 0.20 | - | - | 0.18 | +436 -47 | 115 | 192 | 173 | one builder session |
+| 214 | M4-55 | parallel 3: the sample game, the tutorial | M4 | `054781a` | 08:06 | 0.15 | - | - | 0.23 | +607 -4 | 90 | 144 | 377 | one builder session |
+| 215 | M4-67 | Additions: Salt Market and the Referee of morris (A45) | M4 | `37c8043` | 08:09 | 0.16 | - | - | 0.27 | +431 -55 | 258 | 207 | 21 | one builder session; added by decision A45, beside the plan |
+| 216 | M4-03 | Gates: base alone, unused dependencies, plain mechanic, kernel words | M4 | `2123c5d` | 08:10 | 0.14 | - | - | 0.14 | +656 -118 | 2 | 503 | 151 | one builder session; merged after M4-50 to M4-52 and M4-67 (errata H17) |
+| 217 | M4-62 | GAMES.md complete, the overview generated | M4 | `e94ceea` | 08:13 | 0.15 | - | - | 0.25 | +474 -50 | 328 | 68 | 128 | one builder session |
+| 218 | M4-13 | Sample 5: own mechanic, with its tutorial | M4 | `f5b97d1` | 08:29 | 0.23 | - | - | 0.29 | +818 -6 | 217 | 207 | 397 | one builder session |
+| 219 | M4-63 prep | lint every workspace root in groups | M4 | `39165b2` | 08:41 | not recorded | - | - | not recorded | +3 -3 | 6 | 0 | 0 | integrator's commit; prep of M4-63, whose own row is owed (the integrator adds it with the merge) |
+| 220 | M4-63 prep | API reports of decisions and liar's dice current | M4 | `7ea5ea1` | 08:52 | not recorded | - | - | not recorded | +149 -42 | 0 | 0 | 0 | integrator's commit; prep of M4-63, as row 219; the lines are API reports only |
+| 221 | M4-60 | Live smokes 1 | M4 | `5d162e6` | 10:38 | 0.28 | - | - | 1.77 | +81 -0 | 0 | 0 | 81 | one session for M4-60 and M4-61 (row 222); live: six runs, 0.2685 USD (`games/m4-ledger.jsonl`), revision 4; the run folders are on `data/runs` |
+| 222 | M4-61 | Live smokes 2 | M4 | `827675b` | 10:38 | in row 221 | - | - | in row 221 | +69 -0 | 0 | 0 | 69 | played and written by the session of row 221 (M4-60 and M4-61 together); live: four runs, 0.5932 USD (`games/m4-ledger.jsonl`), revision 4 |
+| 223 | M4-61 follow-up | the data commit of the smokes in the runs indexes | M4 | `7bd6e87` | 10:39 | not recorded | - | - | not recorded | +10 -10 | 0 | 0 | 20 | integrator's commit; follow-up of row 222 (M4-61); the ten folders are on `data/runs` at `024119a1` |
+| 224 | - | Decision A46: the findings of the M4 smokes, issues M4-68 to M4-71 | M4 | `b58aac5` | 10:40 | not recorded | - | - | not recorded | +1 -0 | 0 | 0 | 1 | integrator's commit, no issue id; decision A46 adds M4-68 to M4-71 |
+| 225 | M4-68 | Replay takes the cost cap from the log; the cap is not passed (A46) | M4 | `6d1a685` | 11:00 | 0.16 | - | - | 0.23 | +550 -34 | 116 | 130 | 325 | one builder session; added by decision A46, beside the plan; raises the runtime revision to 5 (tag `runtime-r5` owed) |
+| 226 | M4-69 | Option quietEnds: no answer wake after a call that ends a seat's part (A46) | M4 | `9e7c8a8` | 11:02 | 0.23 | - | - | 0.33 | +329 -49 | 91 | 250 | 33 | one builder session; added by decision A46, beside the plan |
+| 227 | M4-70 | Salt Market option markOwnOffers, with its live check (A46) | M4 | `fcec4aa` | 11:14 | 0.17 | - | - | 0.53 | +175 -10 | 77 | 93 | 13 | one builder session; added by decision A46, beside the plan; live check run 0.1746 USD (`games/m4-ledger.jsonl`) |
+| 228 | M4-71 | The full check fits its budget again (A46) | M4 | `41e6371` | 13:26 | 0.23 | - | - | 2.41 | +408 -242 | 264 | 227 | 15 | one builder session; the session reported twice (it waited on its own background work), the last report is taken; added by decision A46, beside the plan; `pnpm check` 549.3 s of 600 s |
 
 ## Sessions without a row
 
@@ -228,43 +327,47 @@ Sessions whose name matches no row of the record. By their names their work is t
 
 ## Totals
 
-State at commit `77d0307`, 143 rows (141 commits and the milestone reviews of M2 and M3, which have no commit). The
-token sums below are those of the first 82 rows: the usage file of the sessions ends there, and the rows 83 to 143
-have no number.
+State at commit `41e6371`, 228 rows (226 commits and the milestone reviews of M2 and M3, which have no commit). The
+token sums below are those of the first 82 rows and of the rows 171 to 228: the usage file of the sessions ends at
+row 82, the rows 83 to 170 have no number, and the rows of M4 from 171 on take the notices of the second
+integrator session.
 
 | | Planned | Merged | Note |
 |---|---|---|---|
 | M0 | 14 (A12) | not recorded per issue | 3 rows: the root commit squashes the issues of the frame, then the oracle files and the spike paper. The other M0 issues on the old state (the resume note names the noise floor and the chess engine) were merged on `legacy` and have no row |
 | M1 | 37 (A12) | 37 | M1-00 to M1-36 |
-| M2 | 25 (A12) | 25 | M2-00 to M2-24; the gate M2-24 merged last (row 129, [`M2-GATE.md`](M2-GATE.md): 61 live runs, 1.6022 USD of the live budget of 10 USD). Beside the plan: the follow-up issues M2-25 and M2-26 of the reviews, both merged, and M2-27 (row 134), which closes the milestone review (row 132) |
-| Sum of M0 to M2 | 76 | 62 planned issues of M1 and M2, plus the 3 rows of M0. With the issues beside the plan (M1-37 to M1-40, M2-25 to M2-27): **72**, the number of kill check 1; with M2-28 and M2-29 (A29, merged after the gate): 74 | kill line 150. Every row with the milestone M0, M1 or M2 (reviews, the specification, follow-up and integrator commits included): 90 |
+| M2 | 25 (A12) | 25 | M2-00 to M2-24; the gate M2-24 merged last (row 129, [`M2-GATE.md`](M2-GATE.md): 61 live runs, 1.6022 USD of the live budget of 10 USD). Beside the plan: the follow-up issues M2-25 and M2-26 of the reviews, both merged, M2-27 (row 134), which closes the milestone review (row 132), and M2-28 to M2-30 of A29 (rows 141, 142, 153) |
+| Sum of M0 to M2 | 76 | 62 planned issues of M1 and M2, plus the 3 rows of M0. With the issues beside the plan (M1-37 to M1-40, M2-25 to M2-27): **72**, the number of kill check 1; with M2-28 to M2-30 (A29, merged after the gate): 75 | kill line 150. Every row with the milestone M0, M1 or M2 (reviews, the specification, follow-up and integrator commits included): 91 |
 | M3 | 32 (A19), 33 with M3-32 (A24) | 33 | M3-00 to M3-32 (rows 130 and 131 are the live smoke M3-30 and the gate M3-31). Beside the plan: M3-33 (A26, row 137) and M3-34 (row 138), which closes the milestone review (row 135). M3 is closed by decision A28 (row 139). Stop line of A19: above 64 |
-| M4 | 64 (A32) | 0 | M4-00 to M4-63; the specification is row 143. The cut list is applied at 90 issues merged or open, and M4 is stopped and planned again above 128 (A32) |
+| M4 | 64 (A32), 72 with M4-64 to M4-71 (A42, A43, A45, A46) | 70 | M4-00 to M4-58, M4-60 to M4-62 and M4-64 to M4-71 (rows 144 to 228); M4-44 has no commit of its own and is inside M4-45 (row 167, errata H32). Open when this was written: M4-59, the three series (running; its row and its live spend are the integrator's), and M4-63, the gate. The specification is row 143. The cut list is applied at 90 issues merged or open, and M4 is stopped and planned again above 128 (A32): 72 stand, nothing was cut |
 
-Rows beside the plan: 45. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
-milestone), the specifications of M2, M3 and M4, the reviews A and B and the milestone review of M2, the five
-follow-up issues of M2 (M2-25 to M2-29), the milestone review of M3 and its two issues (M3-33, M3-34), four
-follow-up commits with the id of their issue (rows 89, 96, 106, 139), and nineteen commits of the integrator
-without an issue id.
+Rows beside the plan: 69. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
+milestone), the specifications of M2, M3 and M4, the reviews A and B and the milestone review of M2, the six
+follow-up issues of M2 (M2-25 to M2-30), the milestone review of M3 and its two issues (M3-33, M3-34), the eight
+issues M4-64 to M4-71 (A42, A43, A45, A46), eight follow-up and prep commits with the id of their issue (rows 89, 96,
+106, 139, 212, 219, 220, 223), and thirty commits of the integrator without an issue id (eleven of them in M4: five
+decisions, three of API reports, a lint change, a README fix, the resume note).
 
 | | Recorded | Budget | Share |
 |---|---|---|---|
-| Agent tokens in rows (70 of 143 rows have a number, 73 are "not recorded") | 13.22 million | | |
+| Agent tokens in rows (118 of 228 rows have a number, row 222 points to row 221, 109 are "not recorded") | 22.39 million | | |
 | Agent tokens of the 12 sessions without a row | 2.38 million | | |
-| Agent tokens, all 85 session reports | 15.60 million | 300 million | 5.2 % |
+| Agent tokens, the 85 session reports up to row 82 | 15.60 million | 300 million (M0 to M2) | 5.2 % |
+| Agent tokens, the 48 builder sessions of M4 from row 171 on | 9.17 million | | median 0.19 million, largest 0.30 million (M4-47); agent time 15.12 h |
 | Agent cost | - | 750 USD | the sessions are not billed per token, so the USD line of the kill criterion cannot be counted |
 | Live model spend | 1.6022 USD (M2 gate, 61 runs, `games/m2-ledger.jsonl`) and 0.0206 USD (M3 smoke, 3 runs, `games/m3-ledger.jsonl`) on this platform; 0.72 USD before M2 on the old one (specification of M2, 8.5) | 10 USD | not a kill number |
+| Live model spend after M3 | 0.6515 USD (M2-30, the two cure series of A29, 24 runs, `games/a29-ledger.jsonl`); M4: 0.8615 USD (smokes of M4-60 and M4-61, 10 runs) and 0.1746 USD (the check run of M4-70), 1.0361 USD in `games/m4-ledger.jsonl` at `41e6371`. The series of M4-59 were running when this was written; their spend is the integrator's to add | M4: 12.00 USD (A33); the rewrite: 50 USD | not a kill number |
 
 **Kill check 1** (specification of M2, 8.6), recounted by M2-27 from the rows above and written into
 [`M2-GATE.md`](M2-GATE.md): 72 issues of M0 to M2 against 150; 15.60 million recorded tokens against 600 million
 (a lower bound, see below); no agent cost in USD. It does not fire.
 
-The recorded sum leaves out the integrator's session, every session after row 82 (the rest of M2 and all of M3)
-and counts each session as it reported itself, so it is a lower bound of what the work used. The median of the 70
-rows with a number is 0.16 million tokens, the largest row 0.64 million. The one recalibration of D4 (the median of
-the first ten merged issues replaces the 6 million per issue) is not done and is closed without being done: the
-budget it would recalibrate ended with M2, and the rows after 82 hold no token number (specification of M4,
-section 5.3; written by issue M4-00).
+The recorded sum leaves out the integrator's sessions, every session between row 82 and row 171 (the rest of M2, all
+of M3 and the first batch of M4, rows 144 to 170) and counts each session as it reported itself, so it is a lower
+bound of what the work used. The median of the 70 rows up to row 82 with a number is 0.16 million tokens, the largest
+row 0.64 million. The one recalibration of D4 (the median of the first ten merged issues replaces the 6 million per
+issue) is not done and is closed without being done: the budget it would recalibrate ended with M2, and the rows 83 to
+170 hold no token number (specification of M4, section 5.3; written by issue M4-00).
 
 ## The gate of M3
 
