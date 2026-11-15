@@ -34,7 +34,50 @@ to: Type.TString;
 author: Type.TString;
 text: Type.TString;
 }>;
-}, "readBoard" | "postBoard" | "sendDM">;
+readonly group_created: Type.TObject<{
+group: Type.TString;
+founder: Type.TString;
+name: Type.TString;
+}>;
+readonly group_removed: Type.TObject<{
+group: Type.TString;
+members: Type.TArray<Type.TString>;
+}>;
+readonly group_membership: Type.TObject<{
+group: Type.TString;
+agent: Type.TString;
+change: Type.TUnion<[Type.TLiteral<"added">, Type.TLiteral<"removed">, Type.TLiteral<"left">]>;
+by: Type.TString;
+}>;
+readonly group_post: Type.TObject<{
+group: Type.TString;
+author: Type.TString;
+postSeq: Type.TInteger;
+text: Type.TString;
+}>;
+readonly treasury_deposit: Type.TObject<{
+group: Type.TString;
+agent: Type.TString;
+amount: Type.TNumber;
+receipt: Type.TString;
+}>;
+readonly treasury_withdrawal: Type.TObject<{
+group: Type.TString;
+treasurer: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+receipt: Type.TString;
+}>;
+readonly treasurer_set: Type.TObject<{
+group: Type.TString;
+treasurer: Type.TString;
+by: Type.TString;
+}>;
+readonly treasury_settled: Type.TObject<{
+group: Type.TString;
+payouts: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+}, "readBoard" | "postBoard" | "sendDM" | "createGroup" | "addGroupMember" | "removeGroupMember" | "leaveGroup" | "listMyGroups" | "postGroup" | "readGroup" | "depositGroup" | "withdrawGroup" | "setTreasurer">;
 
 // @public
 export const ChannelsEvents: EventsDefinition<"channels", {
@@ -59,6 +102,49 @@ readonly notice: Type.TObject<{
 to: Type.TString;
 author: Type.TString;
 text: Type.TString;
+}>;
+readonly group_created: Type.TObject<{
+group: Type.TString;
+founder: Type.TString;
+name: Type.TString;
+}>;
+readonly group_removed: Type.TObject<{
+group: Type.TString;
+members: Type.TArray<Type.TString>;
+}>;
+readonly group_membership: Type.TObject<{
+group: Type.TString;
+agent: Type.TString;
+change: Type.TUnion<[Type.TLiteral<"added">, Type.TLiteral<"removed">, Type.TLiteral<"left">]>;
+by: Type.TString;
+}>;
+readonly group_post: Type.TObject<{
+group: Type.TString;
+author: Type.TString;
+postSeq: Type.TInteger;
+text: Type.TString;
+}>;
+readonly treasury_deposit: Type.TObject<{
+group: Type.TString;
+agent: Type.TString;
+amount: Type.TNumber;
+receipt: Type.TString;
+}>;
+readonly treasury_withdrawal: Type.TObject<{
+group: Type.TString;
+treasurer: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+receipt: Type.TString;
+}>;
+readonly treasurer_set: Type.TObject<{
+group: Type.TString;
+treasurer: Type.TString;
+by: Type.TString;
+}>;
+readonly treasury_settled: Type.TObject<{
+group: Type.TString;
+payouts: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
 }>;
 
@@ -96,6 +182,73 @@ to: Type.TString;
 text: Type.TString;
 number: Type.TInteger;
 }>>;
+};
+readonly createCityGroup: {
+readonly kind: "command";
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+readonly input: Type.TObject<{
+name: Type.TString;
+members: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+};
+readonly removeCityGroup: {
+readonly kind: "command";
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly postGroupAsCity: {
+readonly kind: "command";
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly group: {
+readonly kind: "query";
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+id: Type.TString;
+name: Type.TString;
+founder: Type.TString;
+treasurer: Type.TString;
+members: Type.TArray<Type.TString>;
+removed: Type.TBoolean;
+}>, Type.TNull]>;
+};
+readonly groupPost: {
+readonly kind: "query";
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+group: Type.TString;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly couldRead: {
+readonly kind: "query";
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+readonly input: Type.TObject<{
+group: Type.TString;
+reader: Type.TString;
+number: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
 };
 }>;
 

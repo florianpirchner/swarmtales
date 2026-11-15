@@ -33,6 +33,16 @@ export const RETIRED: readonly RetiredWord[] = [
  */
 export const ALLOWED_IDENTIFIERS: ReadonlySet<string> = new Set<string>();
 
+/**
+ * The list of carried texts: sentences of prompt files carried byte for byte from the old platform that hold a
+ * retired word (12-m5-spec.md 2.5, rule 7). The prose lint leaves them out wherever they stand, in the prompt file
+ * and in a generated README that quotes it. An entry names its file and its issue.
+ */
+export const CARRIED_TEXTS: readonly string[] = [
+	// mechanics/channels/prompts/channels/tools/addGroupMember.md, M5-13
+	"Adds a competitor to a group you founded.",
+];
+
 const use = (word: string): string => RETIRED.find((entry) => entry.word === word)?.use ?? "";
 
 const isExported = (node: ts.Node): boolean =>
@@ -75,12 +85,14 @@ export function retiredExports(text: string): readonly string[] {
 
 /**
  * Finds retired words in prose. Only the words that have no everyday meaning are checked; text in backticks is
- * left out, because it quotes code.
+ * left out, because it quotes code, and so is every text of `CARRIED_TEXTS`.
  *
  * @param text - A Markdown text.
  * @returns The hits, each with its line.
  */
 export function retiredProse(text: string): readonly WordHit[] {
 	const listed = new Set(RETIRED.filter((entry) => entry.inProse).map((entry) => entry.word));
-	return findWords(text.replace(/`[^`\n]*`/g, (quoted) => " ".repeat(quoted.length)), listed);
+	const blank = (quoted: string): string => " ".repeat(quoted.length);
+	const prose = CARRIED_TEXTS.reduce((rest, carried) => rest.split(carried).join(blank(carried)), text.replace(/`[^`\n]*`/g, blank));
+	return findWords(prose, listed);
 }

@@ -4,6 +4,10 @@ import { defineEvents } from "@swarmtales/sdk";
 
 const Id = Type.String({ description: "A resident id, for example `A01`" });
 const Number = Type.Integer({ description: "The city's message number of the direct message" });
+const Group = Type.String({ description: "The group's id, for example `G1`" });
+const Who = Type.String({ description: "A resident id, or `CITY` for the city" });
+const Points = Type.Number({ description: "The points booked" });
+const Receipt = Type.String({ description: "The id of the receipt of the booking; empty when none was issued" });
 
 /**
  * The events of `channels`, declared apart so a listener needs no value import of the mechanic. The payloads keep
@@ -29,5 +33,19 @@ export const ChannelsEvents = defineEvents("channels", {
 	notice: Type.Object(
 		{ to: Id, author: Type.String({ description: "The name the notice is signed with" }), text: Type.String({ description: "The text" }) },
 		{ description: "A private notice was left for a resident; it is shown at the resident's next activation" },
+	),
+	group_created: Type.Object({ group: Group, founder: Who, name: Type.String({ description: "The group's name, trimmed" }) }, { description: "A group was founded, by a resident or by the city" }),
+	group_removed: Type.Object({ group: Group, members: Type.Array(Id, { description: "The members, in join order" }) }, { description: "The city removed one of its groups; nobody sees it any more" }),
+	group_membership: Type.Object(
+		{ group: Group, agent: Id, change: Type.Union([Type.Literal("added"), Type.Literal("removed"), Type.Literal("left")], { description: "How the membership changed" }), by: Who },
+		{ description: "A resident joined or left a group" },
+	),
+	group_post: Type.Object({ group: Group, author: Who, postSeq: Type.Integer({ description: "The city's message number of the post" }), text: Type.String({ description: "The text, trimmed" }) }, { description: "A post was written in a group" }),
+	treasury_deposit: Type.Object({ group: Group, agent: Id, amount: Points, receipt: Receipt }, { description: "A member paid points into the group's treasury" }),
+	treasury_withdrawal: Type.Object({ group: Group, treasurer: Who, to: Id, amount: Points, receipt: Receipt }, { description: "The treasurer paid points out of the treasury to a member" }),
+	treasurer_set: Type.Object({ group: Group, treasurer: Id, by: Id }, { description: "The treasurer handed the treasury to another member" }),
+	treasury_settled: Type.Object(
+		{ group: Group, payouts: Type.Record(Type.String({ description: "A member" }), Type.Number({ description: "The points paid out" }), { description: "Member to points" }) },
+		{ description: "A treasury was split among the members: at the run's end, or when the city removed the group" },
 	),
 });

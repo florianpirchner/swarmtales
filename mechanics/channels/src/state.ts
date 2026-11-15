@@ -3,6 +3,7 @@
 import { Type, type Static } from "typebox";
 import { Board } from "./board.ts";
 import { ChannelsEvents } from "./events.ts";
+import { GroupRegistry } from "./groups.ts";
 import { Mailbox } from "./mailbox.ts";
 import { MessageNumbers } from "./numbers.ts";
 
@@ -48,17 +49,19 @@ export interface ChannelsState {
 	readonly inboxes: Map<string, Inbox>;
 	/** The newest player post each resident has seen (the news of the board). */
 	readonly seenBoard: Map<string, number>;
+	/** The groups and their posts. */
+	readonly groups: GroupRegistry;
 }
 
 /**
  * Builds the state of a fresh run.
  *
  * @param residents - Every resident of the run.
- * @returns The state: an empty board, no direct message and an empty inbox per resident.
+ * @returns The state: an empty board, no direct message, an empty inbox per resident and no group.
  */
 export function newState(residents: readonly string[]): ChannelsState {
 	const numbers = new MessageNumbers();
-	return { numbers, board: new Board(numbers), dms: [], inboxes: new Map(residents.map((id) => [id, { mailbox: new Mailbox(), notices: [] }])), seenBoard: new Map() };
+	return { numbers, board: new Board(numbers), dms: [], inboxes: new Map(residents.map((id) => [id, { mailbox: new Mailbox(), notices: [] }])), seenBoard: new Map(), groups: new GroupRegistry(numbers) };
 }
 
 const Id = Type.String({ description: "A resident id" });
@@ -73,6 +76,28 @@ const NoticeSlice = Type.Object({ author: Type.String({ description: "The name i
 const Tick = Type.Integer({ description: "The tick it was sent in" });
 const Mail = Type.Object({ from: Type.String({ description: "Who sent it" }), text: Text, tick: Tick, number: Seq }, { description: "An unread direct message" });
 const Dm = Type.Object({ number: Seq, from: Type.String({ description: "Who sent it" }), to: Id, text: Text, tick: Tick }, { description: "One direct message of the city's records" });
+const Agent = Type.String({ description: "A member" });
+const GroupSlice = Type.Object(
+	{
+		id: Type.String({ description: "The id" }),
+		name: Type.String({ description: "The name" }),
+		founder: Type.String({ description: "The founder" }),
+		treasurer: Type.String({ description: "The treasurer" }),
+		members: Type.Array(Type.Object({ agent: Agent, joinedAtSeq: Seq }, { description: "A member and the message number at its join" }), { description: "The members, in join order" }),
+		reads: Type.Array(Type.Object({ agent: Agent, seq: Seq }, { description: "How far a member has read" }), { description: "The read cursors" }),
+		posts: Type.Array(Type.Object({ seq: Seq, author: Type.String({ description: "Who wrote it" }), text: Text, tick: Tick }, { description: "One post" }), { description: "The posts, oldest first" }),
+		removed: Type.Optional(Type.Literal(true, { description: "Removed by the city" })),
+	},
+	{ description: "One group" },
+);
+const GroupsSlice = Type.Object(
+	{
+		groups: Type.Array(GroupSlice, { description: "The groups, `G1` first" }),
+		founded: Type.Array(Type.Object({ agent: Agent, count: Type.Integer({ description: "Groups founded" }) }, { description: "A founder count" }), { description: "How many groups each resident founded" }),
+		seq: Seq,
+	},
+	{ description: "The groups" },
+);
 const InboxSlice = Type.Object({ resident: Id, mailbox: Type.Array(Mail, { description: "The unread direct messages, oldest first" }), notices: Type.Array(NoticeSlice, { description: "The notices, oldest first" }) }, { description: "The inbox of one resident" });
 
 /** The snapshot slice of `channels`. */
@@ -83,9 +108,20 @@ export const ChannelsSlice = Type.Object(
 		dms: Type.Array(Dm, { description: "Every direct message that was sent, oldest first" }),
 		inboxes: Type.Array(InboxSlice, { description: "What waits for each resident" }),
 		seen: Type.Array(Type.Object({ resident: Id, seq: Seq }, { description: "A seen mark" }), { description: "The newest player post each resident has seen" }),
+		groups: GroupsSlice,
 	},
-	{ description: "The board, the message counter, the direct messages, the inboxes and the seen marks" },
+	{ description: "The board, the message counter, the direct messages, the inboxes, the seen marks and the groups" },
 );
+
+/**
+ * Turns a slice of version 1 (before the groups) into version 2: no group was founded.
+ *
+ * @param data - The data of a slice of version 1.
+ * @returns The data with an empty `groups`.
+ */
+export function withoutGroups(data: unknown): unknown {
+	return typeof data === "object" && data !== null ? { ...data, groups: { groups: [], founded: [], seq: 0 } } : data;
+}
 
 /**
  * Saves the state into its slice.
@@ -100,6 +136,7 @@ export function saveState(state: ChannelsState): Static<typeof ChannelsSlice> {
 		dms: [...state.dms],
 		inboxes: [...state.inboxes].map(([resident, inbox]) => ({ resident, mailbox: inbox.mailbox.snapshot(), notices: [...inbox.notices] })),
 		seen: [...state.seenBoard].map(([resident, seq]) => ({ resident, seq })),
+		groups: state.groups.snapshot(),
 	};
 }
 
@@ -114,6 +151,7 @@ export function loadState(data: Static<typeof ChannelsSlice>, residents: readonl
 	const state = newState(residents);
 	state.numbers.raiseTo(data.messages);
 	state.board.restore(data.board);
+	state.groups.restore(data.groups);
 	state.dms.push(...data.dms);
 	for (const entry of data.inboxes) {
 		const inbox = state.inboxes.get(entry.resident);

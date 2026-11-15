@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
-/** The head of `channels`: its state with the snapshot, its events, its service, its prompts and its tools. */
+/** The head of `channels`: its state with the snapshot, its events, its services, its prompts and its tools. */
 import { Type } from "typebox";
+import { ReceiptSourceService } from "@swarmtales/mechanic-contracts";
+import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { defineHead, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { MAX_BOARD_POST_LENGTH } from "./board.ts";
 import { ChannelsService } from "./contract.ts";
 import { ChannelsEvents } from "./events.ts";
+import { GROUP_PROMPTS, GROUP_TOOLS } from "./group-specs.ts";
 import { MAX_DM_LENGTH } from "./mailbox.ts";
-import { ChannelsSlice, loadState, newState, saveState, type ChannelsState } from "./state.ts";
+import { ChannelsSlice, loadState, newState, saveState, withoutGroups, type ChannelsState } from "./state.ts";
 
 /**
  * The head of `channels`: everything that can be read without running a handler.
@@ -16,12 +19,15 @@ import { ChannelsSlice, loadState, newState, saveState, type ChannelsState } fro
 export const channelsHead = defineHead({
 	id: "channels",
 	package: "@swarmtales/mechanic-channels",
-	summary: "Talk in the city: the public board, direct messages and private notices.",
+	summary: "Talk in the city: the public board, direct messages, private notices and groups with a treasury.",
 	state: ChannelsSlice,
 	start: ({ residents }): ChannelsState => newState(residents),
 	snapshot: { save: (state: ChannelsState) => saveState(state), load: (data, setup): ChannelsState => loadState(data, setup.residents) },
+	version: 2,
+	migrations: { 1: withoutGroups },
 	events: ChannelsEvents.events,
 	provides: [ChannelsService],
+	uses: [LedgerService, ReceiptSourceService],
 	prompts: {
 		"channels/tools/readBoard": [],
 		"channels/tools/postBoard": [],
@@ -33,6 +39,7 @@ export const channelsHead = defineHead({
 		"channels/input/dm": ["number", "from", "text"],
 		"channels/input/notice": ["author", "text"],
 		"channels/notices/dm-delivered": ["number", "agent", "minute", "text"],
+		...GROUP_PROMPTS,
 	},
 	tools: {
 		readBoard: {
@@ -56,6 +63,7 @@ export const channelsHead = defineHead({
 			}),
 			for: ["resident"],
 		},
+		...GROUP_TOOLS,
 	},
 });
 

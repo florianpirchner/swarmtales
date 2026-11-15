@@ -261,6 +261,73 @@ text: TString;
 number: TInteger;
 }>>;
 };
+readonly createCityGroup: {
+readonly kind: "command";
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+readonly input: TObject<    {
+name: TString;
+members: TArray<TString>;
+}>;
+readonly output: TObject<    {
+group: TString;
+}>;
+};
+readonly removeCityGroup: {
+readonly kind: "command";
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
+readonly input: TObject<    {
+group: TString;
+}>;
+readonly output: TNull;
+};
+readonly postGroupAsCity: {
+readonly kind: "command";
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
+readonly input: TObject<    {
+group: TString;
+text: TString;
+}>;
+readonly output: TNull;
+};
+readonly group: {
+readonly kind: "query";
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly input: TObject<    {
+group: TString;
+}>;
+readonly output: TUnion<[TObject<    {
+id: TString;
+name: TString;
+founder: TString;
+treasurer: TString;
+members: TArray<TString>;
+removed: TBoolean;
+}>, TNull]>;
+};
+readonly groupPost: {
+readonly kind: "query";
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+readonly input: TObject<    {
+number: TInteger;
+}>;
+readonly output: TUnion<[TObject<    {
+number: TInteger;
+group: TString;
+author: TString;
+text: TString;
+tick: TInteger;
+}>, TNull]>;
+};
+readonly couldRead: {
+readonly kind: "query";
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+readonly input: TObject<    {
+group: TString;
+reader: TString;
+number: TInteger;
+}>;
+readonly output: TBoolean;
+};
 }>], Readonly<Record<symbol, never>>>;
 
 // @public

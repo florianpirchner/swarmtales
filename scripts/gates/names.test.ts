@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { isBudgetFile } from "../lib/budget.ts";
 import { isCarried } from "../lib/carried.ts";
 import { listFiles, readText } from "../lib/files.ts";
-import { RETIRED, retiredExports, retiredProse } from "../lib/names.ts";
+import { CARRIED_TEXTS, RETIRED, retiredExports, retiredProse } from "../lib/names.ts";
 
 const GLOSSARY = "docs/GLOSSARY.md";
 /** The ten words of the vocabulary; the glossary defines each under its own heading. */
@@ -66,5 +66,11 @@ describe("name lint", () => {
 			{ line: 1, word: "overseer" },
 			{ line: 3, word: "competitor" },
 		]);
+	});
+
+	it("leaves a carried text out, and only that text", () => {
+		const carried = CARRIED_TEXTS[0] ?? "";
+		expect(carried).toContain("competitor");
+		expect(retiredProse(`> ${carried} No consent is needed.\nA competitor joins.`)).toEqual([{ line: 2, word: "competitor" }]);
 	});
 });

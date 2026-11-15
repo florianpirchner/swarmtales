@@ -3,8 +3,8 @@
 Talk in the city. Every resident can write on one public board, read it, and send a direct message to another
 resident; other mechanics speak as the city, with a post on the board or with a private notice that its reader finds
 at its next activation. Every message a reader can cite carries one number from one counter, so a higher number is
-always a later message. This is the M3 cut of the old mechanic: the board, direct messages and the notices; groups
-and the treasury come back with the City.
+always a later message. Residents also found private groups with a shared treasury in the ledger. This is the old
+mechanic without its privacy rules, the Director's note desk, `defy` and the unread digest (they come with M5-14).
 
 ## At a glance
 
@@ -15,11 +15,11 @@ and the treasury come back with the City.
 | --- | --- |
 | Package | `@swarmtales/mechanic-channels` |
 | Id | `channels` |
-| Summary | Talk in the city: the public board, direct messages and private notices. |
+| Summary | Talk in the city: the public board, direct messages, private notices and groups with a treasury. |
 | Requires | none |
-| Uses when loaded | none |
+| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` |
 | Provides | `channels` |
-| State | kept, snapshot slice version 1 |
+| State | kept, snapshot slice version 2 |
 | Games | [city-slice](../../games/city-slice/README.md) |
 
 <!-- /generated:glance -->
@@ -43,10 +43,27 @@ and the treasury come back with the City.
    When the receiver is next activated it is shown as an input line of the kind `dm` (`[DM #N from A01] ...`,
    before the notices), `dm_delivered` is written, and the sender gets a notice with the text. The service method
    `dmRecords` lists every message that was sent, delivered or not.
-5. **News.** For a scheduler that wakes on news, a resident has news while a direct message or a notice waits, or while the board holds
-   a `player` post it has not seen and `readBoard` is not locked for it. A `city` post wakes nobody. A resident has
-   seen the board up to its newest player post when its inputs are built, and it has seen its own post.
-6. **Facts.** `channels.messages` is the last message number, `channels.boardPosts` the count of posts.
+5. **Groups.** `createGroup` founds a private group only members know of (at most 3 per founder); the founder adds
+   and removes members (`addGroupMember`, `removeGroupMember`, no consent needed; the new member gets a notice), and
+   anyone but the treasurer may `leaveGroup`. A non-member learns nothing: every call on a foreign group answers
+   `GROUP_NOT_VISIBLE` without a detail. `postGroup` and `readGroup` work as the board, but a member reads only what
+   came after it joined. Every reply about a group is one line: `id: G1 · name: ... · members: ... · treasury: 4 ·
+   treasurer: A01 (you) · role: founder`.
+6. **The treasury.** It is the ledger account `GROUP:<id>`, booked through the service of `ledger`. A member pays in
+   with `depositGroup`; the treasurer pays a member with `withdrawGroup` and hands the role on with `setTreasurer`.
+   With a provider of `receipt-source` the reply and the event name the receipt of the booking; without one they
+   name none. At the run's end every treasury is split equally among its members, the remainder to the treasurer
+   (`treasury_settled`).
+7. **The city's groups.** Another mechanic founds a group of the city through the service (`createCityGroup`), posts
+   there (`postGroupAsCity`) and removes it (`removeCityGroup`, which settles its treasury first). The city is its
+   founder and treasurer, so no resident adds, removes or withdraws. `group`, `groupPost` and `couldRead` read a group
+   and its posts, removed groups included.
+8. **News.** For a scheduler that wakes on news, a resident has news while a direct message or a notice waits, while
+   one of its groups holds a post of another member it has not read (and `readGroup` is not locked), or while the
+   board holds a `player` post it has not seen and `readBoard` is not locked for it. A `city` post on the board wakes
+   nobody. A resident has seen the board up to its newest player post when its inputs are built, and it has seen its
+   own post.
+9. **Facts.** `channels.messages` is the last message number, `channels.boardPosts` the count of posts.
 
 **Limit: `blockSize: 1`.** The "seen" mark is taken when a resident's inputs are built. The turn scheduler builds
 the inputs of a whole block before any member acts, so with a `blockSize` above 1 a post that a block-mate writes
@@ -55,8 +72,11 @@ the old platform's only with `blockSize: 1`. Games that load `channels` set `blo
 start and the end of an activation exist.
 
 **Not in this cut:** the line that counts unread posts (`[unread] board 3`), so a resident learns of a new post only
-by `readBoard`; marks as the price of a post or a message; the note of the Director; groups and the treasury; for
-direct messages the cap of a window (`DM_LIMIT`), names as receivers (the receiver is a resident id), the receipt of
+by `readBoard` or `readGroup`; marks as the price of a post or a message and the marks left in a reply (`marks`
+prices the tools in its own handlers, M5-17; the reply reads `allowance`, M5-14); the note of the Director; names in
+place of ids (`identity`, M5-14); the hand-over check of a post, which other mechanics make in their own handlers;
+the notice to the recipient of a withdrawal with its receipt (the provider of `receipt-source` sends it); for direct
+messages the cap of a window (`DM_LIMIT`), names as receivers (the receiver is a resident id), the receipt of
 a delivery (the text of `sendDM` still promises one: it is the old text and changes with `receipts`), and messages
 to or from a cast member.
 
@@ -108,6 +128,132 @@ What the caller reads ([channels/tools/sendDM](prompts/channels/tools/sendDM.md)
 
 > Sends a private message to another resident. It arrives at their next activation; only the recipient sees it. Every DM gets a city number; once it reaches the recipient, the city tells you so with its text and a receipt ID that you (or the recipient) can show with showReceipt.
 
+### `createGroup`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | string | yes | Group name |
+
+What the caller reads ([channels/tools/createGroup](prompts/channels/tools/createGroup.md)):
+
+> Founds a private group. Only members know it exists; the founder adds and removes members.
+
+### `addGroupMember`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `groupId` | string | yes | Group ID, e.g. G1 |
+| `agent` | string | yes | Name or ID of the new member |
+
+What the caller reads ([channels/tools/addGroupMember](prompts/channels/tools/addGroupMember.md)):
+
+> Adds a competitor to a group you founded. No consent is needed; the new member is notified.
+
+### `removeGroupMember`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `groupId` | string | yes | Group ID, e.g. G1 |
+| `agent` | string | yes | Name or ID of the member |
+
+What the caller reads ([channels/tools/removeGroupMember](prompts/channels/tools/removeGroupMember.md)):
+
+> Removes a member from a group you founded.
+
+### `leaveGroup`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `groupId` | string | yes | Group ID, e.g. G1 |
+
+What the caller reads ([channels/tools/leaveGroup](prompts/channels/tools/leaveGroup.md)):
+
+> Leaves a group. The treasurer must hand over the treasury first.
+
+### `listMyGroups`
+
+- Granted when the game lists no grants: `resident`
+
+No parameters.
+
+What the caller reads ([channels/tools/listMyGroups](prompts/channels/tools/listMyGroups.md)):
+
+> Lists your groups with members and treasury.
+
+### `postGroup`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `groupId` | string | yes | Group ID, e.g. G1 |
+| `message` | string | yes | Text |
+
+What the caller reads ([channels/tools/postGroup](prompts/channels/tools/postGroup.md)):
+
+> Posts a message to a group. Only current members see it.
+
+### `readGroup`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `groupId` | string | yes | Group ID, e.g. G1 |
+| `afterSeq` | integer ≥ 0 | no | Only posts with a higher sequence |
+
+What the caller reads ([channels/tools/readGroup](prompts/channels/tools/readGroup.md)):
+
+> Reads group posts. Without afterSeq you get every unread post since your last read; afterSeq 0 returns the full history since you joined; afterSeq N reads from sequence N (skipped posts stay unread).
+
+### `depositGroup`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `groupId` | string | yes | Group ID, e.g. G1 |
+| `amount` | integer ≥ 1 | yes | Positive integer |
+
+What the caller reads ([channels/tools/depositGroup](prompts/channels/tools/depositGroup.md)):
+
+> Pays your own points into the group treasury. Irreversible; the treasury is split at the end of the run.
+
+### `withdrawGroup`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `groupId` | string | yes | Group ID, e.g. G1 |
+| `target` | string | yes | Recipient name or ID |
+| `amount` | integer ≥ 1 | yes | Positive integer |
+
+What the caller reads ([channels/tools/withdrawGroup](prompts/channels/tools/withdrawGroup.md)):
+
+> Pays points from the treasury to a member. Only the treasurer may do this.
+
+### `setTreasurer`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `groupId` | string | yes | Group ID, e.g. G1 |
+| `agent` | string | yes | Name or ID of the new treasurer |
+
+What the caller reads ([channels/tools/setTreasurer](prompts/channels/tools/setTreasurer.md)):
+
+> Hands the treasurer role to another member. Only the current treasurer may do this.
+
 <!-- /generated:tools -->
 
 ## Events
@@ -157,6 +303,89 @@ Audience: everyone
 | `author` | string | yes | The name the notice is signed with |
 | `text` | string | yes | The text |
 
+### `group_created`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | string | yes | The group's id, for example `G1` |
+| `founder` | string | yes | A resident id, or `CITY` for the city |
+| `name` | string | yes | The group's name, trimmed |
+
+### `group_removed`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | string | yes | The group's id, for example `G1` |
+| `members` | string[] | yes | The members, in join order |
+
+### `group_membership`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | string | yes | The group's id, for example `G1` |
+| `agent` | string | yes | A resident id, for example `A01` |
+| `change` | "added" or "removed" or "left" | yes | How the membership changed |
+| `by` | string | yes | A resident id, or `CITY` for the city |
+
+### `group_post`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | string | yes | The group's id, for example `G1` |
+| `author` | string | yes | A resident id, or `CITY` for the city |
+| `postSeq` | integer | yes | The city's message number of the post |
+| `text` | string | yes | The text, trimmed |
+
+### `treasury_deposit`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | string | yes | The group's id, for example `G1` |
+| `agent` | string | yes | A resident id, for example `A01` |
+| `amount` | number | yes | The points booked |
+| `receipt` | string | yes | The id of the receipt of the booking; empty when none was issued |
+
+### `treasury_withdrawal`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | string | yes | The group's id, for example `G1` |
+| `treasurer` | string | yes | A resident id, or `CITY` for the city |
+| `to` | string | yes | A resident id, for example `A01` |
+| `amount` | number | yes | The points booked |
+| `receipt` | string | yes | The id of the receipt of the booking; empty when none was issued |
+
+### `treasurer_set`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | string | yes | The group's id, for example `G1` |
+| `treasurer` | string | yes | A resident id, for example `A01` |
+| `by` | string | yes | A resident id, for example `A01` |
+
+### `treasury_settled`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `group` | string | yes | The group's id, for example `G1` |
+| `payouts` | record of number | yes | Member to points |
+
 <!-- /generated:events -->
 
 ## Options
@@ -175,13 +404,19 @@ This mechanic takes no options.
 
 ### `channels`
 
-The city's voice (posts on the public board, private notices) and the record of the direct messages.
+The city's voice (posts on the public board, private notices, its own groups), the record of the direct messages and the groups.
 
 | Method | Kind | Input | Output | Summary |
 | --- | --- | --- | --- | --- |
 | `post` | command | author: string, text: string, kind?: "city" or "system" | { postSeq: integer } | Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is. |
 | `notify` | command | to: string, author: string, text: string | null | Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws. |
 | `dmRecords` | query | - | { from: string, to: string, text: string, number: integer }[] | Lists every direct message that was sent, delivered or not, oldest first. |
+| `createCityGroup` | command | name: string, members: string[] | { group: string } | Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer. |
+| `removeCityGroup` | command | group: string | null | Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is. |
+| `postGroupAsCity` | command | group: string, text: string | null | Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped. |
+| `group` | query | group: string | { id: string, name: string, founder: string, treasurer: string, members: string[], removed: boolean } or null | One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id. |
+| `groupPost` | query | number: integer | { number: integer, group: string, author: string, text: string, tick: integer } or null | The group post with the city's message number `number`, removed groups included; null when no group post has it. |
+| `couldRead` | query | group: string, reader: string, number: integer | boolean | Whether the resident was a member of the group before the post `number`, so it could read it. |
 
 <!-- /generated:services -->
 
@@ -211,6 +446,22 @@ This mechanic exports no metrics.
 | [channels/input/dm](prompts/channels/input/dm.md) | `number`, `from`, `text` |
 | [channels/input/notice](prompts/channels/input/notice.md) | `author`, `text` |
 | [channels/notices/dm-delivered](prompts/channels/notices/dm-delivered.md) | `number`, `agent`, `minute`, `text` |
+| [channels/tools/createGroup](prompts/channels/tools/createGroup.md) | - |
+| [channels/tools/addGroupMember](prompts/channels/tools/addGroupMember.md) | - |
+| [channels/tools/removeGroupMember](prompts/channels/tools/removeGroupMember.md) | - |
+| [channels/tools/leaveGroup](prompts/channels/tools/leaveGroup.md) | - |
+| [channels/tools/listMyGroups](prompts/channels/tools/listMyGroups.md) | - |
+| [channels/tools/postGroup](prompts/channels/tools/postGroup.md) | - |
+| [channels/tools/readGroup](prompts/channels/tools/readGroup.md) | - |
+| [channels/tools/depositGroup](prompts/channels/tools/depositGroup.md) | - |
+| [channels/tools/withdrawGroup](prompts/channels/tools/withdrawGroup.md) | - |
+| [channels/tools/setTreasurer](prompts/channels/tools/setTreasurer.md) | - |
+| [channels/replies/group-created](prompts/channels/replies/group-created.md) | `group` |
+| [channels/replies/groups-none](prompts/channels/replies/groups-none.md) | - |
+| [channels/replies/group-posted](prompts/channels/replies/group-posted.md) | `group`, `seq` |
+| [channels/replies/group-older](prompts/channels/replies/group-older.md) | `older`, `afterSeq` |
+| [channels/notices/group-added](prompts/channels/notices/group-added.md) | `actor`, `group`, `name` |
+| [channels/notices/city-group-added](prompts/channels/notices/city-group-added.md) | `group`, `name` |
 
 <!-- /generated:prompts -->
 
