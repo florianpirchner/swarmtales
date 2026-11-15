@@ -26,6 +26,9 @@ export function analyse(state: ExperimentState, facts: readonly RunFacts[], base
 export const BOOTSTRAP_SEED = 20261114;
 
 // @public
+export function checkMetrics(spec: ExperimentSpec, known: readonly string[], generic: boolean): void;
+
+// @public
 export function comparable(a: RunManifest, b: RunManifest): boolean;
 
 // @public

@@ -1,0 +1,77 @@
+{
+	"format": "swarmtales-experiment",
+	"version": 1,
+	"id": "chess-requests",
+	"question": "How many requests does a half-move cost?",
+	"purpose": "confirmatory",
+	"game": "games/chess/game.ts",
+	"model": {
+		"provider": "anthropic",
+		"id": "haiku",
+		"thinking": "medium"
+	},
+	"arms": [
+		{
+			"id": "fresh-compact",
+			"params": {
+				"games": 4,
+				"maxPlies": 80,
+				"fresh": true,
+				"compact": true
+			},
+			"control": true
+		}
+	],
+	"seeds": [
+		41,
+		43,
+		47,
+		53
+	],
+	"replicates": 1,
+	"design": "replicates",
+	"metrics": {
+		"primary": "models.requests",
+		"secondary": [
+			"chess.plies",
+			"chess.refusedMoves",
+			"run.noCallActivations",
+			"strategy-brain.brainWrites"
+		],
+		"guardrails": [
+			{
+				"metric": "models.requests",
+				"per": "chess.plies"
+			},
+			{
+				"metric": "chess.refusedMoves",
+				"per": "chess.plies",
+				"max": 0.04
+			},
+			{
+				"metric": "models.costUsd",
+				"max": 0.4
+			}
+		]
+	},
+	"allowedRefusals": [
+		"ILLEGAL_MOVE",
+		"BRAIN_TOO_LONG",
+		"TOOL_LOCKED",
+		"INVALID_ARGUMENTS"
+	],
+	"exclusions": [
+		"failed-request",
+		"missed-decision",
+		"cost-cap",
+		"error-end"
+	],
+	"budget": {
+		"perRunUsd": 0.8,
+		"totalUsd": 2,
+		"estimateUsdPerRun": {
+			"fresh-compact": 0.321
+		}
+	},
+	"concurrency": 1
+}

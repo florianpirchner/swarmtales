@@ -94,6 +94,20 @@ function held(file: string): { readonly capUsd: number; readonly heldUsd: number
 }
 
 /**
+ * Reads what a spend ledger holds, without writing to it.
+ *
+ * @param file - The ledger file; it must exist with its cap line.
+ * @returns The cap, and the sum of every cost and of every reservation without a cost line, in US dollars.
+ * @throws SwtError `SWT-C025` when the ledger cannot be read or holds a line that is neither a reservation nor a cost.
+ *
+ * @public
+ */
+export function ledgerHeld(file: string): { readonly capUsd: number; readonly heldUsd: number } {
+	const { capUsd, heldUsd } = held(file);
+	return { capUsd, heldUsd };
+}
+
+/**
  * Opens a spend ledger. The file is read at every reservation, so a line another run wrote meanwhile counts.
  *
  * @param file - The ledger file; it must exist with its cap line.

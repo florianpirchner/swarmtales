@@ -11,7 +11,8 @@ import * as lab from "../src/index.ts";
 
 const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 const json = (path: string): unknown => JSON.parse(readFileSync(join(ROOT, path), "utf8"));
-const SPEC_FILES = readdirSync(join(ROOT, "games")).flatMap((game) => {
+// The games of the M2 gate; the specs of M4 have their own test (`apps/cli/test/experiment-plan.test.ts`).
+const SPEC_FILES = ["econ-lab", "quarry"].flatMap((game) => {
 	try {
 		return readdirSync(join(ROOT, "games", game, "experiments")).map((name) => `games/${game}/experiments/${name}`);
 	} catch {

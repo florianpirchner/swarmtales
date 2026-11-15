@@ -122,11 +122,13 @@ whose runs are in the folder (`SWT_ANTHROPIC_API_KEY` or `ARENA_ANTHROPIC_API_KE
 ### `swt experiment run <spec file>`
 
 Plays the runs of an experiment that are still missing, into `--out <dir>` (`runs/<experiment id>` when left out),
-under the spend ledger of `--ledger <file>`.
+under the spend ledger of `--ledger <file>`. With `--plan` it plays nothing: it prints the plan in the order it is
+played, the estimate beside the caps, the model and, with `--ledger`, what the ledger holds of its cap, after checking
+the arms and the metrics against the game as before a series.
 
 | Exit code | Meaning |
 |---|---|
-| 0 | the plan is complete |
+| 0 | the plan is complete; with `--plan`, the plan is printed |
 | 1 | an error before the work |
 | 4 | a run wrote a key value into its folder |
 | 6 | stopped at the experiment's cap, or after three failed runs |

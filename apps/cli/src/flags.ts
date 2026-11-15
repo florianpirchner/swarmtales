@@ -31,6 +31,7 @@ export const FLAGS = {
 	thinking: text("<level>", "how much the model thinks: off, minimal, low, medium, high"),
 	budget: text("<usd>", "the cost cap of a live run in US dollars; a live run needs one"),
 	ledger: text("<file>", "the spend ledger the cap must fit under"),
+	plan: on("print the plan of an experiment and its caps, and play nothing"),
 	purpose: text("<word>", "what the run is for: smoke (the default), pilot, exploratory, confirmatory"),
 	replicate: text("<n>", "the index of the repetition; 0 when left out"),
 	game: text("<game file>", "the game file of the run"),
@@ -67,7 +68,7 @@ export const COMMANDS = {
 	report: { argument: "<run dir>", what: "write the report of a run into its folder", flags: ["game"], exits: { 0: "the report is written", 1: ERROR, 4: "a file of the folder holds a key value (`SWT-X030`)" } },
 	replay: { argument: "<run dir>", what: "replay a run from its log and compare", flags: ["game", "json"], exits: { 0: "the replayed log is equal", 1: "it differs (`SWT-C031`), the run is not replayable (`SWT-T005`, `SWT-T004`), or the folder does not verify" } },
 	scan: { argument: "<folder>", what: "look through every file of a folder for the key values of the environment", flags: ["json"], exits: { 0: "no file holds a held key value", 1: "a file does (`SWT-X030`), or the folder is none", 3: "nothing was scanned: no key variable is set" } },
-	"experiment run": { argument: "<spec file>", what: "play the runs of an experiment that are still missing", flags: ["out", "ledger"], exits: { 0: "the plan is complete", 1: ERROR, 4: "a run wrote a key value into its folder", 6: "stopped at the experiment's cap, or after three failed runs" } },
+	"experiment run": { argument: "<spec file>", what: "play the runs of an experiment that are still missing", flags: ["out", "ledger", "plan"], exits: { 0: "the plan is complete; with `--plan`, the plan is printed", 1: ERROR, 4: "a run wrote a key value into its folder", 6: "stopped at the experiment's cap, or after three failed runs" } },
 	"experiment analyse": { argument: "<experiment dir>", what: "analyse the runs of an experiment against its pass rule", flags: [], exits: { 0: "the pass rule is kept, or the spec has none", 1: ERROR, 3: "the pass rule is not kept", 4: "a file holds a key value", 7: "no verdict: too few runs" } },
 } as const satisfies Readonly<Record<string, CommandRow>>;
 

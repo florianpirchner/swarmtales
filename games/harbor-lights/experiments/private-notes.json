@@ -1,0 +1,112 @@
+{
+	"format": "swarmtales-experiment",
+	"version": 1,
+	"id": "harbor-lights-private-notes",
+	"question": "Do private notes raise the crew's score?",
+	"purpose": "confirmatory",
+	"game": "games/harbor-lights/game.ts",
+	"model": {
+		"provider": "anthropic",
+		"id": "haiku",
+		"thinking": "medium"
+	},
+	"arms": [
+		{
+			"id": "nobrain",
+			"params": {
+				"brain": "nobrain",
+				"games": 1
+			},
+			"control": true
+		},
+		{
+			"id": "solo",
+			"params": {
+				"brain": "solo",
+				"games": 1
+			}
+		}
+	],
+	"seeds": [
+		101,
+		102,
+		103,
+		104,
+		105,
+		106,
+		107,
+		108,
+		109,
+		110,
+		111,
+		112
+	],
+	"replicates": 1,
+	"design": "paired",
+	"metrics": {
+		"primary": "hint-towers.score",
+		"secondary": [
+			"hint-towers.misfires",
+			"strategy-brain.brainWrites"
+		],
+		"guardrails": [
+			{
+				"metric": "models.requests",
+				"arm": "nobrain",
+				"within": {
+					"of": 96,
+					"share": 0.1
+				}
+			},
+			{
+				"metric": "models.requests",
+				"arm": "solo",
+				"within": {
+					"of": 115,
+					"share": 0.1
+				}
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "nobrain",
+				"max": 0.06
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "solo",
+				"max": 0.062
+			}
+		]
+	},
+	"pass": {
+		"contrast": [
+			"solo",
+			"nobrain"
+		],
+		"sign": "positive",
+		"minN": 10
+	},
+	"allowedRefusals": [
+		"NOT_YOUR_TURN",
+		"NO_SIGNALS",
+		"TOUCHES_NOTHING",
+		"TOOL_LOCKED",
+		"BRAIN_TOO_LONG",
+		"INVALID_ARGUMENTS"
+	],
+	"exclusions": [
+		"failed-request",
+		"missed-decision",
+		"cost-cap",
+		"error-end"
+	],
+	"budget": {
+		"perRunUsd": 0.12,
+		"totalUsd": 1.6,
+		"estimateUsdPerRun": {
+			"nobrain": 0.05,
+			"solo": 0.0517
+		}
+	},
+	"concurrency": 2
+}

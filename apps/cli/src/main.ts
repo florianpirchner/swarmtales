@@ -50,7 +50,7 @@ const COMMANDS: Readonly<Record<CommandName, Command>> = {
 	report: (directory, values, io) => report({ directory, ...(values.game === undefined ? {} : { game: values.game }) }, io),
 	replay: (directory, values, io) => replayRun({ directory, json: values.json === true, ...(values.game === undefined ? {} : { game: values.game }) }, io),
 	scan: (directory, values, io) => scan(directory, values.json === true, io),
-	"experiment run": (spec, values, io) => experimentRun({ spec, out: values.out, ...(values.ledger === undefined ? {} : { ledger: values.ledger }), env: io.env ?? readEnv() }, io),
+	"experiment run": (spec, values, io) => experimentRun({ spec, out: values.out, ...(values.ledger === undefined ? {} : { ledger: values.ledger }), plan: values.plan === true, env: io.env ?? readEnv() }, io),
 	"experiment analyse": (directory, _values, io) => experimentAnalyse(directory, io),
 };
 

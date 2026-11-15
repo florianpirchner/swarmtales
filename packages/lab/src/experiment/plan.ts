@@ -110,6 +110,8 @@ export function specMetrics(spec: ExperimentSpec): readonly string[] {
  * @param known - The metric keys that exist: of the loaded mechanics, or of the facts of the runs.
  * @param generic - Whether a generic key of the lab (`run.*`, `models.*`) is known without being listed.
  * @throws LabError `SWT-E010` for the first metric of the spec that is not known.
+ *
+ * @public
  */
 export function checkMetrics(spec: ExperimentSpec, known: readonly string[], generic: boolean): void {
 	const missing = specMetrics(spec).find((key) => !known.includes(key) && !(generic && /^(run|models)\./.test(key)));

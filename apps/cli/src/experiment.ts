@@ -7,11 +7,12 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { formatIssue, SwtError, type EventSink } from "@swarmtales/contracts";
-import { analyse, parseExperimentSpec, parseNoiseFloor, planRuns, readExperimentState, readRun, renderSeriesReport, resolveRunFolder, runExperiment, RunRefused, type ExperimentSpec, type MetricTable, type PlannedRun, type PlayRun } from "@swarmtales/lab";
+import { analyse, checkMetrics, parseExperimentSpec, parseNoiseFloor, planRuns, readExperimentState, readRun, renderSeriesReport, resolveRunFolder, runExperiment, RunRefused, type ExperimentSpec, type MetricTable, type PlannedRun, type PlayRun } from "@swarmtales/lab";
 import { createKeyBroker, RESIDENT_RECORDS, type ModelSource } from "@swarmtales/models";
 import { readEnv } from "./env.ts";
 import { experimentNotFound } from "./errors.ts";
 import { liveFlags } from "./flags.ts";
+import { ledgerHeld } from "./ledger.ts";
 import { scanFolder } from "./leak-scan.ts";
 import { runLive, type LiveResult } from "./live.ts";
 import type { SourceTree } from "./tree.ts";
@@ -39,6 +40,8 @@ export interface ExperimentInput {
 	readonly out: string | undefined;
 	/** `--ledger`: the spend ledger every run's cap must fit under (`SWT-C025`). */
 	readonly ledger?: string;
+	/** `--plan`: print the plan, its caps and what the ledger holds, check the arms and the metrics, and play nothing. */
+	readonly plan?: boolean;
 	/** The environment of the runs, as a plain record (`readEnv`). */
 	readonly env: Readonly<Record<string, string | undefined>>;
 	/** The model source of one run; the provider's when absent. A test passes the scripted one. */
@@ -92,21 +95,43 @@ function player(spec: ExperimentSpec, directory: string, input: ExperimentInput,
 	};
 }
 
+// The two lines of the plan: the runs in the order they are played, and the estimate beside the caps.
+function printPlan(spec: ExperimentSpec, io: CliIo): void {
+	const plan = planRuns(spec);
+	const estimate = plan.reduce((sum, run) => sum + (spec.budget.estimateUsdPerRun[run.arm] ?? spec.budget.perRunUsd), 0);
+	io.out(`${spec.id}: ${String(plan.length)} runs, in this order (arm/seed/replicate): ${plan.map((run) => `${run.arm}/${String(run.seed)}/${String(run.replicate)}`).join(" ")}`);
+	io.out(`estimate: ${estimate.toFixed(2)} USD of the cap ${spec.budget.totalUsd.toFixed(2)} USD, at most ${spec.budget.perRunUsd.toFixed(2)} USD per run`);
+}
+
+// `--plan`: the metrics are checked as before a series, then the model and what the ledger holds are printed; nothing is played.
+function checkPlan(spec: ExperimentSpec, metrics: MetricTable, ledger: string | undefined, io: CliIo): number {
+	checkMetrics(spec, Object.entries(metrics).flatMap(([plugin, definitions]) => definitions.map((metric) => `${plugin}.${metric.id}`)), true);
+	const { model } = spec;
+	io.out(`model: ${model.provider}/${model.id}, thinking ${model.thinking ?? "the default"}, ${String(spec.concurrency ?? 1)} in flight`);
+	if (ledger !== undefined) {
+		const { capUsd, heldUsd } = ledgerHeld(resolve(io.cwd, ledger));
+		io.out(`ledger ${ledger}: ${heldUsd.toFixed(4)} USD of its cap ${capUsd.toFixed(2)} USD spent or reserved`);
+	}
+	return 0;
+}
+
 /**
  * Runs the plan of an experiment spec, resumable: prints the plan and its estimate, then plays every open run of
  * the plan as a live run in process (`runLive`) into the experiment's folder, one printed line per run. The caps
  * are the runner's (`runExperiment` of the lab): the per-run cap is the run's `--budget`, and with `ledger` every
  * run reserves it in the spend ledger. A run that leaks rejects with `SWT-X030`, which stops the series. A run the
  * ledger has no room for (`SWT-C025`, refused before any call) costs the experiment nothing and has no record: the series stops with
- * that error and plays the run with the next call, once the ledger has room.
+ * that error and plays the run with the next call, once the ledger has room. With `plan`, nothing is played: the plan
+ * and its caps are printed, the arms and the metrics are checked as before a series, and the model and what the
+ * ledger holds are printed too.
  *
- * @param input - The spec file, the experiment's folder, the ledger, the environment, and for a test the model source.
+ * @param input - The spec file, the experiment's folder, the ledger, `--plan`, the environment, and for a test the model source.
  * @param io - The current directory, the clock and the two outputs.
- * @returns The exit code: 0 the plan is complete; 4 a run leaked a key value; 6 the series stopped at the
+ * @returns The exit code: 0 the plan is complete, or with `plan` printed; 4 a run leaked a key value; 6 the series stopped at the
  * experiment's cap (`SWT-E004`) or after three failed runs (`SWT-E007`), and continues with the same command.
  * @throws SwtError `SWT-C024` no spec file; `SWT-E001` a spec that does not match its schema; what `resolveFile`
  * reports for the game and the params of an arm (`SWT-G041`); `SWT-C022` an unknown thinking level; `SWT-E003`,
- * `SWT-E002`, `SWT-E005`, `SWT-E006`, `SWT-E010` of the runner; `SWT-C025` the spend ledger refused a run. The command exits with 1 then.
+ * `SWT-E002`, `SWT-E005`, `SWT-E006`, `SWT-E010` of the runner; `SWT-C025` the spend ledger refused a run, or with `plan` cannot be read; `SWT-E010` with `plan`, a metric no mechanic exports. The command exits with 1 then.
  * @example
  * ```ts
  * const code = await experimentRun({ spec: "games/quarry/experiments/open-quarries.json", out: "../runs/quarry/quarry-open-quarries", ledger: "games/m2-ledger.jsonl", env: readEnv() }, io);
@@ -120,10 +145,8 @@ export async function experimentRun(input: ExperimentInput, io: CliIo): Promise<
 	const spec = parseExperimentSpec(jsonFile(file), file);
 	const directory = resolve(io.cwd, input.out ?? join("runs", spec.id));
 	const metrics = await metricsOf(spec, io);
-	const plan = planRuns(spec);
-	const estimate = plan.reduce((sum, run) => sum + (spec.budget.estimateUsdPerRun[run.arm] ?? spec.budget.perRunUsd), 0);
-	io.out(`${spec.id}: ${String(plan.length)} runs, in this order (arm/seed/replicate): ${plan.map((run) => `${run.arm}/${String(run.seed)}/${String(run.replicate)}`).join(" ")}`);
-	io.out(`estimate: ${estimate.toFixed(2)} USD of the cap ${spec.budget.totalUsd.toFixed(2)} USD, at most ${spec.budget.perRunUsd.toFixed(2)} USD per run`);
+	printPlan(spec, io);
+	if (input.plan === true) return checkPlan(spec, metrics, input.ledger, io);
 	const seen = { leak: false };
 	try {
 		const state = await runExperiment(spec, player(spec, directory, input, io, seen), { directory, metrics });

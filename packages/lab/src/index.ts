@@ -14,7 +14,7 @@ export { shareWithinNoise, type Tolerance, withinNoise } from "./stats/tolerance
 export { ACTOR_KEYS, factsOf, type FactValue, type RunFacts } from "./facts/facts.ts";
 export { readRun } from "./facts/read.ts";
 export { COMPARE_FIELDS, comparable } from "./experiment/compare.ts";
-export { type PlannedRun, planRuns } from "./experiment/plan.ts";
+export { checkMetrics, type PlannedRun, planRuns } from "./experiment/plan.ts";
 export { type ExperimentOptions, type MetricTable, type PlayRun, type RunOutcome, runExperiment } from "./experiment/run.ts";
 export { type ExperimentState, ExperimentStateSchema, readExperimentState, resolveRunFolder, type RunRecord } from "./experiment/state.ts";
 export { analyse } from "./experiment/analyse.ts";
