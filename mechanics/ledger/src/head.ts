@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /** The head of the `ledger` mechanic: its options, its state with the snapshot, its events, service, prompts and tool. */
 import { Type } from "typebox";
+import { IdentityService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
 import { defineHead, RosterService, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { restored, SYSTEM_ACCOUNT, type LedgerState } from "./book.ts";
 import { LedgerEvents, LedgerService } from "./contract.ts";
@@ -49,6 +50,8 @@ export const ledgerHead = defineHead({
 	prompts: { "ledger/tools/transferPoints": [], "ledger/replies/transfer-ok": ["amount", "target", "balance", "receipt"], "ledger/status/points": ["points"] },
 	// A transfer to a resident that may not act is refused: at M3 only the exile suspends a resident.
 	requires: [RosterService],
+	// A name in place of an id in the texts and the target, and the receipt in the reply, when a provider is loaded.
+	uses: [IdentityService, ReceiptSourceService],
 	provides: [LedgerService],
 	tools: {
 		transferPoints: {

@@ -15,7 +15,7 @@ through the service `ledger`, so the log explains every balance.
 | Id | `ledger` |
 | Summary | Points per account and bookings between accounts. |
 | Requires | `roster` |
-| Uses when loaded | none |
+| Uses when loaded | `identity`, `receipt-source` |
 | Provides | `ledger` |
 | State | kept, snapshot slice version 1 |
 | Games | [city-slice](../../games/city-slice/README.md) |
@@ -35,21 +35,27 @@ through the service `ledger`, so the log explains every balance.
    stage only the exile suspends a resident), the amount is a positive integer (`INVALID_AMOUNT`), the memo carries no
    number of four or more digits (`MEMO_DIGITS`, also split by spaces or dashes), and the payer has the points
    (`INSUFFICIENT_FUNDS`). The transfer writes `ledger_entry` and then `transfer`; a transfer without a memo is booked
-   with the reason `transfer`.
-4. **Status.** Every resident reads its points in the status line of its turn input (`ledger/status/points`).
-5. **An exile.** The ledger listens to the event `exiled` of the mechanic `exile`: the whole balance of the banished
+   with the reason `transfer`. The reply names the receipt of the transfer, which the ledger asks `ofTransfer` of the
+   contract `receipt-source` for after it wrote `transfer`; without a provider it says `receipt none`.
+   **The cap on direct messages** (`DM_LIMIT` for a memo past the window) is a rule of `channels`, which owns the
+   window: it refuses in its own `rule` handler on `transferPoints`, after the ledger's own checks.
+4. **Names.** With a provider of the contract `identity` (the mechanic `names`), the target may be a name where an id
+   goes (`resolve`), and every reply and refusal detail shows names in place of ids (`display`), as the old platform
+   showed every text. Events and the book keep the ids. Without a provider the ids stay.
+5. **Status.** Every resident reads its points in the status line of its turn input (`ledger/status/points`).
+6. **An exile.** The ledger listens to the event `exiled` of the mechanic `exile`: the whole balance of the banished
    resident is burned into `SYSTEM_MINT_BURN` with the reason `exiled <id>` (one `ledger_entry`). A balance of 0 or
    less writes nothing. Without `exile` in the game the listener never runs. A mechanic that must clear away after
    the ledger declares its own listener with `after: ["ledger"]`.
-6. **Facts and the limit.** The facts `ledger.balances` and `ledger.entries` are the reports' view of the book. The
+7. **Facts and the limit.** The facts `ledger.balances` and `ledger.entries` are the reports' view of the book. The
    run limit `ledger.zero-sum` ends the run if the balances of all accounts ever stop adding up to 0.
 
 **Balances.** The sum of all balances is always 0: the system account holds the minus of every minted point. A
 resident's transfer and a `move` refuse to overdraw; a `burn` may push an account below 0, so a penalty always lands.
 
-**Not done here.** No interest and no prices: what points buy is up to other mechanics. Not ported yet: the receipt of
-a transfer (the reply says `receipt none`, although the tool text still promises one), the refusal `DM_LIMIT` for a
-memo over the cap on direct messages.
+**Not done here.** No interest and no prices: what points buy is up to other mechanics. The ledger issues no receipt
+and counts no messages: `receipts` and `channels` do. Without `receipts` the reply says `receipt none`, although the
+tool text still promises one.
 
 ## Tools
 
@@ -195,6 +201,11 @@ bookings per seed through the book and through the old platform's `PointsLedger`
 ([`test/old-points-ledger.ts`](test/old-points-ledger.ts), carried) and compares entries, errors and snapshots.
 [`test/exile.test.ts`](test/exile.test.ts): the burn after `exile.exiled` in the old shape, nothing for a balance of 0,
 and the order against a second listener that declares `after: ["ledger"]`, listed before and after the ledger.
+[`test/providers.test.ts`](test/providers.test.ts): with stand-ins of `identity` and `receipt-source`, a name as the
+target, names in the replies and details, ids in the events, the receipt in the reply (and that a provider that only
+issues in its listener of `transfer` answers too late); with a stand-in of the window of `channels`, `DM_LIMIT` for a
+memo after the ledger's own refusals. [`test/oracle.test.ts`](test/oracle.test.ts) also replays the transfers of
+`cityofkeys-act1-s7` and `-s11` with the file's names, so only the receipt is mapped.
 [`test/sample.test.ts`](test/sample.test.ts): what the fake driver (`swt run --fake`) may call. The `sample` of
 `transferPoints` gives a transfer one time in eight: 1 to 5 points that the balance covers, without a memo, to
 another resident that may act.

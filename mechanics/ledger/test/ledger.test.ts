@@ -2,8 +2,9 @@
 /**
  * The ledger mechanic: the transfer tool's checks and replies as the old platform gave them (check order, codes,
  * texts), the events, the service, the limit `zero-sum` and the conformance checks. Ported from the old
- * `test/mechanics/ledger/ledger.test.ts`; the golden gate is the oracle proof of a later issue, and the cap on direct
- * messages, the receipt and the legacy snapshot are not part of this mechanic yet.
+ * `test/mechanics/ledger/ledger.test.ts`, played without the providers of `identity` and `receipt-source` (ids stay,
+ * the receipt is `none`); `providers.test.ts` plays the names, the receipt and the cap on direct messages. The golden
+ * gate is the oracle proof (`oracle.test.ts`); the legacy snapshot has no counterpart on this platform.
  */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";

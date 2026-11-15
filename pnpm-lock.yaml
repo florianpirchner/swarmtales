@@ -829,6 +829,9 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@swarmtales/mechanic-exile':
         specifier: workspace:*
         version: link:../exile

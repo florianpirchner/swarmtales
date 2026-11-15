@@ -247,8 +247,10 @@ describe("no unused dependency in a mechanic or game package (M4, 4.2)", () => {
 	});
 
 	it("fails on a manifest with @swarmtales/mechanic-contracts and no import of it", () => {
-		const offences = unusedOffences(fixture([LEDGER, "games/quarry"], { [`${LEDGER}/package.json`]: manifestWith(LEDGER, "dependencies", "@swarmtales/mechanic-contracts") }));
-		expect(offences).toEqual([`${LEDGER}/package.json: dependencies names @swarmtales/mechanic-contracts, which no file of the package imports`]);
+		// The slice's court: it imports no contract of `mechanics/contracts` (the ledger does since M5-12).
+		const court = "mechanics/court";
+		const offences = unusedOffences(fixture([court, "games/quarry"], { [`${court}/package.json`]: manifestWith(court, "dependencies", "@swarmtales/mechanic-contracts") }));
+		expect(offences).toEqual([`${court}/package.json: dependencies names @swarmtales/mechanic-contracts, which no file of the package imports`]);
 		const games = unusedOffences(fixture(["games/quarry"], { "games/quarry/package.json": manifestWith("games/quarry", "devDependencies", "@swarmtales/mechanic-contracts") }));
 		expect(games).toEqual(["games/quarry/package.json: devDependencies names @swarmtales/mechanic-contracts, which no file of the package imports"]);
 	});

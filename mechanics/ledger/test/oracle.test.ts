@@ -13,7 +13,8 @@ import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { exile } from "@swarmtales/mechanic-exile";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
-import { defineGame, defineHead, defineMechanic, refuse, reply } from "@swarmtales/sdk";
+import { IdentityService } from "@swarmtales/mechanic-contracts";
+import { defineGame, defineHead, defineMechanic, refuse, reply, type MechanicUse } from "@swarmtales/sdk";
 import { eventBurst, OracleSchema, projectCalls, projectionDifference, projectionRest, projectLog, projectOracle, readOracle, renumbered, testKernel, timelineOf, type Oracle, type ProjectedEvent, type TestKernel } from "@swarmtales/testkit";
 import { LedgerService, SYSTEM_ACCOUNT } from "../src/contract.ts";
 import { ledger } from "../src/index.ts";
@@ -67,9 +68,9 @@ function foreign(timeline: Oracle["timeline"], index: number): Static<typeof Boo
 }
 
 // Walks the oracle up to `until`: the file's transfers are called, the bookings of other mechanics are fed in.
-async function replayed(oracle: Oracle, until = oracle.timeline.length): Promise<{ test: TestKernel; fed: number }> {
+async function replayed(oracle: Oracle, until = oracle.timeline.length, extra: readonly MechanicUse[] = []): Promise<{ test: TestKernel; fed: number }> {
 	const timeline = oracle.timeline.slice(0, until);
-	const test = testKernel(defineGame({ id: "ledger-oracle", seed: oracle.seed, residents: oracle.setup.residents, mechanics: [ledger({ startPoints: 15 }), exile(), bank()], end: { ticks: 99 } }));
+	const test = testKernel(defineGame({ id: "ledger-oracle", seed: oracle.seed, residents: oracle.setup.residents, mechanics: [ledger({ startPoints: 15 }), exile(), bank(), ...extra], end: { ticks: 99 } }));
 	let fed = 0;
 	for (const [index, entry] of timeline.entries()) {
 		if (entry.k === "call" && TOOLS.includes(entry.tool)) await test.call(entry.actor.slice("resident:".length), entry.tool, entry.params);
@@ -81,21 +82,33 @@ async function replayed(oracle: Oracle, until = oracle.timeline.length): Promise
 	return { test, fed };
 }
 
-// Registered mappings of an answer's text: `names` is not in the slice (a resident is shown by its id), nor is `receipts` (no receipt id).
-function mapping(oracle: Oracle): (text: string) => string {
-	const names = projectOracle(oracle.timeline, [{ source: "names", type: "name_chosen" }]).map((event) => Value.Parse(Named, event.payload));
+const namesOf = (oracle: Oracle): readonly Static<typeof Named>[] => projectOracle(oracle.timeline, [{ source: "names", type: "name_chosen" }]).map((event) => Value.Parse(Named, event.payload));
+// Registered mappings of an answer's text: `names` is not in the slice (a resident is shown by its id), nor is `receipts`
+// (no receipt id). With `named`, a stand-in of `identity` shows the file's names, and only the receipt is mapped.
+function mapping(oracle: Oracle, named = false): (text: string) => string {
+	const names = named ? [] : namesOf(oracle);
 	return (text) => names.reduce((mapped, { agent, name }) => mapped.replaceAll(name, agent), text).replace(/receipt R-\d+$/, "receipt none");
+}
+
+// Stands in for `names` with the names the file chose (M5-12): every id in a text is shown by its name.
+function identityOf(oracle: Oracle): MechanicUse {
+	const names = namesOf(oracle);
+	const display = (text: string): string => names.reduce((shown, { agent, name }) => shown.replaceAll(agent, name), text);
+	const nameOf = (resident: string): string | null => names.find(({ agent }) => agent === resident)?.name ?? null;
+	const resolveName = (text: string): string => names.find(({ name }) => name === text)?.agent ?? text;
+	const head = defineHead({ id: "names", package: "@test/names", summary: "Test: the names of the oracle file.", provides: [IdentityService] });
+	return defineMechanic(head, { services: { identity: { nameOf: ({ resident }) => nameOf(resident), display: ({ text }) => display(text), resolve: ({ text }) => resolveName(text) } } })();
 }
 
 type Lists = readonly [expected: readonly ProjectedEvent[], actual: readonly ProjectedEvent[]];
 // Projection 5: the books and the answers of the whole file against the run.
-async function books(oracle: Oracle): Promise<{ events: Lists; calls: Lists; fed: number; rest: Readonly<Record<string, number>> }> {
-	const { test, fed } = await replayed(oracle);
+async function books(oracle: Oracle, named = false): Promise<{ events: Lists; calls: Lists; fed: number; rest: Readonly<Record<string, number>> }> {
+	const { test, fed } = await replayed(oracle, oracle.timeline.length, named ? [identityOf(oracle)] : []);
 	const log = test.kernel.log.all();
 	const expected = projectOracle(oracle.timeline, BOOKS);
 	return {
 		events: [renumbered(expected, ["txId"]).events, renumbered(projectLog(log, BOOKS), ["txId"]).events],
-		calls: [projectCalls(oracle.timeline, TOOLS, mapping(oracle)), projectCalls(timelineOf(log), TOOLS)],
+		calls: [projectCalls(oracle.timeline, TOOLS, mapping(oracle, named)), projectCalls(timelineOf(log), TOOLS)],
 		fed,
 		rest: projectionRest(oracle.timeline, ["ledger"], expected),
 	};
@@ -114,6 +127,13 @@ describe("projection 5: every transferPoints call, ledger_entry and transfer of 
 		// Nothing the ledger wrote is left out; printed for the record (`oracles/cityofkeys/README.md`).
 		console.info(`${file}: ledger events left out of projection 5: ${JSON.stringify(rest)}; entries of other mechanics fed through the service: ${String(fed)}`);
 		expect(rest).toEqual({});
+	});
+
+	it.each(["cityofkeys-act1-s7", "cityofkeys-act1-s11"] as const)("%s: with a stand-in of identity the answers show the file's names, only the receipt is mapped", async (file) => {
+		const { events, calls } = await books(readOracle(pathOf(file)), true);
+		expect(projectionDifference(...events)).toBeUndefined();
+		expect(projectionDifference(...calls)).toBeUndefined();
+		expect(JSON.stringify(calls[1][0])).toMatch(/"reply":"ok · 1 points to [A-Z][a-z]+-\d{4} · /);
 	});
 
 	it.each([

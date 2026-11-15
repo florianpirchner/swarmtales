@@ -3,12 +3,15 @@
  * The `ledger` mechanic: double-entry points. Every resident has an account, every change of points is a booking
  * between two accounts (`ledger_entry`), other mechanics book through the service `ledger`, and residents pay each
  * other with `transferPoints`, which writes `ledger_entry` and then `transfer`. It listens to the event `exiled` of
- * the mechanic `exile` and burns what the banished resident has left.
+ * the mechanic `exile` and burns what the banished resident has left. With a provider of `identity` a resident reads
+ * names in place of ids and may name the target by its name; with a provider of `receipt-source` the reply names the
+ * receipt of the transfer. Without them the ids stay and the receipt is `none`.
  *
  * @packageDocumentation
  */
 import { Type } from "typebox";
 import type { RandomSource, Refusal } from "@swarmtales/contracts";
+import { IdentityService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
 import { ExileEvents } from "@swarmtales/mechanic-exile/contract";
 import { defineMechanic, refuse, reply, RosterService } from "@swarmtales/sdk";
 import { balanceOf, book, memoCarriesDigits, SYSTEM_ACCOUNT, type LedgerEntry } from "./book.ts";
@@ -20,7 +23,22 @@ export { ledgerHead, type LedgerCtx, type LedgerToolCtx } from "./head.ts";
 const SAMPLE_RATE = 0.125;
 const SAMPLE_MOST = 5;
 
-// The refusals of a transfer in the old order; undefined when nothing stands in the way.
+// A text as the resident reads it: every id replaced by the resident's name (old `display` of `names`, which the old
+// platform applied to every reply and every refusal's detail); as written without a provider of `identity`.
+function shown(ctx: LedgerToolCtx, text: string): string {
+	return ctx.tryCall(IdentityService, "display", { text }) ?? text;
+}
+
+function shownRefusal(ctx: LedgerToolCtx, refusal: Refusal | undefined): Refusal | undefined {
+	return refusal?.detail === undefined ? refusal : { ...refusal, detail: shown(ctx, refusal.detail) };
+}
+
+// The id a target stands for: a resident may write a name where an id goes (old `resolve` of `names`).
+function resolved(ctx: LedgerToolCtx, target: string): string {
+	return ctx.tryCall(IdentityService, "resolve", { text: target }) ?? target;
+}
+
+// The refusals of a transfer in the old order; undefined when nothing stands in the way. `to` is resolved.
 function checkTransfer(ctx: LedgerToolCtx, to: string, amount: number, memo: string): Refusal | undefined {
 	const from = ctx.resident;
 	if (from === undefined) return refuse("UNKNOWN_AGENT");
@@ -62,17 +80,18 @@ function bookEntry(ctx: LedgerCtx, debit: string, credit: string, amount: number
 export const ledger = defineMechanic(ledgerHead, {
 	tools: {
 		transferPoints: {
-			check: ({ target, amount, memo }, ctx) => checkTransfer(ctx, target, amount, memo ?? ""),
+			check: ({ target, amount, memo }, ctx) => shownRefusal(ctx, checkTransfer(ctx, resolved(ctx, target), amount, memo ?? "")),
 			sample: sampleTransfer,
 			run: ({ target, amount, memo }, ctx) => {
 				const from = ctx.resident;
-				const refused = checkTransfer(ctx, target, amount, memo ?? "");
+				const to = resolved(ctx, target);
+				const refused = shownRefusal(ctx, checkTransfer(ctx, to, amount, memo ?? ""));
 				if (from === undefined || refused !== undefined) return refused ?? refuse("UNKNOWN_AGENT");
 				const text = memo ?? "";
-				const entry = bookEntry(ctx, from, target, amount, text.length > 0 ? text : "transfer", false);
-				ctx.emit("transfer", { from, to: target, amount, memo: text, txId: entry.txId });
-				// The receipt of a transfer comes back with the receipts mechanic; until then the reply names none.
-				return reply(ctx.prompt("ledger/replies/transfer-ok", { amount, target, balance: balanceOf(ctx.state, from), receipt: "none" }));
+				const entry = bookEntry(ctx, from, to, amount, text.length > 0 ? text : "transfer", false);
+				ctx.emit("transfer", { from, to, amount, memo: text, txId: entry.txId });
+				const receipt = ctx.tryCall(ReceiptSourceService, "ofTransfer", { txId: entry.txId }) ?? "none";
+				return reply(shown(ctx, ctx.prompt("ledger/replies/transfer-ok", { amount, target: to, balance: balanceOf(ctx.state, from), receipt })));
 			},
 		},
 	},
