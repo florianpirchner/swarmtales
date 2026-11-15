@@ -197,7 +197,7 @@ export interface DeclaredTool {
  * @public
  */
 export interface PluginHead {
-	/** The answerers its reviews name, from the body (`defineMechanic` sets it; a head alone does not say): game resolution refuses a game in which no Director answers one. */
+	/** The answerers its tools' own reviews name, from the body (`defineMechanic` sets it; a head alone does not say): game resolution refuses a game in which no Director answers one. The answerer of a `pipeline.review` is left out: the handler is told `answerable` and decides (A71). */
 	readonly answerers?: readonly string[];
 	/** The id of the plugin. */
 	readonly id: string;

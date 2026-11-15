@@ -1120,6 +1120,9 @@ importers:
       '@swarmtales/mechanic-progression':
         specifier: workspace:*
         version: link:../progression
+      '@swarmtales/mechanic-standoff':
+        specifier: workspace:*
+        version: link:../standoff
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk

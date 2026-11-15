@@ -32,7 +32,47 @@ export function assembleAll(fragments: readonly string[], overlap: number): read
 export function carriesRun(text: string, secret: string, minRun: number): boolean;
 
 // @public
+export function cityFactorOf(deal: FactorDeal, agent: string): string;
+
+// @public
 export function codeForms(text: string): readonly string[];
+
+// @public
+export function contractDeal(deal: FactorDeal, excluded: ReadonlySet<string>): FactorDeal;
+
+// Warning: (ae-forgotten-export) The symbol "DealOptions" needs to be exported by the entry point index.d.ts
+//
+// @public
+export function dealFactors(rng: RandomSource, options: DealOptions): FactorDeal;
+
+// @public
+export function dealValues(deal: FactorDeal): readonly string[];
+
+// @public
+export interface FactorDeal {
+    readonly cityFactor: string;
+    readonly digits: number;
+    readonly holdings: readonly FactorHolding[];
+    readonly teams: readonly TeamCertificate[];
+}
+
+// @public
+export class FactorDealError extends Error {
+    readonly name = "FactorDealError";
+}
+
+// @public
+export interface FactorHolding {
+    readonly agent: string;
+    readonly code: string;
+    readonly counterFactor: string;
+    readonly counterHolder: string;
+    readonly salt: string;
+    readonly team: number;
+}
+
+// @public
+export type FactorTopology = "mutual" | "cycle" | "crossTeam";
 
 // @public
 export interface FragmentPuzzle {
@@ -42,11 +82,15 @@ export interface FragmentPuzzle {
 }
 
 // @public
-export interface LevelPuzzle {
-    readonly fragments: ReadonlyMap<string, string>;
+export type LevelPuzzle = {
     readonly kind: "fragments";
     readonly puzzles: readonly FragmentPuzzle[];
-}
+    readonly fragments: ReadonlyMap<string, string>;
+} | {
+    readonly kind: "additive";
+    readonly deal: FactorDeal;
+    readonly holdings: ReadonlyMap<string, FactorHolding>;
+};
 
 // @public
 export interface LevelState {
@@ -77,12 +121,18 @@ kind: Type.TLiteral<"splitFrom">;
 level: Type.TInteger;
 size: Type.TInteger;
 }>]>;
-puzzle: Type.TObject<{
+puzzle: Type.TUnion<[Type.TObject<{
 kind: Type.TLiteral<"fragments">;
 length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
 overlap: Type.TInteger;
 ownChars: Type.TOptional<Type.TInteger>;
-}>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"additive">;
+digits: Type.TInteger;
+topology: Type.TUnion<[Type.TLiteral<"mutual">, Type.TLiteral<"cycle">, Type.TLiteral<"crossTeam">]>;
+cityFactor: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"feast">]>;
+cityFactorPer: Type.TOptional<Type.TUnion<[Type.TLiteral<"level">, Type.TLiteral<"team">]>>;
+}>]>;
 opensAt: Type.TOptional<Type.TInteger>;
 }>>;
 startLevel: Type.TInteger;
@@ -91,6 +141,13 @@ standings: Type.TOptional<Type.TRecord<"^.*$", Type.TObject<{
 level: Type.TInteger;
 passed: Type.TOptional<Type.TArray<Type.TInteger>>;
 }>>>;
+holdAfter: Type.TOptional<Type.TInteger>;
+guards: Type.TArray<Type.TObject<{
+id: Type.TOptional<Type.TString>;
+rule: Type.TString;
+tools: Type.TArray<Type.TString>;
+minRun: Type.TOptional<Type.TInteger>;
+}>>;
 noteTools: Type.TArray<Type.TString>;
 }>, {
 readonly fragments_dealt: Type.TObject<{
@@ -100,6 +157,30 @@ agent: Type.TString;
 team: Type.TInteger;
 fragment: Type.TString;
 }>>;
+}>;
+readonly factors_dealt: Type.TObject<{
+digits: Type.TInteger;
+cityFactor: Type.TString;
+teams: Type.TArray<Type.TObject<{
+team: Type.TInteger;
+certificate: Type.TString;
+certificateHolder: Type.TString;
+cityFactor: Type.TOptional<Type.TString>;
+}>>;
+holdings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+team: Type.TInteger;
+salt: Type.TString;
+counterFactor: Type.TString;
+counterHolder: Type.TString;
+code: Type.TString;
+}>>;
+level: Type.TInteger;
+}>;
+readonly factor_revealed: Type.TObject<{
+level: Type.TInteger;
+target: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"notice">]>;
+agents: Type.TArray<Type.TString>;
 }>;
 readonly factor_burned: Type.TObject<{
 agent: Type.TString;
@@ -116,6 +197,7 @@ excluded: Type.TArray<Type.TString>;
 // @public
 export const PUZZLES_PROMPTS: {
     readonly "puzzles/notes/leak-blocked": readonly [];
+    readonly "puzzles/replies/guard-check": readonly [];
 };
 
 // @public
@@ -130,6 +212,30 @@ agent: Type.TString;
 team: Type.TInteger;
 fragment: Type.TString;
 }>>;
+}>;
+readonly factors_dealt: Type.TObject<{
+digits: Type.TInteger;
+cityFactor: Type.TString;
+teams: Type.TArray<Type.TObject<{
+team: Type.TInteger;
+certificate: Type.TString;
+certificateHolder: Type.TString;
+cityFactor: Type.TOptional<Type.TString>;
+}>>;
+holdings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+team: Type.TInteger;
+salt: Type.TString;
+counterFactor: Type.TString;
+counterHolder: Type.TString;
+code: Type.TString;
+}>>;
+level: Type.TInteger;
+}>;
+readonly factor_revealed: Type.TObject<{
+level: Type.TInteger;
+target: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"notice">]>;
+agents: Type.TArray<Type.TString>;
 }>;
 readonly factor_burned: Type.TObject<{
 agent: Type.TString;
@@ -160,12 +266,18 @@ kind: TLiteral<"splitFrom">;
 level: TInteger;
 size: TInteger;
 }>]>;
-puzzle: TObject<    {
+puzzle: TUnion<[TObject<    {
 kind: TLiteral<"fragments">;
 length: TTuple<[TInteger, TInteger]>;
 overlap: TInteger;
 ownChars: TOptional<TInteger>;
-}>;
+}>, TObject<    {
+kind: TLiteral<"additive">;
+digits: TInteger;
+topology: TUnion<[TLiteral<"mutual">, TLiteral<"cycle">, TLiteral<"crossTeam">]>;
+cityFactor: TUnion<[TLiteral<"board">, TLiteral<"feast">]>;
+cityFactorPer: TOptional<TUnion<[TLiteral<"level">, TLiteral<"team">]>>;
+}>]>;
 opensAt: TOptional<TInteger>;
 }>>;
 startLevel: TInteger;
@@ -174,9 +286,16 @@ standings: TOptional<TRecord<"^.*$", TObject<    {
 level: TInteger;
 passed: TOptional<TArray<TInteger>>;
 }>>>;
+holdAfter: TOptional<TInteger>;
+guards: TArray<TObject<    {
+id: TOptional<TString>;
+rule: TString;
+tools: TArray<TString>;
+minRun: TOptional<TInteger>;
+}>>;
 noteTools: TArray<TString>;
 }>, TObject<    {
-levels: TArray<TObject<    {
+levels: TArray<TUnion<[TObject<    {
 level: TInteger;
 teams: TArray<TObject<    {
 members: TArray<TString>;
@@ -192,11 +311,41 @@ fragments: TArray<TObject<    {
 agent: TString;
 fragment: TString;
 }>>;
+}>, TObject<    {
+level: TInteger;
+teams: TArray<TObject<    {
+members: TArray<TString>;
+leader: TString;
 }>>;
+kind: TLiteral<"additive">;
+deal: TObject<    {
+digits: TInteger;
+cityFactor: TString;
+teams: TArray<TObject<    {
+team: TInteger;
+certificate: TString;
+certificateHolder: TString;
+cityFactor: TOptional<TString>;
+}>>;
+holdings: TArray<TObject<    {
+agent: TString;
+team: TInteger;
+salt: TString;
+counterFactor: TString;
+counterHolder: TString;
+code: TString;
+}>>;
+}>;
+}>]>>;
 exclusions: TArray<TObject<    {
 level: TInteger;
 agents: TArray<TString>;
 }>>;
+cityFactors: TArray<TObject<    {
+level: TInteger;
+agents: TArray<TString>;
+}>>;
+delivered: TArray<TInteger>;
 standings: TArray<TObject<    {
 agent: TString;
 level: TInteger;
@@ -212,6 +361,30 @@ team: TInteger;
 fragment: TString;
 }>>;
 }>;
+readonly factors_dealt: TObject<    {
+digits: TInteger;
+cityFactor: TString;
+teams: TArray<TObject<    {
+team: TInteger;
+certificate: TString;
+certificateHolder: TString;
+cityFactor: TOptional<TString>;
+}>>;
+holdings: TArray<TObject<    {
+agent: TString;
+team: TInteger;
+salt: TString;
+counterFactor: TString;
+counterHolder: TString;
+code: TString;
+}>>;
+level: TInteger;
+}>;
+readonly factor_revealed: TObject<    {
+level: TInteger;
+target: TUnion<[TLiteral<"board">, TLiteral<"notice">]>;
+agents: TArray<TString>;
+}>;
 readonly factor_burned: TObject<    {
 agent: TString;
 level: TInteger;
@@ -224,6 +397,7 @@ excluded: TArray<TString>;
 }>;
 }, {
 readonly "puzzles/notes/leak-blocked": readonly [];
+readonly "puzzles/replies/guard-check": readonly [];
 }, [], readonly [ServiceDefinition<"level-pieces", {
 readonly deal: {
 readonly kind: "command";
@@ -316,6 +490,38 @@ readonly input: TObject<    {
 text: TString;
 }>;
 readonly output: TBoolean;
+};
+readonly revealFactor: {
+readonly kind: "command";
+readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
+readonly input: TObject<    {
+level: TInteger;
+target: TUnion<[TLiteral<"board">, TArray<TString>]>;
+}>;
+readonly output: TUnion<[TObject<    {
+ok: TLiteral<true>;
+agents: TArray<TString>;
+}>, TObject<    {
+ok: TLiteral<false>;
+code: TString;
+detail: TString;
+}>]>;
+};
+}>, ServiceDefinition<"held-pieces", {
+readonly held: {
+readonly kind: "query";
+readonly summary: "Every piece the resident holds for others on the levels it has reached, by level, the needers in team-member order (old `heldPieces`).";
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly output: TArray<TObject<    {
+id: TString;
+kind: TUnion<[TLiteral<"counter">, TLiteral<"certificate">, TLiteral<"fragment">]>;
+level: TInteger;
+label: TString;
+value: TString;
+needers: TArray<TString>;
+}>>;
 };
 }>], readonly [ServiceDefinition<"exile", {
 readonly banish: {
@@ -584,12 +790,18 @@ export const PuzzlesOptions: Type.TObject<{
             level: Type.TInteger;
             size: Type.TInteger;
         }>]>;
-        puzzle: Type.TObject<{
+        puzzle: Type.TUnion<[Type.TObject<{
             kind: Type.TLiteral<"fragments">;
             length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
             overlap: Type.TInteger;
             ownChars: Type.TOptional<Type.TInteger>;
-        }>;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"additive">;
+            digits: Type.TInteger;
+            topology: Type.TUnion<[Type.TLiteral<"mutual">, Type.TLiteral<"cycle">, Type.TLiteral<"crossTeam">]>;
+            cityFactor: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"feast">]>;
+            cityFactorPer: Type.TOptional<Type.TUnion<[Type.TLiteral<"level">, Type.TLiteral<"team">]>>;
+        }>]>;
         opensAt: Type.TOptional<Type.TInteger>;
     }>>;
     startLevel: Type.TInteger;
@@ -598,6 +810,13 @@ export const PuzzlesOptions: Type.TObject<{
         level: Type.TInteger;
         passed: Type.TOptional<Type.TArray<Type.TInteger>>;
     }>>>;
+    holdAfter: Type.TOptional<Type.TInteger>;
+    guards: Type.TArray<Type.TObject<{
+        id: Type.TOptional<Type.TString>;
+        rule: Type.TString;
+        tools: Type.TArray<Type.TString>;
+        minRun: Type.TOptional<Type.TInteger>;
+    }>>;
     noteTools: Type.TArray<Type.TString>;
 }>;
 
@@ -629,10 +848,28 @@ text: Type.TString;
 }>;
 readonly output: Type.TBoolean;
 };
+readonly revealFactor: {
+readonly kind: "command";
+readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+target: Type.TUnion<[Type.TLiteral<"board">, Type.TArray<Type.TString>]>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+agents: Type.TArray<Type.TString>;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TString;
+detail: Type.TString;
+}>]>;
+};
 }>;
 
 // @public
 export interface PuzzlesState {
+    readonly cityFactors: Map<number, Set<string>>;
+    readonly delivered: Set<number>;
     readonly exclusions: Map<number, Set<string>>;
     readonly levels: Map<number, LevelState>;
     readonly planner: TeamPlanner;
@@ -653,6 +890,14 @@ export type Streams = (...labels: readonly RandomLabel[]) => RandomSource;
 export interface Team {
     readonly leader: string;
     readonly members: readonly string[];
+}
+
+// @public
+export interface TeamCertificate {
+    readonly certificate: string;
+    readonly certificateHolder: string;
+    readonly cityFactor?: string;
+    readonly team: number;
 }
 
 // @public

@@ -110,3 +110,15 @@ describe("resolveGame with Directors", () => {
 		expect([ctx, read, directorContext(director, { tick: 1, firings: [], question: { dm: 2 } })]).toEqual([{ name: "eye", options: {}, tick: 4, firings: [], facts: { "votes.count": 9 } }, ["votes.count"], { name: "eye", options: {}, tick: 1, firings: [], question: { dm: 2 }, facts: {} }]);
 	});
 });
+
+describe("SWT-D004 (decision A71)", () => {
+	it("refuses a tool's own review that no Director answers, and lets the answerer of a pipeline review be absent", () => {
+		const blames = defineMechanic(defineHead({ id: "blames", package: "@test/blames", summary: "Blames.", tools: { blame: { description: "Blames.", params: Type.Object({}, { description: "None" }), for: ["resident"] } } }), {
+			tools: { blame: { review: { answerer: "judge", ask: () => undefined }, run: () => reply("ok") } },
+		});
+		const guards = defineMechanic(defineHead({ id: "guards", package: "@test/guards", summary: "Guards." }), { pipeline: { review: { answerer: "guard", ask: () => undefined } } });
+		expect([blames.head.answerers, guards.head.answerers]).toEqual([["judge"], []]);
+		expect(failure(() => resolveGame(input(data({ mechanics: [{ use: "votes" }, { use: "guards" }, { use: "blames" }] }), { installed: { votes, guards, blames } })))).toEqual(["SWT-D004 mechanics[2]"]);
+		expect(resolveGame(input(data({ mechanics: [{ use: "votes" }, { use: "guards" }] }), { installed: { votes, guards } })).definition.game.id).toBe("demo");
+	});
+});

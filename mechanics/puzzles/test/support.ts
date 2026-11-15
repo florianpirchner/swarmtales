@@ -19,6 +19,8 @@ export type Options = NonNullable<Parameters<typeof puzzles>[0]>;
 type Levels = Static<typeof PuzzlesOptions>["levels"];
 /** What the planner reads of the ten levels of the City of Keys, the additive levels 8 to 10 included. */
 export const ALL_LEVELS: ConstructorParameters<typeof TeamPlanner>[0] = Value.Parse(Type.Array(Type.Object({ number: Type.Integer(), team: PuzzlesOptions.properties.levels.items.properties.team })), storyLevels());
+/** The ten levels of the City of Keys, the additive levels 8 to 10 included, as the oracle's story file has them. */
+export const STORY_LEVELS: Levels = Value.Parse(PuzzlesOptions.properties.levels, storyLevels());
 /** The fragment levels of the City of Keys, 1 to 7, as the oracle's story file has them. */
 export const LEVELS: Levels = Value.Parse(PuzzlesOptions.properties.levels, storyLevels().filter((level) => level.puzzle.kind === "fragments"));
 
@@ -37,15 +39,24 @@ export function written(events: readonly Envelope[], ...ids: readonly string[]):
 	return events.filter((event) => ids.some((id) => event.source.endsWith(`/${id}`))).map((event) => [event.type, event.payload]);
 }
 
-/** Stands in for a court: the tool `strike` banishes a resident. */
+const TEXTS = { exiled: "{exiled} is gone.", will: "{exiled}: {will}", ransomed: "{payers} bought {exiled} back." };
+const Target = Type.Object({ target: Type.String() });
+
+/** Stands in for a court: the tool `strike` banishes a resident, `gate` sends one to the gate until tick 5. */
 export const judge = defineMechanic(
-	defineHead({ id: "judge", package: "@test/judge", summary: "Test: banishes.", requires: [ExileService], tools: { strike: { description: "judge/strike", params: Type.Object({ target: Type.String() }), for: ["resident"] } } }),
+	defineHead({ id: "judge", package: "@test/judge", summary: "Test: banishes.", requires: [ExileService], tools: { strike: { description: "Test: banishes.", params: Target, for: ["resident"] }, gate: { description: "Test: gates.", params: Target, for: ["resident"] } } }),
 	{
 		tools: {
 			strike: {
 				run: (params, ctx) => {
 					const done = ctx.call(ExileService, "banish", { resident: params.target });
 					return done.ok ? reply("banished") : refuse(done.code ?? "REFUSED");
+				},
+			},
+			gate: {
+				run: ({ target }, ctx) => {
+					ctx.call(ExileService, "toGate", { resident: target, until: 5, ransomable: false, voters: [], price: 10, selfPrice: 10, bequestPerHeir: 0.5, notice: "gate", texts: TEXTS });
+					return reply("at the gate");
 				},
 			},
 		},

@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * What other mechanics read of the deal: the pieces of a level for `progression` (`level-pieces`, old `solutionOf`,
- * `teamOf`, `kindOf`, `taskValues`, `holders`), the answers of the service `deal` (old `isPasswordPiece`,
- * `isHandover`), and the secret check of a Director's note (old `channels/src/secret-guard.ts`, moved to its owner).
+ * What other mechanics read of the secrets of the deal: the answers of the service `deal` (old `isPasswordPiece`,
+ * `isHandover`), the secrets of every dealt level (old `secretsOfDeal`), and the secret check of a Director's note
+ * (old `channels/src/secret-guard.ts`, moved to its owner).
  */
 import type { Refusal } from "@swarmtales/contracts";
 import { refuse, type StageCall } from "@swarmtales/sdk";
-import { inheritedFragments } from "./deal.ts";
+import { dealValues } from "./additive.ts";
+import { lastLevelOf } from "./deal.ts";
 import type { PuzzlesCtx, PuzzlesReader } from "./head.ts";
 import { SecretGuard } from "./secret-guard.ts";
 import { carriesRun } from "./secrets.ts";
@@ -14,50 +15,27 @@ import { carriesRun } from "./secrets.ts";
 /** Runs of a fragment that make a direct message a hand-over and not a whisper (old `HANDOVER_RUN`). */
 const HANDOVER_RUN = 3;
 
-/** The task placeholders a puzzle fills (old `TaskValues`). */
-interface TaskValues {
-	readonly length: string;
-	readonly overlap: string;
-	readonly fragment: string;
-	readonly digits: string;
-	readonly factors: string;
-}
-
-const NONE: TaskValues = { length: "", overlap: "", fragment: "", digits: "", factors: "" };
-
-// The puzzle of the resident's team on a dealt level.
-function teamPuzzle(reader: PuzzlesReader, level: number, agent: string): { readonly password: string; readonly overlap: number } | undefined {
-	const state = reader.state.levels.get(level);
-	const index = state?.teams.findIndex((team) => team.members.includes(agent)) ?? -1;
-	return state?.puzzle.puzzles[index];
-}
-
 /**
- * The code that passes the level for the resident: its team's password.
+ * The passwords of the dealt fragment levels and the values of the dealt additive levels, level by level (old
+ * `secretsOfDeal`, the inputs of the gamemaker's `#secretGuard`).
  *
  * @param reader - The context or view.
- * @param level - The level.
- * @param agent - The resident.
- * @returns The password; null on a level not dealt or without the resident.
+ * @returns The passwords and the all-digit values.
  */
-export function solutionOf(reader: PuzzlesReader, level: number, agent: string): string | null {
-	return teamPuzzle(reader, level, agent)?.password ?? null;
+export function secretsOfDeal(reader: PuzzlesReader): { passwords: string[]; numbers: string[] } {
+	const passwords: string[] = [];
+	const numbers: string[] = [];
+	for (let level = reader.options.startLevel; level <= lastLevelOf(reader); level++) {
+		const puzzle = reader.state.levels.get(level)?.puzzle;
+		if (puzzle?.kind === "fragments") passwords.push(...puzzle.puzzles.map((item) => item.password));
+		else if (puzzle !== undefined) numbers.push(...dealValues(puzzle.deal));
+	}
+	return { passwords, numbers };
 }
 
-/**
- * The task placeholders of a fragment level: the length, the overlap, and the fragment with those held for the exiled.
- *
- * @param reader - The context or view.
- * @param agent - The resident.
- * @param level - The level.
- * @returns The values; empty strings on a level not dealt.
- */
-export function taskValues(reader: PuzzlesReader, agent: string, level: number): TaskValues {
-	const team = teamPuzzle(reader, level, agent);
-	if (team === undefined) return NONE;
-	const inherited = inheritedFragments(reader, level, agent).map(([from, fragment]) => `; you also hold the fragment of ${from}, who was exiled: ${fragment}`);
-	const own = reader.state.levels.get(level)?.puzzle.fragments.get(agent) ?? "";
-	return { length: String(team.password.length), overlap: String(team.overlap), fragment: `${own}${inherited.join("")}`, digits: "", factors: "" };
+// The fragments of every dealt fragment level.
+function allFragments(reader: PuzzlesReader): readonly string[] {
+	return [...reader.state.levels.values()].flatMap((state) => (state.puzzle.kind === "fragments" ? [...state.puzzle.fragments.values()] : []));
 }
 
 /**
@@ -68,7 +46,7 @@ export function taskValues(reader: PuzzlesReader, agent: string, level: number):
  * @returns True for a part of a password.
  */
 export function isPasswordPiece(reader: PuzzlesReader, token: string): boolean {
-	return [...reader.state.levels.values()].some((state) => state.puzzle.puzzles.some((puzzle) => puzzle.password.includes(token)));
+	return secretsOfDeal(reader).passwords.some((password) => password.includes(token));
 }
 
 /**
@@ -79,24 +57,24 @@ export function isPasswordPiece(reader: PuzzlesReader, token: string): boolean {
  * @returns True for a hand-over.
  */
 export function isHandover(reader: PuzzlesReader, text: string): boolean {
-	const fragments = [...reader.state.levels.values()].flatMap((state) => [...state.puzzle.fragments.values()]);
-	return fragments.some((fragment) => fragment.length > 0 && carriesRun(text, fragment, Math.min(HANDOVER_RUN, fragment.length)));
+	return allFragments(reader).some((fragment) => fragment.length > 0 && carriesRun(text, fragment, Math.min(HANDOVER_RUN, fragment.length)));
 }
 
 /**
- * The secret check of a Director's note, a `rule` handler on the note tools by bare name: a text that holds a piece
- * of a dealt password is refused with the old words (old gamemaker `#secretGuard` over every dealt level).
+ * The secret check of a Director's note, on the note tools by bare name: a text that holds a piece of a dealt
+ * password or of a dealt value is refused with the old words (old gamemaker `#secretGuard` over every dealt level).
  *
  * @param call - The call.
  * @param ctx - The context.
  * @returns `LEAK_BLOCKED`, or undefined.
  */
 export function checkNote(call: StageCall, ctx: PuzzlesCtx): Refusal | undefined {
-	if (!ctx.options.noteTools.includes(call.tool) || typeof call.params !== "object" || call.params === null || !("text" in call.params)) return undefined;
-	const text = call.params.text;
+	if (!ctx.options.noteTools.includes(call.tool) || typeof call.params !== "object" || call.params === null) return undefined;
+	// A tribunal's call and a perma-death carry their text in `reason` (erratum J134).
+	const text = "text" in call.params ? call.params.text : "reason" in call.params ? call.params.reason : undefined;
 	if (typeof text !== "string") return undefined;
-	const passwords = [...ctx.state.levels.values()].flatMap((state) => state.puzzle.puzzles.map((puzzle) => puzzle.password));
-	if (new SecretGuard(passwords).leaks(text.trim()).length === 0) return undefined;
+	const { passwords, numbers } = secretsOfDeal(ctx);
+	if (new SecretGuard(passwords, numbers).leaks(text.trim()).length === 0) return undefined;
 	const words = ctx.prompt("puzzles/notes/leak-blocked", {});
 	const split = words.indexOf(": ");
 	return refuse(words.slice(0, split), words.slice(split + 2));

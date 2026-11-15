@@ -5,6 +5,7 @@
  */
 import { Type, type Static } from "typebox";
 import { defineEvents } from "@swarmtales/sdk";
+import type { FactorDeal, FactorHolding } from "./additive.ts";
 import type { FragmentPuzzle } from "./fragments.ts";
 import type { Team, TeamPlanner } from "./teams.ts";
 
@@ -25,14 +26,37 @@ const TeamSpec = Type.Union(
 	{ description: "How the residents form teams on the level." },
 );
 
-const PuzzleSpec = Type.Object(
+const FragmentSpec = Type.Object(
 	{
-		kind: Type.Literal("fragments", { description: "The only kind of puzzle so far" }),
+		kind: Type.Literal("fragments", { description: "Fragments of a password" }),
 		length: Type.Tuple([Type.Integer({ description: "Shortest" }), Type.Integer({ description: "Longest" })], { description: "Inclusive password length range." }),
 		overlap: Type.Integer({ minimum: 0, description: "Characters shared at each seam." }),
 		ownChars: Type.Optional(Type.Integer({ minimum: 1, description: "Characters each fragment holds that no other has." })),
 	},
 	{ description: "A password cut into overlapping fragments, one per team member." },
+);
+
+const AdditiveSpec = Type.Object(
+	{
+		kind: Type.Literal("additive", { description: "A sum of factors" }),
+		digits: Type.Integer({ description: "Digits of every code and factor." }),
+		topology: Type.Union([Type.Literal("mutual", { description: "In pairs" }), Type.Literal("cycle", { description: "Around the team" }), Type.Literal("crossTeam", { description: "In another team" })], { description: "Who holds whose counter-factor." }),
+		cityFactor: Type.Union([Type.Literal("board", { description: "Posted" }), Type.Literal("feast", { description: "Sent privately" })], { description: "How the city factor reaches the residents." }),
+		cityFactorPer: Type.Optional(Type.Union([Type.Literal("level", { description: "One" }), Type.Literal("team", { description: "Per team" })], { description: "One city factor per level or per team." })),
+	},
+	{ description: "A code per resident, the sum of parts held by several residents." },
+);
+
+const PuzzleSpec = Type.Union([FragmentSpec, AdditiveSpec], { description: "The puzzle of the level." });
+
+const Guard = Type.Object(
+	{
+		id: Type.Optional(Type.String({ description: "The id of the rule, for the log" })),
+		rule: Type.String({ description: "The rule the guard's answerer judges a text against" }),
+		tools: Type.Array(Type.String({ description: "The bare name of a tool" }), { description: "The tools whose text is guarded" }),
+		minRun: Type.Optional(Type.Integer({ minimum: 1, description: "The shortest run of a secret the city's own check refuses; no check when left out" })),
+	},
+	{ description: "One rule of the hand-over guard (old story `guards.rules`)." },
 );
 
 const LevelSpec = Type.Object(
@@ -62,7 +86,9 @@ export const PuzzlesOptions = Type.Object({
 	standings: Type.Optional(
 		Type.Record(Type.String(), Standing, { description: "Where each resident stands, by resident id (the stand-in of milestone M3 for a game without `progression`). A resident the events of `progression` moved stands where they say; one left out stands on `startLevel` with nothing passed." }),
 	),
-	noteTools: Type.Array(Type.String({ description: "The bare name of a tool" }), { default: ["notify", "boardNote"], description: "The tools of a Director's note whose `text` is checked for a secret of the deal (`LEAK_BLOCKED`)." }),
+	holdAfter: Type.Optional(Type.Integer({ minimum: 1, description: "A door after this level: later levels are dealt only when it opens." })),
+	guards: Type.Array(Guard, { default: [], description: "The rules of the hand-over guard, a `review` handler on the tools they name; none: no guard." }),
+	noteTools: Type.Array(Type.String({ description: "The bare name of a tool" }), { default: ["notify", "boardNote"], description: "The tools of a Director's note whose `text` (or `reason`) is checked for a secret of the deal (`LEAK_BLOCKED`)." }),
 });
 
 /**
@@ -70,7 +96,22 @@ export const PuzzlesOptions = Type.Object({
  *
  * @public
  */
-export const PUZZLES_PROMPTS = { "puzzles/notes/leak-blocked": [] } as const;
+export const PUZZLES_PROMPTS = { "puzzles/notes/leak-blocked": [], "puzzles/replies/guard-check": [] } as const;
+
+const Certificate = Type.Object(
+	{ team: Type.Integer({ description: "The index of the team" }), certificate: Type.String({ description: "Its certificate" }), certificateHolder: Id, cityFactor: Type.Optional(Type.String({ description: "The team's own city factor" })) },
+	{ description: "One team's certificate" },
+);
+const Holding = Type.Object(
+	{ agent: Id, team: Type.Integer({ description: "The index of its team" }), salt: Type.String({ description: "Its salt" }), counterFactor: Type.String({ description: "Its counter-factor" }), counterHolder: Id, code: Type.String({ description: "Its code" }) },
+	{ description: "One resident's factors" },
+);
+const Deal = {
+	digits: Type.Integer({ description: "The digits of every value" }),
+	cityFactor: Type.String({ description: "The level's city factor" }),
+	teams: Type.Array(Certificate, { description: "The certificates, in team order" }),
+	holdings: Type.Array(Holding, { description: "The holdings, by resident id" }),
+};
 
 /**
  * The events of the mechanic, in the old field order.
@@ -82,6 +123,11 @@ export const PuzzlesEvents = defineEvents("puzzles", {
 		{ level: Int, holdings: Type.Array(Type.Object({ agent: Id, team: Type.Integer({ description: "The index of its team" }), fragment: Type.String({ description: "Its fragment of the team's password" }) }, { description: "One resident's fragment" }), { description: "Every fragment, by team and then by resident id" }) },
 		{ description: "A level was dealt: its teams and the fragment each resident holds" },
 	),
+	factors_dealt: Type.Object({ level: Int, ...Deal }, { description: "An additive level was dealt: its factors" }),
+	factor_revealed: Type.Object(
+		{ level: Int, target: Type.Union([Type.Literal("board", { description: "Posted" }), Type.Literal("notice", { description: "Sent privately" })], { description: "How it was released" }), agents: Ids("Who received it privately, in order") },
+		{ description: "The city factor of an additive level was released" },
+	),
 	factor_burned: Type.Object(
 		{ agent: Id, level: Int, piece: Type.String({ description: "The id of the piece, for example `L4-fragment`" }), needers: Ids("The residents who still need it, in team order") },
 		{ description: "A piece is gone with its banished holder" },
@@ -90,18 +136,13 @@ export const PuzzlesEvents = defineEvents("puzzles", {
 });
 
 /**
- * The puzzle of one level: a password per team.
+ * The puzzle of one level: a password per team, or a code per resident.
  *
  * @public
  */
-export interface LevelPuzzle {
-	/** The kind of puzzle. */
-	readonly kind: "fragments";
-	/** The puzzle of each team, in team order. */
-	readonly puzzles: readonly FragmentPuzzle[];
-	/** Resident id to its fragment. */
-	readonly fragments: ReadonlyMap<string, string>;
-}
+export type LevelPuzzle =
+	| { readonly kind: "fragments"; readonly puzzles: readonly FragmentPuzzle[]; readonly fragments: ReadonlyMap<string, string> }
+	| { readonly kind: "additive"; readonly deal: FactorDeal; readonly holdings: ReadonlyMap<string, FactorHolding> };
 
 /**
  * One dealt level.
@@ -129,14 +170,23 @@ export interface PuzzlesState {
 	readonly standings: Map<string, { level: number; readonly passed: number[] }>;
 	/** The residents a strike that keeps took from the city (`KEEPING_STRIKE`), in order. */
 	readonly struck: string[];
+	/** Per additive level, who received its city factor privately. */
+	readonly cityFactors: Map<number, Set<string>>;
+	/** The numbers of the direct messages that reached their receivers (`channels.dm_delivered`). */
+	readonly delivered: Set<number>;
 	/** The planner of the teams; not saved, it is drawn from the seed. */
 	readonly planner: TeamPlanner;
 }
 
-const LevelSnapshot = Type.Object(
+const Teams = Type.Array(Type.Object({ members: Ids("The members, in the order drawn"), leader: Id }, { description: "One team" }), { description: "The teams" });
+const AdditiveSnapshot = Type.Object(
+	{ level: Int, teams: Teams, kind: Type.Literal("additive", { description: "The kind of puzzle" }), deal: Type.Object(Deal, { description: "The factors" }) },
+	{ description: "One dealt additive level" },
+);
+const FragmentSnapshot = Type.Object(
 	{
 		level: Int,
-		teams: Type.Array(Type.Object({ members: Ids("The members, in the order drawn"), leader: Id }, { description: "One team" }), { description: "The teams" }),
+		teams: Teams,
 		kind: Type.Literal("fragments", { description: "The kind of puzzle" }),
 		puzzles: Type.Array(
 			Type.Object({ password: Type.String({ description: "The password" }), fragments: Type.Array(Type.String({ description: "A fragment" }), { description: "Its fragments, in password order" }), overlap: Type.Integer({ description: "Characters shared at each seam" }) }, { description: "One team's puzzle" }),
@@ -146,17 +196,45 @@ const LevelSnapshot = Type.Object(
 	},
 	{ description: "One dealt level" },
 );
+const Agents = (description: string) => Type.Array(Type.Object({ level: Int, agents: Ids("The residents") }, { description: "One level" }), { description });
 
 /** The saved state: the dealt levels and the exclusions (the old slice without the city factors). */
 export const PuzzlesSlice = Type.Object(
 	{
-		levels: Type.Array(LevelSnapshot, { description: "The dealt levels, ascending" }),
-		exclusions: Type.Array(Type.Object({ level: Int, agents: Ids("The banished") }, { description: "One level's exclusions" }), { description: "The exclusions per level" }),
+		levels: Type.Array(Type.Union([FragmentSnapshot, AdditiveSnapshot], { description: "One dealt level" }), { description: "The dealt levels, ascending" }),
+		exclusions: Agents("The banished out of their teams, per level"),
+		cityFactors: Agents("Who received the city factor privately, per additive level"),
+		delivered: Type.Array(Type.Integer({ description: "A message number" }), { description: "The direct messages delivered" }),
 		standings: Type.Array(Type.Object({ agent: Id, level: Int, passed: Type.Array(Int, { description: "The levels passed" }) }, { description: "Where one resident stands" }), { description: "The residents the events moved" }),
 		struck: Ids("The residents of a strike that keeps"),
 	},
 	{ description: "The saved state of the puzzles" },
 );
+
+// The factors of a deal, field by field in the old order (a canonical snapshot sorts the keys).
+function dealOf(deal: FactorDeal): Static<typeof AdditiveSnapshot>["deal"] {
+	const teams = deal.teams.map((team) => ({ team: team.team, certificate: team.certificate, certificateHolder: team.certificateHolder, ...(team.cityFactor === undefined ? {} : { cityFactor: team.cityFactor }) }));
+	const holdings = deal.holdings.map((held) => ({ agent: held.agent, team: held.team, salt: held.salt, counterFactor: held.counterFactor, counterHolder: held.counterHolder, code: held.code }));
+	return { digits: deal.digits, cityFactor: deal.cityFactor, teams, holdings };
+}
+
+/**
+ * One level as the snapshot keeps it.
+ *
+ * @param level - The level.
+ * @param entry - Its state.
+ * @returns The saved level.
+ */
+function snapshotOfLevel(level: number, entry: LevelState): Static<typeof PuzzlesSlice>["levels"][number] {
+	const { puzzle } = entry;
+	const teams = entry.teams.map((team) => ({ members: [...team.members], leader: team.leader }));
+	if (puzzle.kind === "additive") return { level, teams, kind: "additive", deal: dealOf(puzzle.deal) };
+	const puzzles = puzzle.puzzles.map((item) => ({ password: item.password, fragments: [...item.fragments], overlap: item.overlap }));
+	return { level, teams, kind: "fragments", puzzles, fragments: [...puzzle.fragments].map(([agent, fragment]) => ({ agent, fragment })) };
+}
+
+const agentsOf = (map: Map<number, Set<string>>) => [...map].map(([level, set]) => ({ level, agents: [...set] }));
+const setsOf = (list: readonly { readonly level: number; readonly agents: readonly string[] }[]) => new Map(list.map((entry) => [entry.level, new Set(entry.agents)]));
 
 /**
  * Saves the state.
@@ -165,21 +243,13 @@ export const PuzzlesSlice = Type.Object(
  * @returns The slice.
  */
 export function saveLevels(state: PuzzlesState): Static<typeof PuzzlesSlice> {
-	const levels = [...state.levels]
-		.sort(([a], [b]) => a - b)
-		.map(([level, { teams, puzzle }]) => ({
-			level,
-			teams: teams.map((team) => ({ members: [...team.members], leader: team.leader })),
-			kind: puzzle.kind,
-			puzzles: puzzle.puzzles.map((item) => ({ password: item.password, fragments: [...item.fragments], overlap: item.overlap })),
-			fragments: [...puzzle.fragments].map(([agent, fragment]) => ({ agent, fragment })),
-		}));
+	const levels = [...state.levels].sort(([a], [b]) => a - b).map(([level, entry]) => snapshotOfLevel(level, entry));
 	const standings = [...state.standings].map(([agent, entry]) => ({ agent, level: entry.level, passed: [...entry.passed] }));
-	return { levels, exclusions: [...state.exclusions].map(([level, set]) => ({ level, agents: [...set] })), standings, struck: [...state.struck] };
+	return { levels, exclusions: agentsOf(state.exclusions), cityFactors: agentsOf(state.cityFactors), delivered: [...state.delivered], standings, struck: [...state.struck] };
 }
 
 /**
- * Builds the state from a slice.
+ * Builds the state from a slice, field by field in the old order.
  *
  * @param data - The slice.
  * @param planner - A fresh planner.
@@ -187,8 +257,13 @@ export function saveLevels(state: PuzzlesState): Static<typeof PuzzlesSlice> {
  */
 export function loadLevels(data: Static<typeof PuzzlesSlice>, planner: TeamPlanner): PuzzlesState {
 	const levels = new Map<number, LevelState>(
-		data.levels.map((entry) => [entry.level, { teams: entry.teams, puzzle: { kind: "fragments", puzzles: entry.puzzles, fragments: new Map(entry.fragments.map((held) => [held.agent, held.fragment])) } }]),
+		data.levels.map((entry) => {
+			const teams = entry.teams.map((team) => ({ members: team.members, leader: team.leader }));
+			if (entry.kind === "fragments") return [entry.level, { teams, puzzle: { kind: "fragments", puzzles: entry.puzzles, fragments: new Map(entry.fragments.map((held) => [held.agent, held.fragment])) } }];
+			const deal = dealOf(entry.deal);
+			return [entry.level, { teams, puzzle: { kind: "additive", deal, holdings: new Map(deal.holdings.map((held) => [held.agent, held])) } }];
+		}),
 	);
 	const standings = new Map(data.standings.map((entry) => [entry.agent, { level: entry.level, passed: [...entry.passed] }]));
-	return { levels, exclusions: new Map(data.exclusions.map((entry) => [entry.level, new Set(entry.agents)])), standings, struck: [...data.struck], planner };
+	return { levels, exclusions: setsOf(data.exclusions), cityFactors: setsOf(data.cityFactors), delivered: new Set(data.delivered), standings, struck: [...data.struck], planner };
 }

@@ -12,6 +12,7 @@ import { defineService } from "@swarmtales/sdk";
 export { PuzzlesEvents } from "./model.ts";
 
 const Text = Type.String({ description: "A text a resident wrote" });
+const Resident = Type.String({ description: "A resident id" });
 const Yes = (description: string) => Type.Boolean({ description });
 
 /**
@@ -22,7 +23,7 @@ const Yes = (description: string) => Type.Boolean({ description });
  */
 export const PuzzlesService = defineService({
 	name: "deal",
-	summary: "Whether a token is part of a password, whether a text carries a secret, and whether a direct message is a hand-over.",
+	summary: "Whether a token is part of a password, whether a text carries a secret, and whether a direct message is a hand-over, and the release of a city factor.",
 	methods: {
 		passwordPiece: {
 			kind: "query",
@@ -44,6 +45,24 @@ export const PuzzlesService = defineService({
 			summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).",
 			input: Type.Object({ text: Text }, { additionalProperties: false, description: "One text" }),
 			output: Yes("True for a hand-over"),
+		},
+		revealFactor: {
+			kind: "command",
+			summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).",
+			input: Type.Object(
+				{
+					level: Type.Integer({ description: "The additive level" }),
+					target: Type.Union([Type.Literal("board", { description: "A post on the board" }), Type.Array(Resident, { description: "The residents sent a private notice" })], { description: "Where the city factor goes" }),
+				},
+				{ additionalProperties: false, description: "The release" },
+			),
+			output: Type.Union(
+				[
+					Type.Object({ ok: Type.Literal(true, { description: "Released" }), agents: Type.Array(Resident, { description: "The new recipients; none on the board" }) }, { additionalProperties: false, description: "Released" }),
+					Type.Object({ ok: Type.Literal(false, { description: "Not released" }), code: Type.String({ description: "`NOT_PLAYED`, `NOT_ADDITIVE` or `PER_TEAM`" }), detail: Type.String({ description: "Why" }) }, { additionalProperties: false, description: "Not released" }),
+				],
+				{ description: "What was released" },
+			),
 		},
 	},
 });

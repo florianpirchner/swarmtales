@@ -3,16 +3,17 @@
  * What a resident holds for others, who still lacks a fragment, and what an exile does to the pieces. Ported from
  * the old platform (`heldPieces`, `lackingFragment`, and the pieces' part of the old exile's `onExiled`).
  */
-import { inheritedFragments, lastLevelOf } from "./deal.ts";
+import { dealView, inheritedFragments, lastLevelOf } from "./deal.ts";
+import type { FactorDeal } from "./additive.ts";
 import type { PuzzlesCtx, PuzzlesReader } from "./head.ts";
 import { hasPassed, levelOf } from "./standing.ts";
 
 /** A piece a resident holds that others need. */
-interface HeldPiece {
-	/** The id of the piece, `L<level>-fragment`. */
+export interface HeldPiece {
+	/** The id of the piece: `L<level>-fragment`, `L<level>-certificate` or `L<level>-counter-<needer>`. */
 	readonly id: string;
 	/** The kind of piece. */
-	readonly kind: "fragment";
+	readonly kind: "fragment" | "certificate" | "counter";
 	/** Its level. */
 	readonly level: number;
 	/** How a text names it. */
@@ -31,16 +32,41 @@ export interface City {
 	readonly dms: readonly { readonly to: string; readonly text: string }[];
 }
 
+// The certificate and the counter-factors `agent` holds on an additive level, once it or a needer reached it.
+function additivePieces(reader: PuzzlesReader, agent: string, level: number, deal: FactorDeal): readonly HeldPiece[] {
+	const reached = (who: string): boolean => levelOf(reader, who) >= level;
+	const counters = deal.holdings.filter((holding) => holding.counterHolder === agent && holding.agent !== agent && (reached(agent) || reached(holding.agent)));
+	return [
+		...certificatePiece(deal, agent, level, reached),
+		...counters.map((holding): HeldPiece => ({ id: `L${String(level)}-counter-${holding.agent}`, kind: "counter", level, label: `the counter-factor of ${holding.agent} for door ${String(level)}`, value: holding.counterFactor, needers: [holding.agent] })),
+	];
+}
+
+// The team certificate `agent` holds, once it or a needer reached the level.
+function certificatePiece(deal: FactorDeal, agent: string, level: number, reached: (who: string) => boolean): readonly HeldPiece[] {
+	const own = deal.holdings.find((holding) => holding.agent === agent);
+	const certificate = own === undefined ? undefined : deal.teams[own.team];
+	if (own === undefined || certificate?.certificateHolder !== agent) return [];
+	const needers = deal.holdings.filter((holding) => holding.team === own.team && holding.agent !== agent).map((holding) => holding.agent);
+	if (needers.length === 0 || !(reached(agent) || needers.some(reached))) return [];
+	return [{ id: `L${String(level)}-certificate`, kind: "certificate", level, label: `the team certificate of door ${String(level)}`, value: certificate.certificate, needers }];
+}
+
 /**
- * Every piece `agent` holds for others, by level: its fragment of each level it has reached.
+ * Every piece `agent` holds for others, by level: its fragment of each fragment level it has reached, and the
+ * certificate and counter-factors of an additive level (needers in holding order; the standoff relies on both).
  *
  * @param reader - The context or view.
  * @param agent - The resident.
  * @returns The pieces, ascending by level.
  */
-function heldPieces(reader: PuzzlesReader, agent: string): readonly HeldPiece[] {
+export function heldPieces(reader: PuzzlesReader, agent: string): readonly HeldPiece[] {
 	const pieces: HeldPiece[] = [];
 	for (const [level, state] of [...reader.state.levels].sort(([a], [b]) => a - b)) {
+		if (state.puzzle.kind === "additive") {
+			pieces.push(...additivePieces(reader, agent, level, dealView(reader, level, state.puzzle.deal)));
+			continue;
+		}
 		const fragment = state.puzzle.fragments.get(agent);
 		const team = state.teams.find((candidate) => candidate.members.includes(agent));
 		if (fragment === undefined || team === undefined || levelOf(reader, agent) < level) continue;
@@ -69,7 +95,7 @@ function holdsFragment(reader: PuzzlesReader, city: City, agent: string, level: 
  */
 export function lackingFragment(reader: PuzzlesReader, city: City, level: number, holder: string): readonly string[] {
 	const state = reader.state.levels.get(level);
-	const fragment = state?.puzzle.fragments.get(holder);
+	const fragment = state?.puzzle.kind === "fragments" ? state.puzzle.fragments.get(holder) : undefined;
 	const team = state?.teams.find((candidate) => candidate.members.includes(holder));
 	if (fragment === undefined || team === undefined || city.exiled.includes(holder) || levelOf(reader, holder) < level) return [];
 	return team.members
@@ -81,18 +107,19 @@ export function lackingFragment(reader: PuzzlesReader, city: City, level: number
 
 /**
  * What an exile does to the pieces: every fragment the banished resident held for a teammate who has not passed
- * its level burns (`factor_burned`), and on every level no remaining resident has reached, the banished are out
+ * its level and did not bequeath burns (`factor_burned`; a certificate or a counter-factor is the standoff's to keep), and on every level no remaining resident has reached, the banished are out
  * of their teams (`level_contracted`).
  *
  * @param ctx - The context.
  * @param agent - The banished resident.
  * @param gone - Every banished resident, `agent` included.
+ * @param bequeathed - The pieces its will left to heirs.
  */
-export function onExiled(ctx: PuzzlesCtx, agent: string, gone: readonly string[]): void {
+export function onExiled(ctx: PuzzlesCtx, agent: string, gone: readonly string[], bequeathed: readonly string[]): void {
 	const alive = ctx.residents.ids.filter((id) => !gone.includes(id));
 	const unreached = (level: number): boolean => !alive.some((id) => levelOf(ctx, id) >= level);
 	for (const piece of heldPieces(ctx, agent)) {
-		if (unreached(piece.level)) continue;
+		if (piece.kind !== "fragment" || bequeathed.includes(piece.id) || unreached(piece.level)) continue;
 		const needers = piece.needers.filter((id) => !gone.includes(id) && !hasPassed(ctx, id, piece.level));
 		if (needers.length > 0) ctx.emit("factor_burned", { agent, level: piece.level, piece: piece.id, needers });
 	}

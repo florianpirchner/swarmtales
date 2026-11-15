@@ -26,12 +26,13 @@ const asker = defineMechanic(
 		package: "@test/asker",
 		summary: "Test: asks the deal.",
 		uses: [PuzzlesService, LevelPiecesService, ExileService],
-		tools: { ask: { description: "Test: asks.", params: Ask, for: ["resident"] }, task: { description: "Test: the task.", params: Ask, for: ["resident"] }, strike: { description: "Test: banishes.", params: Ask, for: ["resident"] } },
+		tools: { ask: { description: "Test: asks.", params: Ask, for: ["resident"] }, task: { description: "Test: the task.", params: Ask, for: ["resident"] }, strike: { description: "Test: banishes.", params: Ask, for: ["resident"] }, call: { description: "Test: calls.", params: Type.Object({ reason: Type.String() }), for: ["resident"] } },
 	}),
 	{
 		tools: {
 			ask: { run: ({ text }, ctx) => reply(JSON.stringify(["passwordPiece", "carriesSecret", "isHandover"].map((method) => (method === "passwordPiece" ? ctx.tryCall(PuzzlesService, "passwordPiece", { token: text }) : method === "carriesSecret" ? ctx.tryCall(PuzzlesService, "carriesSecret", { resident: ctx.resident ?? "", text, minRun: 3 }) : ctx.tryCall(PuzzlesService, "isHandover", { text }))))) },
 			task: { run: (_params, ctx) => reply(ctx.tryCall(LevelPiecesService, "taskValues", { resident: ctx.resident ?? "", level: 1 })?.fragment ?? "") },
+			call: { run: () => reply("called") },
 			strike: { run: ({ text, by }, ctx) => reply(JSON.stringify(ctx.tryCall(ExileService, "banish", { resident: text, ...(by === undefined ? {} : { by }) }))) },
 		},
 	},
@@ -39,7 +40,7 @@ const asker = defineMechanic(
 
 const fragments = { kind: "fragments" as const, length: [10, 12] satisfies [number, number], overlap: 2 };
 const LEVELS = [1, 2].map((number) => ({ number, team: { kind: "random", size: 3 } as const, puzzle: fragments }));
-const TOOLS = ["getProblem", "submitSolution", "ask", "task", "strike"];
+const TOOLS = ["getProblem", "submitSolution", "ask", "task", "strike", "call"];
 const level = (number: number) => ({ number, title: `Door ${String(number)}`, reward: 5, tools: TOOLS, task: "Level {level}: {fragment}" });
 
 function game(ticks = 4): Game {
@@ -47,7 +48,7 @@ function game(ticks = 4): Game {
 		id: "puzzles-pieces",
 		seed: 7,
 		residents: ["A01", "A02", "A03"],
-		mechanics: [ledger({ startPoints: 10 }), channels(), exile(), progression({ levels: [level(1), level(2)], survivors: 2, finishedNotice: "done", managed: [] }), puzzles({ levels: LEVELS }), asker()],
+		mechanics: [ledger({ startPoints: 10 }), channels(), exile(), progression({ levels: [level(1), level(2)], survivors: 2, finishedNotice: "done", managed: [] }), puzzles({ levels: LEVELS, noteTools: ["notify", "boardNote", "call"] }), asker()],
 		grants: { script: ["notify", "boardNote"] },
 		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster" } },
 		end: { ticks },
@@ -120,5 +121,15 @@ describe("the secret check of a Director's note", () => {
 		expect(await note("notify", { agent: "A02", text: "A02, the city keeps count of every point." })).toBe("delivered to A02 as #1");
 		const refused = test.kernel.log.all().filter((event) => event.type === "tool_refused").map((event) => Value.Parse(Type.Object({ stage: Type.String(), code: Type.String() }), event.payload));
 		expect(refused.map(({ stage, code }) => `${stage} ${code}`)).toEqual(["rule LEAK_BLOCKED", "rule LEAK_BLOCKED"]);
+	});
+
+	it("reads the `reason` of a note tool that has no `text`, as a tribunal's call (erratum J134)", async () => {
+		const test = testKernel(game());
+		const { password } = dealOf(test, 1);
+		const call = async (reason: string): Promise<string> => {
+			const outcome = await test.call("A01", "call", { reason });
+			return outcome.ok ? outcome.reply : outcome.code;
+		};
+		expect([await call(`A02 hides ${password.slice(1, 6)}`), await call("A02 hides a fragment")]).toEqual(["LEAK_BLOCKED", "called"]);
 	});
 });

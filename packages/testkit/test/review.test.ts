@@ -130,7 +130,7 @@ describe("the stage `review` from the sdk to a replay", () => {
 
 	it("refuses at load a game whose review names an answerer no Director answers (SWT-D004), and names the answerers", () => {
 		expect(city.head.answerers).toEqual(["judge"]);
-		expect(keeper.head.answerers).toEqual(["guard"]);
+		expect(keeper.head.answerers).toEqual([]);
 		const issues = (() => {
 			try {
 				gameOf(["guard"]);

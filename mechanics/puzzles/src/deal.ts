@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Dealing a level and reading the deal. Ported from the old platform; the deal draws from `ctx.rng("puzzle", level)`, the old stream. */
+import { contractDeal, dealFactors, type FactorDeal } from "./additive.ts";
 import { generateLevelPuzzles } from "./fragments.ts";
 import type { PuzzlesCtx, PuzzlesReader } from "./head.ts";
 import type { LevelState } from "./model.ts";
@@ -15,6 +16,30 @@ export function lastLevelOf(reader: PuzzlesReader): number {
 }
 
 /**
+ * The levels dealt when the run starts: up to the door after `holdAfter`, or all of them.
+ *
+ * @param reader - The context or view.
+ * @returns The levels, ascending.
+ */
+export function openingLevels(reader: PuzzlesReader): readonly number[] {
+	const last = lastLevelOf(reader);
+	const door = reader.options.holdAfter !== undefined && reader.options.holdAfter < last ? reader.options.holdAfter : last;
+	return Array.from({ length: Math.max(0, door - reader.options.startLevel + 1) }, (_, index) => reader.options.startLevel + index);
+}
+
+/**
+ * The factors of an additive level as they stand: the seeded deal, with the roles of its excluded passed on.
+ *
+ * @param reader - The context or view.
+ * @param level - The level.
+ * @param deal - Its seeded deal.
+ * @returns The deal now.
+ */
+export function dealView(reader: PuzzlesReader, level: number, deal: FactorDeal): FactorDeal {
+	return contractDeal(deal, reader.state.exclusions.get(level) ?? new Set());
+}
+
+/**
  * Draws the teams and the puzzle of a level from the seed; announces nothing.
  *
  * @param ctx - The context.
@@ -22,13 +47,18 @@ export function lastLevelOf(reader: PuzzlesReader): number {
  * @returns The level's state.
  * @throws RangeError when the game has no such level, or no valid puzzle is found.
  * @throws TeamLayoutError when the level's teams cannot be drawn.
+ * @throws FactorDealError when an additive level's factors cannot be drawn.
  */
-function drawLevel(ctx: PuzzlesCtx, level: number): LevelState {
+export function drawLevel(ctx: PuzzlesCtx, level: number): LevelState {
 	const definition = ctx.options.levels.find((entry) => entry.number === level);
 	if (definition === undefined) throw new RangeError(`puzzles: unknown level ${String(level)}`);
 	const teams = ctx.state.planner.teamsOf(level);
 	const rng = ctx.rng("puzzle", level);
 	const spec = definition.puzzle;
+	if (spec.kind === "additive") {
+		const deal = dealFactors(rng, { digits: spec.digits, topology: spec.topology, teams: teams.map((team) => team.members), cityFactorPerTeam: spec.cityFactorPer === "team" });
+		return { teams, puzzle: { kind: "additive", deal, holdings: new Map(deal.holdings.map((holding) => [holding.agent, holding])) } };
+	}
 	const [minLength, maxLength] = spec.length;
 	const puzzles = generateLevelPuzzles(rng, {
 		teams: teams.length,
@@ -50,15 +80,21 @@ function drawLevel(ctx: PuzzlesCtx, level: number): LevelState {
 }
 
 /**
- * Writes the audit record of a level's deal, `fragments_dealt`.
+ * Writes the audit record of a level's deal, `fragments_dealt` or `factors_dealt`.
  *
  * @param ctx - The context.
  * @param level - The level.
  * @param state - Its state.
  */
-function announceDeal(ctx: PuzzlesCtx, level: number, state: LevelState): void {
+export function announceDeal(ctx: PuzzlesCtx, level: number, state: LevelState): void {
+	const { puzzle } = state;
+	if (puzzle.kind === "additive") {
+		const { digits, cityFactor, teams, holdings } = puzzle.deal;
+		ctx.emit("factors_dealt", { level, digits, cityFactor, teams: [...teams], holdings: [...holdings] });
+		return;
+	}
 	const holdings = state.teams.flatMap((team, index) =>
-		[...team.members].sort((a, b) => a.localeCompare(b)).map((agent) => ({ agent, team: index, fragment: state.puzzle.fragments.get(agent) ?? "" })),
+		[...team.members].sort((a, b) => a.localeCompare(b)).map((agent) => ({ agent, team: index, fragment: puzzle.fragments.get(agent) ?? "" })),
 	);
 	ctx.emit("fragments_dealt", { level, holdings });
 }
@@ -91,7 +127,8 @@ export function dealLevel(ctx: PuzzlesCtx, level: number): boolean {
 export function inheritedFragments(reader: PuzzlesReader, level: number, agent: string): readonly (readonly [string, string])[] {
 	const state = reader.state.levels.get(level);
 	const team = state?.teams.find((candidate) => candidate.members.includes(agent));
-	if (state === undefined || team === undefined) return [];
+	if (state?.puzzle.kind !== "fragments" || team === undefined) return [];
+	const { fragments } = state.puzzle;
 	const excluded = reader.state.exclusions.get(level) ?? new Set<string>();
 	const struck = reader.state.struck;
 	const members = [...team.members].sort((a, b) => a.localeCompare(b));
@@ -99,7 +136,7 @@ export function inheritedFragments(reader: PuzzlesReader, level: number, agent: 
 	return members
 		.filter((member) => (excluded.has(member) && heir === agent) || (struck.includes(member) && !excluded.has(member) && !struck.includes(agent)))
 		.flatMap((member) => {
-			const fragment = state.puzzle.fragments.get(member);
+			const fragment = fragments.get(member);
 			return fragment === undefined ? [] : [[member, fragment] as const];
 		});
 }

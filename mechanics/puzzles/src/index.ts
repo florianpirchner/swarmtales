@@ -1,27 +1,33 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The `puzzles` mechanic: the pieces of the fragment levels. Every level is dealt when the run starts (teams, a
- * password per team, a fragment per resident); `progression` reads the codes and tasks through `level-pieces`, and
- * `puzzles` reads where a resident stands from the events of `progression`. When a resident is banished its
- * fragments burn and the levels nobody has reached contract; a strike that keeps (the holdout tribunal) burns
- * nothing and gives its fragments to every teammate left. A Director's note that holds a piece of a password is
- * refused (`LEAK_BLOCKED`).
+ * The `puzzles` mechanic: the pieces of the levels. The levels up to the door of `holdAfter` are dealt when the run
+ * starts (teams, a password per team and a fragment per resident, or the factors of an additive level), the later
+ * ones when `progression` opens the door; `progression` reads the codes and tasks through `level-pieces`, and
+ * `puzzles` reads where a resident stands from the events of `progression`. When a resident is banished the
+ * fragments it did not bequeath burn and the levels nobody has reached contract; a strike that keeps (the holdout
+ * tribunal) burns nothing and gives its fragments to every teammate left. A Director's note that holds a piece of a
+ * secret is refused (`LEAK_BLOCKED`), and so is a will that leaves a piece the resident does not hold
+ * (`UNKNOWN_FACTOR`); the hand-over guard reviews the guarded tools (`GUARD_BLOCKED`).
  *
  * @packageDocumentation
  */
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/sdk";
-import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
+import { ChannelsEvents, ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { clearsAway, ExileEvents, ExileService } from "@swarmtales/mechanic-exile/contract";
 import { ProgressionEvents } from "@swarmtales/mechanic-progression/contract";
-import { dealLevel, lastLevelOf } from "./deal.ts";
-import { carriesGuardedFragment } from "./guard.ts";
+import { dealLevel, openingLevels } from "./deal.ts";
+import { askGuard, carriesGuardedFragment, decideGuard } from "./guard.ts";
 import { puzzlesHead } from "./head.ts";
-import { lackingFragment, onExiled } from "./held.ts";
-import { checkNote, isHandover, isPasswordPiece, solutionOf, taskValues } from "./pieces.ts";
+import { heldPieces, lackingFragment, onExiled } from "./held.ts";
+import { checkNote, isHandover, isPasswordPiece, secretsOfDeal } from "./pieces.ts";
+import { NeedsFact, needsOf, SecretsFact, SolutionsFact, solutionsOf } from "./report.ts";
+import { revealFactor } from "./reveal.ts";
 import { onLevelEntered, onLevelUp } from "./standing.ts";
+import { holdersOf, solutionOf, taskValues } from "./text.ts";
 
 export { PuzzlesService } from "./contract.ts";
+export { cityFactorOf, contractDeal, dealFactors, dealValues, FactorDealError, type FactorDeal, type FactorHolding, type FactorTopology, type TeamCertificate } from "./additive.ts";
 export { assembleAll, validatePuzzle, type FragmentPuzzle } from "./fragments.ts";
 export { puzzlesHead, type PuzzlesCtx } from "./head.ts";
 export { PUZZLES_PROMPTS, PuzzlesEvents, PuzzlesOptions, type LevelPuzzle, type LevelState, type PuzzlesState } from "./model.ts";
@@ -45,30 +51,35 @@ const Residents = (description: string) => Type.Array(Type.String({ description:
 export const puzzles = defineMechanic(puzzlesHead, {
 	hooks: {
 		runStarted: (ctx) => {
-			for (let level = ctx.options.startLevel; level <= lastLevelOf(ctx); level++) dealLevel(ctx, level);
+			for (const level of openingLevels(ctx)) dealLevel(ctx, level);
 		},
 	},
 	services: {
 		"level-pieces": {
-			// Every level is dealt at the start; a dealt level is left as it is (erratum J34).
+			// Asked for every level after an opening door; a dealt level is left as it is (erratum J34).
 			deal: ({ level }, ctx) => (dealLevel(ctx, level), null),
 			solutionOf: ({ resident, level }, ctx) => solutionOf(ctx, level, resident),
-			kindOf: ({ level }, ctx) => (ctx.state.levels.has(level) ? "fragments" : "none"),
+			kindOf: ({ level }, ctx) => ctx.state.levels.get(level)?.puzzle.kind ?? "none",
 			teamOf: ({ resident, level }, ctx) => {
 				const team = ctx.state.planner.teamOf(level, resident);
 				return { members: [...team.members], leader: team.leader };
 			},
 			taskValues: ({ resident, level }, ctx) => taskValues(ctx, resident, level),
-			// Only an additive level has holders.
-			holders: () => [],
+			holders: ({ resident, level }, ctx) => holdersOf(ctx, resident, level, ctx.tryCall(ExileService, "exiled", {}) ?? []).map((entry) => ({ ...entry })),
 		},
 		deal: {
 			passwordPiece: ({ token }, ctx) => isPasswordPiece(ctx, token),
 			carriesSecret: ({ text, minRun }, ctx) => carriesGuardedFragment(ctx, text, minRun),
 			isHandover: ({ text }, ctx) => isHandover(ctx, text),
+			revealFactor: ({ level, target }, ctx) => revealFactor(ctx, level, target),
 		},
+		// Every piece, also of a resident banished while the listeners of `exiled` run (the standoff keeps them then).
+		"held-pieces": { held: ({ resident }, ctx) => heldPieces(ctx, resident).map((piece) => ({ ...piece, needers: [...piece.needers] })) },
 	},
-	pipeline: { rule: checkNote },
+	pipeline: {
+		rule: checkNote,
+		review: { answerer: "guard", ask: askGuard, decide: decideGuard },
+	},
 	listeners: (kit) => [
 		// After the ledger, so the points burn before the pieces whatever the game's order of mechanics is.
 		kit.listen(
@@ -76,7 +87,8 @@ export const puzzles = defineMechanic(puzzlesHead, {
 			"exiled",
 			(payload, ctx) => {
 				// The struck of a strike that keeps are gone too (old `isGone`), though `exiled` leaves them out.
-				if (clearsAway(payload)) onExiled(ctx, payload.agent, [...(ctx.tryCall(ExileService, "exiled", {}) ?? [payload.agent]), ...ctx.state.struck]);
+				const bequeathed = ctx.tryCall(ExileService, "bequeathed", { resident: payload.agent }) ?? [];
+				if (clearsAway(payload)) onExiled(ctx, payload.agent, [...(ctx.tryCall(ExileService, "exiled", {}) ?? [payload.agent]), ...ctx.state.struck], bequeathed);
 				else if (!ctx.state.struck.includes(payload.agent)) ctx.state.struck.push(payload.agent);
 			},
 			{ after: ["ledger"] },
@@ -87,8 +99,14 @@ export const puzzles = defineMechanic(puzzlesHead, {
 		kit.listen(ProgressionEvents, "level_entered", ({ agent, level }, ctx) => {
 			onLevelEntered(ctx, agent, level);
 		}),
+		kit.listen(ChannelsEvents, "dm_delivered", ({ number }, ctx) => {
+			ctx.state.delivered.add(number);
+		}),
 	],
 	facts: {
+		needs: { output: NeedsFact, compute: (view) => needsOf(view, view.tryCall(ExileService, "alive", {}) ?? view.residents.ids) },
+		secrets: { output: SecretsFact, compute: (view) => secretsOfDeal(view) },
+		solutions: { output: SolutionsFact, compute: (view) => solutionsOf(view, view.residents.ids) },
 		dealt: { output: Type.Array(Level, { description: "The dealt levels, ascending" }), compute: (view) => [...view.state.levels.keys()].sort((a, b) => a - b) },
 		exclusions: {
 			output: Type.Array(Type.Object({ level: Level, excluded: Residents("The banished who are out of their teams") }, { description: "One level" }), { description: "The contracted levels" }),
