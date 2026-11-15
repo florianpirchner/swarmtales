@@ -1,33 +1,49 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. Fifteen games run on the new platform today, each with a scripted
-or sampled player in place of a model. The first live runs on this platform are those of the gate of milestone M2
-([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding or a recorded moment yet:** a finding appears
-on a card only when it is reproduced on this platform, with n, standard error and a link.
+The catalogue of the games that run on Swarm Tales.
 
-A new game adds a card here, never a line to the [`README.md`](README.md).
+<!-- generated:status -->
+<!-- Written by `pnpm docs:games` from games/index.ts, the game files and scripts/game-docs/catalogue.ts; edit those, not this block. -->
+
+Fifteen games run on the new platform today, thirteen of them ports of the games of the old platform.
+
+<!-- /generated:status -->
+
+Each game is played in its tests by a scripted or sampled player in place of a model. The first live runs on this
+platform are those of the gate of milestone M2 ([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding
+or a recorded moment yet:** a finding appears on a card only when it is reproduced on this platform, with n,
+standard error and a link.
+
+A new game adds a card here, never a line to the [`README.md`](README.md), and its facts to
+[`scripts/game-docs/catalogue.ts`](scripts/game-docs/catalogue.ts); `pnpm docs:games` writes the generated blocks.
 
 ## Overview
 
-The table is written by hand for now; the plan is to generate it from the registered games.
+The table is written from the games list ([`games/index.ts`](games/index.ts)) and the game files: the residents,
+mechanics, Directors and params of each game's default build. Family and proof come from the catalogue.
 
-| Game | Family | Residents | Mechanics | Params | How it is proven |
-|---|---|---|---|---|---|
-| [Hello Game](#hello-game) | none (sample 1 of the README) | 2 | `grid-game` | none | its test plays it with the sampled player and with `swt run --fake`, and verifies the log |
-| [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none; variants are options of `tictactoeGame` | nine oracle files match at level 3 |
-| [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with nine params | six oracle files match at level 3 |
-| [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with five params | five oracle files match at level 3 |
-| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | a game family with five params | all eight oracle files match at level 3 |
-| [Lanterns](#lanterns) | cooperation under hidden information | 6 (two teams of three) | `clue-grid`, `team-channel`, `strategy-brain` | none; variants are options of `lanternsGame` | four oracle files match at level 3 |
-| [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
-| [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
-| [Chess](#chess) | board games, all information public | 2 (4 with teams) | `chess`, `team-channel`, `strategy-brain` | none; variants are options of `chessGame` | all twelve oracle files match at level 3 |
-| [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none; variants are options of `holdemGame` | the six oracle files match at level 3 |
-| [Convoy](#convoy) | hidden information and bluff | 6 | `convoy`, `strategy-brain` | none; variants are options of `convoyGame` | four oracle files match at level 3 |
-| [Nine men's morris](#nine-mens-morris) | board games, all information public | 6 (two teams of three), 2, or 1 against the search | `morris`, `consensus`, `team-channel`, `strategy-brain`, `morris-referee` | none; variants are options of `morrisGame` | all five oracle files match at level 3 |
-| [Salt Market](#salt-market) | markets, bids and economics | 4 | `salt-market`, `strategy-brain` | none; variants are options of `saltMarketGame` | four oracle files match at level 3 |
-| [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `sealed-auction`, `strategy-brain` | none; variants are options of `blindBidGame` | all five oracle files match at level 3 |
-| [Ember Tricks](#ember-tricks) | markets, bids and economics | 4 | `card-table`, `trick-play`, `strategy-brain` | a game family with five params | all four oracle files match at level 3 |
+<!-- generated:overview -->
+<!-- Written by `pnpm docs:games` from games/index.ts, the game files and scripts/game-docs/catalogue.ts; edit those, not this block. -->
+
+| Game | Family | Residents | Mechanics | Directors | Params | How it is proven |
+|---|---|---|---|---|---|---|
+| [Hello Game](#hello-game) | none (sample 1 of the README) | 2 | `grid-game` | none | none | its test plays it with the sampled player and with `swt run --fake`, and verifies the log |
+| [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none | none | nine oracle files match at level 3 |
+| [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | none | a game family: `games`, `packs`, `packSize`, `brain`, `burns`, `openHands`, `frozenHands`, `maxWords`, `showResults` | six oracle files match at level 3 |
+| [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | none | a game family: `blocks`, `brain`, `showHorizon`, `maxWords`, `showResults` | five oracle files match at level 3 |
+| [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | `warden` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
+| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | none | a game family: `games`, `brain`, `strikes`, `aid`, `maxWords` | eight oracle files match at level 3 |
+| [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none | a game family: `seats`, `games`, `dice`, `brain`, `talk`, `maxWords` | six oracle files match at level 3 |
+| [Lanterns](#lanterns) | cooperation under hidden information | 6 (two teams of three) | `clue-grid`, `team-channel`, `strategy-brain` | none | a game family: `games`, `brain`, `maxClues`, `maxWords` | four oracle files match at level 3 |
+| [Chess](#chess) | board games, all information public | 2 (4 with teams) | `chess`, `team-channel`, `strategy-brain` | none | a game family: `games`, `maxPlies`, `maxWords`, `fresh`, `compact`, `brain`, `showLegalMoves`, `showThreats`, `coach`, `teams`, `settleCap` | twelve oracle files match at level 3 |
+| [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none | a game family: `seats`, `games`, `hands`, `brain`, `brainSeats`, `aidSeats`, `duplicate`, `maxWords` | six oracle files match at level 3 |
+| [Convoy](#convoy) | hidden information and bluff | 6 | `convoy`, `strategy-brain` | none | a game family: `games`, `crews`, `damageToLose`, `cooldown`, `brain`, `maxWords` | four oracle files match at level 3 |
+| [Nine men's morris](#nine-mens-morris) | board games, all information public | 6 (two teams of three), 2, or 1 against the search | `morris`, `consensus`, `team-channel`, `strategy-brain`, `morris-referee` | none | a game family: `games`, `brain`, `maxTurns`, `maxQuietTurns`, `maxWords`, `maxRounds`, `teamSize`, `fixedCaptain`, `refereeDepth`, `engineDepth` | five oracle files match at level 3 |
+| [Salt Market](#salt-market) | markets, bids and economics | 4 | `salt-market`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `spoil`, `maxWords` | four oracle files match at level 3 |
+| [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `sealed-auction`, `strategy-brain` | none | a game family: `games`, `lots`, `purse`, `brain`, `maxWords` | five oracle files match at level 3 |
+| [Ember Tricks](#ember-tricks) | markets, bids and economics | 4 | `card-table`, `trick-play`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `lever`, `maxWords` | four oracle files match at level 3 |
+
+<!-- /generated:overview -->
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
 old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
@@ -118,8 +134,8 @@ the team chat, where the keeper may not post. Every game starts from a fresh con
 short strategy brain, written as the team's conventions between keeper and seekers. The mechanic scores how much of
 what the keeper meant the seekers found, for the report only.
 
-- Variants are options of `lanternsGame`: the number of games, the clues per team and game, no brain (the control
-  arm), the size of a brain. The defaults give the game of the old platform, with its output cap of 16000 tokens.
+- Params of the game family: `games`, `maxClues` (the clues per team and game), `brain` (false: the control arm),
+  `maxWords` (the size of a brain). The defaults give the game of the old platform, with its output cap of 16000 tokens.
 - Proof: the four oracle files match at level 3, three of them replays of a live run of the old platform up to their
   cut; the briefings are byte-identical.
 - Links: [folder](games/lanterns/), [README](games/lanterns/README.md), [oracle files](oracles/lanterns/).
@@ -152,8 +168,8 @@ Ones are wild, and a bid may carry a public remark that need not be true. Every 
 seat's only memory is a short private strategy brain. The mechanic scores every decision against a simple
 probability baseline, for the report only.
 
-- Variants are options of `liarsDiceGame`: the seats (2 to 6, heads-up at 2), the games, the dice, no brain (the
-  control arm), no table talk.
+- Params of the game family: `seats` (2 to 6, heads-up at 2), `games`, `dice`, `brain` (false: the control arm),
+  `talk` (false: no table talk), `maxWords`. The defaults give the game of the old platform.
 - Proof: the six oracle files match at level 3, three of them up to their cut, with one declared mapping (the files
   lack the flag `endsTurn`, which follows from the reply); the briefings are byte-identical.
 - Links: [folder](games/liars-dice/), [README](games/liars-dice/README.md), [oracle files](oracles/liars-dice/).
@@ -167,9 +183,10 @@ seeded legal move played for it until three such moves lose the game. Every game
 seat's only memory is a short private strategy brain. The mechanic scores every move against a one-ply material
 baseline, for the report only.
 
-- Variants are options of `chessGame`: the games, the move cap and the settled cap, a fresh context per move, the
-  compact board, the legal-move list, the loose pieces, the coach (it needs the brain), two teams of two with a
-  rotating captain and a private chat, and no brain (the control arm).
+- Params of the game family: `games`, `maxPlies` (the move cap), `settleCap`, `fresh` (a fresh context per move),
+  `compact` (the compact board), `showLegalMoves`, `showThreats` (the loose pieces), `coach` (it needs the brain),
+  `teams` (two teams of two with a rotating captain and a private chat), `brain` (false: the control arm),
+  `maxWords`.
 - Proof: the twelve oracle files match at level 3, three of them up to their cut, with one declared mapping (the
   files lack the flag `endsTurn`, which every accepted move sets); the briefings of all four branches are
   byte-identical.
@@ -184,9 +201,9 @@ seat sees only its own cards, and there is no table talk. Every game starts from
 memory is a short private strategy brain. The mechanic scores every decision against a simple equity baseline, for
 the report only.
 
-- Variants are options of `holdemGame`: the seats (2 to 6, heads-up at 2), the games, the hands, no brain (the
-  control arm), fresh deals, a mixed table (`brainSeats`: a brain for some seats only) and the decision aid
-  (`aidSeats`: these seats are told their equity and the pot odds on their turn).
+- Params of the game family: `seats` (2 to 6, heads-up at 2), `games`, `hands`, `brain` (false: the control arm),
+  `duplicate` (false: fresh deals), `brainSeats` (a mixed table: a brain for some seats only), `aidSeats` (these
+  seats are told their equity and the pot odds on their turn), `maxWords`.
 - Proof: the six oracle files match at level 3, five of them up to their cut, with one declared
   mapping (the files lack the flag `endsTurn`, which follows from the reply); the briefings are byte-identical.
 - Links: [folder](games/holdem/), [README](games/holdem/README.md), [oracle files](oracles/holdem/).
@@ -200,8 +217,8 @@ revealed. One audit per game shows one earlier card; three damaged stages stop t
 fresh context with new roles; a seat's only memory is a short private strategy brain. The mechanic scores the loyal
 seats' accusations and votes against a Bayesian tracker of the public record, for the report only.
 
-- Variants are options of `convoyGame`: the games, the crews, the damage limit, the cooldown, no brain (the control
-  arm).
+- Params of the game family: `games`, `crews`, `damageToLose` (the damage limit), `cooldown`, `brain` (false: the
+  control arm), `maxWords`.
 - Proof: the four oracle files match at level 3, three of them up to their cut after game 1; the briefings are
   byte-identical.
 - Links: [folder](games/convoy/), [README](games/convoy/README.md), [oracle files](oracles/convoy/).
@@ -216,8 +233,9 @@ Every game starts from a fresh context; a team's only memory is its strategy bra
 against an alpha-beta search, for the report only. One resident per side, or one resident or one team against the
 built-in search on side O, are variants.
 
-- Variants are options of `morrisGame`: the games, no brain (the control arm), one resident per side, a fixed
-  captain, the turn limits, the rounds of the vote, the search as the opponent and its depth.
+- Params of the game family: `games`, `brain` (false: the control arm), `teamSize` (1: one resident per side),
+  `fixedCaptain`, `maxTurns` and `maxQuietTurns` (the turn limits), `maxRounds` (the rounds of the vote),
+  `engineDepth` (the search as the opponent, at this depth), `refereeDepth` (the Referee's depth), `maxWords`.
 - Proof: all five oracle files match at level 3, one of them up to its cut, with the Referee loaded; the briefings
   are byte-identical. A played match of two teams of three is covered only by the silent file.
 - Links: [folder](games/morris-teams/), [README](games/morris-teams/README.md), [oracle files](oracles/morris-teams/).
@@ -232,7 +250,7 @@ good spoils every round; the deal rotates, so every trader plays every position 
 from a fresh context; a trader's only memory is a short private strategy brain. The mechanic scores every game against
 the optimal allocation, for the report only.
 
-- Variants are options of `saltMarketGame`: the games, the rounds, no spoilage, no brain (the control arm).
+- Params of the game family: `games`, `rounds`, `brain`, `spoil`, `maxWords` (no spoilage and no brain are the control arms).
 - Proof: the four oracle files match at level 3, three of them up to their cut after game 2; the briefings are
   byte-identical.
 - Links: [folder](games/salt-market/), [README](games/salt-market/README.md), [oracle files](oracles/salt-market/).
@@ -246,7 +264,7 @@ full purse and fresh lots; a seat's only memory is a short private strategy brai
 against closed-form single-lot references (equilibrium shading, truthful bidding, the curse-free ceiling), for the
 report only.
 
-- Variants are options of `blindBidGame`: the games, the lots, the purse, no brain (the control arm).
+- Params of the game family: `games`, `lots`, `purse`, `brain` (false: the control arm), `maxWords`.
 - Proof: all five oracle files match at level 3, the replay of the one live run among them; the briefings are
   byte-identical.
 - Links: [folder](games/blind-bid/), [README](games/blind-bid/README.md), [oracle files](oracles/blind-bid/).
@@ -266,19 +284,25 @@ memory across games is its own short notes.
   briefings are byte-identical.
 - Links: [folder](games/ember-tricks/), [README](games/ember-tricks/README.md), [oracle files](oracles/ember-tricks/).
 
-## The fifteen games to port
+## The games of the old platform
 
-All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families. Thirteen are ported so far, marked in bold; the Hello Game and the city slice are new and are
-not among the fifteen.
+The old platform has fifteen games in five families: thirteen tabletop games, Whispers and City of Keys. The Hello
+Game and the city slice are new and are not among them.
+
+<!-- generated:families -->
+<!-- Written by `pnpm docs:games` from games/index.ts, the game files and scripts/game-docs/catalogue.ts; edit those, not this block. -->
+
+Thirteen of the fifteen are ported so far, marked in bold, each with its card above.
 
 | Family | Games |
 |---|---|
 | Societies | City of Keys, Whispers |
-| Board games, all information public | **chess (ported)**, **nine men's morris (ported)**, **tic-tac-toe teams (ported)** |
-| Hidden information and bluff | **Hold'em (ported)**, **Liar's Dice (ported)**, **Convoy (ported)** |
-| Cooperation under hidden information | **Harbor Lights (ported)**, **Lanterns (ported)** |
-| Markets, bids and economics | **Econ Lab (ported)**, **Salt Market (ported)**, **Blind Bid (ported)**, **Quarry (ported)**, **Ember Tricks (ported)** |
+| Board games, all information public | **[Chess](#chess)**, **[Nine men's morris](#nine-mens-morris)**, **[Tic-tac-toe teams](#tic-tac-toe-teams)** |
+| Hidden information and bluff | **[Hold'em](#holdem)**, **[Liar's dice](#liars-dice)**, **[Convoy](#convoy)** |
+| Cooperation under hidden information | **[Harbor Lights](#harbor-lights)**, **[Lanterns](#lanterns)** |
+| Markets, bids and economics | **[Econ Lab](#econ-lab)**, **[Salt Market](#salt-market)**, **[Blind Bid](#blind-bid)**, **[Quarry](#quarry)**, **[Ember Tricks](#ember-tricks)** |
+
+<!-- /generated:families -->
 
 Until a game is ported, its rules, runs and findings are readable at the tag
 [`v0-final`](https://github.com/florianpirchner/swarmtales/tree/v0-final) under `stories/<name>/`.

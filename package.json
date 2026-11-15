@@ -22,6 +22,7 @@
 		"api:update": "pnpm -r api:update",
 		"docs:mechanics": "node --conditions=development scripts/mechanic-docs.ts",
 		"docs:errors": "node scripts/error-docs/main.ts",
+		"docs:games": "node --conditions=development scripts/game-docs/main.ts",
 		"check": "node scripts/check.ts"
 	},
 	"devDependencies": {
