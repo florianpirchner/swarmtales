@@ -5,11 +5,11 @@ import { AllowanceService, IdentityService, NoticesService, ReceiptSourceService
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { defineHead, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { MAX_BOARD_POST_LENGTH } from "./board.ts";
-import { ChannelsService } from "./contract.ts";
+import { ChannelsService, NotesService } from "./contract.ts";
 import { ChannelsEvents } from "./events.ts";
 import { GROUP_PROMPTS, GROUP_TOOLS } from "./group-specs.ts";
 import { MAX_DM_LENGTH } from "./mailbox.ts";
-import { ChannelsSlice, loadState, newState, saveState, withoutGroups, withoutMemos, type ChannelsState } from "./state.ts";
+import { ChannelsSlice, loadState, newState, saveState, withoutGroups, withoutMemos, withoutNotes, type ChannelsState } from "./state.ts";
 
 /**
  * The head of `channels`: everything that can be read without running a handler.
@@ -32,14 +32,20 @@ export const channelsHead = defineHead({
 		),
 		defiance: Type.Boolean({ default: false, description: "Whether residents may refuse a Director's orders with `defy`." }),
 		digest: Type.Boolean({ default: false, description: "Whether each activation ends with the line of unread posts (`[unread] board 3 · group G1 2`, or `[unread] nothing`)." }),
+		noteAuthor: Type.String({ default: "COURIER", description: "The name a Director's notes and board posts are signed with." }),
+		noteMaxLength: Type.Integer({ minimum: 1, default: 400, description: "The longest text of a Director's note or board post in characters." }),
+		notesPerAgent: Type.Integer({ minimum: 0, default: 1, description: "At most this many notes of a Director per resident within `windowMinutes` (a sliding window)." }),
+		boardPosts: Type.Integer({ minimum: 0, default: 1, description: "At most this many board posts of a Director within `windowMinutes`." }),
+		windowMinutes: Type.Integer({ minimum: 1, default: 3, description: "The length in ticks of the window the note budgets count in." }),
+		city: Type.Optional(Type.String({ description: "The game's city name; a note headed `<city> minute 30:` loses the heading like one headed `CITY minute 30:`." })),
 	}),
 	state: ChannelsSlice,
 	start: ({ residents }): ChannelsState => newState(residents),
 	snapshot: { save: (state: ChannelsState) => saveState(state), load: (data, setup): ChannelsState => loadState(data, setup.residents) },
-	version: 3,
-	migrations: { 1: withoutGroups, 2: withoutMemos },
+	version: 4,
+	migrations: { 1: withoutGroups, 2: withoutMemos, 3: withoutNotes },
 	events: ChannelsEvents.events,
-	provides: [ChannelsService, NoticesService],
+	provides: [ChannelsService, NoticesService, NotesService],
 	uses: [LedgerService, ReceiptSourceService, IdentityService, AllowanceService],
 	prompts: {
 		"channels/tools/readBoard": [],
@@ -60,6 +66,16 @@ export const channelsHead = defineHead({
 		"channels/status/dm-window": ["sent", "limit", "from", "until"],
 		"channels/input/unread": ["parts"],
 		"channels/input/unread-nothing": [],
+		"channels/input/notice-numbered": ["author", "number", "text"],
+		"channels/tools/notify": [],
+		"channels/tools/boardNote": [],
+		"channels/notes/posted": ["number"],
+		"channels/notes/delivered": ["agent", "number"],
+		"channels/notes/invalid-text": ["max"],
+		"channels/notes/repeated": ["to", "minute"],
+		"channels/notes/budget-notes": ["notes", "window"],
+		"channels/notes/budget-posts": ["posts", "window"],
+		"channels/notes/exiled": ["agent"],
 	},
 	tools: {
 		readBoard: {
@@ -91,6 +107,17 @@ export const channelsHead = defineHead({
 				note: Type.Optional(Type.Integer({ description: "The number of the gamemaker's note you refuse, e.g. 312", minimum: 1 })),
 			}),
 			for: ["resident"],
+		},
+		// The words of the two schemas reach the model with the tool list, so the old 400 stays in them; `noteMaxLength` decides.
+		notify: {
+			description: "channels/tools/notify",
+			params: Type.Object({ agent: Type.String({ description: "Resident name or ID, e.g. A04" }), text: Type.String({ description: "The note, 1-400 characters" }) }),
+			for: ["gamemaker"],
+		},
+		boardNote: {
+			description: "channels/tools/boardNote",
+			params: Type.Object({ text: Type.String({ description: "The post, 1-400 characters" }) }),
+			for: ["gamemaker"],
 		},
 	},
 });

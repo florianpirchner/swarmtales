@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
-/** The state of `channels` and its snapshot slice: the board, the message counter, the direct messages and the memos, each resident's inbox and its "seen" mark. */
+/** The state of `channels` and its snapshot slice: the board, the message counter, the direct messages, the memos and the notes, each resident's inbox and its "seen" mark. */
 import { Type, type Static } from "typebox";
 import { Board } from "./board.ts";
 import { ChannelsEvents } from "./events.ts";
@@ -12,6 +12,18 @@ export interface Notice {
 	/** The name it is signed with. */
 	readonly author: string;
 	/** The text. */
+	readonly text: string;
+	/** The city's message number of a Director's note; undefined for a notice of the city. */
+	readonly number?: number;
+}
+
+/** A Director's note as the note desk keeps it, for the budgets and the repeats. */
+export interface NoteRecord {
+	/** The tick it was written in. */
+	readonly tick: number;
+	/** Whom it was recorded under: a resident id, `board` or `tribunal`. */
+	readonly to: string;
+	/** The text, trimmed and stripped. */
 	readonly text: string;
 }
 
@@ -63,6 +75,8 @@ export interface ChannelsState {
 	readonly groups: GroupRegistry;
 	/** Every transfer with a memo, oldest first (read from `ledger.transfer`). */
 	readonly memos: MemoRecord[];
+	/** Every note of a Director, oldest first. */
+	readonly notes: NoteRecord[];
 	/** The board's newest player post when a resident's inputs were built; not saved, it is taken again in every activation. */
 	readonly taken: Map<string, number>;
 }
@@ -83,6 +97,7 @@ export function newState(residents: readonly string[]): ChannelsState {
 		seenBoard: new Map(),
 		groups: new GroupRegistry(numbers),
 		memos: [],
+		notes: [],
 		taken: new Map(),
 	};
 }
@@ -95,7 +110,11 @@ const Post = Type.Object(
 	{ description: "One post on the board" },
 );
 const Cursor = Type.Object({ reader: Type.String({ description: "The reader" }), seq: Seq }, { description: "How far one reader has read" });
-const NoticeSlice = Type.Object({ author: Type.String({ description: "The name it is signed with" }), text: Text }, { description: "A notice that waits" });
+const NoticeSlice = Type.Object(
+	{ author: Type.String({ description: "The name it is signed with" }), text: Text, number: Type.Optional(Type.Integer({ description: "The message number of a Director's note" })) },
+	{ description: "A notice that waits" },
+);
+const Note = Type.Object({ tick: Type.Integer({ description: "The tick it was written in" }), to: Type.String({ description: "Whom it was recorded under" }), text: Text }, { description: "A note of a Director" });
 const Tick = Type.Integer({ description: "The tick it was sent in" });
 const Mail = Type.Object({ from: Type.String({ description: "Who sent it" }), text: Text, tick: Tick, number: Seq }, { description: "An unread direct message" });
 const Dm = Type.Object(
@@ -137,8 +156,9 @@ export const ChannelsSlice = Type.Object(
 		seen: Type.Array(Type.Object({ resident: Id, seq: Seq }, { description: "A seen mark" }), { description: "The newest player post each resident has seen" }),
 		groups: GroupsSlice,
 		memos: Type.Array(Memo, { description: "Every transfer with a memo, oldest first" }),
+		notes: Type.Array(Note, { description: "Every note of a Director, oldest first" }),
 	},
-	{ description: "The board, the message counter, the direct messages, the inboxes, the seen marks, the groups and the memos" },
+	{ description: "The board, the message counter, the direct messages, the inboxes, the seen marks, the groups, the memos and the notes" },
 );
 
 /**
@@ -163,6 +183,16 @@ export function withoutMemos(data: unknown): unknown {
 }
 
 /**
+ * Turns a slice of version 3 (before the note desk) into version 4: no Director wrote a note.
+ *
+ * @param data - The data of a slice of version 3.
+ * @returns The data with an empty `notes`.
+ */
+export function withoutNotes(data: unknown): unknown {
+	return typeof data === "object" && data !== null ? { ...data, notes: [] } : data;
+}
+
+/**
  * Saves the state into its slice.
  *
  * @param state - The state.
@@ -177,6 +207,7 @@ export function saveState(state: ChannelsState): Static<typeof ChannelsSlice> {
 		seen: [...state.seenBoard].map(([resident, seq]) => ({ resident, seq })),
 		groups: state.groups.snapshot(),
 		memos: state.memos.map((memo) => ({ ...memo })),
+		notes: state.notes.map((note) => ({ ...note })),
 	};
 }
 
@@ -194,11 +225,12 @@ export function loadState(data: Static<typeof ChannelsSlice>, residents: readonl
 	state.groups.restore(data.groups);
 	state.dms.push(...data.dms.map((dm) => ({ number: dm.number, from: dm.from, to: dm.to, text: dm.text, tick: dm.tick, answered: dm.answered ?? false })));
 	state.memos.push(...data.memos.map((memo) => ({ from: memo.from, tick: memo.tick })));
+	state.notes.push(...data.notes.map((note) => ({ tick: note.tick, to: note.to, text: note.text })));
 	for (const entry of data.inboxes) {
 		const inbox = state.inboxes.get(entry.resident);
 		if (inbox === undefined) continue;
 		inbox.mailbox.restore(entry.mailbox);
-		inbox.notices.push(...entry.notices);
+		inbox.notices.push(...entry.notices.map((notice) => ({ author: notice.author, text: notice.text, ...(notice.number === undefined ? {} : { number: notice.number }) })));
 	}
 	for (const entry of data.seen) if (state.inboxes.has(entry.resident)) state.seenBoard.set(entry.resident, entry.seq);
 	return state;

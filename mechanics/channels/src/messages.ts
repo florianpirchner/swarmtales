@@ -61,6 +61,24 @@ export function notify(ctx: Ctx, to: string, author: string, text: string): void
 }
 
 /**
+ * Leaves a numbered private note (a Director's): it takes the city's next message number, so a resident can name it.
+ *
+ * @param ctx - The context.
+ * @param to - The resident id.
+ * @param author - The name the note is signed with.
+ * @param text - The text.
+ * @returns The note's message number.
+ * @throws RangeError when `to` is no resident of the run.
+ */
+export function note(ctx: Ctx, to: string, author: string, text: string): number {
+	const inbox = inboxOf(ctx, to);
+	const number = ctx.state.numbers.next();
+	inbox.notices.push({ author, text, number });
+	ctx.emit("notice", { to, author, text, number });
+	return number;
+}
+
+/**
  * Runs `postBoard`, after the schema. A resident's post is a `player` post and the only kind that is news; the
  * post of another caller (a Director) is a `city` post signed with its actor id.
  *

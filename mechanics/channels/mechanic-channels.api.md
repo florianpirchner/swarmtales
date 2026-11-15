@@ -17,6 +17,12 @@ perWindow: Type.TInteger;
 }>>;
 defiance: Type.TBoolean;
 digest: Type.TBoolean;
+noteAuthor: Type.TString;
+noteMaxLength: Type.TInteger;
+notesPerAgent: Type.TInteger;
+boardPosts: Type.TInteger;
+windowMinutes: Type.TInteger;
+city: Type.TOptional<Type.TString>;
 }>, {
 readonly board_post: Type.TObject<{
 postSeq: Type.TInteger;
@@ -39,6 +45,7 @@ readonly notice: Type.TObject<{
 to: Type.TString;
 author: Type.TString;
 text: Type.TString;
+number: Type.TOptional<Type.TInteger>;
 }>;
 readonly group_created: Type.TObject<{
 group: Type.TString;
@@ -83,12 +90,18 @@ readonly treasury_settled: Type.TObject<{
 group: Type.TString;
 payouts: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
+readonly gamemaker_note: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+number: Type.TOptional<Type.TInteger>;
+}>;
 readonly gamemaker_defied: Type.TObject<{
 agent: Type.TString;
 reason: Type.TString;
 note: Type.TOptional<Type.TInteger>;
 }>;
-}, "readBoard" | "postBoard" | "sendDM" | "defy" | "createGroup" | "addGroupMember" | "removeGroupMember" | "leaveGroup" | "listMyGroups" | "postGroup" | "readGroup" | "depositGroup" | "withdrawGroup" | "setTreasurer">;
+}, "notify" | "readBoard" | "postBoard" | "sendDM" | "defy" | "boardNote" | "createGroup" | "addGroupMember" | "removeGroupMember" | "leaveGroup" | "listMyGroups" | "postGroup" | "readGroup" | "depositGroup" | "withdrawGroup" | "setTreasurer">;
 
 // @public
 export const ChannelsEvents: EventsDefinition<"channels", {
@@ -113,6 +126,7 @@ readonly notice: Type.TObject<{
 to: Type.TString;
 author: Type.TString;
 text: Type.TString;
+number: Type.TOptional<Type.TInteger>;
 }>;
 readonly group_created: Type.TObject<{
 group: Type.TString;
@@ -156,6 +170,12 @@ by: Type.TString;
 readonly treasury_settled: Type.TObject<{
 group: Type.TString;
 payouts: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+readonly gamemaker_note: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+number: Type.TOptional<Type.TInteger>;
 }>;
 readonly gamemaker_defied: Type.TObject<{
 agent: Type.TString;
@@ -267,6 +287,49 @@ reader: Type.TString;
 number: Type.TInteger;
 }>;
 readonly output: Type.TBoolean;
+};
+}>;
+
+// @public
+export const NotesService: ServiceDefinition<"notes", {
+readonly check: {
+readonly kind: "query";
+readonly summary: "Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; for `tribunal` only with the same numbers).";
+readonly input: Type.TObject<{
+text: Type.TString;
+to: Type.TString;
+as: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+text: Type.TString;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TString;
+detail: Type.TString;
+}>]>;
+};
+readonly budget: {
+readonly kind: "query";
+readonly summary: "The notes to `to` within the current sliding window and the limit: `boardPosts` for the board, `notesPerAgent` for any other reader.";
+readonly input: Type.TObject<{
+to: Type.TString;
+}>;
+readonly output: Type.TObject<{
+used: Type.TInteger;
+limit: Type.TInteger;
+}>;
+};
+readonly record: {
+readonly kind: "command";
+readonly summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a tribunal).";
+readonly input: Type.TObject<{
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+shown: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
 };
 }>;
 

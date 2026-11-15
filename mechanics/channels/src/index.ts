@@ -6,7 +6,9 @@
  * notice that its reader finds at its next activation, the city's own groups) and read the records of the direct
  * messages and the groups there. Every message a reader can cite has one number from one counter. A game may cap the
  * direct messages and memos of a window (`dmLimit`), let residents refuse a Director's order (`defy`) and end each
- * activation with the line of unread posts (`digest`). With a provider of `identity` residents read names and may
+ * activation with the line of unread posts (`digest`). A Director leaves a resident a numbered note (`notify`) or posts
+ * on the board (`boardNote`) within a budget per reader, and other mechanics check and record their Director's texts
+ * through `NotesService`; a repeat and a long text are refused, the facts of a game by their owners. With a provider of `identity` residents read names and may
  * write them where an id goes; with a provider of `allowance` a message's reply says the marks left.
  *
  * @packageDocumentation
@@ -14,7 +16,7 @@
 import { Type } from "typebox";
 import { LedgerEvents } from "@swarmtales/mechanic-ledger/contract";
 import { defineMechanic } from "@swarmtales/sdk";
-import { ChannelsEvents, ChannelsService } from "./contract.ts";
+import { ChannelsEvents, ChannelsService, NotesService } from "./contract.ts";
 import { defy, defyLock } from "./defy.ts";
 import { sendDm } from "./dms.ts";
 import { addGroupMember, checkGroupPost, createGroup, leaveGroup, listMyGroups, postGroup, readGroup, removeGroupMember, setTreasurer } from "./group-actions.ts";
@@ -23,11 +25,13 @@ import { channelsHead } from "./head.ts";
 import { activationClosed, inboxInputs, news } from "./hooks.ts";
 import { sampleDm, samplePost, sampleRead } from "./samples.ts";
 import { notify, postBoard, postToBoard, readBoard } from "./messages.ts";
+import { checkBoardNote, checkNotify, runBoardNote, runNotify, sampleBoardNote, sampleNotify } from "./note-tools.ts";
+import { checkNote, noteBudget, recordNote } from "./notes.ts";
 import { resolved, shownOutcome, shownRefusal } from "./shown.ts";
 import { createCityGroup, depositGroup, postGroupAsCity, removeCityGroup, settleTreasuries, withdrawGroup } from "./treasury.ts";
 import { memoCap } from "./window.ts";
 
-export { ChannelsEvents, ChannelsService };
+export { ChannelsEvents, ChannelsService, NotesService };
 
 const samples = groupSamples();
 
@@ -47,6 +51,14 @@ export const channels = defineMechanic(channelsHead, {
 			post: (input, ctx) => ({ postSeq: postToBoard(ctx, input.author, input.text, "city").seq }),
 			notify: (input, ctx) => {
 				notify(ctx, input.to, input.author, input.text);
+				return null;
+			},
+		},
+		notes: {
+			check: (input, ctx) => checkNote(ctx, input.text, input.as ?? input.to),
+			budget: (input, ctx) => noteBudget(ctx, input.to),
+			record: (input, ctx) => {
+				recordNote(ctx, input.to, input.text, input.number, input.shown);
 				return null;
 			},
 		},
@@ -97,6 +109,8 @@ export const channels = defineMechanic(channelsHead, {
 		withdrawGroup: { sample: samples.withdrawGroup, run: (params, ctx) => shownOutcome(ctx, withdrawGroup(ctx, params.groupId, resolved(ctx, params.target), params.amount)) },
 		setTreasurer: { sample: samples.setTreasurer, run: (params, ctx) => shownOutcome(ctx, setTreasurer(ctx, params.groupId, resolved(ctx, params.agent))) },
 		defy: { run: (params, ctx) => defy(ctx, params.reason, params.note) },
+		notify: { sample: sampleNotify, check: (params, ctx) => checkNotify(ctx, params.agent, params.text), run: (params, ctx) => runNotify(ctx, params.agent, params.text) },
+		boardNote: { sample: sampleBoardNote, check: (params, ctx) => checkBoardNote(ctx, params.text), run: (params, ctx) => runBoardNote(ctx, params.text) },
 	},
 	// `defy` is closed unless the game opens it; a memo past the window of the cap is refused like a direct message.
 	pipeline: {

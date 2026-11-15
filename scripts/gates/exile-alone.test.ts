@@ -20,6 +20,7 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { computedImportsOf, importsOf } from "../layers/workspace.ts";
 import { isSourceFile, listFiles, readText, REPO_ROOT } from "../lib/files.ts";
+import { IdentityService, NoticesService } from "../../mechanics/contracts/src/index.ts";
 import * as exileContract from "../../mechanics/exile/src/contract.ts";
 import { loadMechanics, readManifest } from "../mechanic-docs/head.ts";
 
@@ -32,6 +33,8 @@ const ALLOWED_PACKAGES: ReadonlySet<string> = new Set(["@swarmtales/mechanic-con
 const ALLOWED_USES: ReadonlySet<string> = new Set(["ExilePurseService", "IdentityService", "NoticesService"]);
 /** The names of the services the contract of the exile defines: its own, even when another mechanic provides one. */
 const OWN_SERVICES: ReadonlySet<string> = new Set(Object.values(exileContract).flatMap((value) => (typeof value === "object" && "methods" in value && typeof value.name === "string" ? [value.name] : [])));
+/** The method names of the allowed services (`notify` of `notices`): a call names them, also where a tool of another mechanic has the same name (M5-60). */
+const ALLOWED_METHODS: ReadonlySet<string> = new Set([IdentityService, NoticesService, exileContract.ExilePurseService].flatMap((service) => Object.keys(service.methods)));
 const Names = Type.Optional(Type.Record(Type.String(), Type.String()));
 const Manifest = Type.Object({ name: Type.String(), dependencies: Names, peerDependencies: Names, optionalDependencies: Names, devDependencies: Names });
 
@@ -54,7 +57,7 @@ async function foreignOf(root: string): Promise<Foreign> {
 		ids.set(head.id, `the mechanic \`${head.id}\``);
 		for (const service of head.provides) if (!OWN_SERVICES.has(service.name)) ids.set(service.name, `the service \`${service.name}\` of \`${head.id}\``);
 		for (const event of Object.keys(head.events)) ids.set(event, `the event \`${event}\` of \`${head.id}\``);
-		for (const tool of head.tools) ids.set(tool.name, `the tool \`${tool.name}\` of \`${head.id}\``);
+		for (const tool of head.tools) if (!ALLOWED_METHODS.has(tool.name)) ids.set(tool.name, `the tool \`${tool.name}\` of \`${head.id}\``);
 	}
 	const folders = listFiles("mechanics", (path) => /^mechanics\/[^/]+\/package\.json$/.test(path), root).filter((path) => dirname(path) !== EXILE);
 	const names = folders.map((path) => readManifest(join(root, path))?.name).filter((name) => typeof name === "string");

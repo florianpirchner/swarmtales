@@ -115,3 +115,48 @@ export const ChannelsService = defineService({
 		},
 	},
 });
+
+const noteTarget = Type.String({ description: "Where a note goes: a resident id, `board`, or `tribunal` for the lines of a tribunal" });
+
+/**
+ * The note desk of the Directors (old `NotesApi`): the checks of a note's text that `channels` owns (its length and
+ * the repeat), the budgets (a sliding window of ticks per reader) and the log line `gamemaker_note`. A mechanic
+ * whose Director tool writes a text asks `check` in its rule and calls `record` once it wrote. The checks of game
+ * facts (a dealt secret, a core motive, a goal, a secret role) are the rules of their owners on the note tools.
+ *
+ * @public
+ */
+export const NotesService = defineService({
+	name: "notes",
+	summary: "A Director's notes: the checks of length and repeat, the budgets and the note log.",
+	methods: {
+		check: {
+			kind: "query",
+			summary:
+				"Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; for `tribunal` only with the same numbers).",
+			input: Type.Object({ text, to: noteTarget, as: Type.Optional(noteTarget) }, { additionalProperties: false, description: "The note" }),
+			output: Type.Union(
+				[
+					Type.Object({ ok: Type.Literal(true, { description: "The text may go" }), text: Type.String({ description: "The text, trimmed and stripped" }) }, { additionalProperties: false, description: "Passed" }),
+					Type.Object(
+						{ ok: Type.Literal(false, { description: "The text is refused" }), code: Type.String({ description: "The refusal code" }), detail: Type.String({ description: "The detail, empty for none" }) },
+						{ additionalProperties: false, description: "Refused" },
+					),
+				],
+				{ description: "The verdict" },
+			),
+		},
+		budget: {
+			kind: "query",
+			summary: "The notes to `to` within the current sliding window and the limit: `boardPosts` for the board, `notesPerAgent` for any other reader.",
+			input: Type.Object({ to: noteTarget }, { additionalProperties: false, description: "The reader" }),
+			output: Type.Object({ used: Type.Integer({ description: "Notes in the window" }), limit: Type.Integer({ description: "The limit" }) }, { additionalProperties: false, description: "The budget" }),
+		},
+		record: {
+			kind: "command",
+			summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a tribunal).",
+			input: Type.Object({ to: noteTarget, text, number: messageNumber, shown: Type.Optional(noteTarget) }, { additionalProperties: false, description: "The note" }),
+			output: Type.Null({ description: "Nothing" }),
+		},
+	},
+});

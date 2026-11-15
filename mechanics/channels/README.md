@@ -5,8 +5,10 @@ resident; other mechanics speak as the city, with a post on the board or with a 
 at its next activation. Every message a reader can cite carries one number from one counter, so a higher number is
 always a later message. Residents also found private groups with a shared treasury in the ledger. A game may cap
 the direct messages of a window, let residents refuse a Director's order with `defy`, and end each activation with
-the line of unread posts. This is the old mechanic without the Director's note desk (`notify` and the note on the
-board, with their checks and budgets), which comes with the second part of M5-14.
+the line of unread posts. A Director leaves a resident a numbered private note (`notify`) or posts on the board
+(`boardNote`, which a game shows as `postBoard` with `as`), each within a budget per reader; a long text and a
+repeat are refused here, a dealt secret, a core motive, a goal or a secret role by the mechanic that owns it. Other
+mechanics check and record their Director's texts through the service `notes`.
 
 ## At a glance
 
@@ -20,8 +22,8 @@ board, with their checks and budgets), which comes with the second part of M5-14
 | Summary | Talk in the city: the public board, direct messages, private notices and groups with a treasury. |
 | Requires | none |
 | Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source`, `identity`, `allowance` |
-| Provides | `channels`, `notices` |
-| State | kept, snapshot slice version 3 |
+| Provides | `channels`, `notices`, `notes` |
+| State | kept, snapshot slice version 4 |
 | Games | [city-slice](../../games/city-slice/README.md) |
 
 <!-- /generated:glance -->
@@ -95,9 +97,17 @@ board, with their checks and budgets), which comes with the second part of M5-14
 timelines hold `EXILED` at stage `execute`). A `rule` handler of another mechanic on these tools (the price of
 `marks`) therefore runs before them.
 
-**Not in this cut:** the Director's note desk (the tools `notify` and the note on the board, the service `notes` of
-the old `NotesApi`, their budgets, the length and repeat checks, `gamemaker_note`); the check of a private thought
-in a note, which needs a contract of the Confessor's labels (decision A62); the hand-over check of a post, which
+**The note desk.** The old gamemaker's board tool was called `postBoard`, the name of the residents' tool here, so it
+is `boardNote`; a game that grants it shows it as `postBoard` with `as: { boardNote: "postBoard" }`. The checks run
+in the old order but one: the reader (`UNKNOWN_AGENT`, `EXILED`), the length and the repeat are the tool's own rule,
+then the `rule` handlers of the owners of game facts in load order, then the budget in `execute`. The old desk checked
+a dealt secret, a private thought, a core motive or goal and the secret role before the repeat, so a note that is a
+repeat and breaks one of those now answers `REPEATED` (erratum of M5-60). The checks of game facts see the tools by
+bare name; a mechanic that writes a Director's text with a tool of its own asks `notes.check` and must be named by
+those handlers too.
+
+**Not in this cut:** the check of a private thought in a note, which needs a contract of the Confessor's labels
+(decision A62); the hand-over check of a post, which
 other mechanics make in their own handlers; the notice to the recipient of a withdrawal with its receipt (the
 provider of `receipt-source` sends it); the receipt of a delivery (the text of `sendDM` still promises one: it is the
 old text and changes with `receipts`); the delivery times of a record (`deliveredMinute`, `deliveredAfter`, read by
@@ -290,6 +300,31 @@ What the caller reads ([channels/tools/defy](prompts/channels/tools/defy.md)):
 
 > Refuses an order of the gamemaker, for a reason of your own character. Think it through first. The reason, in your own voice, goes to the gamemaker and into the story (20-600 characters); no other resident learns of it. Name the note you refuse by its number when it has one.
 
+### `notify`
+
+- Granted when the game lists no grants: `gamemaker`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `agent` | string | yes | Resident name or ID, e.g. A04 |
+| `text` | string | yes | The note, 1-400 characters |
+
+What the caller reads ([channels/tools/notify](prompts/channels/tools/notify.md)):
+
+> Send a private note to one resident. It reaches them at their next turn and wakes them.
+
+### `boardNote`
+
+- Granted when the game lists no grants: `gamemaker`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `text` | string | yes | The post, 1-400 characters |
+
+What the caller reads ([channels/tools/boardNote](prompts/channels/tools/boardNote.md)):
+
+> Post one public line on the board, signed by the city's voice.
+
 <!-- /generated:tools -->
 
 ## Events
@@ -338,6 +373,7 @@ Audience: everyone
 | `to` | string | yes | A resident id, for example `A01` |
 | `author` | string | yes | The name the notice is signed with |
 | `text` | string | yes | The text |
+| `number` | integer | no | The city's message number of a Director's note; left out for a notice of the city |
 
 ### `group_created`
 
@@ -422,6 +458,17 @@ Audience: everyone
 | `group` | string | yes | The group's id, for example `G1` |
 | `payouts` | record of number | yes | Member to points |
 
+### `gamemaker_note`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `to` | string | yes | Who it was shown to: a resident id, or `board` |
+| `author` | string | yes | The name it is signed with |
+| `text` | string | yes | The text, trimmed and stripped |
+| `number` | integer | no | The city's message number of the note or the post |
+
 ### `gamemaker_defied`
 
 Audience: everyone
@@ -446,6 +493,12 @@ Audience: everyone
 | `dmLimit.perWindow` | integer ≥ 0 | required | DMs and memo transfers one resident may send in one window. |
 | `defiance` | boolean | `false` | Whether residents may refuse a Director's orders with `defy`. |
 | `digest` | boolean | `false` | Whether each activation ends with the line of unread posts (`[unread] board 3 · group G1 2`, or `[unread] nothing`). |
+| `noteAuthor` | string | `"COURIER"` | The name a Director's notes and board posts are signed with. |
+| `noteMaxLength` | integer ≥ 1 | `400` | The longest text of a Director's note or board post in characters. |
+| `notesPerAgent` | integer ≥ 0 | `1` | At most this many notes of a Director per resident within `windowMinutes` (a sliding window). |
+| `boardPosts` | integer ≥ 0 | `1` | At most this many board posts of a Director within `windowMinutes`. |
+| `windowMinutes` | integer ≥ 1 | `3` | The length in ticks of the window the note budgets count in. |
+| `city` | string | unset | The game's city name; a note headed `<city> minute 30:` loses the heading like one headed `CITY minute 30:`. |
 
 <!-- /generated:options -->
 
@@ -478,6 +531,16 @@ A post on the public board and a private notice to one resident, for the mechani
 | --- | --- | --- | --- | --- |
 | `post` | command | author: string, text: string | { postSeq: integer } | Writes a post of the city on the public board, as `channels.post` does. |
 | `notify` | command | to: string, author: string, text: string | null | Leaves a private notice for a resident, as `channels.notify` does; the resident reads it at its next activation. |
+
+### `notes`
+
+A Director's notes: the checks of length and repeat, the budgets and the note log.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `check` | query | text: string, to: string, as?: string | { ok: true, text: string } or { ok: false, code: string, detail: string } | Trims the text, strips a signature or a `<author\|CITY\|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; for `tribunal` only with the same numbers). |
+| `budget` | query | to: string | { used: integer, limit: integer } | The notes to `to` within the current sliding window and the limit: `boardPosts` for the board, `notesPerAgent` for any other reader. |
+| `record` | command | to: string, text: string, number: integer, shown?: string | null | Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a tribunal). |
 
 <!-- /generated:services -->
 
@@ -530,6 +593,16 @@ This mechanic exports no metrics.
 | [channels/status/dm-window](prompts/channels/status/dm-window.md) | `sent`, `limit`, `from`, `until` |
 | [channels/input/unread](prompts/channels/input/unread.md) | `parts` |
 | [channels/input/unread-nothing](prompts/channels/input/unread-nothing.md) | - |
+| [channels/input/notice-numbered](prompts/channels/input/notice-numbered.md) | `author`, `number`, `text` |
+| [channels/tools/notify](prompts/channels/tools/notify.md) | - |
+| [channels/tools/boardNote](prompts/channels/tools/boardNote.md) | - |
+| [channels/notes/posted](prompts/channels/notes/posted.md) | `number` |
+| [channels/notes/delivered](prompts/channels/notes/delivered.md) | `agent`, `number` |
+| [channels/notes/invalid-text](prompts/channels/notes/invalid-text.md) | `max` |
+| [channels/notes/repeated](prompts/channels/notes/repeated.md) | `to`, `minute` |
+| [channels/notes/budget-notes](prompts/channels/notes/budget-notes.md) | `notes`, `window` |
+| [channels/notes/budget-posts](prompts/channels/notes/budget-posts.md) | `posts`, `window` |
+| [channels/notes/exiled](prompts/channels/notes/exiled.md) | `agent` |
 
 <!-- /generated:prompts -->
 
@@ -577,6 +650,13 @@ the receiver's next activation with the notice for the sender, the old order of 
 suspended resident) and what the old `dm-records.test.ts` asks of the records: another mechanic reads them through
 the service, before and after the delivery, answered or not, and after a resume. `test/emit-in-inputs.test.ts` shows that a
 `turnInputs` hook may write an event.
+
+`test/notes.test.ts` holds the note desk: first the note cases that break two checks (the carried ones of the old
+`differential.test.ts`, a repeat and a blank text with the budget spent, and the cases with a stand-in secret check
+of `puzzles`, among them the registered repeat), then the old gamemaker's calls with their answers (reader, text
+checks, budgets and their windows, the numbered notice as an input line, `notice` and `gamemaker_note`), the note to an
+exiled resident, the samples of the two tools, the lines of a tribunal through the service, `nearlySame`, and the
+notes in the slice with the migration from version 3.
 
 `test/sample.test.ts`: what the fake driver (`swt run --fake`) may call. The `sample` of `readBoard`, `postBoard`
 and `sendDM` (`src/samples.ts`) each gives a call one time in eight: a read since the last read, one of four short

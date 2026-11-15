@@ -31,7 +31,13 @@ export function inboxInputs(resident: string, ctx: Ctx): readonly InputLine[] {
 	const dms = drainMailbox(ctx, resident).map((entry) => ({ kind: "dm", text: ctx.prompt("channels/input/dm", { number: entry.number, from: entry.from, text: entry.text }) }));
 	const notices = inboxOf(ctx, resident)
 		.notices.splice(0)
-		.map((notice) => ({ kind: "notice", text: ctx.prompt("channels/input/notice", { author: notice.author, text: notice.text }) }));
+		.map((notice) => ({
+			kind: "notice",
+			text:
+				notice.number === undefined
+					? ctx.prompt("channels/input/notice", { author: notice.author, text: notice.text })
+					: ctx.prompt("channels/input/notice-numbered", { author: notice.author, number: notice.number, text: notice.text }),
+		}));
 	return shownLines(ctx, [...status, ...dms, ...notices, ...(ctx.options.digest ? [digestLine(ctx, resident)] : [])]);
 }
 

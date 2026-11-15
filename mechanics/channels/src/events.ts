@@ -31,7 +31,12 @@ export const ChannelsEvents = defineEvents("channels", {
 	),
 	dm_delivered: Type.Object({ number: Number, from: Id, to: Id }, { description: "A resident's direct message reached its receiver: it is among the input lines of the receiver's activation" }),
 	notice: Type.Object(
-		{ to: Id, author: Type.String({ description: "The name the notice is signed with" }), text: Type.String({ description: "The text" }) },
+		{
+			to: Id,
+			author: Type.String({ description: "The name the notice is signed with" }),
+			text: Type.String({ description: "The text" }),
+			number: Type.Optional(Type.Integer({ description: "The city's message number of a Director's note; left out for a notice of the city" })),
+		},
 		{ description: "A private notice was left for a resident; it is shown at the resident's next activation" },
 	),
 	group_created: Type.Object({ group: Group, founder: Who, name: Type.String({ description: "The group's name, trimmed" }) }, { description: "A group was founded, by a resident or by the city" }),
@@ -47,6 +52,15 @@ export const ChannelsEvents = defineEvents("channels", {
 	treasury_settled: Type.Object(
 		{ group: Group, payouts: Type.Record(Type.String({ description: "A member" }), Type.Number({ description: "The points paid out" }), { description: "Member to points" }) },
 		{ description: "A treasury was split among the members: at the run's end, or when the city removed the group" },
+	),
+	gamemaker_note: Type.Object(
+		{
+			to: Type.String({ description: "Who it was shown to: a resident id, or `board`" }),
+			author: Type.String({ description: "The name it is signed with" }),
+			text: Type.String({ description: "The text, trimmed and stripped" }),
+			number: Type.Optional(Type.Integer({ description: "The city's message number of the note or the post" })),
+		},
+		{ description: "A Director's note or post, logged after its `notice` or `board_post`" },
 	),
 	gamemaker_defied: Type.Object(
 		{ agent: Id, reason: Type.String({ description: "The reason, trimmed" }), note: Type.Optional(Type.Integer({ description: "The number of the note it refuses" })) },
