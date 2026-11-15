@@ -2,15 +2,13 @@
 /**
  * Offers, trades and messages through the bank (the old test "refuses bad offers, taxes big trades, holds escrow
  * until it is due" up to the trade, and "refuses a plain promise of shipment goods due before the trader could hand
- * them over"), on the test mechanic of `support.ts`: the settling of a delivery comes with M4-48.
+ * them over"), and messages; the settling of a delivery is in `market.test.ts`.
  */
-import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { fakeDriver, idleDriver, testKernel, type TestKernel } from "@swarmtales/testkit";
-import { MarketSlice, PERISHABLE, type MarketState } from "../src/model.ts";
-import { marketGame, payloads, SEATS } from "./support.ts";
+import { PERISHABLE } from "../src/model.ts";
+import { marketGame, payloads, SEATS, stateOf } from "./support.ts";
 
-const stateOf = (test: TestKernel): MarketState => Value.Parse(MarketSlice, test.fact("salt-market.state"));
 const held = (test: TestKernel, seat: string) => stateOf(test).holdings[seat] ?? { salt: 0, cloth: 0, copper: 0, spice: 0, wax: 0 };
 const next = (seat: string): string => SEATS[(SEATS.indexOf(seat) + 1) % SEATS.length] ?? "A01";
 
@@ -57,7 +55,7 @@ describe("offers and trades", () => {
 	});
 
 	it("declines, withdraws and expires offers, and refuses an offer the proposer can no longer cover", async () => {
-		const test = testKernel(marketGame({ rounds: 3, spoil: false }));
+		const test = testKernel(marketGame({ games: 2, rounds: 3, spoil: false }));
 		const good = PERISHABLE.find((name) => held(test, "A02")[name] > 0) ?? "cloth";
 		for (let n = 0; n < 3; n++) expect(await test.call("A01", "offer", { to: "A02", give: { salt: 2 }, get: { [good]: 1 } })).toMatchObject({ ok: true });
 		expect(await test.call("A01", "offer", { to: "A02", give: { salt: 1 }, get: { [good]: 1 } })).toEqual({ ok: false, code: "TOO_MANY_OFFERS", detail: "You have 3 open offers; withdraw one first." });

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-/** What a fake run samples for the tools of offers, trades and messages: only calls the bank would take. */
+/** What a fake run samples for the tools of Salt Market: only calls the bank would take. */
 import type { RandomSource } from "@swarmtales/contracts";
+import { giveProblem } from "./give.ts";
 import type { SaltMarketCtx } from "./head.ts";
 import { ALL, closed, holdingOf, others } from "./market.ts";
-import { PERISHABLE, type Offer } from "./model.ts";
+import { bundleOf, GOODS, PERISHABLE, type Offer } from "./model.ts";
 import { acceptProblem, offerProblem, type GoodsParams } from "./offers.ts";
 
 type Ctx = SaltMarketCtx;
@@ -97,4 +98,49 @@ export function sampleSay(ctx: Ctx, resident: string | undefined, random: Random
 	if (resident === undefined || closed(ctx, resident) !== undefined) return undefined;
 	if ((ctx.state.says[resident] ?? 0) >= ctx.options.maxSays || random.int(1, 3) !== 1) return undefined;
 	return { text: `${resident} ${random.pick(["buys", "sells"])} anything for salt.` };
+}
+
+/**
+ * The `sample` of `viewMarket`: one time of four while a game runs.
+ *
+ * @param ctx - The context of the mechanic.
+ * @param resident - The caller.
+ * @param random - The fake driver's random stream.
+ * @returns The empty parameters, or undefined.
+ *
+ * @public
+ */
+export function sampleView(ctx: Ctx, resident: string | undefined, random: RandomSource): Record<string, never> | undefined {
+	return resident !== undefined && closed(ctx, resident) === undefined && random.int(1, 4) === 1 ? {} : undefined;
+}
+
+// What `resident` still owes on its oldest open plain promise and holds now, with the receiver.
+function owed(ctx: Ctx, resident: string): { to: string; goods: GoodsParams } | undefined {
+	for (const pledge of ctx.state.pledges) {
+		if (pledge.status !== "pending" || pledge.escrow || pledge.from !== resident) continue;
+		const goods: GoodsParams = {};
+		for (const good of GOODS) {
+			const units = Math.min(pledge.goods[good] - pledge.delivered[good], holdingOf(ctx.state, resident)[good]);
+			if (units > 0) goods[good] = units;
+		}
+		if (Object.keys(goods).length > 0) return { to: pledge.to, goods };
+	}
+	return undefined;
+}
+
+/**
+ * The `sample` of `give`: what the resident owes on an open promise and holds, or one time of eight a unit of salt.
+ *
+ * @param ctx - The context of the mechanic.
+ * @param resident - The caller.
+ * @param random - The fake driver's random stream.
+ * @returns The gift, or undefined when the bank would refuse it or the resident gives nothing.
+ *
+ * @public
+ */
+export function sampleGive(ctx: Ctx, resident: string | undefined, random: RandomSource): { to: string; goods: GoodsParams } | undefined {
+	if (resident === undefined || closed(ctx, resident) !== undefined) return undefined;
+	const params = owed(ctx, resident) ?? (random.int(1, 8) === 1 ? { to: random.pick(others(ctx.state, resident)), goods: { salt: 1 } } : undefined);
+	if (params === undefined) return undefined;
+	return "ok" in giveProblem(ctx, resident, params.to, bundleOf(params.goods)) ? undefined : params;
 }

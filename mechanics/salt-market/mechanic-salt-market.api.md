@@ -5,6 +5,7 @@
 ```ts
 
 import { CtxOf } from '@swarmtales/sdk';
+import { MechanicDefinition } from '@swarmtales/sdk';
 import { MechanicHead } from '@swarmtales/sdk';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { Static } from 'typebox';
@@ -155,6 +156,305 @@ export const MarketSlice: Type.TObject<{
 
 // @public
 export type MarketState = Static<typeof MarketSlice>;
+
+// @public
+export const saltMarket: MechanicDefinition<"salt-market", Type.TObject<{
+games: Type.TInteger;
+rotate: Type.TBoolean;
+saltValue: Type.TInteger;
+shipShare: Type.TNumber;
+rounds: Type.TInteger;
+roundMinutes: Type.TInteger;
+salt: Type.TInteger;
+slack: Type.TInteger;
+contractBonus: Type.TInteger;
+taxFree: Type.TInteger;
+tax: Type.TInteger;
+escrowFee: Type.TInteger;
+maxOpenOffers: Type.TInteger;
+maxSays: Type.TInteger;
+spoil: Type.TBoolean;
+}>, {
+market_game_started: Type.TObject<{
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+profiles: Type.TRecord<"^.*$", Type.TObject<{
+values: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+contract: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+start: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+shipment: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+arrives: Type.TInteger;
+}>>;
+}>;
+market_round_started: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+spoils: Type.TString;
+}>;
+market_offer_made: Type.TObject<{
+id: Type.TString;
+game: Type.TInteger;
+round: Type.TInteger;
+from: Type.TString;
+to: Type.TString;
+give: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+get: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+later: Type.TOptional<Type.TObject<{
+goods: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+round: Type.TInteger;
+escrow: Type.TBoolean;
+}>>;
+note: Type.TString;
+status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"accepted">, Type.TLiteral<"declined">, Type.TLiteral<"withdrawn">, Type.TLiteral<"expired">]>;
+by: Type.TOptional<Type.TString>;
+}>;
+market_offer_closed: Type.TObject<{
+game: Type.TInteger;
+id: Type.TString;
+status: Type.TString;
+by: Type.TString;
+note: Type.TString;
+}>;
+market_offer_passed: Type.TObject<{
+game: Type.TInteger;
+id: Type.TString;
+by: Type.TString;
+note: Type.TString;
+}>;
+market_trade: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+offer: Type.TString;
+from: Type.TString;
+to: Type.TString;
+give: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+get: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+later: Type.TOptional<Type.TObject<{
+goods: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+round: Type.TInteger;
+escrow: Type.TBoolean;
+}>>;
+tax: Type.TInteger;
+fee: Type.TInteger;
+}>;
+market_gift: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+from: Type.TString;
+to: Type.TString;
+goods: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+note: Type.TString;
+}>;
+market_said: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+}>;
+market_promise_settled: Type.TObject<{
+id: Type.TString;
+offer: Type.TString;
+game: Type.TInteger;
+from: Type.TString;
+to: Type.TString;
+goods: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+due: Type.TInteger;
+escrow: Type.TBoolean;
+delivered: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+fromShipment: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+status: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"kept">, Type.TLiteral<"broken">]>;
+}>;
+market_shipment_arrived: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trader: Type.TString;
+shipment: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+escrow: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+}>;
+market_spoiled: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+good: Type.TString;
+losses: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+market_game_ended: Type.TObject<{
+game: Type.TInteger;
+holdings: Type.TRecord<"^.*$", Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>>;
+profiles: Type.TRecord<"^.*$", Type.TObject<{
+values: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+contract: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+start: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+shipment: Type.TObject<{
+salt: Type.TInteger;
+cloth: Type.TInteger;
+copper: Type.TInteger;
+spice: Type.TInteger;
+wax: Type.TInteger;
+}>;
+arrives: Type.TInteger;
+}>>;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+met: Type.TArray<Type.TString>;
+totals: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+market_game_scored: Type.TObject<{
+game: Type.TInteger;
+reference: Type.TObject<{
+seats: Type.TRecord<"^.*$", Type.TObject<{
+start: Type.TNumber;
+score: Type.TNumber;
+surplus: Type.TNumber;
+met: Type.TBoolean;
+trades: Type.TInteger;
+offers: Type.TInteger;
+says: Type.TInteger;
+taxPaid: Type.TInteger;
+feesPaid: Type.TInteger;
+spoiled: Type.TInteger;
+promises: Type.TInteger;
+escrows: Type.TInteger;
+kept: Type.TInteger;
+broken: Type.TInteger;
+}>>;
+startTotal: Type.TNumber;
+total: Type.TNumber;
+optimum: Type.TNumber;
+optimumContracts: Type.TArray<Type.TString>;
+endOptimum: Type.TNumber;
+efficiency: Type.TNumber;
+idleTotal: Type.TNumber;
+gainOverIdle: Type.TNumber;
+allocative: Type.TNumber;
+gini: Type.TNumber;
+contractsMet: Type.TInteger;
+trades: Type.TInteger;
+}>;
+}>;
+market_match_ended: Type.TObject<{
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+}, "give" | "offer" | "viewMarket" | "accept" | "decline" | "withdraw" | "say">;
 
 // @public
 export type SaltMarketCtx = CtxOf<typeof saltMarketHead>;
