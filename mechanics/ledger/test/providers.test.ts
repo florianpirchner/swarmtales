@@ -50,6 +50,8 @@ const receipts = defineMechanic(receiptsHead, {
 				return ctx.options.ahead ? receiptId(ctx.state.issued.length + 1) : null;
 			},
 			ofMessage: () => null,
+			ofLevel: () => null,
+			textsOf: () => [],
 		},
 	},
 	listeners: (kit) => [

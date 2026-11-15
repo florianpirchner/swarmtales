@@ -24,7 +24,7 @@ describe("the contracts of M5 (12-m5-spec.md, section 2.2, pattern 4)", () => {
 		expect(contracts.map((service) => [service.name, Object.keys(service.methods)])).toEqual([
 			["identity", ["nameOf", "display", "resolve"]],
 			["allowance", ["left", "priceOf"]],
-			["receipt-source", ["ofTransfer", "ofMessage"]],
+			["receipt-source", ["ofTransfer", "ofMessage", "ofLevel", "textsOf"]],
 		]);
 		for (const service of contracts) for (const method of Object.values(service.methods)) expect(method.kind).toBe("query");
 	});
