@@ -130,7 +130,7 @@ describe("the asker", () => {
 
 	it("refuses with `limit` and sends nothing once the cap of the run is reached", async () => {
 		const { answers, sent, records } = await run([say('{"line":"One."}'), say('{"line":"Two."}')], { usd: [0.5], capUsd: 0.4 }, 1);
-		expect(answers).toMatchObject([{ ok: true, costUsd: 0.5 }, { ok: false, reason: "limit", detail: "cost 0.50 USD reached the cap of 0.40 USD" }]);
+		expect(answers).toMatchObject([{ ok: true, costUsd: 0.5 }, { ok: false, reason: "limit", detail: "cost 0.5 USD reached the cap of 0.4 USD" }]);
 		expect(sent).toHaveLength(1);
 		expect(types(records)).toEqual(["request", "text", "response"]);
 	});

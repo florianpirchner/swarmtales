@@ -5,8 +5,9 @@
  * are comparable; runs of different revisions are not mixed in a comparison without saying so. Every run writes
  * it into its manifest. Raise it in the same pull request as such a change, add a row to
  * `docs/RUNTIME-REVISIONS.md` and set the tag `runtime-rN` at the merge commit. The rewritten kernel started at 3; 4 takes
- * the log positions out of the payloads (decision A34).
+ * the log positions out of the payloads (decision A34); 5 lets the cost meter reserve the dearest answer so far
+ * (decision A46, P472).
  *
  * @public
  */
-export const RUNTIME_REVISION = 4;
+export const RUNTIME_REVISION = 5;

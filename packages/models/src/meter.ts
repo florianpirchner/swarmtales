@@ -3,6 +3,9 @@
  * The cost meter: the one place that counts what a run spent and the one place that holds its cap. The numbers
  * come from the answers of the provider library; the cap reaches the kernel as the run limit `models.budget`.
  * The meter fails closed: after an answer it could not count, its limit is breached and nothing more is sent.
+ * It reserves the cost of the dearest answer so far (runtime revision 5, P472): its limit is breached as soon as
+ * one more answer of that cost would reach the cap, so a cap is passed only by an answer dearer than every one
+ * before it, or by requests that were sent at the same time.
  */
 import { redactSecrets, type ActorId, type RunLimit } from "@swarmtales/contracts";
 import { noCostCap, thrown } from "./errors.ts";
@@ -56,8 +59,56 @@ export interface CostMeter {
 	readonly byActor: Readonly<Record<string, Spend>>;
 	/** The cap, in USD. */
 	readonly capUsd: number;
-	/** The run limit `models.budget`: breached when `total.costUsd >= capUsd` or the meter is closed. Pass it to `KernelPorts.limits`. */
+	/** The cost of the dearest answer so far, in USD: what the meter reserves for the next request; 0 before the first answer. */
+	readonly dearestUsd: number;
+	/**
+	 * The run limit `models.budget`: breached when the meter is closed, when `total.costUsd >= capUsd`, or, with the
+	 * reservation, when `total.costUsd + dearestUsd >= capUsd`. Pass it to `KernelPorts.limits`.
+	 */
 	readonly limit: RunLimit;
+}
+
+/**
+ * How a meter counts against its cap.
+ *
+ * @public
+ */
+export interface CostMeterOptions {
+	/**
+	 * The runtime revision whose rule the meter keeps, for a replay of an older run: below 5 the limit is breached
+	 * only at the cap and its reason writes the money in two decimals, as revision 4 did. Default: 5, the reservation
+	 * of the dearest answer and the money in full.
+	 */
+	readonly revision?: number;
+}
+
+/**
+ * An amount of money as the meter writes it: up to nine decimals, without trailing zeros, never in exponent form.
+ *
+ * @param amount - The amount, in USD.
+ * @returns The digits, for example `0.00133` or `0.001`.
+ * @example
+ * ```ts
+ * formatUsd(0.0013322); // "0.0013322"
+ * ```
+ *
+ * @public
+ */
+export function formatUsd(amount: number): string {
+	if (!Number.isFinite(amount)) return String(amount);
+	return amount.toFixed(9).replace(/\.?0+$/u, "");
+}
+
+// The runtime revision from which the meter reserves the dearest answer (P472).
+const RESERVED_FROM = 5;
+
+// The reason of a breach, or undefined while one more answer of the dearest cost stays under the cap.
+function breach(costUsd: number, dearestUsd: number, capUsd: number, reserve: boolean): string | undefined {
+	const money = reserve ? formatUsd : (amount: number): string => amount.toFixed(2);
+	// Not `>=` alone: a sum that is no number any more must stop the run too.
+	if (!(costUsd < capUsd)) return `cost ${money(costUsd)} USD reached the cap of ${money(capUsd)} USD`;
+	if (!reserve || costUsd + dearestUsd < capUsd) return undefined;
+	return `cost ${formatUsd(costUsd)} USD and the dearest answer so far (${formatUsd(dearestUsd)} USD) reach the cap of ${formatUsd(capUsd)} USD`;
 }
 
 const NOTHING: Spend = Object.freeze({ requests: 0, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, costUsd: 0 });
@@ -78,6 +129,7 @@ function plus(spend: Spend, usage: Omit<Spend, "requests">): Spend {
  * The cost meter of one run. A cap that code holds is the precondition of every live request (decision A14).
  *
  * @param capUsd - The cap of the run, in USD.
+ * @param options - The runtime revision whose rule the meter keeps (default: 5, it reserves the dearest answer so far).
  * @returns The frozen meter; its `limit` has the id `models.budget`.
  * @throws SwtError `SWT-X005` when the cap is not a positive finite number.
  * @example
@@ -89,9 +141,11 @@ function plus(spend: Spend, usage: Omit<Spend, "requests">): Spend {
  *
  * @public
  */
-export function createCostMeter(capUsd: number): CostMeter {
+export function createCostMeter(capUsd: number, options: CostMeterOptions = {}): CostMeter {
 	if (!(Number.isFinite(capUsd) && capUsd > 0)) throw thrown(noCostCap(), redactSecrets);
+	const reserve = (options.revision ?? RESERVED_FROM) >= RESERVED_FROM;
 	let total = NOTHING;
+	let dearestUsd = 0;
 	let closed: string | undefined;
 	const byActor = new Map<string, Spend>();
 	const close = (reason: string): void => {
@@ -106,6 +160,7 @@ export function createCostMeter(capUsd: number): CostMeter {
 				throw new RangeError(`the ${bad} of a request of ${actor} is negative or not finite`);
 			}
 			total = plus(total, usage);
+			dearestUsd = Math.max(dearestUsd, usage.costUsd);
 			byActor.set(actor, plus(byActor.get(actor) ?? NOTHING, usage));
 		},
 		close,
@@ -118,14 +173,16 @@ export function createCostMeter(capUsd: number): CostMeter {
 		get byActor(): Readonly<Record<string, Spend>> {
 			return Object.freeze(Object.fromEntries(byActor));
 		},
+		get dearestUsd(): number {
+			return dearestUsd;
+		},
 		capUsd,
 		limit: Object.freeze({
 			id: "models.budget",
 			summary: "the cost of the run's model requests reached its cap",
 			check: (): string | undefined => {
 				if (closed !== undefined) return `the cost of the run is not known: ${closed}`;
-				// Not `>=` alone: a sum that is no number any more must stop the run too.
-				return total.costUsd < capUsd ? undefined : `cost ${total.costUsd.toFixed(2)} USD reached the cap of ${capUsd.toFixed(2)} USD`;
+				return breach(total.costUsd, dearestUsd, capUsd, reserve);
 			},
 		}),
 	});

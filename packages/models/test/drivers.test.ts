@@ -197,11 +197,20 @@ describe("the model drivers", () => {
 		expect(payloads(events, "context_reset")).toEqual([{ messages: 4 }]);
 	});
 
-	it("end the run at the first request that passes the cost cap, through the meter's limit", async () => {
+	it("end the run before a request that one more answer of the dearest cost would take to the cap, through the meter's limit", async () => {
 		const meter = createCostMeter(0.03);
 		const { end, events } = await run({ [A01]: [act({ name: "guess", args: { value: 101 } }), say(), say(), say()] }, { ticks: 6, meter, source: (source) => priced(source, 0.02) });
+		expect(end).toEqual({ reason: "limit", tick: 1, limit: "models.budget" });
+		expect(payloads(events, "response")).toMatchObject([{ costUsd: 0.02 }]);
+		expect(records(events, "request")).toHaveLength(1);
+		expect(meter.total.costUsd).toBeCloseTo(0.02);
+		expect(events.filter((event) => event.type === "limit_reached").map((event) => event.payload)).toEqual([{ limit: "models.budget", reason: "cost 0.02 USD and the dearest answer so far (0.02 USD) reach the cap of 0.03 USD" }]);
+	});
+
+	it("end the run at the first request that passes the cost cap without the reservation (revision 4)", async () => {
+		const meter = createCostMeter(0.03, { revision: 4 });
+		const { end, events } = await run({ [A01]: [act({ name: "guess", args: { value: 101 } }), say(), say(), say()] }, { ticks: 6, meter, source: (source) => priced(source, 0.02) });
 		expect(end).toEqual({ reason: "limit", tick: 2, limit: "models.budget" });
-		expect(payloads(events, "response")).toMatchObject([{ costUsd: 0.02 }, { costUsd: 0.02 }]);
 		expect(records(events, "request")).toHaveLength(2);
 		expect(meter.total.costUsd).toBeCloseTo(0.04);
 	});

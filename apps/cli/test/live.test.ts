@@ -100,10 +100,16 @@ describe("runLive with the scripted source", () => {
 	});
 
 	it("exits 5 when the run ends at its cost cap, and the log still verifies", async () => {
+		// One answer of 0.03 leaves 0.02 under the cap of 0.05, less than its own cost: no second request is sent (P472).
 		const { code, end, spend, out } = await live({ source: priced(0.03), budget: 0.05, out: "capped", json: true });
 		expect([code, end]).toMatchObject([5, { reason: "limit", limit: "models.budget" }]);
-		expect([spend?.requests, spend?.costUsd]).toEqual([2, 0.06]);
+		expect([spend?.requests, spend?.costUsd]).toEqual([1, 0.03]);
 		expect(JSON.parse(out[0] ?? "null")).toMatchObject({ driver: RESIDENT_DRIVER, capUsd: 0.05, log: { ok: true }, run: "capped/guess-number-001", issues: [] });
+		// The replay meters the cap of the manifest again, so the run that ended at its cap replays equal (P471).
+		const replayed: string[] = [];
+		const io: CliIo = { cwd, now: () => new Date(0), out: (line) => replayed.push(line), err: (line) => replayed.push(line), env: {} };
+		expect(await main(["replay", "capped/guess-number-001", "--game", GAME], io)).toBe(0);
+		expect(replayed).toEqual([expect.stringMatching(/^equal, \d+ lines$/)]);
 	});
 
 	it("exits 1 with SWT-X001 and names both variables when the key is missing; finds it under either name", async () => {

@@ -13,6 +13,7 @@ import { EventSink } from '@swarmtales/contracts';
 import { Game } from '@swarmtales/sdk';
 import { GameData } from '@swarmtales/contracts';
 import { Kernel } from '@swarmtales/contracts';
+import { KernelPorts } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
 import { MechanicHead } from '@swarmtales/sdk';
 import { PromptLookup } from '@swarmtales/contracts';
@@ -381,6 +382,7 @@ export function replay(input: ReplayInput): Promise<ReplayResult>;
 export interface ReplayInput {
     readonly game: ResolvedGame | Game | GameData;
     readonly log: readonly Envelope[];
+    readonly ports?: Pick<KernelPorts, "limits" | "sinks">;
     readonly records?: readonly RecordSource[];
     readonly resume?: ResumeInput;
     readonly schedulers?: Readonly<Record<string, SchedulerDefinition>>;

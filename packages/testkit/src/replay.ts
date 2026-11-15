@@ -4,7 +4,7 @@
  * replay are the tool calls and the events of the record sources; everything else is produced again. No model, no
  * asker and no script takes part.
  */
-import { SwtError, type Activation, type ActorDriver, type Envelope, type GameData, type Kernel, type RecordSource, type ResumeInput, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
+import { SwtError, type Activation, type ActorDriver, type Envelope, type GameData, type Kernel, type KernelPorts, type RecordSource, type ResumeInput, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
 import { turns } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
@@ -30,6 +30,12 @@ export interface ReplayInput {
 	 * rest of `log` again; the replayed log is the given lines followed by the lines the resumed kernel wrote.
 	 */
 	readonly resume?: ResumeInput;
+	/**
+	 * The run limits from outside the game and the sinks of the replayed kernel, as the run had them: a cost cap is
+	 * repeated by a limit whose meter a sink feeds with the replayed answers (`swt replay` builds one from the
+	 * manifest). Left out: none, and a log that ended at such a limit differs at its `limit_reached`.
+	 */
+	readonly ports?: Pick<KernelPorts, "limits" | "sinks">;
 }
 
 /**
@@ -251,8 +257,8 @@ function resolved(input: ReplayInput): ResolvedGame {
  * replay starts at a snapshot instead and plays only the rest.
  *
  * A failure of the replayed run (as of the run itself) ends its log with `run_ended`; it is not thrown, the
- * comparison shows it. Not repeated at M3: a driver that failed (the outcome `error` of an activation) and a run
- * limit from outside the game (a cost cap); such a log differs at that line.
+ * comparison shows it. Not repeated: a driver that failed (the outcome `error` of an activation), and a run limit
+ * from outside the game (a cost cap) unless `ports.limits` gives it; such a log differs at that line.
  *
  * @param input - The game, the log and the record sources that are inputs.
  * @returns The replayed log, whether it is equal, and the first differing line with its `SWT-T003` issue.
@@ -273,7 +279,7 @@ export async function replay(input: ReplayInput): Promise<ReplayResult> {
 	const { definition } = resolved(input);
 	const sources = new Set((input.records ?? definition.records ?? []).map((source) => source.id));
 	const plan = planOf(input.log, sources);
-	const kernel = createKernel(definition, { redact: (text) => text }, input.resume);
+	const kernel = createKernel(definition, { ...input.ports, redact: (text) => text }, input.resume);
 	const start = startOf(input.log, input.resume === undefined ? 0 : kernel.log.length);
 	await playAgain(kernel, plan, definition.actors.map((actor) => actor.id), start).catch(() => undefined);
 	const log = kernel.log.all();

@@ -8,7 +8,7 @@ import { createModels, createProvider, envApiKeyAuth, normalizeContext, type Ass
 import { anthropicMessagesApi } from "@earendil-works/pi-ai/api/anthropic-messages.lazy";
 import { SwtError, type ActorId } from "@swarmtales/contracts";
 import { createKeyBroker, KEY_VARIABLES, type KeyAuth } from "../src/keys.ts";
-import { createCostMeter } from "../src/meter.ts";
+import { createCostMeter, formatUsd } from "../src/meter.ts";
 import { createProviderRegistry, modelOf, type ProviderSpec } from "../src/providers.ts";
 import { act, fail, say, scriptedSource } from "../src/scripted.ts";
 import { closedModels, createModelSource, type ModelBinding } from "../src/source.ts";
@@ -159,8 +159,24 @@ describe("the cost meter", () => {
 		expect(createCostMeter(0.01).capUsd).toBe(0.01);
 	});
 
-	it("breaches the limit models.budget at the first request that passes the cap, and stays breached", () => {
+	it("reserves the dearest answer so far: breached when one more such answer would reach the cap (P472)", () => {
 		const meter = createCostMeter(0.25);
+		let sent = 0;
+		while (meter.limit.check() === undefined && sent < 10) {
+			sent += 1;
+			meter.add(ACTOR, usage(sent === 1 ? 0.05 : 0.08));
+		}
+		// 0.05 + 0.08 = 0.13; a third answer of 0.08 would make 0.21; a fourth would pass 0.25, so it is not sent.
+		expect(sent).toBe(3);
+		expect(meter.dearestUsd).toBe(0.08);
+		expect(meter.total.costUsd).toBeLessThan(0.25);
+		expect(meter.limit.check()).toBe("cost 0.21 USD and the dearest answer so far (0.08 USD) reach the cap of 0.25 USD");
+		expect(formatUsd(0.0013322349999)).toBe("0.001332235");
+		expect([formatUsd(0.001), formatUsd(0), formatUsd(2), formatUsd(4.475e-5)]).toEqual(["0.001", "0", "2", "0.00004475"]);
+	});
+
+	it("breaches the limit models.budget at the first request that passes the cap without the reservation, and stays breached", () => {
+		const meter = createCostMeter(0.25, { revision: 4 });
 		const { limit } = meter;
 		// The loop of a run, as the kernel holds it: the limit is asked before each request, the first reason ends the run.
 		let reason = limit.check();
@@ -178,7 +194,7 @@ describe("the cost meter", () => {
 		expect(meter.byActor).toMatchObject({ [ACTOR]: { requests: 2, input: 200 }, "resident:r2": { requests: 1, output: 10, costUsd: 0.1 } });
 
 		// The cap itself is a breach (at or above), a cost below it is none.
-		const exact = createCostMeter(0.5);
+		const exact = createCostMeter(0.5, { revision: 4 });
 		exact.add(ACTOR, usage(0.25));
 		expect(exact.limit.check()).toBeUndefined();
 		exact.add(ACTOR, usage(0.25));

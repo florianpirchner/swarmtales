@@ -3,10 +3,10 @@
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { EVENTS_FILE } from "@swarmtales/chain";
-import { redactSecrets, RunManifestSchema, StoredEnvelopeSchema, SwtError, type Envelope, type RecordSource, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
+import { redactSecrets, RunManifestSchema, StoredEnvelopeSchema, SwtError, type Envelope, type EventSink, type KernelPorts, type RecordSource, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import { DIRECTOR_RECORDS } from "@swarmtales/engine";
 import { parseLabFile } from "@swarmtales/lab";
-import { DIRECTOR_MODEL_RECORDS, RESIDENT_RECORDS } from "@swarmtales/models";
+import { createCostMeter, DIRECTOR_MODEL_RECORDS, RESIDENT_RECORDS } from "@swarmtales/models";
 import { MANIFEST_FILE, verifyRun } from "@swarmtales/runlog";
 import { replay, type ReplayResult } from "@swarmtales/testkit";
 import { Type } from "typebox";
@@ -18,6 +18,26 @@ import { jsonFile } from "./report.ts";
 import { resolveFile } from "./run.ts";
 
 const Events = Type.Array(StoredEnvelopeSchema, { description: "The lines of `events.jsonl`" });
+const count = (description: string) => Type.Number({ description });
+const Usage = Type.Object(
+	{ input: count("Input tokens"), output: count("Output tokens"), cacheRead: count("Tokens read from the cache"), cacheWrite: count("Tokens written to the cache"), costUsd: count("The cost in USD") },
+	{ description: "What the replay meter counts of a `response` record" },
+);
+
+// The cost cap of a live run as the manifest holds it: a meter that a sink feeds with the replayed answers, as the drivers fed it in the run.
+function capOf(manifest: RunManifest): Pick<KernelPorts, "limits" | "sinks"> {
+	const cap = manifest.limits.budgetUsd;
+	if (cap === undefined || cap <= 0) return {};
+	// A run of an older runtime revision is metered by the rule it was played with.
+	const meter = createCostMeter(cap, { revision: manifest.kernel.revision });
+	const answers = new Set([RESIDENT_RECORDS.id, DIRECTOR_MODEL_RECORDS.id]);
+	const sink: EventSink = {
+		write(event) {
+			if (event.type === "response" && answers.has(event.source)) meter.add(event.actor, Parse(Usage, event.payload));
+		},
+	};
+	return { limits: [meter.limit], sinks: [sink] };
+}
 
 /**
  * What `swt replay` was asked for.
@@ -92,7 +112,9 @@ async function verified(directory: string, file: string, again: (log: readonly E
 /**
  * Replays a run folder. The folder must verify; a log that stops inside a tick (a crashed run) is `SWT-T005`. Its game file is resolved with the seed and the params of the
  * manifest and with the record sources the manifest names: those of a live run's drivers when an actor has a
- * model, the Director's, and the marker `run_resumed` for a resumed run. Prints `equal, <n> lines`, or with `json`
+ * model, the Director's, and the marker `run_resumed` for a resumed run. The cost cap of the manifest
+ * (`limits.budgetUsd`) is metered again from the replayed `response` records, so a run that ended at its cap
+ * replays equal. Prints `equal, <n> lines`, or with `json`
  * `{ "equal": true, "lines": n }`. A log that differs prints its line and the replay's line, then `SWT-C031`.
  *
  * @param input - The run folder, the game file and whether to print JSON.
@@ -117,7 +139,7 @@ export async function replayRun(input: ReplayRunInput, io: CliIo): Promise<numbe
 	const params = Object.keys(manifest.game.params).length === 0 ? {} : { params: manifest.game.params };
 	const { game } = await resolveFile({ file: input.game, seed: manifest.seed, ...params }, io, records);
 	const file = join(directory, EVENTS_FILE);
-	const again = await verified(directory, file, (log) => replay({ game, log, records }));
+	const again = await verified(directory, file, (log) => replay({ game, log, records, ports: capOf(manifest) }));
 	const { firstDifference: first, issue } = again;
 	if (first === undefined || issue === undefined) {
 		io.out(input.json ? JSON.stringify({ equal: true, lines: again.log.length }) : `equal, ${String(again.log.length)} lines`);

@@ -202,15 +202,15 @@ describe("the resident session", () => {
 		expect(kernelEvents(events, "tool_called")).toHaveLength(1);
 	});
 
-	it("asks the meter before it sends: at the cap no further request leaves", async () => {
+	it("asks the meter before it sends: once one more answer of the dearest cost would reach the cap, no further request leaves", async () => {
 		// Stand-in for `KernelPorts.limits`: the kernel of `play` has no external limit, so the run plays on to its
-		// last tick; with the limit passed it would end with `{ reason: "limit", limit: "models.budget" }` at tick 2.
+		// last tick; with the limit passed it would end with `{ reason: "limit", limit: "models.budget" }` at tick 1.
 		const { records, meter, results } = await run({ [A01]: [act({ name: "guess", args: { value: 1001 } }), say(), say(), say()] }, { ticks: 4, capUsd: 0.03, usd: 0.02 });
-		expect(of(records, "request")).toHaveLength(2);
-		expect(meter.total).toMatchObject({ requests: 2 });
-		expect(meter.total.costUsd).toBeCloseTo(0.04);
+		expect(of(records, "request")).toHaveLength(1);
+		expect(meter.total).toMatchObject({ requests: 1 });
+		expect(meter.total.costUsd).toBeCloseTo(0.02);
 		expect(meter.limit.id).toBe("models.budget");
-		expect(meter.limit.check()).toBe("cost 0.04 USD reached the cap of 0.03 USD");
+		expect(meter.limit.check()).toBe("cost 0.02 USD and the dearest answer so far (0.02 USD) reach the cap of 0.03 USD");
 		expect(results).toHaveLength(4);
 	});
 

@@ -61,8 +61,14 @@ export interface CostMeter {
     readonly capUsd: number;
     close(reason: string): void;
     readonly closed: string | undefined;
+    readonly dearestUsd: number;
     readonly limit: RunLimit;
     readonly total: Spend;
+}
+
+// @public
+export interface CostMeterOptions {
+    readonly revision?: number;
 }
 
 // @public
@@ -71,7 +77,7 @@ export function createAsker(source: ModelSource, meter: CostMeter, limits: (acto
 }): AskModel;
 
 // @public
-export function createCostMeter(capUsd: number): CostMeter;
+export function createCostMeter(capUsd: number, options?: CostMeterOptions): CostMeter;
 
 // @public
 export function createKeyBroker(env: Readonly<Record<string, string | undefined>>, variables?: Readonly<Record<string, readonly string[]>>): KeyBroker;
@@ -99,6 +105,9 @@ export function emptyModel(provider: string): SwtIssue;
 
 // @public
 export function fail(message: string): ScriptStep;
+
+// @public
+export function formatUsd(amount: number): string;
 
 // @public
 export function isSafeguardRefusal(error: string | undefined): boolean;
