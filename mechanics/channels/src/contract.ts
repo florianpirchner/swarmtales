@@ -163,7 +163,7 @@ export const ChannelsService = defineService({
 	},
 });
 
-const noteTarget = Type.String({ description: "Where a note goes: a resident id, `board`, or `tribunal` for the lines of a tribunal" });
+const noteTarget = Type.String({ description: "Where a note goes: a resident id, `board`, or a category of lines such as those of a vote" });
 
 /**
  * The note desk of the Directors (old `NotesApi`): the checks of a note's text that `channels` owns (its length and
@@ -180,8 +180,8 @@ export const NotesService = defineService({
 		check: {
 			kind: "query",
 			summary:
-				"Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; for `tribunal` only with the same numbers).",
-			input: Type.Object({ text, to: noteTarget, as: Type.Optional(noteTarget) }, { additionalProperties: false, description: "The note" }),
+				"Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; with `numbered`, only one with the same numbers).",
+			input: Type.Object({ text, to: noteTarget, as: Type.Optional(noteTarget), numbered: Type.Optional(Type.Boolean({ description: "Whether a repeat must also have the same numbers: lines that repeat their shape from vote to vote" })) }, { additionalProperties: false, description: "The note" }),
 			output: Type.Union(
 				[
 					Type.Object({ ok: Type.Literal(true, { description: "The text may go" }), text: Type.String({ description: "The text, trimmed and stripped" }) }, { additionalProperties: false, description: "Passed" }),
@@ -201,7 +201,7 @@ export const NotesService = defineService({
 		},
 		record: {
 			kind: "command",
-			summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a tribunal).",
+			summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a category).",
 			input: Type.Object({ to: noteTarget, text, number: messageNumber, shown: Type.Optional(noteTarget) }, { additionalProperties: false, description: "The note" }),
 			output: Type.Null({ description: "Nothing" }),
 		},

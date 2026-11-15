@@ -28,7 +28,7 @@ function residentIds(ctx: ToolCtx, names: readonly string[]): { readonly ok: tru
 }
 
 // The old `#checked(text, "board", "tribunal")`: the trimmed text, or the desk's refusal.
-const checked = (ctx: ToolCtx, text: string) => ctx.call(NotesService, "check", { text, to: "board", as: "tribunal" });
+const checked = (ctx: ToolCtx, text: string) => ctx.call(NotesService, "check", { text, to: "board", as: "tribunal", numbered: true });
 
 // The old `#deliver("tribunal", text, before + 1, "board")`: the note under the number the Director's post took.
 function record(ctx: ToolCtx, text: string, number: number | undefined): void {

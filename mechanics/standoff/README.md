@@ -17,7 +17,7 @@ hand-over, the shop and the last will (M5-27), then the ultimatum and the gamema
 | Id | `standoff` |
 | Summary | Pieces residents hold for others, the hand-overs the city sees, the city's shop of the pieces of the exiled, and the gamemaker's ultimatums. |
 | Requires | `ledger` (from [ledger](../ledger/README.md)), `channels` (from [channels](../channels/README.md)), `progression` (from [progression](../progression/README.md)) |
-| Uses when loaded | `held-pieces` (from [puzzles](../puzzles/README.md)), `ransom-price`, `trial-risk`, `exile` (from [exile](../exile/README.md)), `identity` (from [names](../names/README.md)) |
+| Uses when loaded | `held-pieces` (from [puzzles](../puzzles/README.md)), `ransom-price` (from [tribunal](../tribunal/README.md)), `trial-risk` (from [tribunal](../tribunal/README.md)), `exile` (from [exile](../exile/README.md)), `identity` (from [names](../names/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |

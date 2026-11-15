@@ -556,9 +556,9 @@ A Director's notes: the checks of length and repeat, the budgets and the note lo
 
 | Method | Kind | Input | Output | Summary |
 | --- | --- | --- | --- | --- |
-| `check` | query | text: string, to: string, as?: string | { ok: true, text: string } or { ok: false, code: string, detail: string } | Trims the text, strips a signature or a `<author\|CITY\|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; for `tribunal` only with the same numbers). |
+| `check` | query | text: string, to: string, as?: string, numbered?: boolean | { ok: true, text: string } or { ok: false, code: string, detail: string } | Trims the text, strips a signature or a `<author\|CITY\|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; with `numbered`, only one with the same numbers). |
 | `budget` | query | to: string | { used: integer, limit: integer } | The notes to `to` within the current sliding window and the limit: `boardPosts` for the board, `notesPerAgent` for any other reader. |
-| `record` | command | to: string, text: string, number: integer, shown?: string | null | Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a tribunal). |
+| `record` | command | to: string, text: string, number: integer, shown?: string | null | Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a category). |
 
 <!-- /generated:services -->
 

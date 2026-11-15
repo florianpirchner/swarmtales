@@ -48,7 +48,7 @@ const tribunal = defineMechanic(
 			},
 			line: {
 				run: (params, ctx) => {
-					const checked = ctx.call(NotesService, "check", { text: params.text, to: "board", as: "tribunal" });
+					const checked = ctx.call(NotesService, "check", { text: params.text, to: "board", as: "tribunal", numbered: true });
 					if (!checked.ok) return refuse(checked.code, checked.detail);
 					ctx.call(NotesService, "record", { to: "tribunal", text: checked.text, number: 9, shown: "board" });
 					return reply(JSON.stringify(ctx.call(NotesService, "budget", { to: "tribunal" })));

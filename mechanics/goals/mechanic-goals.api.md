@@ -239,8 +239,8 @@ kind: "heir";
 act: number;
 resolved: boolean;
 leads: {
-count: number;
 agent: string;
+count: number;
 }[];
 heirs: string[];
 voided: string[];

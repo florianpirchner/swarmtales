@@ -96,13 +96,14 @@ const numbersOf = (line: string): string => (line.match(/\d+/g) ?? []).join(",")
  *
  * @param ctx - The context.
  * @param raw - The text as the Director wrote it.
- * @param as - Whom the repeat is counted under: a resident id, `board` or `tribunal`.
+ * @param as - Whom the repeat is counted under: a resident id, `board`, or a category of lines such as those of a vote.
+ * @param numbered - Whether a repeat must also have the same numbers (lines that repeat their shape from vote to vote).
  * @returns The stripped text, or `INVALID_TEXT` or `REPEATED` in the old words.
  */
-export function checkNote(ctx: Ctx, raw: string, as: string): Checked {
+export function checkNote(ctx: Ctx, raw: string, as: string, numbered = false): Checked {
 	const text = stripped(ctx, raw);
 	if (text.length === 0 || text.length > ctx.options.noteMaxLength) return refusalOf(ctx.prompt("channels/notes/invalid-text", { max: ctx.options.noteMaxLength }));
-	const earlier = ctx.state.notes.find((note) => note.to === as && nearlySame(note.text, text) && (as !== "tribunal" || numbersOf(note.text) === numbersOf(text)));
+	const earlier = ctx.state.notes.find((note) => note.to === as && nearlySame(note.text, text) && (!numbered || numbersOf(note.text) === numbersOf(text)));
 	if (earlier !== undefined) return refusalOf(ctx.prompt("channels/notes/repeated", { to: as === "board" ? "the board" : as, minute: earlier.tick }));
 	return { ok: true, text };
 }
@@ -140,7 +141,7 @@ export function budgetRefusal(ctx: Ctx, to: string): Refusal | undefined {
  * @param to - Whom it is recorded under.
  * @param text - The stripped text.
  * @param number - The message number of the note or the post.
- * @param shown - Whom it was shown to; the board for the lines of a tribunal.
+ * @param shown - Whom it was shown to; the board for the lines of a category.
  */
 export function recordNote(ctx: Ctx, to: string, text: string, number: number, shown: string = to): void {
 	ctx.state.notes.push({ tick: ctx.tick, to, text });

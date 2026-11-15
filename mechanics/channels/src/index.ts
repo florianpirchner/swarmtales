@@ -63,7 +63,7 @@ export const channels = defineMechanic(channelsHead, {
 			},
 		},
 		notes: {
-			check: (input, ctx) => checkNote(ctx, input.text, input.as ?? input.to),
+			check: (input, ctx) => checkNote(ctx, input.text, input.as ?? input.to, input.numbered === true),
 			budget: (input, ctx) => noteBudget(ctx, input.to),
 			record: (input, ctx) => {
 				recordNote(ctx, input.to, input.text, input.number, input.shown);

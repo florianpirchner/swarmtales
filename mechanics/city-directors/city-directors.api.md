@@ -10,7 +10,6 @@ import { Firing } from '@swarmtales/sdk';
 import { JudgeQuestion } from '@swarmtales/mechanic-receipts/contract';
 import { MechanicDefinition } from '@swarmtales/sdk';
 import { MechanicHead } from '@swarmtales/sdk';
-import { NoOptions } from '@swarmtales/sdk';
 import { PromptLookup } from '@swarmtales/contracts';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { Static } from 'typebox';
@@ -303,7 +302,11 @@ export interface HoldoutTiming {
 }
 
 // @public
-export const interpretations: MechanicDefinition<"interpretations", NoOptions, {
+export const interpretations: MechanicDefinition<"interpretations", TObject<    {
+noteTools: TArray<TString>;
+every: TInteger;
+privateThoughts: TString;
+}>, {
 interpretation: TObject<    {
 ref: TInteger;
 agent: TString;
@@ -325,7 +328,11 @@ message: TString;
 }, "interpret">;
 
 // @public
-export const interpretationsHead: MechanicHead<"interpretations", NoOptions, Type.TObject<{
+export const interpretationsHead: MechanicHead<"interpretations", Type.TObject<{
+noteTools: Type.TArray<Type.TString>;
+every: Type.TInteger;
+privateThoughts: Type.TString;
+}>, Type.TObject<{
 history: Type.TArray<Type.TObject<{
 conversation: Type.TString;
 statements: Type.TArray<Type.TObject<{
@@ -337,8 +344,14 @@ group: Type.TOptional<Type.TString>;
 text: Type.TString;
 }>>;
 }>>;
+window: Type.TArray<Type.TObject<{
+round: Type.TInteger;
+agent: Type.TString;
+labels: Type.TArray<Type.TEnum<["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"]>>;
+}>>;
 }>, {
 history: {
+conversation: string;
 statements: {
 group?: string;
 ref: number;
@@ -347,7 +360,11 @@ source: "board" | "cast" | "dm" | "group";
 to: string[];
 text: string;
 }[];
-conversation: string;
+}[];
+window: {
+agent: string;
+round: number;
+labels: ("accusation" | "helpRequest" | "hesitation" | "lie" | "offer" | "promise" | "refusal" | "thanks" | "threat")[];
 }[];
 }, {
 interpretation: Type.TObject<{
@@ -412,6 +429,13 @@ targets: Type.TOptional<Type.TArray<Type.TString>>;
 }>>;
 error: Type.TOptional<Type.TString>;
 }>;
+}>;
+
+// @public
+export const InterpretationsOptions: Type.TObject<{
+    noteTools: Type.TArray<Type.TString>;
+    every: Type.TInteger;
+    privateThoughts: Type.TString;
 }>;
 
 // @public

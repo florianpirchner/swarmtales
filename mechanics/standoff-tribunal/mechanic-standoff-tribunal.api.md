@@ -1102,11 +1102,12 @@ readonly output: Type.TBoolean;
 }>, ServiceDefinition<"notes", {
 readonly check: {
 readonly kind: "query";
-readonly summary: "Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; for `tribunal` only with the same numbers).";
+readonly summary: "Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; with `numbered`, only one with the same numbers).";
 readonly input: Type.TObject<{
 text: Type.TString;
 to: Type.TString;
 as: Type.TOptional<Type.TString>;
+numbered: Type.TOptional<Type.TBoolean>;
 }>;
 readonly output: Type.TUnion<[Type.TObject<{
 ok: Type.TLiteral<true>;
@@ -1130,7 +1131,7 @@ limit: Type.TInteger;
 };
 readonly record: {
 readonly kind: "command";
-readonly summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a tribunal).";
+readonly summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a category).";
 readonly input: Type.TObject<{
 to: Type.TString;
 text: Type.TString;
