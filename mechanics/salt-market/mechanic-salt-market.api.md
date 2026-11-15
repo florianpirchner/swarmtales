@@ -174,6 +174,7 @@ escrowFee: Type.TInteger;
 maxOpenOffers: Type.TInteger;
 maxSays: Type.TInteger;
 spoil: Type.TBoolean;
+markOwnOffers: Type.TOptional<Type.TBoolean>;
 }>, {
 market_game_started: Type.TObject<{
 game: Type.TInteger;
@@ -476,6 +477,7 @@ escrowFee: Type.TInteger;
 maxOpenOffers: Type.TInteger;
 maxSays: Type.TInteger;
 spoil: Type.TBoolean;
+markOwnOffers: Type.TOptional<Type.TBoolean>;
 }>, Type.TObject<{
 seats: Type.TArray<Type.TString>;
 game: Type.TInteger;

@@ -49,7 +49,12 @@ describe("carried byte for byte", () => {
 		const tools = Object.entries(saltMarketHead.tools ?? {});
 		expect(tools.map(([name, tool]) => [name, tool.description, tool.for])).toEqual(Object.keys(OLD_TOOLS).map((name) => [name, `salt-market/tools/${name}`, ["resident"]]));
 		expect(Object.fromEntries(tools.map(([name, tool]) => [name, sha256(JSON.stringify(tool.params))]))).toEqual(OLD_TOOLS);
-		expect(sha256(JSON.stringify(saltMarketHead.options))).toBe("d200530ea072b70b62c8553c238015e080fb136ff6e461f66ca6328b6a2e50f6");
+		// The one option of this platform, `markOwnOffers` (A46, M4-70), is optional and has no default; without it the options are the old ones.
+		const shown = JSON.stringify(saltMarketHead.options);
+		expect(JSON.parse(shown)).toMatchObject({ properties: { markOwnOffers: { type: "boolean" } } });
+		expect(shown).not.toMatch(/"markOwnOffers":\{[^}]*"default"/);
+		expect(shown).not.toMatch(/"required":\[[^\]]*"markOwnOffers"/);
+		expect(sha256(JSON.stringify(saltMarketHead.options, (key, value: unknown) => (key === "markOwnOffers" ? undefined : value)))).toBe("d200530ea072b70b62c8553c238015e080fb136ff6e461f66ca6328b6a2e50f6");
 		expect(sha256(JSON.stringify(saltMarketHead.events))).toBe("84bf18b737488eed9f8c72a02829599c16133902d1d37c8a5dd9d795e8da2a9e");
 		expect(JSON.stringify(saltMarketHead.audiences)).toBe('{"market_game_started":["human"],"market_said":["human"],"market_game_scored":["human"]}');
 		expect([saltMarketHead.id, saltMarketHead.summary]).toEqual(["salt-market", "The negotiation game Salt Market for solo seats: five goods, secret values and contracts, offers through a bank, escrowed or plain promises, spoilage and a trade tax."]);

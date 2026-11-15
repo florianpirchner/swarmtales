@@ -19,3 +19,5 @@
 {"run":"smoke/convoy-001","id":"d121d391-ea0c-4a4a-9e15-50e068d8a562","costUsd":0.19731602499999995,"at":"2026-11-15T10:17:11.678Z"}
 {"run":"smoke/salt-market-001","id":"b8da9764-0cd5-43cb-9090-8dee870fea30","reservedUsd":0.4,"at":"2026-11-15T10:17:30.932Z"}
 {"run":"smoke/salt-market-001","id":"b8da9764-0cd5-43cb-9090-8dee870fea30","costUsd":0.18305499999999986,"at":"2026-11-15T10:36:08.515Z"}
+{"run":"check-m4-70/salt-market-001","id":"d381ee29-0375-4d50-baa6-80823690acdb","reservedUsd":0.4,"at":"2026-11-15T10:50:15.100Z"}
+{"run":"check-m4-70/salt-market-001","id":"d381ee29-0375-4d50-baa6-80823690acdb","costUsd":0.17460019000000007,"at":"2026-11-15T11:08:25.548Z"}

@@ -4,8 +4,9 @@
  * offers and deliveries), the answer of `viewMarket`, and the lines of its next turn with the inbox since the last.
  */
 import type { SaltMarketCtx } from "./head.ts";
-import { ALL, bookLine, holdingOf, offerLine, who } from "./market.ts";
+import { ALL, bookLine, holdingOf, who } from "./market.ts";
 import { bundleLine, empty, GOODS, minus, size, type MarketState, type Offer } from "./model.ts";
+import { offerIdsText, offersText } from "./own.ts";
 
 type Ctx = SaltMarketCtx;
 
@@ -83,7 +84,7 @@ function roundText(ctx: Ctx, seat: string): string {
 		goods: `${bundleLine(holdingOf(state, seat))}. ${privateLine(state, seat)}`,
 		book: bookLine(state, seat),
 		shipments: shipmentsLine(state, seat),
-		offers: offers.length === 0 ? "none" : offers.map((offer) => offerLine(offer, seat)).join(" | "),
+		offers: offersText(offers, seat, ctx.options.markOwnOffers === true),
 		pledges: pledgesLine(state, seat),
 	});
 }
@@ -146,7 +147,7 @@ export function inputLines(ctx: Ctx, resident: string): string[] {
 		lines.push(roundText(ctx, resident));
 	} else {
 		const offers = openOffersFor(state, resident);
-		lines.push(`Round ${String(state.round)} of ${String(ctx.options.rounds)}. You hold ${bundleLine(holdingOf(state, resident))}. Open offers: ${offers.length === 0 ? "none" : offers.map((offer) => offer.id).join(", ")}.`);
+		lines.push(`Round ${String(state.round)} of ${String(ctx.options.rounds)}. You hold ${bundleLine(holdingOf(state, resident))}. Open offers: ${offerIdsText(offers, resident, ctx.options.markOwnOffers === true)}.`);
 	}
 	return lines;
 }

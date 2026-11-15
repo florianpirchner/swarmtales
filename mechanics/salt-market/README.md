@@ -448,6 +448,7 @@ Audience: everyone
 | `maxOpenOffers` | integer ≥ 1 | `3` | Open offers a trader may have at once. |
 | `maxSays` | integer ≥ 0 | `3` | Messages a trader may send per round. |
 | `spoil` | boolean | `true` | Goods spoil at the end of each round but the last. |
+| `markOwnOffers` | boolean | unset | true: a trader's own offers are marked as its own in the open offers it reads (A46, P478); left out or false: the text of the old platform. |
 
 <!-- /generated:options -->
 

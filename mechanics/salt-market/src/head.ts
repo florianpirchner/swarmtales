@@ -23,6 +23,8 @@ const options = Type.Object({
 	maxOpenOffers: Type.Integer({ minimum: 1, default: 3, description: "Open offers a trader may have at once." }),
 	maxSays: Type.Integer({ minimum: 0, default: 3, description: "Messages a trader may send per round." }),
 	spoil: Type.Boolean({ default: true, description: "Goods spoil at the end of each round but the last." }),
+	// Optional without a default, so that the resolved options and the hash of a game without it stay those of the old platform (A41).
+	markOwnOffers: Type.Optional(Type.Boolean({ description: "true: a trader's own offers are marked as its own in the open offers it reads (A46, P478); left out or false: the text of the old platform." })),
 });
 
 const goodsShape = (what: string) =>

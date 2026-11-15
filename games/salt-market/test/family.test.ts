@@ -32,7 +32,7 @@ describe("the game family", () => {
 	it("is the default export of the game file, with the params and defaults of the old registry", () => {
 		expect(saltMarket).toBe(saltMarketFamily);
 		expect(isGameFamily(saltMarket)).toBe(true);
-		expect(familyParams(saltMarket).params).toEqual({ games: 4, rounds: 6, brain: true, spoil: true, maxWords: 150 });
+		expect(familyParams(saltMarket).params).toEqual({ games: 4, rounds: 6, brain: true, spoil: true, maxWords: 150, markOwnOffers: false });
 	});
 
 	it("gives the pinned game hash for the default params", () => {

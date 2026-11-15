@@ -34,6 +34,8 @@ export interface SaltMarketOptions {
 	readonly spoil?: boolean;
 	/** Words a brain may have. */
 	readonly maxWords?: number;
+	/** Mark a trader's own offers as its own in what it reads (A46, P478; default off, the text of the old game). */
+	readonly markOwnOffers?: boolean;
 	/** The seed of the run; 41 when absent. */
 	readonly seed?: number;
 	/** Run length in ticks; default is an upper bound from the rounds (the match ends the run earlier). */
@@ -41,7 +43,7 @@ export interface SaltMarketOptions {
 }
 
 /** The defaults of the old game. */
-const DEFAULTS = { games: 4, rounds: 6, brain: true, spoil: true, maxWords: 150, seed: 41 } as const satisfies SaltMarketOptions;
+const DEFAULTS = { games: 4, rounds: 6, brain: true, spoil: true, maxWords: 150, markOwnOffers: false, seed: 41 } as const satisfies SaltMarketOptions;
 const RETRO_TICKS = 2;
 const TOOLS = ["viewMarket", "offer", "accept", "decline", "withdraw", "give", "say"] as const;
 
@@ -61,7 +63,7 @@ const ticksFor = (games: number, rounds: number): number => games * (rounds + 1)
  * @public
  */
 export function saltMarketGame(options: SaltMarketOptions = {}) {
-	const { games, rounds, brain, spoil, maxWords, seed } = { ...DEFAULTS, ...options };
+	const { games, rounds, brain, spoil, maxWords, markOwnOffers, seed } = { ...DEFAULTS, ...options };
 	return defineGame({
 		id: "salt-market",
 		title: "Salt Market",
@@ -69,7 +71,8 @@ export function saltMarketGame(options: SaltMarketOptions = {}) {
 		residents: [...SEATS],
 		// Salt Market before the brain: its round clock ends a round before the brain opens a retro window (old hook numbers 150 and 200).
 		mechanics: [
-			saltMarket({ games, rounds, spoil, roundMinutes: 1 }),
+			// The mark is passed only when on, so that the game of the old platform keeps its hash (A41).
+			saltMarket({ games, rounds, spoil, roundMinutes: 1, ...(markOwnOffers ? { markOwnOffers } : {}) }),
 			strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true }),
 		],
 		grants: { resident: [...TOOLS, ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
@@ -97,6 +100,7 @@ const Params = Type.Object(
 		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each trader keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm)." }),
 		spoil: Type.Boolean({ default: DEFAULTS.spoil, description: "Goods spoil at the end of each round but the last." }),
 		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+		markOwnOffers: Type.Boolean({ default: DEFAULTS.markOwnOffers, description: "Mark a trader's own offers as its own in what it reads (A46, P478); false is the text of the old game and keeps its hash." }),
 	},
 	{ description: "The variants of Salt Market." },
 );
