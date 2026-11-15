@@ -618,14 +618,8 @@ scores: Type.TRecord<"^.*$", Type.TNumber>;
 gameScores: Type.TRecord<"^.*$", Type.TNumber>;
 lastResult: Type.TString;
 }>, {
-seats: string[];
 game: number;
-round: number;
-opened: number;
-running: boolean;
-finished: boolean;
-held: boolean;
-due: boolean;
+seats: string[];
 profiles: Record<string, {
 values: {
 salt: number;
@@ -657,6 +651,9 @@ wax: number;
 };
 arrives: number;
 }>;
+round: number;
+spoils: string;
+due: boolean;
 holdings: Record<string, {
 salt: number;
 cloth: number;
@@ -664,6 +661,7 @@ copper: number;
 spice: number;
 wax: number;
 }>;
+scores: Record<string, number>;
 offers: {
 later?: {
 round: number;
@@ -699,9 +697,14 @@ wax: number;
 note: string;
 status: "open" | "accepted" | "declined" | "withdrawn" | "expired";
 }[];
+says: Record<string, number>;
+spoiled: Record<string, number>;
+opened: number;
+running: boolean;
+finished: boolean;
+held: boolean;
 pledges: {
 game: number;
-due: number;
 id: string;
 from: string;
 to: string;
@@ -715,6 +718,7 @@ wax: number;
 escrow: boolean;
 status: "pending" | "kept" | "broken";
 offer: string;
+due: number;
 delivered: {
 salt: number;
 cloth: number;
@@ -739,21 +743,17 @@ wax: number;
 }>;
 arrived: string[];
 counter: number;
-spoils: string;
 spoilLog: string[];
-spoiled: Record<string, number>;
-says: Record<string, number>;
 inbox: Record<string, string[]>;
 briefed: string[];
 told: Record<string, number>;
 stats: Record<string, {
+trades: number;
 offers: number;
 says: number;
-trades: number;
 taxPaid: number;
 feesPaid: number;
 }>;
-scores: Record<string, number>;
 gameScores: Record<string, number>;
 lastResult: string;
 }, {

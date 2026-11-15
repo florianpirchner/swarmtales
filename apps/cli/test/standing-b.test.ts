@@ -1,0 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+/** The standing checks of every game of the games list through the command line, part 2 (see `standing-part.ts`). */
+import { describeStandingPart } from "./standing-part.ts";
+
+describeStandingPart(1);

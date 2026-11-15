@@ -37,8 +37,13 @@ at the tag `v0-final`; their words are the old ones (see the retired words in th
 
 ## How the checks work
 
-`pnpm check` runs, in this order: typecheck, lint (size limits, TSDoc, 4 GB heap), tests (unit tests plus the
-gates under `scripts/gates/`: budgets, kernel word list, English only, README length, name lint, exception format,
-workspace shape, the mechanic READMEs, `exile` names no other mechanic), the layer check, the licence gate, the sign-off check, the build and the API reports. The first
-failure stops it. It prints a summary table and fails above 10 minutes or 6 GB; a gate that is still running when
-the time ends is stopped.
+`pnpm check` runs these gates: typecheck, lint (size limits, TSDoc, 4 GB heap per process), tests (unit tests plus
+the gates under `scripts/gates/`: budgets, kernel word list, English only, README length, name lint, exception format,
+workspace shape, the mechanic READMEs, `exile` names no other mechanic), the layer check, the licence gate, the
+sign-off check, the build and the API reports. They run in three lanes side by side, the gates of a lane one after
+the other (`scripts/lib/check-run.ts`, M4-71): the typecheck, then the build (its declarations come from the
+typecheck's `tsc -b` output) and the API reports (which read the build); the quick gates, then lint (two ESLint
+processes at a time over groups of three folders, `scripts/lint.ts`); the tests (two Vitest workers, the standing
+checks first). The output of a gate is printed when it ends. The first failure stops the check. It prints a summary
+table and fails when the whole takes more than 10 minutes, or when all gates running at once hold more than 6 GB; a
+gate that is still running when the time ends is stopped.

@@ -292,21 +292,23 @@ finished: Type.TBoolean;
 held: Type.TBoolean;
 due: Type.TBoolean;
 }>, {
+bids: Record<string, number>;
 lots: {
 worth?: number;
 number: number;
 kind: "first-price" | "second-price" | "common";
 values: Record<string, number>;
 }[];
-seats: string[];
-game: number;
 lot: number;
+game: number;
+seats: string[];
+scores: Record<string, number>;
+coins: Record<string, number>;
 open: boolean;
 opened: number;
 owing: string[];
 told: string[];
 briefed: string[];
-bids: Record<string, number>;
 reasons: Record<string, string>;
 results: {
 winner?: string;
@@ -318,8 +320,6 @@ profit: number;
 tie: boolean;
 missed: string[];
 }[];
-coins: Record<string, number>;
-scores: Record<string, number>;
 gameScores: Record<string, number>;
 running: boolean;
 finished: boolean;

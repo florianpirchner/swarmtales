@@ -312,12 +312,12 @@ standing?: {
 quantity: number;
 face: number;
 };
+game: number;
+seats: string[];
+dice: Record<string, number[]>;
 round: number;
 counts: Record<string, number>;
 bidder: string;
-dice: Record<string, number[]>;
-out: string[];
-game: number;
 decisions: {
 bid?: {
 quantity: number;
@@ -332,59 +332,59 @@ baselineBid?: {
 quantity: number;
 face: number;
 };
-kind: "bid" | "liar";
+game: number;
+dice: number[];
 round: number;
 missed: boolean;
-dice: number[];
-game: number;
 resident: string;
+kind: "bid" | "liar";
 unseen: number;
 truth: number;
 baseline: "bid" | "liar";
 agree: boolean;
 bluff: boolean;
 }[];
-seats: string[];
+scores: Record<string, number>;
+out: string[];
 toAct: string;
 log: ({
-kind: "round";
 round: number;
 starter: string;
 counts: Record<string, number>;
+kind: "round";
 } | {
 say?: string;
 missed?: boolean;
+round: number;
+seat: string;
 bid: {
 quantity: number;
 face: number;
 };
 kind: "bid";
-round: number;
-seat: string;
 } | {
 say?: string;
 missed?: boolean;
+dice: Record<string, number[]>;
+round: number;
+seat: string;
+bidder: string;
 bid: {
 quantity: number;
 face: number;
 };
-kind: "liar";
-round: number;
-seat: string;
-bidder: string;
 count: number;
-dice: Record<string, number[]>;
 loser: string;
+kind: "liar";
 } | {
-kind: "out";
 seat: string;
 place: number;
+kind: "out";
 })[];
 seenLog: Record<string, number>;
 briefed: string[];
 told: boolean;
 opened: number;
-scores: Record<string, number>;
 gameScores: Record<string, number>;
 running: boolean;
 finished: boolean;

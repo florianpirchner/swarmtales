@@ -217,35 +217,51 @@ due: Type.TBoolean;
 }>, {
 hand?: {
 number: number;
+bet: number;
+street: "preflop" | "flop" | "turn" | "river";
+board: string[];
 seats: string[];
 button: number;
 holes: Record<string, string[]>;
 runout: string[];
-board: string[];
-street: "preflop" | "flop" | "turn" | "river";
 folded: string[];
 invested: Record<string, number>;
 streetIn: Record<string, number>;
-bet: number;
 bets: number;
 acted: string[];
 toAct: string;
 log: ({
 missed?: boolean;
-street: "preflop" | "flop" | "turn" | "river";
 kind: "action";
 seat: string;
-done: "bet" | "small blind" | "big blind" | "fold" | "check" | "call" | "raise";
+done: "fold" | "check" | "call" | "bet" | "raise" | "small blind" | "big blind";
 to: number;
-} | {
 street: "preflop" | "flop" | "turn" | "river";
+} | {
 kind: "board";
+street: "preflop" | "flop" | "turn" | "river";
 cards: string[];
 })[];
 over: boolean;
 };
 seats: string[];
 game: number;
+decisions: {
+done: "fold" | "check" | "call" | "bet" | "raise";
+street: "preflop" | "flop" | "turn" | "river";
+missed: boolean;
+toCall: number;
+hand: number;
+pot: number;
+game: number;
+resident: string;
+opponents: number;
+equity: number;
+rangeEquity: number;
+potOdds: number;
+baseline: "fold" | "check" | "call" | "bet" | "raise";
+evLoss: number;
+}[];
 opened: number;
 briefed: string[];
 seenHand: Record<string, number>;
@@ -253,10 +269,10 @@ seenLog: Record<string, number>;
 seenResults: Record<string, number>;
 told: boolean;
 results: {
-hand: number;
-button: string;
-board: string[];
 street: "preflop" | "flop" | "turn" | "river";
+board: string[];
+button: string;
+hand: number;
 pot: number;
 shown: {
 seat: string;
@@ -266,22 +282,6 @@ best: string;
 winners: string[];
 net: Record<string, number>;
 showdown: boolean;
-}[];
-decisions: {
-game: number;
-hand: number;
-street: "preflop" | "flop" | "turn" | "river";
-done: "bet" | "fold" | "check" | "call" | "raise";
-missed: boolean;
-pot: number;
-resident: string;
-toCall: number;
-opponents: number;
-equity: number;
-rangeEquity: number;
-potOdds: number;
-baseline: "bet" | "fold" | "check" | "call" | "raise";
-evLoss: number;
 }[];
 scores: Record<string, number>;
 gameScores: Record<string, number>;
