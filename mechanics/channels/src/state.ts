@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
-/** The state of `channels` and its snapshot slice: the board, the message counter, the direct messages, each resident's inbox and its "seen" mark. */
+/** The state of `channels` and its snapshot slice: the board, the message counter, the direct messages and the memos, each resident's inbox and its "seen" mark. */
 import { Type, type Static } from "typebox";
 import { Board } from "./board.ts";
 import { ChannelsEvents } from "./events.ts";
@@ -27,6 +27,16 @@ export interface DmRecord {
 	readonly text: string;
 	/** The tick it was sent in. */
 	readonly tick: number;
+	/** Whether its sender got an answer: a direct message from the receiver, or a group post of the receiver in a group of both (old `noteReply`). */
+	answered: boolean;
+}
+
+/** A transfer with a memo: it counts toward the cap on direct messages like a message. */
+export interface MemoRecord {
+	/** The resident that paid. */
+	readonly from: string;
+	/** The tick of the transfer. */
+	readonly tick: number;
 }
 
 /** What waits for one resident until its next activation. */
@@ -51,6 +61,10 @@ export interface ChannelsState {
 	readonly seenBoard: Map<string, number>;
 	/** The groups and their posts. */
 	readonly groups: GroupRegistry;
+	/** Every transfer with a memo, oldest first (read from `ledger.transfer`). */
+	readonly memos: MemoRecord[];
+	/** The board's newest player post when a resident's inputs were built; not saved, it is taken again in every activation. */
+	readonly taken: Map<string, number>;
 }
 
 /**
@@ -61,7 +75,16 @@ export interface ChannelsState {
  */
 export function newState(residents: readonly string[]): ChannelsState {
 	const numbers = new MessageNumbers();
-	return { numbers, board: new Board(numbers), dms: [], inboxes: new Map(residents.map((id) => [id, { mailbox: new Mailbox(), notices: [] }])), seenBoard: new Map(), groups: new GroupRegistry(numbers) };
+	return {
+		numbers,
+		board: new Board(numbers),
+		dms: [],
+		inboxes: new Map(residents.map((id) => [id, { mailbox: new Mailbox(), notices: [] }])),
+		seenBoard: new Map(),
+		groups: new GroupRegistry(numbers),
+		memos: [],
+		taken: new Map(),
+	};
 }
 
 const Id = Type.String({ description: "A resident id" });
@@ -75,7 +98,11 @@ const Cursor = Type.Object({ reader: Type.String({ description: "The reader" }),
 const NoticeSlice = Type.Object({ author: Type.String({ description: "The name it is signed with" }), text: Text }, { description: "A notice that waits" });
 const Tick = Type.Integer({ description: "The tick it was sent in" });
 const Mail = Type.Object({ from: Type.String({ description: "Who sent it" }), text: Text, tick: Tick, number: Seq }, { description: "An unread direct message" });
-const Dm = Type.Object({ number: Seq, from: Type.String({ description: "Who sent it" }), to: Id, text: Text, tick: Tick }, { description: "One direct message of the city's records" });
+const Dm = Type.Object(
+	{ number: Seq, from: Type.String({ description: "Who sent it" }), to: Id, text: Text, tick: Tick, answered: Type.Optional(Type.Boolean({ description: "Whether its sender got an answer; left out: not yet" })) },
+	{ description: "One direct message of the city's records" },
+);
+const Memo = Type.Object({ from: Id, tick: Type.Integer({ description: "The tick of the transfer" }) }, { description: "A transfer with a memo" });
 const Agent = Type.String({ description: "A member" });
 const GroupSlice = Type.Object(
 	{
@@ -109,8 +136,9 @@ export const ChannelsSlice = Type.Object(
 		inboxes: Type.Array(InboxSlice, { description: "What waits for each resident" }),
 		seen: Type.Array(Type.Object({ resident: Id, seq: Seq }, { description: "A seen mark" }), { description: "The newest player post each resident has seen" }),
 		groups: GroupsSlice,
+		memos: Type.Array(Memo, { description: "Every transfer with a memo, oldest first" }),
 	},
-	{ description: "The board, the message counter, the direct messages, the inboxes, the seen marks and the groups" },
+	{ description: "The board, the message counter, the direct messages, the inboxes, the seen marks, the groups and the memos" },
 );
 
 /**
@@ -124,6 +152,17 @@ export function withoutGroups(data: unknown): unknown {
 }
 
 /**
+ * Turns a slice of version 2 (before the cap on direct messages) into version 3: no memo was counted, and no
+ * message was answered (`answered` is left out).
+ *
+ * @param data - The data of a slice of version 2.
+ * @returns The data with an empty `memos`.
+ */
+export function withoutMemos(data: unknown): unknown {
+	return typeof data === "object" && data !== null ? { ...data, memos: [] } : data;
+}
+
+/**
  * Saves the state into its slice.
  *
  * @param state - The state.
@@ -133,10 +172,11 @@ export function saveState(state: ChannelsState): Static<typeof ChannelsSlice> {
 	return {
 		board: state.board.snapshot(),
 		messages: state.numbers.last,
-		dms: [...state.dms],
+		dms: state.dms.map((dm) => ({ ...dm })),
 		inboxes: [...state.inboxes].map(([resident, inbox]) => ({ resident, mailbox: inbox.mailbox.snapshot(), notices: [...inbox.notices] })),
 		seen: [...state.seenBoard].map(([resident, seq]) => ({ resident, seq })),
 		groups: state.groups.snapshot(),
+		memos: state.memos.map((memo) => ({ ...memo })),
 	};
 }
 
@@ -152,7 +192,8 @@ export function loadState(data: Static<typeof ChannelsSlice>, residents: readonl
 	state.numbers.raiseTo(data.messages);
 	state.board.restore(data.board);
 	state.groups.restore(data.groups);
-	state.dms.push(...data.dms);
+	state.dms.push(...data.dms.map((dm) => ({ number: dm.number, from: dm.from, to: dm.to, text: dm.text, tick: dm.tick, answered: dm.answered ?? false })));
+	state.memos.push(...data.memos.map((memo) => ({ from: memo.from, tick: memo.tick })));
 	for (const entry of data.inboxes) {
 		const inbox = state.inboxes.get(entry.resident);
 		if (inbox === undefined) continue;

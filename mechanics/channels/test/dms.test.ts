@@ -74,13 +74,16 @@ describe("direct messages", () => {
 		expect(await idle(test, 3)).toEqual(["0:A03 dm|[DM #1 from A01] wake up", '1:A01 notice|[CITY] DM #1 delivered to A03 at minute 0: "wake up"']);
 	});
 
-	it("hands the records to another mechanic, sent or delivered, and keeps them in the slice", async () => {
+	it("hands the records to another mechanic, sent or delivered, answered or not, and keeps them in the slice", async () => {
 		const test = testKernel(game());
 		expect(await say(test, "A01", "cityRecords", {})).toBe("[]");
 		await say(test, "A01", "sendDM", { target: "A02", message: "one" });
 		await say(test, "A02", "sendDM", { target: "A03", message: "two" });
-		const records = '[{"from":"A01","to":"A02","text":"one","number":1},{"from":"A02","to":"A03","text":"two","number":2}]';
-		expect(await say(test, "A03", "cityRecords", {})).toBe(records);
+		// A02 writes after A01 wrote to it, but not to A01: only a message to the sender answers (old `noteReply`).
+		expect(await say(test, "A03", "cityRecords", {})).toBe('[{"from":"A01","to":"A02","text":"one","number":1,"tick":0,"answered":false},{"from":"A02","to":"A03","text":"two","number":2,"tick":0,"answered":false}]');
+		await say(test, "A02", "sendDM", { target: "A01", message: "back" });
+		const records = await say(test, "A03", "cityRecords", {});
+		expect(records).toContain('"text":"one","number":1,"tick":0,"answered":true}');
 		await idle(test, 1);
 		expect(await say(test, "A03", "cityRecords", {})).toBe(records);
 		const resume = { snapshot: structuredClone(test.kernel.snapshot()), log: structuredClone([...test.kernel.log.all()]) };

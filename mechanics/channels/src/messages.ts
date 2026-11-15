@@ -4,6 +4,7 @@ import type { ToolOutcome } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/sdk";
 import { MAX_BOARD_POST_LENGTH, type BoardPost, type BoardPostKind } from "./board.ts";
 import type { Ctx, ToolCtx } from "./head.ts";
+import { marksPart } from "./shown.ts";
 import type { Inbox } from "./state.ts";
 
 /**
@@ -77,7 +78,7 @@ export function postBoard(ctx: ToolCtx, text: string): ToolOutcome {
 	const before = ctx.state.board.lastPlayerSeq();
 	const post = postToBoard(ctx, author, trimmed, ctx.resident === undefined ? "city" : "player");
 	if (post.kind === "player" && (ctx.state.seenBoard.get(author) ?? 0) >= before) ctx.state.seenBoard.set(author, post.seq);
-	return reply(ctx.prompt("channels/replies/board-posted", { seq: post.seq }));
+	return reply(`${ctx.prompt("channels/replies/board-posted", { seq: post.seq })}${marksPart(ctx, "board")}`);
 }
 
 /**

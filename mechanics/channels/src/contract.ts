@@ -54,11 +54,18 @@ export const ChannelsService = defineService({
 		},
 		dmRecords: {
 			kind: "query",
-			summary: "Lists every direct message that was sent, delivered or not, oldest first.",
+			summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).",
 			input: Type.Object({}, { additionalProperties: false, description: "Nothing" }),
 			output: Type.Array(
 				Type.Object(
-					{ from: Type.String({ description: "Who sent it: a resident id, or the actor id of a sender that is no resident" }), to: Type.String({ description: "The resident it was sent to" }), text, number: Type.Integer({ description: "The city's message number of the message" }) },
+					{
+						from: Type.String({ description: "Who sent it: a resident id, or the actor id of a sender that is no resident" }),
+						to: Type.String({ description: "The resident it was sent to" }),
+						text,
+						number: Type.Integer({ description: "The city's message number of the message" }),
+						tick: Type.Integer({ description: "The tick it was sent in" }),
+						answered: Type.Boolean({ description: "Whether its sender got an answer since: a direct message from the receiver, or the receiver's post in a group of both" }),
+					},
 					{ additionalProperties: false, description: "One direct message" },
 				),
 				{ description: "The direct messages" },

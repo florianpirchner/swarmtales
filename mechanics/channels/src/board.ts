@@ -144,6 +144,17 @@ export class Board {
 	}
 
 	/**
+	 * Counts the posts of others the reader has not fetched, status posts left out.
+	 *
+	 * @param reader - The reader.
+	 * @returns The unread posts.
+	 */
+	unreadCount(reader: string): number {
+		const cursor = this.cursorOf(reader);
+		return this.#posts.filter((post) => post.seq > cursor && post.author !== reader && post.kind !== "system").length;
+	}
+
+	/**
 	 * Moves the read cursor of a reader forward, never back.
 	 *
 	 * @param reader - The reader.

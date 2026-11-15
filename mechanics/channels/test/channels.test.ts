@@ -91,18 +91,21 @@ describe("notices and news", () => {
 		expect(seen.slice(2)).toEqual(["2:A03 notice|[CITY] you"]);
 	});
 
-	it("limit: the seen mark is exact only with blockSize 1", async () => {
-		// A03 posts; A01 and then A02 answer. A02's inputs are built after A01's answer with blocks of 1 and before it
-		// with blocks of 2: there A02 has not seen that answer, also after its own post, and is woken once more.
-		const woken = async (blockSize: number): Promise<readonly string[]> => {
+	it("sets the seen mark when the activation ends, as the old platform did, also with blocks of 2", async () => {
+		// A03 posts; A01 answers, A02 posts too or stays silent. A02's inputs are built after A01's answer with blocks
+		// of 1 and before it with blocks of 2: there A02 has not seen that answer, also after its own post, and is woken
+		// once more. A01 saw the board up to its own answer; A03, alone in the second block, saw everything.
+		const woken = async (blockSize: number, also: boolean): Promise<readonly string[]> => {
 			const seen: string[] = [];
 			const test = testKernel(game({ activation: "onNews", blockSize }));
 			await say(test, "A03", "postBoard", { message: "question" });
-			await test.playTicks(driver(seen, { "0:A01": [post("answer")], "0:A02": [post("also")] }), 2);
+			await test.playTicks(driver(seen, { "0:A01": [post("answer")], "0:A02": also ? [post("also")] : [] }), 2);
 			return seen;
 		};
-		expect(await woken(1)).toEqual(["0:A01", "0:A02", "0:A03", "1:A01"]);
-		expect(await woken(2)).toEqual(["0:A01", "0:A02", "0:A03", "1:A01", "1:A02"]);
+		expect(await woken(1, true)).toEqual(["0:A01", "0:A02", "0:A03", "1:A01"]);
+		expect(await woken(2, true)).toEqual(["0:A01", "0:A02", "0:A03", "1:A01", "1:A02"]);
+		expect(await woken(1, false)).toEqual(["0:A01", "0:A02", "0:A03"]);
+		expect(await woken(2, false)).toEqual(["0:A01", "0:A02", "0:A03", "1:A02"]);
 	});
 });
 

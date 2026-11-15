@@ -3,8 +3,10 @@
 Talk in the city. Every resident can write on one public board, read it, and send a direct message to another
 resident; other mechanics speak as the city, with a post on the board or with a private notice that its reader finds
 at its next activation. Every message a reader can cite carries one number from one counter, so a higher number is
-always a later message. Residents also found private groups with a shared treasury in the ledger. This is the old
-mechanic without its privacy rules, the Director's note desk, `defy` and the unread digest (they come with M5-14).
+always a later message. Residents also found private groups with a shared treasury in the ledger. A game may cap
+the direct messages of a window, let residents refuse a Director's order with `defy`, and end each activation with
+the line of unread posts. This is the old mechanic without the Director's note desk (`notify` and the note on the
+board, with their checks and budgets), which comes with the second part of M5-14.
 
 ## At a glance
 
@@ -17,9 +19,9 @@ mechanic without its privacy rules, the Director's note desk, `defy` and the unr
 | Id | `channels` |
 | Summary | Talk in the city: the public board, direct messages, private notices and groups with a treasury. |
 | Requires | none |
-| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` |
+| Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source`, `identity`, `allowance` |
 | Provides | `channels`, `notices` |
-| State | kept, snapshot slice version 2 |
+| State | kept, snapshot slice version 3 |
 | Games | [city-slice](../../games/city-slice/README.md) |
 
 <!-- /generated:glance -->
@@ -40,9 +42,11 @@ mechanic without its privacy rules, the Director's note desk, `defy` and the unr
    text has 1 to 800 characters (`INVALID_TEXT`), the receiver's mailbox has room (`MAILBOX_FULL` at 5 unread
    messages, `MAILBOX_SENDER_LIMIT` at one unread message of the same sender). Then the message gets the next
    number, `dm_sent` is written and the caller reads `sent · DM #N to A02 · ...`. The message waits in the mailbox.
+   With the option `dmLimit` the cap of the window comes after the text (`DM_LIMIT`, see 9).
    When the receiver is next activated it is shown as an input line of the kind `dm` (`[DM #N from A01] ...`,
    before the notices), `dm_delivered` is written, and the sender gets a notice with the text. The service method
-   `dmRecords` lists every message that was sent, delivered or not.
+   `dmRecords` lists every message that was sent, delivered or not, with its tick and whether it was answered: a
+   message is answered once its receiver writes to its sender, or posts in a group the sender belongs to.
 5. **Groups.** `createGroup` founds a private group only members know of (at most 3 per founder); the founder adds
    and removes members (`addGroupMember`, `removeGroupMember`, no consent needed; the new member gets a notice), and
    anyone but the treasurer may `leaveGroup`. A non-member learns nothing: every call on a foreign group answers
@@ -61,24 +65,43 @@ mechanic without its privacy rules, the Director's note desk, `defy` and the unr
 8. **News.** For a scheduler that wakes on news, a resident has news while a direct message or a notice waits, while
    one of its groups holds a post of another member it has not read (and `readGroup` is not locked), or while the
    board holds a `player` post it has not seen and `readBoard` is not locked for it. A `city` post on the board wakes
-   nobody. A resident has seen the board up to its newest player post when its inputs are built, and it has seen its
-   own post.
-9. **Facts.** `channels.messages` is the last message number, `channels.boardPosts` the count of posts.
+   nobody. The "seen" mark is set when the activation ends (the old `turnEnded`): the resident has seen the board as
+   its inputs showed it, plus its own doing; when another resident posted since its inputs were built (a member
+   earlier in its block), that post stays news, also after the resident's own post. So `blockSize` above 1 wakes as
+   the old platform did. A post made outside an activation counts as seen by its author.
+9. **The cap of a window** (`dmLimit: { windowMinutes, perWindow }`, the old story's `rules.dmLimit`; the windows
+   are counted in ticks from tick 0). The direct messages a resident sent in the window and its transfers with a
+   memo (read from `ledger.transfer`) count together. `sendDM` past the cap answers `DM_LIMIT: 2 DMs sent since minute
+   0; you can send again from minute 4`; a transfer with a memo is refused by this mechanic's `rule` handler on
+   `transferPoints` (by bare name, after the ledger's own refusals) with `DM_LIMIT: ... send a memo again from minute
+   4, or transfer without one`. Each activation then starts with the status part `DMs 2/8 sent since minute 0 (a new
+   allowance at minute 6)` (kind `status`, order 1200, after the other parts of the old status line).
+10. **`defy`.** A resident refuses a Director's order for a reason of its own character (20 to 600 characters,
+    `INVALID_REASON`); `gamemaker_defied` holds the reason and the note it names, and nobody else learns of it. The
+    tool is locked (`TOOL_LOCKED`, the old words) unless the game sets `defiance`. A game mechanic that opens it to one
+    resident only sets `defiance` and closes it for the others in its own `lock` handler (Whispers' whisperer, M5-26).
+11. **The line of unread posts.** With `digest` every activation ends with a line of the kind `digest`:
+    `[unread] board 3 · group G1 2` (the posts of others not yet read with `readBoard`, while it is open, and with
+    `readGroup`), or `[unread] nothing`.
+12. **Names and marks.** With a provider of `identity` every reply, every refusal detail to a resident and every input
+    line of this mechanic shows names in place of ids, and `sendDM`, `addGroupMember`, `removeGroupMember`,
+    `withdrawGroup` and `setTreasurer` take a name where an id goes; events and the slice keep ids. With a provider
+    of `allowance` the replies of `postBoard`, `sendDM` and `postGroup` end with ` · marks 7/8 left`: what the
+    resident has left once the message is paid (`marks` charges in its own `after` handler, so the price of
+    `priceOf` is taken off here; a post in a group of the city is free).
+13. **Facts.** `channels.messages` is the last message number, `channels.boardPosts` the count of posts.
 
-**Limit: `blockSize: 1`.** The "seen" mark is taken when a resident's inputs are built. The turn scheduler builds
-the inputs of a whole block before any member acts, so with a `blockSize` above 1 a post that a block-mate writes
-during the block is not marked as seen and wakes the resident once more. News is never lost, but the wake pattern is
-the old platform's only with `blockSize: 1`. Games that load `channels` set `blockSize: 1` until the hooks for the
-start and the end of an activation exist.
+**The checks of `postBoard` and `sendDM` run in `execute`**, where the old platform logged their refusals (the slice's
+timelines hold `EXILED` at stage `execute`). A `rule` handler of another mechanic on these tools (the price of
+`marks`) therefore runs before them.
 
-**Not in this cut:** the line that counts unread posts (`[unread] board 3`), so a resident learns of a new post only
-by `readBoard` or `readGroup`; marks as the price of a post or a message and the marks left in a reply (`marks`
-prices the tools in its own handlers, M5-17; the reply reads `allowance`, M5-14); the note of the Director; names in
-place of ids (`identity`, M5-14); the hand-over check of a post, which other mechanics make in their own handlers;
-the notice to the recipient of a withdrawal with its receipt (the provider of `receipt-source` sends it); for direct
-messages the cap of a window (`DM_LIMIT`), names as receivers (the receiver is a resident id), the receipt of
-a delivery (the text of `sendDM` still promises one: it is the old text and changes with `receipts`), and messages
-to or from a cast member.
+**Not in this cut:** the Director's note desk (the tools `notify` and the note on the board, the service `notes` of
+the old `NotesApi`, their budgets, the length and repeat checks, `gamemaker_note`); the check of a private thought
+in a note, which needs a contract of the Confessor's labels (decision A62); the hand-over check of a post, which
+other mechanics make in their own handlers; the notice to the recipient of a withdrawal with its receipt (the
+provider of `receipt-source` sends it); the receipt of a delivery (the text of `sendDM` still promises one: it is the
+old text and changes with `receipts`); the delivery times of a record (`deliveredMinute`, `deliveredAfter`, read by
+`blame`); messages to or from a cast member; the exemption of the accused of a holdout tribunal from the cap.
 
 **`dm_delivered` is written while input lines are built.** The `turnInputs` hook of this mechanic writes events
 (`dm_delivered` and the `notice` for the sender). The kernel allows it: `test/emit-in-inputs.test.ts` is the first
@@ -254,6 +277,19 @@ What the caller reads ([channels/tools/setTreasurer](prompts/channels/tools/setT
 
 > Hands the treasurer role to another member. Only the current treasurer may do this.
 
+### `defy`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `reason` | string | yes | Why your character refuses, in its own voice |
+| `note` | integer ≥ 1 | no | The number of the gamemaker's note you refuse, e.g. 312 |
+
+What the caller reads ([channels/tools/defy](prompts/channels/tools/defy.md)):
+
+> Refuses an order of the gamemaker, for a reason of your own character. Think it through first. The reason, in your own voice, goes to the gamemaker and into the story (20-600 characters); no other resident learns of it. Name the note you refuse by its number when it has one.
+
 <!-- /generated:tools -->
 
 ## Events
@@ -386,6 +422,16 @@ Audience: everyone
 | `group` | string | yes | The group's id, for example `G1` |
 | `payouts` | record of number | yes | Member to points |
 
+### `gamemaker_defied`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `agent` | string | yes | A resident id, for example `A01` |
+| `reason` | string | yes | The reason, trimmed |
+| `note` | integer | no | The number of the note it refuses |
+
 <!-- /generated:events -->
 
 ## Options
@@ -393,7 +439,13 @@ Audience: everyone
 <!-- generated:options -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic takes no options.
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `dmLimit` | object | unset | The DM cap (the old story's `rules.dmLimit`); without it residents may send as many DMs as the mailboxes allow. |
+| `dmLimit.windowMinutes` | integer ≥ 1 | required | Length of one DM allowance window in ticks; windows are counted from tick 0. |
+| `dmLimit.perWindow` | integer ≥ 0 | required | DMs and memo transfers one resident may send in one window. |
+| `defiance` | boolean | `false` | Whether residents may refuse a Director's orders with `defy`. |
+| `digest` | boolean | `false` | Whether each activation ends with the line of unread posts (`[unread] board 3 · group G1 2`, or `[unread] nothing`). |
 
 <!-- /generated:options -->
 
@@ -410,7 +462,7 @@ The city's voice (posts on the public board, private notices, its own groups), t
 | --- | --- | --- | --- | --- |
 | `post` | command | author: string, text: string, kind?: "city" or "system" | { postSeq: integer } | Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is. |
 | `notify` | command | to: string, author: string, text: string | null | Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws. |
-| `dmRecords` | query | - | { from: string, to: string, text: string, number: integer }[] | Lists every direct message that was sent, delivered or not, oldest first. |
+| `dmRecords` | query | - | { from: string, to: string, text: string, number: integer, tick: integer, answered: boolean }[] | Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`). |
 | `createCityGroup` | command | name: string, members: string[] | { group: string } | Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer. |
 | `removeCityGroup` | command | group: string | null | Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is. |
 | `postGroupAsCity` | command | group: string, text: string | null | Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped. |
@@ -471,6 +523,13 @@ This mechanic exports no metrics.
 | [channels/replies/group-older](prompts/channels/replies/group-older.md) | `older`, `afterSeq` |
 | [channels/notices/group-added](prompts/channels/notices/group-added.md) | `actor`, `group`, `name` |
 | [channels/notices/city-group-added](prompts/channels/notices/city-group-added.md) | `group`, `name` |
+| [channels/tools/defy](prompts/channels/tools/defy.md) | - |
+| [channels/replies/defy-recorded](prompts/channels/replies/defy-recorded.md) | - |
+| [channels/replies/locked](prompts/channels/replies/locked.md) | - |
+| [channels/replies/marks-left](prompts/channels/replies/marks-left.md) | `remaining`, `budget` |
+| [channels/status/dm-window](prompts/channels/status/dm-window.md) | `sent`, `limit`, `from`, `until` |
+| [channels/input/unread](prompts/channels/input/unread.md) | `parts` |
+| [channels/input/unread-nothing](prompts/channels/input/unread-nothing.md) | - |
 
 <!-- /generated:prompts -->
 
@@ -504,13 +563,19 @@ None recorded yet. The log is [`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEA
 `test/channels.test.ts`, offline, with a test mechanic that calls the service as another mechanic would. It holds
 the board cases of the old platform's `channels.test.ts` (numbers, reads without the reader's own posts, the old
 refusal and reply texts, the city's post in the same number space), the notice as an input line, the news rule, the
-limit of `blockSize: 1` (the same script with blocks of 1 and of 2), determinism, and a snapshot round trip at every
-tick, with a direct message waiting in a mailbox at one of the cuts.
+"seen" mark at the end of an activation (the same scripts with blocks of 1 and of 2, with the old platform's wakes),
+determinism, and a snapshot round trip at every tick, with a direct message waiting in a mailbox at one of the cuts.
+
+`test/rules.test.ts` holds the cap of a window with the real ledger (the old window case of `channels.test.ts`, the
+order of the old `checkTransfer`, the status part, a new window, the memos through snapshot round trips), `defy`
+(closed, open with `defiance`, open to one resident with a stand-in lock of the whisperer, the reason and its event)
+and the line of unread posts. `test/providers.test.ts` plays stand-in providers of `identity` and `allowance`: names
+as targets and in replies, details, the board and the input lines, and the marks part of the three message tools.
 
 `test/dms.test.ts` holds the delivery cases of the old `channels.test.ts` (the number, `dm_sent`, the delivery at
 the receiver's next activation with the notice for the sender, the old order of the refusals, the refusal for a
 suspended resident) and what the old `dm-records.test.ts` asks of the records: another mechanic reads them through
-the service, before and after the delivery and after a resume. `test/emit-in-inputs.test.ts` shows that a
+the service, before and after the delivery, answered or not, and after a resume. `test/emit-in-inputs.test.ts` shows that a
 `turnInputs` hook may write an event.
 
 `test/sample.test.ts`: what the fake driver (`swt run --fake`) may call. The `sample` of `readBoard`, `postBoard`

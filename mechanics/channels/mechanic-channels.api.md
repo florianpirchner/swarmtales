@@ -6,12 +6,18 @@
 
 import { EventsDefinition } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
-import { NoOptions } from '@swarmtales/sdk';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { Type } from 'typebox';
 
 // @public
-export const channels: MechanicDefinition<"channels", NoOptions, {
+export const channels: MechanicDefinition<"channels", Type.TObject<{
+dmLimit: Type.TOptional<Type.TObject<{
+windowMinutes: Type.TInteger;
+perWindow: Type.TInteger;
+}>>;
+defiance: Type.TBoolean;
+digest: Type.TBoolean;
+}>, {
 readonly board_post: Type.TObject<{
 postSeq: Type.TInteger;
 author: Type.TString;
@@ -77,7 +83,12 @@ readonly treasury_settled: Type.TObject<{
 group: Type.TString;
 payouts: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-}, "readBoard" | "postBoard" | "sendDM" | "createGroup" | "addGroupMember" | "removeGroupMember" | "leaveGroup" | "listMyGroups" | "postGroup" | "readGroup" | "depositGroup" | "withdrawGroup" | "setTreasurer">;
+readonly gamemaker_defied: Type.TObject<{
+agent: Type.TString;
+reason: Type.TString;
+note: Type.TOptional<Type.TInteger>;
+}>;
+}, "readBoard" | "postBoard" | "sendDM" | "defy" | "createGroup" | "addGroupMember" | "removeGroupMember" | "leaveGroup" | "listMyGroups" | "postGroup" | "readGroup" | "depositGroup" | "withdrawGroup" | "setTreasurer">;
 
 // @public
 export const ChannelsEvents: EventsDefinition<"channels", {
@@ -146,6 +157,11 @@ readonly treasury_settled: Type.TObject<{
 group: Type.TString;
 payouts: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
+readonly gamemaker_defied: Type.TObject<{
+agent: Type.TString;
+reason: Type.TString;
+note: Type.TOptional<Type.TInteger>;
+}>;
 }>;
 
 // @public
@@ -174,13 +190,15 @@ readonly output: Type.TNull;
 };
 readonly dmRecords: {
 readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first.";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
 readonly input: Type.TObject<{}>;
 readonly output: Type.TArray<Type.TObject<{
 from: Type.TString;
 to: Type.TString;
 text: Type.TString;
 number: Type.TInteger;
+tick: Type.TInteger;
+answered: Type.TBoolean;
 }>>;
 };
 readonly createCityGroup: {

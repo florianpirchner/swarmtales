@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * What `channels` does with groups, carried from the old platform: the registry decides who may, this file writes the
- * events and the replies. The old marks of a group post (its price, `marks n/m left`) belong to `marks` and to the
- * allowance part of the reply, not to this file (12-m5-spec.md, 2.3).
+ * events and the replies. The price of a group post belongs to `marks`; the reply reads what is left through
+ * `allowance` (12-m5-spec.md, 2.3).
  */
 import type { Refusal, ToolOutcome } from "@swarmtales/contracts";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { refuse, reply } from "@swarmtales/sdk";
 import { CITY, groupAccountId, type GroupFailure, type GroupInfo, type GroupResult } from "./group-types.ts";
 import type { Ctx, ToolCtx } from "./head.ts";
+import { noteReply } from "./dms.ts";
 import { notify, selfOf } from "./messages.ts";
+import { marksPart } from "./shown.ts";
 
 /**
  * Turns a refusal of the registry into the caller's refusal. `GROUP_NOT_VISIBLE` never carries a detail, so nothing
@@ -176,7 +178,8 @@ export function postGroup(ctx: ToolCtx, groupId: string, text: string): ToolOutc
 	const posted = ctx.state.groups.post(groupId, author, text, ctx.tick);
 	if (!posted.ok) return groupFailure(posted);
 	ctx.emit("group_post", { group: groupId, author, postSeq: posted.value.seq, text: posted.value.text });
-	return reply(ctx.prompt("channels/replies/group-posted", { group: groupId, seq: posted.value.seq }));
+	noteReply(ctx, author, (from) => ctx.state.groups.isMember(groupId, from));
+	return reply(`${ctx.prompt("channels/replies/group-posted", { group: groupId, seq: posted.value.seq })}${marksPart(ctx, "group", ctx.state.groups.isCityGroup(groupId))}`);
 }
 
 /**

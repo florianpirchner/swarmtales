@@ -48,4 +48,8 @@ export const ChannelsEvents = defineEvents("channels", {
 		{ group: Group, payouts: Type.Record(Type.String({ description: "A member" }), Type.Number({ description: "The points paid out" }), { description: "Member to points" }) },
 		{ description: "A treasury was split among the members: at the run's end, or when the city removed the group" },
 	),
+	gamemaker_defied: Type.Object(
+		{ agent: Id, reason: Type.String({ description: "The reason, trimmed" }), note: Type.Optional(Type.Integer({ description: "The number of the note it refuses" })) },
+		{ description: "A resident refused an order of a Director (`defy`); no other resident learns of it" },
+	),
 });

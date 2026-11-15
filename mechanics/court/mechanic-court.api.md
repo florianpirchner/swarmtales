@@ -237,13 +237,15 @@ readonly output: Type.TNull;
 };
 readonly dmRecords: {
 readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first.";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
 readonly input: Type.TObject<{}>;
 readonly output: Type.TArray<Type.TObject<{
 from: Type.TString;
 to: Type.TString;
 text: Type.TString;
 number: Type.TInteger;
+tick: Type.TInteger;
+answered: Type.TBoolean;
 }>>;
 };
 readonly createCityGroup: {
