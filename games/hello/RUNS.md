@@ -8,8 +8,8 @@ resolved to `claude-haiku-5-5`, thinking medium, output cap 4000. The spend ledg
 | Series | Path on `data/runs` | Data commit | Code commit | Runtime | n | Estimate | Cost (USD) |
 |---|---|---|---|---:|---|---|---:|
 | Live smoke of the M2 gate, seed 1 | `smoke/hello-game-001` | `0f726704` | `b7de6505` | 3 | 1 run | none: tick limit (12), 8 of 9 moves, tally 0, 0, 0 (P445) | 0.0015 |
-| Cap run of M4 (issue M4-60, spec 7.3), seed 1, `--budget 0.002` | `hello/smoke/hello-game-001` | not pushed yet | `7ea5ea10` | 4 | 1 run | none: tick limit (12), as at M2; the cap was **not** reached (P470) | 0.0018 |
-| Cap run of M4, again at `--budget 0.001` | `hello/smoke/hello-game-002` | not pushed yet | `7ea5ea10` | 4 | 1 run | none: ended at `models.budget` at tick 10, 0.00133 against the cap 0.001 (P472); replay differs at the limit line (P471) | 0.0013 |
+| Cap run of M4 (issue M4-60, spec 7.3), seed 1, `--budget 0.002` | `hello/smoke/hello-game-001` | `024119a1` | `7ea5ea10` | 4 | 1 run | none: tick limit (12), as at M2; the cap was **not** reached (P470) | 0.0018 |
+| Cap run of M4, again at `--budget 0.001` | `hello/smoke/hello-game-002` | `024119a1` | `7ea5ea10` | 4 | 1 run | none: ended at `models.budget` at tick 10, 0.00133 against the cap 0.001 (P472); replay differs at the limit line (P471) | 0.0013 |
 
 Both M4 folders verify with `swt log verify` and are clean under `swt scan`; `hello-game-001` replays equal with
 `swt replay`, `hello-game-002` does not (`SWT-C031` at line 155, the `limit_reached` of the cost cap: the replay has
