@@ -6,6 +6,7 @@
  */
 import type { RandomSource, Refusal, ToolOutcome } from "@swarmtales/contracts";
 import { AllowanceService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
+import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { refuse, reply } from "@swarmtales/sdk";
 import { CastExtrasService, LevelPiecesService } from "./contract.ts";
@@ -68,13 +69,14 @@ function statusReply(ctx: ProgressionToolCtx, self: string): string {
 		`points: ${String(ctx.call(LedgerService, "balance", { account: self }))}`,
 		`rank: ${String(rankOf(ctx, self))} of ${String(ctx.residents.ids.length)}`,
 		`survivors at the end: ${String(ctx.options.survivors)}`,
-		// Erratum J32: the count of unread direct messages is the channels' (`pendingDms`, M5-14); until then 0.
-		"unread DMs: 0",
+		`unread DMs: ${String(ctx.call(ChannelsService, "pendingDms", { resident: self }))}`,
 		`solved levels: ${entry.solved.length === 0 ? "-" : [...entry.solved].sort((a, b) => a - b).join(", ")}`,
 		`unlocked tools: ${openTools(ctx, self).join(", ")}`,
 	];
 	const marks = ctx.tryCall(AllowanceService, "left", { resident: self });
 	if (marks !== undefined && marks !== null) lines.push(`marks: ${String(marks.remaining)} of ${String(marks.budget)}`);
+	const window = ctx.call(ChannelsService, "dmWindow", { resident: self });
+	if (window !== null) lines.push(ctx.prompt("progression/replies/status-dm-window", { sent: window.sent, limit: window.limit, from: window.from, until: window.until }));
 	const receipts = ctx.tryCall(ReceiptSourceService, "textsOf", { resident: self }) ?? [];
 	lines.push(receipts.length === 0 ? "receipts: -" : `receipts:\n${receipts.map((text) => `  ${text}`).join("\n")}`);
 	return lines.join("\n");

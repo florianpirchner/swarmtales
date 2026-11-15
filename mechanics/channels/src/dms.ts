@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** Direct messages: sending and delivery. The check order, the codes and the texts are the old platform's. */
 import type { Refusal, ToolOutcome } from "@swarmtales/contracts";
+import { ReceiptSourceService } from "@swarmtales/mechanic-contracts";
 import { refuse, reply } from "@swarmtales/sdk";
 import type { Ctx, ToolCtx } from "./head.ts";
 import { MAX_DM_LENGTH, type MailboxEntry } from "./mailbox.ts";
@@ -67,7 +68,9 @@ export function sendDm(ctx: ToolCtx, to: string, text: string): ToolOutcome {
 
 /**
  * Empties the mailbox of a resident that is activated. Every message of a resident is delivered: the city writes
- * `dm_delivered` and leaves its sender a notice with the full text. A message of a sender that is no resident (a
+ * `dm_delivered`, keeps the tick and the city's last number of the delivery in its record (for `blame`), and leaves
+ * its sender a notice with the full text and, with a provider of `receipt-source`, the receipt the delivery gets (old
+ * `channels/dm-delivered`; asked after `dm_delivered`, erratum J67). A message of a sender that is no resident (a
  * Director with the grant) is shown without either.
  *
  * @param ctx - The context.
@@ -79,8 +82,12 @@ export function drainMailbox(ctx: Ctx, resident: string): readonly MailboxEntry[
 	const entries = inboxOf(ctx, resident).mailbox.drain();
 	for (const entry of entries) {
 		if (!ctx.residents.has(entry.from)) continue;
+		const record = ctx.state.dms.find((candidate) => candidate.number === entry.number);
+		if (record !== undefined) Object.assign(record, { deliveredTick: ctx.tick, deliveredAfter: ctx.state.numbers.last });
 		ctx.emit("dm_delivered", { number: entry.number, from: entry.from, to: resident });
-		notify(ctx, entry.from, CITY, ctx.prompt("channels/notices/dm-delivered", { number: entry.number, agent: resident, minute: ctx.tick, text: entry.text }));
+		const receipt = ctx.tryCall(ReceiptSourceService, "ofMessage", { number: entry.number }) ?? null;
+		const variables = { number: entry.number, agent: resident, minute: ctx.tick, text: entry.text };
+		notify(ctx, entry.from, CITY, receipt === null ? ctx.prompt("channels/notices/dm-delivered", variables) : ctx.prompt("channels/notices/dm-delivered-receipt", { ...variables, receipt }));
 	}
 	return entries;
 }

@@ -278,6 +278,7 @@ readonly "progression/replies/locked": readonly [];
 readonly "progression/replies/status-all-solved": readonly [];
 readonly "progression/replies/status-passed": readonly ["level"];
 readonly "progression/replies/status-door": readonly ["level", "minute"];
+readonly "progression/replies/status-dm-window": readonly ["sent", "limit", "from", "until"];
 readonly "progression/status/minute": readonly ["minute"];
 readonly "progression/status/level-finished": readonly ["level"];
 readonly "progression/status/level-waiting": readonly ["level"];
@@ -401,7 +402,43 @@ text: Type.TString;
 number: Type.TInteger;
 tick: Type.TInteger;
 answered: Type.TBoolean;
+deliveredTick: Type.TOptional<Type.TInteger>;
+deliveredAfter: Type.TOptional<Type.TInteger>;
 }>>;
+};
+readonly boardPost: {
+readonly kind: "query";
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly pendingDms: {
+readonly kind: "query";
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly dmWindow: {
+readonly kind: "query";
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+sent: Type.TInteger;
+limit: Type.TInteger;
+from: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
 };
 readonly createCityGroup: {
 readonly kind: "command";
@@ -1193,8 +1230,8 @@ export const TOOL_ORDER: readonly ["getStatus", "getProblem", "submitSolution", 
 
 // Warnings were encountered during analysis:
 //
-// dist/index.d.ts:873:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
-// dist/index.d.ts:889:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:910:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:926:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

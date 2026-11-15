@@ -69,8 +69,8 @@ the levels into acts and keeps the ranking. Ported from the old platform in two 
    provider is loaded.
 
 **Not done here.** The lines the old task carried under it (the names line, the holdout rule, the marks terms) are
-the lines of those mechanics (erratum J31); the unread direct messages and the window line of `getStatus` need
-queries of `channels` that it does not have yet (`unread DMs: 0`, erratum J32). The old `firstSolveMinute` is not
+the lines of those mechanics (erratum J31). `getStatus` reads the unread direct messages and the window line from
+`channels` (`pendingDms`, `dmWindow`; errata J32, J75, built with M5-22). The old `firstSolveMinute` is not
 offered: `cast` reads the first solve of a level from `submission`, because `progression` asks `cast-extras`. The
 gamemaker's fact `section` of the old progression is left to the gamemaker's issue.
 
@@ -298,6 +298,7 @@ This mechanic exports no metrics.
 | [progression/replies/status-all-solved](prompts/progression/replies/status-all-solved.md) | - |
 | [progression/replies/status-passed](prompts/progression/replies/status-passed.md) | `level` |
 | [progression/replies/status-door](prompts/progression/replies/status-door.md) | `level`, `minute` |
+| [progression/replies/status-dm-window](prompts/progression/replies/status-dm-window.md) | `sent`, `limit`, `from`, `until` |
 | [progression/status/minute](prompts/progression/status/minute.md) | `minute` |
 | [progression/status/level-finished](prompts/progression/status/level-finished.md) | `level` |
 | [progression/status/level-waiting](prompts/progression/status/level-waiting.md) | `level` |

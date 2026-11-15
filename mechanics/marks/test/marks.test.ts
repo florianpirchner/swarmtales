@@ -11,8 +11,11 @@ import type { Activation, Envelope } from "@swarmtales/contracts";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { channels } from "@swarmtales/mechanic-channels";
 import { ledger } from "@swarmtales/mechanic-ledger";
-import { receipts } from "@swarmtales/mechanic-receipts";
-import { defineGame, defineHead, defineMechanic, reply, type Game, type MechanicUse } from "@swarmtales/sdk";
+import { JudgeVerdict, receipts } from "@swarmtales/mechanic-receipts";
+import { defineDirector, defineGame, defineHead, defineMechanic, reply, type Game, type MechanicUse } from "@swarmtales/sdk";
+
+// `receipts` brings `blame`, whose review a judge answers (SWT-D004); it never fires here (M5-22).
+const judge = defineDirector({ id: "judge", summary: "Test: answers the blames.", on: [], output: JudgeVerdict, answers: "judge" }, { system: () => "You are the judge.", input: () => "", act: () => Promise.resolve() });
 import { checkOptionsDocumented, checkResumeEveryBoundary, play, scriptedDriver, testKernel } from "@swarmtales/testkit";
 import { marks, MarksOptions } from "../src/index.ts";
 
@@ -32,7 +35,8 @@ function game(rules: Rules | undefined, more: readonly MechanicUse[] = [], ticks
 		seed: 7,
 		residents: ["A01", "A02", "A03"],
 		mechanics: [ledger({ startPoints: 10 }), channels(), receipts(), marks(rules === undefined ? {} : { rules }), founder(), ...more],
-		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster" } },
+		directors: [{ use: judge }],
+		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster", afterBlocks: ["director"] } },
 		end: { ticks },
 	});
 }

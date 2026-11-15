@@ -46,9 +46,13 @@ mechanics check and record their Director's texts through the service `notes`.
    number, `dm_sent` is written and the caller reads `sent · DM #N to A02 · ...`. The message waits in the mailbox.
    With the option `dmLimit` the cap of the window comes after the text (`DM_LIMIT`, see 9).
    When the receiver is next activated it is shown as an input line of the kind `dm` (`[DM #N from A01] ...`,
-   before the notices), `dm_delivered` is written, and the sender gets a notice with the text. The service method
-   `dmRecords` lists every message that was sent, delivered or not, with its tick and whether it was answered: a
-   message is answered once its receiver writes to its sender, or posts in a group the sender belongs to.
+   before the notices), `dm_delivered` is written, and the sender gets a notice with the text and, with a provider
+   of `receipt-source`, the receipt of the delivery (`DM #N delivered to A02 at minute 3 (receipt R-0015): "..."`,
+   asked after `dm_delivered`). The service method `dmRecords` lists every message that was sent, delivered or not,
+   with its tick, whether it was answered (a message is answered once its receiver writes to its sender, or posts in
+   a group the sender belongs to) and, once delivered, the tick and the city's last number of the delivery, which
+   `blame` reads. `boardPost` finds a board post by number; `pendingDms` and `dmWindow` answer the unread messages
+   and the window of the cap, for `getStatus`.
 5. **Groups.** `createGroup` founds a private group only members know of (at most 3 per founder); the founder adds
    and removes members (`addGroupMember`, `removeGroupMember`, no consent needed; the new member gets a notice), and
    anyone but the treasurer may `leaveGroup`. A non-member learns nothing: every call on a foreign group answers
@@ -109,9 +113,7 @@ those handlers too.
 **Not in this cut:** the check of a private thought in a note, which needs a contract of the Confessor's labels
 (decision A62); the hand-over check of a post, which
 other mechanics make in their own handlers; the notice to the recipient of a withdrawal with its receipt (the
-provider of `receipt-source` sends it); the receipt of a delivery (the text of `sendDM` still promises one: it is the
-old text and changes with `receipts`); the delivery times of a record (`deliveredMinute`, `deliveredAfter`, read by
-`blame`); messages to or from a cast member; the exemption of the accused of a holdout tribunal from the cap.
+provider of `receipt-source` sends it); messages to or from a cast member; the exemption of the accused of a holdout tribunal from the cap.
 
 **`dm_delivered` is written while input lines are built.** The `turnInputs` hook of this mechanic writes events
 (`dm_delivered` and the `notice` for the sender). The kernel allows it: `test/emit-in-inputs.test.ts` is the first
@@ -515,7 +517,10 @@ The city's voice (posts on the public board, private notices, its own groups), t
 | --- | --- | --- | --- | --- |
 | `post` | command | author: string, text: string, kind?: "city" or "system" | { postSeq: integer } | Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is. |
 | `notify` | command | to: string, author: string, text: string | null | Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws. |
-| `dmRecords` | query | - | { from: string, to: string, text: string, number: integer, tick: integer, answered: boolean }[] | Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`). |
+| `dmRecords` | query | - | { from: string, to: string, text: string, number: integer, tick: integer, answered: boolean, deliveredTick?: integer, deliveredAfter?: integer }[] | Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`). |
+| `boardPost` | query | number: integer | { number: integer, author: string, text: string, tick: integer } or null | The board post with the city's message number `number`, of a resident or of the city; null when no board post has it. |
+| `pendingDms` | query | resident: string | integer | How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident. |
+| `dmWindow` | query | resident: string | { sent: integer, limit: integer, from: integer, until: integer } or null | The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap. |
 | `createCityGroup` | command | name: string, members: string[] | { group: string } | Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer. |
 | `removeCityGroup` | command | group: string | null | Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is. |
 | `postGroupAsCity` | command | group: string, text: string | null | Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped. |
@@ -570,6 +575,7 @@ This mechanic exports no metrics.
 | [channels/input/dm](prompts/channels/input/dm.md) | `number`, `from`, `text` |
 | [channels/input/notice](prompts/channels/input/notice.md) | `author`, `text` |
 | [channels/notices/dm-delivered](prompts/channels/notices/dm-delivered.md) | `number`, `agent`, `minute`, `text` |
+| [channels/notices/dm-delivered-receipt](prompts/channels/notices/dm-delivered-receipt.md) | `number`, `agent`, `minute`, `receipt`, `text` |
 | [channels/tools/createGroup](prompts/channels/tools/createGroup.md) | - |
 | [channels/tools/addGroupMember](prompts/channels/tools/addGroupMember.md) | - |
 | [channels/tools/removeGroupMember](prompts/channels/tools/removeGroupMember.md) | - |

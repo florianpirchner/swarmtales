@@ -41,6 +41,10 @@ export interface DmRecord {
 	readonly tick: number;
 	/** Whether its sender got an answer: a direct message from the receiver, or a group post of the receiver in a group of both (old `noteReply`). */
 	answered: boolean;
+	/** The tick it reached its receiver in; undefined while it waits (old `deliveredMinute`, read by `blame`). */
+	deliveredTick?: number;
+	/** The city's last message number at its delivery: every message numbered above it came later (old `deliveredAfter`). */
+	deliveredAfter?: number;
 }
 
 /** A transfer with a memo: it counts toward the cap on direct messages like a message. */
@@ -118,7 +122,10 @@ const Note = Type.Object({ tick: Type.Integer({ description: "The tick it was wr
 const Tick = Type.Integer({ description: "The tick it was sent in" });
 const Mail = Type.Object({ from: Type.String({ description: "Who sent it" }), text: Text, tick: Tick, number: Seq }, { description: "An unread direct message" });
 const Dm = Type.Object(
-	{ number: Seq, from: Type.String({ description: "Who sent it" }), to: Id, text: Text, tick: Tick, answered: Type.Optional(Type.Boolean({ description: "Whether its sender got an answer; left out: not yet" })) },
+	{ number: Seq, from: Type.String({ description: "Who sent it" }), to: Id, text: Text, tick: Tick, answered: Type.Optional(Type.Boolean({ description: "Whether its sender got an answer; left out: not yet" })),
+		deliveredTick: Type.Optional(Type.Integer({ description: "The tick it was delivered in; left out while it waits" })),
+		deliveredAfter: Type.Optional(Type.Integer({ description: "The city's last message number at its delivery" })),
+	},
 	{ description: "One direct message of the city's records" },
 );
 const Memo = Type.Object({ from: Id, tick: Type.Integer({ description: "The tick of the transfer" }) }, { description: "A transfer with a memo" });
@@ -211,6 +218,11 @@ export function saveState(state: ChannelsState): Static<typeof ChannelsSlice> {
 	};
 }
 
+// The delivery fields of a saved direct message, in the order of the slice; none while it waits.
+function delivery(dm: { readonly deliveredTick?: number; readonly deliveredAfter?: number }): Pick<DmRecord, "deliveredTick" | "deliveredAfter"> {
+	return dm.deliveredTick === undefined || dm.deliveredAfter === undefined ? {} : { deliveredTick: dm.deliveredTick, deliveredAfter: dm.deliveredAfter };
+}
+
 /**
  * Loads the state from its slice; what the slice says about an id that is no resident of the run is dropped.
  *
@@ -223,7 +235,7 @@ export function loadState(data: Static<typeof ChannelsSlice>, residents: readonl
 	state.numbers.raiseTo(data.messages);
 	state.board.restore(data.board);
 	state.groups.restore(data.groups);
-	state.dms.push(...data.dms.map((dm) => ({ number: dm.number, from: dm.from, to: dm.to, text: dm.text, tick: dm.tick, answered: dm.answered ?? false })));
+	state.dms.push(...data.dms.map((dm) => ({ number: dm.number, from: dm.from, to: dm.to, text: dm.text, tick: dm.tick, answered: dm.answered ?? false, ...delivery(dm) })));
 	state.memos.push(...data.memos.map((memo) => ({ from: memo.from, tick: memo.tick })));
 	state.notes.push(...data.notes.map((note) => ({ tick: note.tick, to: note.to, text: note.text })));
 	for (const entry of data.inboxes) {

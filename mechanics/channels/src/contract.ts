@@ -13,6 +13,7 @@ const author = Type.String({ description: "The name the message is signed with, 
 const text = Type.String({ description: "The text" });
 const groupId = Type.String({ description: "The group's id, for example `G1`" });
 const messageNumber = Type.Integer({ description: "The city's message number" });
+const ofResident = Type.Object({ resident: Type.String({ description: "The resident id" }) }, { additionalProperties: false, description: "The resident" });
 const ofGroup = Type.Object({ group: groupId }, { additionalProperties: false, description: "The group" });
 const GroupView = Type.Object(
 	{
@@ -65,10 +66,50 @@ export const ChannelsService = defineService({
 						number: Type.Integer({ description: "The city's message number of the message" }),
 						tick: Type.Integer({ description: "The tick it was sent in" }),
 						answered: Type.Boolean({ description: "Whether its sender got an answer since: a direct message from the receiver, or the receiver's post in a group of both" }),
+						deliveredTick: Type.Optional(Type.Integer({ description: "The tick it reached its receiver in; left out while it waits" })),
+						deliveredAfter: Type.Optional(Type.Integer({ description: "The city's last message number at its delivery: every message numbered above it came later" })),
 					},
 					{ additionalProperties: false, description: "One direct message" },
 				),
 				{ description: "The direct messages" },
+			),
+		},
+		boardPost: {
+			kind: "query",
+			summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.",
+			input: Type.Object({ number: messageNumber }, { additionalProperties: false, description: "The message number" }),
+			output: Type.Union(
+				[
+					Type.Object({ number: messageNumber, author: Type.String({ description: "Who wrote it" }), text, tick: Type.Integer({ description: "The tick it was posted in" }) }, { additionalProperties: false, description: "The post" }),
+					Type.Null({ description: "No board post has the number" }),
+				],
+				{ description: "The post, or null" },
+			),
+		},
+		pendingDms: {
+			kind: "query",
+			summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.",
+			input: ofResident,
+			output: Type.Integer({ description: "The unread direct messages" }),
+		},
+		dmWindow: {
+			kind: "query",
+			summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.",
+			input: ofResident,
+			output: Type.Union(
+				[
+					Type.Object(
+						{
+							sent: Type.Integer({ description: "The direct messages and memos sent in the window" }),
+							limit: Type.Integer({ description: "The most the window allows" }),
+							from: Type.Integer({ description: "The first tick of the window" }),
+							until: Type.Integer({ description: "The first tick of the next window" }),
+						},
+						{ additionalProperties: false, description: "The window" },
+					),
+					Type.Null({ description: "No cap" }),
+				],
+				{ description: "The window, or null" },
 			),
 		},
 		createCityGroup: {

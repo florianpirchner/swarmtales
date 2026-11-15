@@ -21,6 +21,7 @@ import { RecordSource } from '@swarmtales/contracts';
 import { Redact } from '@swarmtales/contracts';
 import { ResolvedGame } from '@swarmtales/sdk';
 import { ResumeInput } from '@swarmtales/contracts';
+import { ReviewPort } from '@swarmtales/contracts';
 import { RunEnd } from '@swarmtales/contracts';
 import { RunLimit } from '@swarmtales/contracts';
 import { SchedulerDefinition } from '@swarmtales/contracts';
@@ -325,6 +326,7 @@ export interface PlayOptions {
     readonly records?: readonly RecordSource[];
     readonly redact?: Redact;
     readonly resume?: ResumeInput;
+    readonly review?: ReviewPort;
     readonly schedulers?: Readonly<Record<string, SchedulerDefinition>>;
     readonly script?: Readonly<Record<string, readonly (readonly [string, unknown])[]>>;
     readonly seed?: number;

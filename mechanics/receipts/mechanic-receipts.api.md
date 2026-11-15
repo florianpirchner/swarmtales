@@ -8,16 +8,113 @@ import { CtxOf } from '@swarmtales/sdk';
 import { EventsDefinition } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
 import { MechanicHead } from '@swarmtales/sdk';
+import { MechanicReview } from '@swarmtales/sdk';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { Static } from 'typebox';
 import { ToolCtxOf } from '@swarmtales/sdk';
 import { Type } from 'typebox';
 
 // @public
+export type BlameChecked = {
+    readonly kind: "pending";
+    readonly delivered: BlameDelivered;
+    readonly claim: BlameClaim;
+} | {
+    readonly kind: "rejected";
+    readonly reason: string;
+};
+
+// @public
+export interface BlameClaim {
+    // Warning: (ae-forgotten-export) The symbol "ClaimChannel" needs to be exported by the entry point index.d.ts
+    readonly channel: ClaimChannel;
+    readonly group?: string;
+    readonly number: number;
+    readonly text: string;
+}
+
+// @public
+export interface BlameDelivered {
+    readonly deliveredMinute: number;
+    readonly number: number;
+    readonly text: string;
+}
+
+// @public
+export interface BlameFacts {
+    readonly board: (number: number) => {
+        readonly author: string;
+        readonly text: string;
+    } | undefined;
+    readonly couldRead: (group: string, reader: string, number: number) => boolean;
+    readonly dm: (number: number) => DmFact | undefined;
+    readonly group: (number: number) => {
+        readonly group: string;
+        readonly author: string;
+        readonly text: string;
+    } | undefined;
+}
+
+// @public
+export interface BlameParams {
+    readonly accused: string;
+    readonly claim: number;
+    readonly dm: number;
+}
+
+// @public
+export const blameReview: MechanicReview<BlameParams, ReceiptsToolCtx>;
+
+// @public
 export type BodyOf<R> = R extends unknown ? Omit<R, "id" | "minute" | "parties" | "key"> : never;
 
 // @public
+export function checkBlame(facts: BlameFacts, caller: string, accused: string, dm: number, claim: number): BlameChecked;
+
+// @public
 export function describeReceipt(receipt: Receipt): string;
+
+// @public
+export interface DmFact {
+    readonly deliveredAfter?: number | undefined;
+    readonly deliveredMinute?: number | undefined;
+    readonly from: string;
+    readonly text?: string | undefined;
+    readonly to: string;
+}
+
+// @public
+export const JudgeQuestion: Type.TObject<{
+    sender: Type.TString;
+    accused: Type.TString;
+    dm: Type.TObject<{
+        number: Type.TInteger;
+        text: Type.TString;
+    }>;
+    claim: Type.TObject<{
+        number: Type.TInteger;
+        channel: Type.TUnion<[Type.TLiteral<"dm">, Type.TLiteral<"board">, Type.TLiteral<"group">]>;
+        text: Type.TString;
+    }>;
+    standing: Type.TObject<{
+        sender: Type.TObject<{
+            points: Type.TNumber;
+            rank: Type.TInteger;
+        }>;
+        accused: Type.TObject<{
+            points: Type.TNumber;
+            rank: Type.TInteger;
+        }>;
+        residents: Type.TInteger;
+    }>;
+}>;
+
+// @public
+export const JudgeVerdict: Type.TObject<{
+    deniesReceipt: Type.TBoolean;
+    board: Type.TOptional<Type.TString>;
+    gamemaker: Type.TOptional<Type.TString>;
+}>;
 
 // @public
 export function partiesOf(body: ReceiptBody): readonly string[];
@@ -34,6 +131,7 @@ export function receiptId(number: number): string;
 // @public
 export const receipts: MechanicDefinition<"receipts", Type.TObject<{
 quoteDms: Type.TBoolean;
+minRun: Type.TOptional<Type.TInteger>;
 }>, {
 readonly receipt_issued: Type.TObject<{
 receipt: Type.TString;
@@ -47,7 +145,20 @@ by: Type.TString;
 postSeq: Type.TOptional<Type.TInteger>;
 to: Type.TOptional<Type.TString>;
 }>;
-}, "showReceipt">;
+readonly blame: Type.TObject<{
+caller: Type.TString;
+accused: Type.TString;
+dm: Type.TInteger;
+claim: Type.TInteger;
+outcome: Type.TUnion<[Type.TLiteral<"upheld">, Type.TLiteral<"rejected">]>;
+payer: Type.TString;
+penalty: Type.TNumber;
+reason: Type.TOptional<Type.TString>;
+post: Type.TInteger;
+judge: Type.TOptional<Type.TString>;
+whisper: Type.TOptional<Type.TString>;
+}>;
+}, "blame" | "showReceipt">;
 
 // @public
 export const ReceiptSchema: Type.TUnion<[Type.TObject<{
@@ -117,11 +228,25 @@ by: Type.TString;
 postSeq: Type.TOptional<Type.TInteger>;
 to: Type.TOptional<Type.TString>;
 }>;
+readonly blame: Type.TObject<{
+caller: Type.TString;
+accused: Type.TString;
+dm: Type.TInteger;
+claim: Type.TInteger;
+outcome: Type.TUnion<[Type.TLiteral<"upheld">, Type.TLiteral<"rejected">]>;
+payer: Type.TString;
+penalty: Type.TNumber;
+reason: Type.TOptional<Type.TString>;
+post: Type.TInteger;
+judge: Type.TOptional<Type.TString>;
+whisper: Type.TOptional<Type.TString>;
+}>;
 }>;
 
 // @public
 export const receiptsHead: MechanicHead<"receipts", Type.TObject<{
 quoteDms: Type.TBoolean;
+minRun: Type.TOptional<Type.TInteger>;
 }>, Type.TObject<{
 receipts: Type.TArray<Type.TUnion<[Type.TObject<{
 id: Type.TString;
@@ -176,6 +301,10 @@ coming: Type.TArray<Type.TObject<{
 key: Type.TString;
 id: Type.TString;
 }>>;
+pairs: Type.TArray<Type.TObject<{
+dm: Type.TInteger;
+claim: Type.TInteger;
+}>>;
 }>, never, {
 readonly receipt_issued: Type.TObject<{
 receipt: Type.TString;
@@ -189,6 +318,19 @@ by: Type.TString;
 postSeq: Type.TOptional<Type.TInteger>;
 to: Type.TOptional<Type.TString>;
 }>;
+readonly blame: Type.TObject<{
+caller: Type.TString;
+accused: Type.TString;
+dm: Type.TInteger;
+claim: Type.TInteger;
+outcome: Type.TUnion<[Type.TLiteral<"upheld">, Type.TLiteral<"rejected">]>;
+payer: Type.TString;
+penalty: Type.TNumber;
+reason: Type.TOptional<Type.TString>;
+post: Type.TInteger;
+judge: Type.TOptional<Type.TString>;
+whisper: Type.TOptional<Type.TString>;
+}>;
 }, {
 readonly "receipts/tools/showReceipt": readonly [];
 readonly "receipts/replies/shown-board": readonly ["seq", "text"];
@@ -198,6 +340,18 @@ readonly "receipts/status/receipt-one": readonly [];
 readonly "receipts/status/receipts-many": readonly ["count"];
 readonly "receipts/notices/receipt-shown": readonly ["by", "line"];
 readonly "receipts/records/receipt-verified": readonly ["city", "line", "by"];
+readonly "receipts/tools/blame": readonly [];
+readonly "receipts/replies/blame-upheld": readonly ["accused", "penalty", "post"];
+readonly "receipts/replies/blame-rejected": readonly ["reason", "penalty", "next", "post"];
+readonly "receipts/replies/judge-absent": readonly [];
+readonly "receipts/replies/judge-failed": readonly [];
+readonly "receipts/replies/receipt-fragment": readonly [];
+readonly "receipts/notices/blame-upheld": readonly ["caller", "dm", "penalty", "tail", "post"];
+readonly "receipts/notices/blame-wrong": readonly ["accused", "reason", "penalty", "tail", "post"];
+readonly "receipts/notices/blame-next": readonly ["next"];
+readonly "receipts/records/blame-liar": readonly ["accused", "caller", "place", "dm", "minute", "dmQuote", "claimQuote", "penalty", "judge"];
+readonly "receipts/records/blame-false": readonly ["caller", "accused", "dm", "claim", "reason", "penalty", "judge"];
+readonly "receipts/records/blame-judge": readonly ["words"];
 }, readonly [ServiceDefinition<"channels", {
 readonly post: {
 readonly kind: "command";
@@ -232,7 +386,43 @@ text: Type.TString;
 number: Type.TInteger;
 tick: Type.TInteger;
 answered: Type.TBoolean;
+deliveredTick: Type.TOptional<Type.TInteger>;
+deliveredAfter: Type.TOptional<Type.TInteger>;
 }>>;
+};
+readonly boardPost: {
+readonly kind: "query";
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly pendingDms: {
+readonly kind: "query";
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly dmWindow: {
+readonly kind: "query";
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+sent: Type.TInteger;
+limit: Type.TInteger;
+from: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
 };
 readonly createCityGroup: {
 readonly kind: "command";
@@ -300,6 +490,77 @@ reader: Type.TString;
 number: Type.TInteger;
 }>;
 readonly output: Type.TBoolean;
+};
+}>, ServiceDefinition<"ledger", {
+readonly balance: {
+readonly kind: "query";
+readonly summary: "An account's points; 0 for an account nobody opened.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNumber;
+};
+readonly balances: {
+readonly kind: "query";
+readonly summary: "Every resident's points, for rankings and standings.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+};
+readonly open: {
+readonly kind: "command";
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly has: {
+readonly kind: "query";
+readonly summary: "Whether the account is open.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly mint: {
+readonly kind: "command";
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly burn: {
+readonly kind: "command";
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly move: {
+readonly kind: "command";
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+txId: Type.TString;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+}>]>;
 };
 }>], readonly [ServiceDefinition<"receipt-source", {
 readonly ofTransfer: {
@@ -490,15 +751,230 @@ resident: Type.TString;
 }>;
 readonly output: Type.TArray<Type.TString>;
 };
+}>, ServiceDefinition<"progression", {
+readonly levelOf: {
+readonly kind: "query";
+readonly summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly isFinished: {
+readonly kind: "query";
+readonly summary: "Whether the resident has passed the last level (old `isFinished`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly hasPassed: {
+readonly kind: "query";
+readonly summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly hasSolved: {
+readonly kind: "query";
+readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly passed: {
+readonly kind: "query";
+readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly lastProgress: {
+readonly kind: "query";
+readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly currentAct: {
+readonly kind: "query";
+readonly summary: "The first level of the latest act that has begun.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly actStart: {
+readonly kind: "query";
+readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly door: {
+readonly kind: "query";
+readonly summary: "The level whose door is shut, or null.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly doorShut: {
+readonly kind: "query";
+readonly summary: "Whether a door holds residents back now.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly openDoor: {
+readonly kind: "command";
+readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly releaseDoor: {
+readonly kind: "command";
+readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+readonly unlock: {
+readonly kind: "command";
+readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly ranking: {
+readonly kind: "query";
+readonly summary: "The ranking: the banished last, then by points, by level and by id.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+rank: Type.TInteger;
+points: Type.TInteger;
+level: Type.TInteger;
+}>>;
+};
+readonly holdersBehind: {
+readonly kind: "query";
+readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TObject<{
+holder: Type.TString;
+level: Type.TInteger;
+piece: Type.TString;
+}>>;
+};
+readonly nextPenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next wrong code costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly nextBlamePenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next lost blame costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly chargeBlame: {
+readonly kind: "command";
+readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly endAct: {
+readonly kind: "command";
+readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isOpenOnClock: {
+readonly kind: "query";
+readonly summary: "Whether the level's door is open on the door clock now.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly opensAt: {
+readonly kind: "query";
+readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TInteger;
+};
+readonly bounds: {
+readonly kind: "query";
+readonly summary: "The start level, the last playable level and the seats at the end.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+startLevel: Type.TInteger;
+lastLevel: Type.TInteger;
+survivors: Type.TInteger;
+}>;
+};
+}>, ServiceDefinition<"deal", {
+readonly passwordPiece: {
+readonly kind: "query";
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly input: Type.TObject<{
+token: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly carriesSecret: {
+readonly kind: "query";
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+text: Type.TString;
+minRun: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isHandover: {
+readonly kind: "query";
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
 }>], {
 showReceipt: Type.TObject<{
 receiptId: Type.TString;
 to: Type.TOptional<Type.TString>;
 }>;
+blame: Type.TObject<{
+dm: Type.TInteger;
+accused: Type.TString;
+claim: Type.TInteger;
+}>;
 }>;
 
 // @public
 export type ReceiptsToolCtx = ToolCtxOf<typeof receiptsHead>;
+
+// @public
+export function recordQuote(text: string, chars?: number): string;
 
 // (No @packageDocumentation comment for this package)
 

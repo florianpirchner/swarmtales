@@ -29,11 +29,18 @@ import { checkBoardNote, checkNotify, runBoardNote, runNotify, sampleBoardNote, 
 import { checkNote, noteBudget, recordNote } from "./notes.ts";
 import { resolved, shownOutcome, shownRefusal } from "./shown.ts";
 import { createCityGroup, depositGroup, postGroupAsCity, removeCityGroup, settleTreasuries, withdrawGroup } from "./treasury.ts";
-import { memoCap } from "./window.ts";
+import { dmWindow, memoCap } from "./window.ts";
+import type { DmRecord } from "./state.ts";
 
 export { ChannelsEvents, ChannelsService, NotesService };
 
 const samples = groupSamples();
+
+// A direct message as `dmRecords` shows it: the delivery fields once it was delivered.
+const dmRecordOf = ({ from, to, text, number, tick, answered, deliveredTick, deliveredAfter }: DmRecord) => ({
+	from, to, text, number, tick, answered,
+	...(deliveredTick === undefined || deliveredAfter === undefined ? {} : { deliveredTick, deliveredAfter }),
+});
 
 /**
  * The `channels` mechanic. Calling it gives the use for a game's `mechanics` list.
@@ -68,7 +75,13 @@ export const channels = defineMechanic(channelsHead, {
 				notify(ctx, input.to, input.author, input.text);
 				return null;
 			},
-			dmRecords: (_input, ctx) => ctx.state.dms.map(({ from, to, text, number, tick, answered }) => ({ from, to, text, number, tick, answered })),
+			dmRecords: (_input, ctx) => ctx.state.dms.map(dmRecordOf),
+			boardPost: (input, ctx) => {
+				const post = ctx.state.board.all(input.number - 1).find((candidate) => candidate.seq === input.number);
+				return post === undefined ? null : { number: post.seq, author: post.author, text: post.text, tick: post.tick };
+			},
+			pendingDms: (input, ctx) => (ctx.state.inboxes.get(input.resident)?.mailbox.size ?? 0),
+			dmWindow: (input, ctx) => dmWindow(ctx, input.resident),
 			createCityGroup: (input, ctx) => ({ group: createCityGroup(ctx, input.name, input.members) }),
 			removeCityGroup: (input, ctx) => {
 				removeCityGroup(ctx, input.group);

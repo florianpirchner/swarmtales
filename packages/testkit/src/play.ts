@@ -5,7 +5,7 @@
  * host's test helpers.
  */
 import { actorId } from "@swarmtales/contracts";
-import type { ActorDriver, DriverTable, Envelope, EventSink, GameData, Kernel, PromptLookup, RecordSource, Redact, ResumeInput, RunEnd, RunLimit, SchedulerDefinition, ToolOutcome } from "@swarmtales/contracts";
+import type { ActorDriver, DriverTable, Envelope, EventSink, GameData, Kernel, KernelPorts, PromptLookup, RecordSource, Redact, ResumeInput, ReviewPort, RunEnd, RunLimit, SchedulerDefinition, ToolOutcome } from "@swarmtales/contracts";
 import { turns } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
@@ -42,6 +42,8 @@ export interface PlayOptions {
 	readonly limits?: readonly RunLimit[];
 	/** The redaction of what the kernel writes; the pattern redaction when absent. */
 	readonly redact?: Redact;
+	/** The answerer port of the stage `review` (a scripted answerer in a mechanic's test); without it no answerer answers. */
+	readonly review?: ReviewPort;
 	/** The schedulers by id that the game's `scheduler.id` may name; `{ turns }` when absent. */
 	readonly schedulers?: Readonly<Record<string, SchedulerDefinition>>;
 }
@@ -105,6 +107,11 @@ export interface TestKernel {
 // The schedulers a game may name: the given table, else `turns` alone.
 const schedulersOf = (options: PlayOptions): Readonly<Record<string, SchedulerDefinition>> => options.schedulers ?? { turns };
 
+// The kernel's ports of a run: the sinks, and the limits, the redaction and the answerer port where given.
+function portsOf(options: PlayOptions): KernelPorts {
+	return { sinks: options.sinks ?? [], ...(options.limits === undefined ? {} : { limits: options.limits }), ...(options.redact === undefined ? {} : { redact: options.redact }), ...(options.review === undefined ? {} : { review: options.review }) };
+}
+
 // Steps one to three: resolve the game, create the kernel, check that the win fact exists.
 function kernelOf(game: Game | GameData, options: PlayOptions): Kernel {
 	const resolved = resolveGame({
@@ -116,8 +123,7 @@ function kernelOf(game: Game | GameData, options: PlayOptions): Kernel {
 		...(options.params === undefined ? {} : { params: options.params }),
 		...(options.records === undefined ? {} : { records: options.records }),
 	});
-	const ports = { sinks: options.sinks ?? [], ...(options.limits === undefined ? {} : { limits: options.limits }), ...(options.redact === undefined ? {} : { redact: options.redact }) };
-	const kernel = createKernel(resolved.definition, ports, options.resume);
+	const kernel = createKernel(resolved.definition, portsOf(options), options.resume);
 	if (resolved.win !== undefined) kernel.fact(resolved.win);
 	return kernel;
 }

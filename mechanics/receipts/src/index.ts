@@ -4,7 +4,8 @@
  * movements and delivered direct messages of `channels` and the correct submissions of `progression`, and issues a
  * numbered receipt for each (`receipt_issued`); the receiver of a transfer or a withdrawal is told its line. It
  * provides `receipt-source`, through which those mechanics name the receipt in their replies, and the tool
- * `showReceipt`. The tool `blame` and its judge come with the second half of the port (M5-22).
+ * `showReceipt`; and `blame`, which the city settles by its own checks or by the answer of its judge, a Director with
+ * `answers: "judge"` (the tool's own review).
  *
  * @packageDocumentation
  */
@@ -17,16 +18,19 @@ import { describeReceipt, receiptsOf } from "./book.ts";
 import { receiptsHead } from "./head.ts";
 import { idFor, issue, issueDm, tell } from "./issue.ts";
 import { checkShowReceipt, sampleShow, showReceipt } from "./show.ts";
+import { blameReview, runBlame } from "./blame-tool.ts";
 
 export { describeReceipt, partiesOf, receiptId, ReceiptSchema, type BodyOf, type Receipt, type ReceiptBody } from "./book.ts";
-export { ReceiptsEvents } from "./contract.ts";
+export { JudgeQuestion, JudgeVerdict, ReceiptsEvents } from "./contract.ts";
+export { check as checkBlame, recordQuote, type Checked as BlameChecked, type Claim as BlameClaim, type Delivered as BlameDelivered, type DmFact, type Facts as BlameFacts } from "./blame.ts";
+export { blameReview, type BlameParams } from "./blame-tool.ts";
 export { receiptsHead, type ReceiptsCtx, type ReceiptsToolCtx } from "./head.ts";
 
 /** The order of the receipts' part of the status line (old `STATUS_ORDER.receipts`). */
 const STATUS_ORDER = 600;
 
 /**
- * The receipts: issued in the listeners, named through `receipt-source`, shown with `showReceipt`.
+ * The receipts: issued in the listeners, named through `receipt-source`, shown with `showReceipt`; and `blame`.
  *
  * @example
  * ```ts
@@ -38,6 +42,7 @@ const STATUS_ORDER = 600;
 export const receipts = defineMechanic(receiptsHead, {
 	tools: {
 		showReceipt: { check: checkShowReceipt, run: showReceipt, sample: sampleShow },
+		blame: { review: blameReview, run: runBlame },
 	},
 	services: {
 		"receipt-source": {

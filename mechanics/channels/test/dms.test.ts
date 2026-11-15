@@ -84,10 +84,12 @@ describe("direct messages", () => {
 		await say(test, "A02", "sendDM", { target: "A01", message: "back" });
 		const records = await say(test, "A03", "cityRecords", {});
 		expect(records).toContain('"text":"one","number":1,"tick":0,"answered":true}');
+		// Delivered, a record keeps the tick and the city's last number of its delivery (for `blame`).
 		await idle(test, 1);
-		expect(await say(test, "A03", "cityRecords", {})).toBe(records);
+		const delivered = await say(test, "A03", "cityRecords", {});
+		expect(delivered).toBe(records.replaceAll('"answered":true}', '"answered":true,"deliveredTick":0,"deliveredAfter":3}').replaceAll('"answered":false}', '"answered":false,"deliveredTick":0,"deliveredAfter":3}'));
 		const resume = { snapshot: structuredClone(test.kernel.snapshot()), log: structuredClone([...test.kernel.log.all()]) };
-		expect(await say(testKernel(game(), { resume }), "A03", "cityRecords", {})).toBe(records);
+		expect(await say(testKernel(game(), { resume }), "A03", "cityRecords", {})).toBe(delivered);
 	});
 
 	it("shows the old text of the tool, with the old parameters", () => {

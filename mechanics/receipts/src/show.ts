@@ -4,11 +4,14 @@
  * the city verifies, on the board or privately to one resident. The refusals come in the old order. The price of a
  * show is the business of `marks`, in its own stage handlers by the bare tool name; the reply names the marks left
  * once it is paid. With a provider of `identity` the resident may name `to` by a name and reads names in place of ids.
+ * With `minRun` a board show of a receipt that quotes part of a fragment the resident holds is refused first (old
+ * `checkShow`); a private show is not.
  */
 import type { RandomSource, Refusal, ToolOutcome } from "@swarmtales/contracts";
 import { AllowanceService, IdentityService } from "@swarmtales/mechanic-contracts";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
+import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { refuse, reply } from "@swarmtales/sdk";
 import { describeReceipt, receiptsOf, showable, type Receipt } from "./book.ts";
 import type { ReceiptsToolCtx } from "./head.ts";
@@ -24,15 +27,41 @@ function shownRefusal(ctx: ReceiptsToolCtx, refusal: Refusal): Refusal {
 	return refusal.detail === undefined ? refusal : { ...refusal, detail: shown(ctx, refusal.detail) };
 }
 
-function resolved(ctx: ReceiptsToolCtx, to: string | undefined): string | undefined {
+/**
+ * A tool's outcome as the caller reads it: names in place of ids in the reply or the refusal's detail, with a
+ * provider of `identity` (old `names`, which displayed every reply).
+ *
+ * @param ctx - The context of the tool call.
+ * @param outcome - The outcome in ids.
+ * @returns The outcome as shown.
+ */
+export function shownOutcome(ctx: ReceiptsToolCtx, outcome: ToolOutcome): ToolOutcome {
+	return outcome.ok ? { ...outcome, reply: shown(ctx, outcome.reply) } : shownRefusal(ctx, outcome);
+}
+
+/**
+ * The resident id a name or an id stands for (old `RESIDENT_PARAMS` of `names`: `to`, `accused`).
+ *
+ * @param ctx - The context of the tool call.
+ * @param to - The name or id as written; undefined when left out.
+ * @returns The id, or the text as written when no provider of `identity` knows it.
+ */
+export function resolved(ctx: ReceiptsToolCtx, to: string | undefined): string | undefined {
 	return to === undefined ? undefined : (ctx.tryCall(IdentityService, "resolve", { text: to }) ?? to);
 }
 
-// The refusals of a show in the old order, or the receipt; `to` is resolved.
+// A board show of a receipt that quotes part of a fragment the resident holds, where `minRun` guards the board.
+function carriesFragment(ctx: ReceiptsToolCtx, self: string, receipt: Receipt, to: string | undefined): boolean {
+	const minRun = to === undefined ? ctx.options.minRun : undefined;
+	return minRun !== undefined && ctx.tryCall(PuzzlesService, "carriesSecret", { resident: self, text: describeReceipt(receipt), minRun }) === true;
+}
+
+// The refusals of a show in the old order (the guard's fragment check first), or the receipt; `to` is resolved.
 function checkShow(ctx: ReceiptsToolCtx, receiptId: string, to: string | undefined): Receipt | Refusal {
 	const self = ctx.resident;
 	if (self === undefined) return refuse("UNKNOWN_AGENT");
 	const found = showable(ctx.state.receipts, receiptId, self);
+	if (found.ok && carriesFragment(ctx, self, found.receipt, to)) return refuse("RECEIPT_CARRIES_FRAGMENT", ctx.prompt("receipts/replies/receipt-fragment", {}));
 	if (!found.ok) return refuse(found.error, receiptId);
 	if (to !== undefined) {
 		if (!ctx.residents.has(to)) return refuse("UNKNOWN_AGENT", to);

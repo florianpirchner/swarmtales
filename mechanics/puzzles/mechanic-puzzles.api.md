@@ -460,7 +460,43 @@ text: TString;
 number: TInteger;
 tick: TInteger;
 answered: TBoolean;
+deliveredTick: TOptional<TInteger>;
+deliveredAfter: TOptional<TInteger>;
 }>>;
+};
+readonly boardPost: {
+readonly kind: "query";
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+readonly input: TObject<    {
+number: TInteger;
+}>;
+readonly output: TUnion<[TObject<    {
+number: TInteger;
+author: TString;
+text: TString;
+tick: TInteger;
+}>, TNull]>;
+};
+readonly pendingDms: {
+readonly kind: "query";
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly output: TInteger;
+};
+readonly dmWindow: {
+readonly kind: "query";
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly output: TUnion<[TObject<    {
+sent: TInteger;
+limit: TInteger;
+from: TInteger;
+until: TInteger;
+}>, TNull]>;
 };
 readonly createCityGroup: {
 readonly kind: "command";

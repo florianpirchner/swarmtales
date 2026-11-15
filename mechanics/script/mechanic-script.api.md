@@ -1281,7 +1281,43 @@ text: Type.TString;
 number: Type.TInteger;
 tick: Type.TInteger;
 answered: Type.TBoolean;
+deliveredTick: Type.TOptional<Type.TInteger>;
+deliveredAfter: Type.TOptional<Type.TInteger>;
 }>>;
+};
+readonly boardPost: {
+readonly kind: "query";
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+number: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+};
+readonly pendingDms: {
+readonly kind: "query";
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly dmWindow: {
+readonly kind: "query";
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+sent: Type.TInteger;
+limit: Type.TInteger;
+from: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
 };
 readonly createCityGroup: {
 readonly kind: "command";

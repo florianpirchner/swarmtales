@@ -5,16 +5,39 @@
  * banishes, and stand-ins for the providers of `identity` and `allowance`.
  */
 import { Type } from "typebox";
-import type { Envelope } from "@swarmtales/contracts";
+import type { Envelope, ReviewAnswer, ReviewPort } from "@swarmtales/contracts";
 import { AllowanceService, IdentityService, ReceiptSourceService } from "@swarmtales/mechanic-contracts";
 import { channels } from "@swarmtales/mechanic-channels";
 import { exile } from "@swarmtales/mechanic-exile";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { ProgressionEvents } from "@swarmtales/mechanic-progression/contract";
-import { defineGame, defineHead, defineMechanic, reply, type Game, type MechanicUse } from "@swarmtales/sdk";
+import { defineDirector, defineGame, defineHead, defineMechanic, reply, type Game, type MechanicUse } from "@swarmtales/sdk";
 import type { TestKernel } from "@swarmtales/testkit";
-import { receipts } from "../src/index.ts";
+import { JudgeVerdict, receipts } from "../src/index.ts";
+
+/** The judge of a blame, as a game names it (issue M5-37 builds the real one); its answers come from a {@link scriptedJudge}. */
+export const judge = defineDirector({ id: "judge", summary: "Test: answers the blames.", on: [], output: JudgeVerdict, answers: "judge" }, { system: () => "You are the judge.", input: () => "", act: () => Promise.resolve() });
+
+/**
+ * A scripted answerer of the reviews: the judge answers the next answer of the list, `{ ok: false }` once it is used
+ * up or for an `undefined`; with `answers: null` no judge answers.
+ *
+ * @param answers - The judge's answers in order, or null for a run without a judge.
+ * @param asked - Where the questions are kept.
+ * @returns The port.
+ */
+export function scriptedJudge(answers: readonly unknown[] | null, asked: unknown[] = []): ReviewPort {
+	return {
+		answers: (answerer) => answerer === "judge" && answers !== null,
+		ask: ({ question }) => {
+			const answer = answers?.[asked.length];
+			asked.push(question);
+			const answered: ReviewAnswer = answer === undefined ? { ok: false } : { ok: true, answer };
+			return Promise.resolve(answered);
+		},
+	};
+}
 
 /** Stands in for `progression`: `solve` names the coming receipt of each level, then writes `submission` for each. */
 const levels = defineMechanic(
@@ -84,7 +107,8 @@ export function game(options: Parameters<typeof receipts>[0] = {}, more: readonl
 		seed: 7,
 		residents: ["A01", "A02", "A03", "A04"],
 		mechanics: [ledger({ startPoints: 10 }), channels(), exile(), receipts(options), levels(), court(), ...more],
-		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster", inputs: [{ kind: "status", join: " · " }] } },
+		directors: [{ use: judge }],
+		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster", inputs: [{ kind: "status", join: " · " }], afterBlocks: ["director"] } },
 		end: { ticks },
 	});
 }

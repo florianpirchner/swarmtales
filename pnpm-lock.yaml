@@ -1117,6 +1117,9 @@ importers:
       '@swarmtales/mechanic-progression':
         specifier: workspace:*
         version: link:../progression
+      '@swarmtales/mechanic-puzzles':
+        specifier: workspace:*
+        version: link:../puzzles
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk

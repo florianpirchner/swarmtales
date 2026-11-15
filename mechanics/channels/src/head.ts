@@ -58,6 +58,7 @@ export const channelsHead = defineHead({
 		"channels/input/dm": ["number", "from", "text"],
 		"channels/input/notice": ["author", "text"],
 		"channels/notices/dm-delivered": ["number", "agent", "minute", "text"],
+		"channels/notices/dm-delivered-receipt": ["number", "agent", "minute", "receipt", "text"],
 		...GROUP_PROMPTS,
 		"channels/tools/defy": [],
 		"channels/replies/defy-recorded": [],

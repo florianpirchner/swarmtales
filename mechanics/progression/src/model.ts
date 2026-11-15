@@ -72,6 +72,7 @@ export const PROGRESSION_PROMPTS = {
 	"progression/replies/status-all-solved": [],
 	"progression/replies/status-passed": ["level"],
 	"progression/replies/status-door": ["level", "minute"],
+	"progression/replies/status-dm-window": ["sent", "limit", "from", "until"],
 	"progression/status/minute": ["minute"],
 	"progression/status/level-finished": ["level"],
 	"progression/status/level-waiting": ["level"],

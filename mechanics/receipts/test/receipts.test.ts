@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The receipts, carried from the old `test/mechanics/receipts/receipts.test.ts` (the parts of `showReceipt`, the
- * issue of a transfer's receipt and the status part; `blame` is M5-22), played with the real `ledger`, `channels`
+ * issue of a transfer's receipt and the status part; `blame` is in `blame.test.ts`), played with the real `ledger`, `channels`
  * and `exile`: the receipt of every kind is issued in the listener, and the coming id is what the callers name.
  */
 import { describe, expect, it } from "vitest";
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, idleDriver, testKernel } from "@swarmtales/testkit";
+import { defineHead, defineMechanic } from "@swarmtales/sdk";
+import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { game, lines, namesAndMarks, say } from "./support.ts";
 
 const LINE = 'R-0001: A01 → A02, 3 points, minute 0, memo "thanks"';
@@ -46,6 +48,26 @@ describe("showReceipt", () => {
 		expect(await say(test, "A01", "showReceipt", { receiptId: "R-0001", to: "Rook" })).toBe("shown privately to Rook · R-0001 · marks 6/8 left");
 		expect(await say(test, "A01", "showReceipt", { receiptId: "R-0001", to: "Mira" })).toBe("SELF_TARGET: show it to another resident, or on the board");
 		expect(await say(test, "A01", "showReceipt", { receiptId: "R-0001" })).toBe('shown · board #1 · CITY verifies R-0001: Mira → Rook, 3 points, minute 0, memo "thanks" · shown by Mira · marks 6/8 left');
+	});
+});
+
+describe("showReceipt where the board must not carry a fragment (`minRun`)", () => {
+	// Stands in for `puzzles` (its service `deal`): A01 holds the fragment 5EUXN; a text carries it from `minRun` characters in a row.
+	const fragments = defineMechanic(defineHead({ id: "puzzles", package: "@test/puzzles", summary: "Test: one fragment.", provides: [PuzzlesService] }), {
+		services: { deal: { passwordPiece: () => false, isHandover: () => false, carriesSecret: ({ resident, text, minRun }) => resident === "A01" && [0, 1, 2, 3, 4].some((at) => at + minRun <= 5 && text.includes("5EUXN".slice(at, at + minRun))) } },
+	});
+
+	it("refuses a board show of a receipt that quotes part of a fragment, first, and shows it privately", async () => {
+		const test = testKernel(game({ quoteDms: true, minRun: 4 }, [fragments()]));
+		await say(test, "A01", "sendDM", { target: "A02", message: "Try UXN5 and EUXN on the door" });
+		await say(test, "A01", "sendDM", { target: "A03", message: "Nothing to see here" });
+		await test.playTicks(idleDriver, 1);
+		const fragment = "RECEIPT_CARRIES_FRAGMENT: the receipt quotes part of a fragment, and fragments travel by DM; show it privately with `to`";
+		expect(await say(test, "A01", "showReceipt", { receiptId: "R-0001" })).toBe(fragment);
+		expect(await say(test, "A01", "showReceipt", { receiptId: "R-0001", to: "A02" })).toBe("shown privately to A02 · R-0001");
+		expect(await say(test, "A01", "showReceipt", { receiptId: "R-0002" })).toMatch(/^shown · board #\d+ · CITY verifies R-0002/);
+		expect(await say(test, "A01", "showReceipt", { receiptId: "R-0099" })).toBe("UNKNOWN_RECEIPT: R-0099");
+		expect(await say(test, "A02", "showReceipt", { receiptId: "R-0001" })).toMatch(/^shown · board #/);
 	});
 });
 
