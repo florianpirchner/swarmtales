@@ -47,8 +47,8 @@ export type InputEntry = Static<typeof InputEntrySchema>;
 
 // @public
 export const InputEntrySchema: Type.TUnion<[Type.TObject<{
-    kind: Type.TString;
     join: Type.TOptional<Type.TString>;
+    kind: Type.TString;
 }>, Type.TObject<{
     source: Type.TString;
 }>]>;
@@ -81,18 +81,18 @@ export const turns: SchedulerDefinition<TurnsOptions>;
 
 // @public
 export const TurnsOptions: Type.TObject<{
-    passes: Type.TInteger;
-    blockSize: Type.TInteger;
     activation: Type.TUnion<[Type.TLiteral<"always">, Type.TLiteral<"onNews">, Type.TLiteral<"toAct">]>;
-    order: Type.TUnion<[Type.TLiteral<"seeded">, Type.TLiteral<"roster">, Type.TLiteral<"arena">]>;
-    kinds: Type.TArray<Type.TString>;
+    afterBlocks: Type.TOptional<Type.TArray<Type.TString>>;
+    blockSize: Type.TInteger;
     inputs: Type.TArray<Type.TUnion<[Type.TObject<{
-        kind: Type.TString;
         join: Type.TOptional<Type.TString>;
+        kind: Type.TString;
     }>, Type.TObject<{
         source: Type.TString;
     }>]>>;
-    afterBlocks: Type.TOptional<Type.TArray<Type.TString>>;
+    kinds: Type.TArray<Type.TString>;
+    order: Type.TUnion<[Type.TLiteral<"seeded">, Type.TLiteral<"roster">, Type.TLiteral<"arena">]>;
+    passes: Type.TInteger;
 }>;
 
 // @public

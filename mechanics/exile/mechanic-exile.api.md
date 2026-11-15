@@ -22,42 +22,42 @@ export interface BequestEntry {
 
 // @public
 export const exile: MechanicDefinition<"exile", NoOptions, {
-readonly exiled: Type.TObject<{
-agent: Type.TString;
-will: Type.TOptional<Type.TString>;
-by: Type.TOptional<Type.TString>;
-}>;
 readonly exile_gate: Type.TObject<{
 agent: Type.TString;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
-voters: Type.TArray<Type.TString>;
 price: Type.TInteger;
+ransomable: Type.TBoolean;
 selfPrice: Type.TInteger;
+until: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+}>;
+readonly exiled: Type.TObject<{
+agent: Type.TString;
+by: Type.TOptional<Type.TString>;
+will: Type.TOptional<Type.TString>;
+}>;
+readonly last_will: Type.TObject<{
+agent: Type.TString;
+bequests: Type.TArray<Type.TUnion<[Type.TObject<{
+points: Type.TInteger;
+to: Type.TString;
+}>, Type.TObject<{
+factor: Type.TString;
+to: Type.TString;
+}>]>>;
+text: Type.TString;
 }>;
 readonly ransom_paid: Type.TObject<{
-payer: Type.TString;
-target: Type.TString;
 amount: Type.TInteger;
+covered: Type.TInteger;
 paid: Type.TInteger;
+payer: Type.TString;
 price: Type.TInteger;
 selfPrice: Type.TInteger;
-covered: Type.TInteger;
+target: Type.TString;
 }>;
 readonly ransomed: Type.TObject<{
 agent: Type.TString;
 payers: Type.TArray<Type.TString>;
-}>;
-readonly last_will: Type.TObject<{
-agent: Type.TString;
-text: Type.TString;
-bequests: Type.TArray<Type.TUnion<[Type.TObject<{
-to: Type.TString;
-points: Type.TInteger;
-}>, Type.TObject<{
-to: Type.TString;
-factor: Type.TString;
-}>]>>;
 }>;
 }, "lastWill" | "payRansom">;
 
@@ -67,172 +67,196 @@ export type ExileCtx = CtxOf<typeof exileHead>;
 // @public
 export const exileHead: MechanicHead<"exile", NoOptions, Type.TObject<{
 gates: Type.TArray<Type.TObject<{
-resident: Type.TString;
-since: Type.TInteger;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
-voters: Type.TArray<Type.TString>;
-price: Type.TInteger;
-selfPrice: Type.TInteger;
 bequestPerHeir: Type.TNumber;
-texts: Type.TObject<{
-exiled: Type.TString;
-will: Type.TString;
-ransomed: Type.TString;
-}>;
 by: Type.TString;
 payments: Type.TArray<Type.TObject<{
-payer: Type.TString;
 amount: Type.TInteger;
+payer: Type.TString;
 }>>;
+price: Type.TInteger;
+ransomable: Type.TBoolean;
+resident: Type.TString;
+selfPrice: Type.TInteger;
+since: Type.TInteger;
+texts: Type.TObject<{
+exiled: Type.TString;
+ransomed: Type.TString;
+will: Type.TString;
+}>;
+until: Type.TInteger;
+voters: Type.TArray<Type.TString>;
 will: Type.TOptional<Type.TObject<{
-text: Type.TString;
 factors: Type.TArray<Type.TString>;
+text: Type.TString;
 }>>;
 }>>;
 gone: Type.TArray<Type.TObject<{
-resident: Type.TString;
-by: Type.TString;
-tick: Type.TInteger;
 bequeathed: Type.TArray<Type.TString>;
+by: Type.TString;
+resident: Type.TString;
+tick: Type.TInteger;
 }>>;
 ransomed: Type.TArray<Type.TString>;
 }>, {
-ransomed: string[];
 gates: {
-will?: {
-text: string;
-factors: string[];
-};
-resident: string;
+bequestPerHeir: number;
 by: string;
-until: number;
-ransomable: boolean;
-voters: string[];
+payments: {
+amount: number;
+payer: string;
+}[];
 price: number;
+ransomable: boolean;
+resident: string;
 selfPrice: number;
 since: number;
-bequestPerHeir: number;
 texts: {
 exiled: string;
-will: string;
 ransomed: string;
+will: string;
 };
-payments: {
-payer: string;
-amount: number;
-}[];
+until: number;
+voters: string[];
+will?: {
+factors: string[];
+text: string;
+};
 }[];
 gone: {
-resident: string;
-by: string;
 bequeathed: string[];
+by: string;
+resident: string;
 tick: number;
 }[];
+ransomed: string[];
 }, {
-readonly exiled: Type.TObject<{
-agent: Type.TString;
-will: Type.TOptional<Type.TString>;
-by: Type.TOptional<Type.TString>;
-}>;
 readonly exile_gate: Type.TObject<{
 agent: Type.TString;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
-voters: Type.TArray<Type.TString>;
 price: Type.TInteger;
+ransomable: Type.TBoolean;
 selfPrice: Type.TInteger;
+until: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+}>;
+readonly exiled: Type.TObject<{
+agent: Type.TString;
+by: Type.TOptional<Type.TString>;
+will: Type.TOptional<Type.TString>;
+}>;
+readonly last_will: Type.TObject<{
+agent: Type.TString;
+bequests: Type.TArray<Type.TUnion<[Type.TObject<{
+points: Type.TInteger;
+to: Type.TString;
+}>, Type.TObject<{
+factor: Type.TString;
+to: Type.TString;
+}>]>>;
+text: Type.TString;
 }>;
 readonly ransom_paid: Type.TObject<{
-payer: Type.TString;
-target: Type.TString;
 amount: Type.TInteger;
+covered: Type.TInteger;
 paid: Type.TInteger;
+payer: Type.TString;
 price: Type.TInteger;
 selfPrice: Type.TInteger;
-covered: Type.TInteger;
+target: Type.TString;
 }>;
 readonly ransomed: Type.TObject<{
 agent: Type.TString;
 payers: Type.TArray<Type.TString>;
 }>;
-readonly last_will: Type.TObject<{
-agent: Type.TString;
-text: Type.TString;
-bequests: Type.TArray<Type.TUnion<[Type.TObject<{
-to: Type.TString;
-points: Type.TInteger;
-}>, Type.TObject<{
-to: Type.TString;
-factor: Type.TString;
-}>]>>;
-}>;
 }, {
-readonly "exile/tools/payRansom": readonly [];
-readonly "exile/tools/lastWill": readonly [];
+readonly "exile/ransom-toward": readonly ["payer", "amount", "covered"];
 readonly "exile/replies/locked": readonly [];
 readonly "exile/replies/ransom-covered": readonly ["paid", "target"];
 readonly "exile/replies/ransom-paid": readonly ["covered", "target", "price", "selfPrice"];
 readonly "exile/replies/will-invalid": readonly [];
 readonly "exile/replies/will-written": readonly [];
-readonly "exile/status/gate": readonly ["until"];
 readonly "exile/status-exiled": readonly [];
-readonly "exile/ransom-toward": readonly ["payer", "amount", "covered"];
+readonly "exile/status/gate": readonly ["until"];
+readonly "exile/tools/lastWill": readonly [];
+readonly "exile/tools/payRansom": readonly [];
 readonly "exile/will-points": readonly ["agent", "points"];
 }, [], readonly [ServiceDefinition<"exile", {
-readonly banish: {
-readonly kind: "command";
-readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-by: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TObject<{
-ok: Type.TBoolean;
-code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
-}>;
-};
-readonly toGate: {
-readonly kind: "command";
-readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
-voters: Type.TArray<Type.TString>;
-price: Type.TInteger;
-selfPrice: Type.TInteger;
-bequestPerHeir: Type.TNumber;
-notice: Type.TString;
-texts: Type.TObject<{
-exiled: Type.TString;
-will: Type.TString;
-ransomed: Type.TString;
-}>;
-by: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TNull;
-};
-readonly isExiled: {
+readonly alive: {
+readonly input: Type.TObject<{}>;
 readonly kind: "query";
-readonly summary: "Says whether the resident is banished.";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Every resident not banished, in the game's order.";
+};
+readonly banish: {
+readonly input: Type.TObject<{
+by: Type.TOptional<Type.TString>;
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+ok: Type.TBoolean;
+}>;
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+};
+readonly bequeathed: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
-readonly output: Type.TBoolean;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
 };
 readonly exiled: {
-readonly kind: "query";
-readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
 readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly standing: {
 readonly kind: "query";
-readonly summary: "Where the resident stands (old `standingOf`).";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+};
+readonly exiledBy: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Who banished the resident, or null while it is not banished.";
+};
+readonly gates: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+covered: Type.TInteger;
+paid: Type.TInteger;
+price: Type.TInteger;
+ransomable: Type.TBoolean;
+selfPrice: Type.TInteger;
+since: Type.TInteger;
+until: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+readonly summary: "Every open gate, in the order opened.";
+};
+readonly isExiled: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Says whether the resident is banished.";
+};
+readonly ransomed: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was bought back from the gate once.";
+};
+readonly standing: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TObject<{
 kind: Type.TLiteral<"alive">;
 }>, Type.TObject<{
@@ -241,142 +265,118 @@ until: Type.TInteger;
 }>, Type.TObject<{
 kind: Type.TLiteral<"exiled">;
 }>]>;
+readonly summary: "Where the resident stands (old `standingOf`).";
 };
-readonly alive: {
-readonly kind: "query";
-readonly summary: "Every resident not banished, in the game's order.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly exiledBy: {
-readonly kind: "query";
-readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly toGate: {
 readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly gates: {
-readonly kind: "query";
-readonly summary: "Every open gate, in the order opened.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-agent: Type.TString;
-since: Type.TInteger;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
+bequestPerHeir: Type.TNumber;
+by: Type.TOptional<Type.TString>;
+notice: Type.TString;
 price: Type.TInteger;
+ransomable: Type.TBoolean;
+resident: Type.TString;
 selfPrice: Type.TInteger;
-paid: Type.TInteger;
-covered: Type.TInteger;
-willDone: Type.TBoolean;
-}>>;
-};
-readonly ransomed: {
-readonly kind: "query";
-readonly summary: "Whether the resident was bought back from the gate once.";
-readonly input: Type.TObject<{
-resident: Type.TString;
+texts: Type.TObject<{
+exiled: Type.TString;
+ransomed: Type.TString;
+will: Type.TString;
 }>;
-readonly output: Type.TBoolean;
-};
-readonly bequeathed: {
-readonly kind: "query";
-readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
-readonly input: Type.TObject<{
-resident: Type.TString;
+until: Type.TInteger;
+voters: Type.TArray<Type.TString>;
 }>;
-readonly output: Type.TArray<Type.TString>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
 };
 }>], readonly [ServiceDefinition<"exile-purse", {
 readonly balance: {
-readonly kind: "query";
-readonly summary: "The points of the account.";
 readonly input: Type.TObject<{
 account: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TNumber;
+readonly summary: "The points of the account.";
 };
 readonly burn: {
-readonly kind: "command";
-readonly summary: "Burns points of the account.";
 readonly input: Type.TObject<{
+account: Type.TString;
 amount: Type.TInteger;
 reason: Type.TString;
-account: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Burns points of the account.";
 };
 readonly move: {
-readonly kind: "command";
-readonly summary: "Moves points the account holds to another.";
 readonly input: Type.TObject<{
 amount: Type.TInteger;
-reason: Type.TString;
 from: Type.TString;
+reason: Type.TString;
 to: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Moves points the account holds to another.";
 };
 }>, ServiceDefinition<"identity", {
-readonly nameOf: {
+readonly display: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly output: Type.TString;
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+};
+readonly nameOf: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly display: {
 readonly kind: "query";
-readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
-readonly input: Type.TObject<{
-text: Type.TString;
-}>;
-readonly output: Type.TString;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
 };
 readonly resolve: {
-readonly kind: "query";
-readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 readonly input: Type.TObject<{
 text: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TString;
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 };
 }>, ServiceDefinition<"notices", {
-readonly post: {
+readonly notify: {
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Writes a post of the city on the public board, as `channels.post` does.";
+readonly output: Type.TNull;
+readonly summary: "Leaves a private notice for a resident, as `channels.notify` does; the resident reads it at its next activation.";
+};
+readonly post: {
 readonly input: Type.TObject<{
 author: Type.TString;
 text: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 postSeq: Type.TInteger;
 }>;
-};
-readonly notify: {
-readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident, as `channels.notify` does; the resident reads it at its next activation.";
-readonly input: Type.TObject<{
-to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Writes a post of the city on the public board, as `channels.post` does.";
 };
 }>], {
-payRansom: Type.TObject<{
-target: Type.TString;
-amount: Type.TInteger;
-}>;
 lastWill: Type.TObject<{
-text: Type.TString;
 bequests: Type.TArray<Type.TObject<{
-to: Type.TString;
-points: Type.TOptional<Type.TInteger>;
 factor: Type.TOptional<Type.TString>;
+points: Type.TOptional<Type.TInteger>;
+to: Type.TString;
 }>>;
+text: Type.TString;
+}>;
+payRansom: Type.TObject<{
+amount: Type.TInteger;
+target: Type.TString;
 }>;
 }>;
 

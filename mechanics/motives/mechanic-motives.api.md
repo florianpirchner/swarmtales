@@ -89,50 +89,54 @@ export type MotiveRecord = Static<typeof MotiveRecord>;
 
 // @public
 export const motives: MechanicDefinition<"motives", Type.TObject<{
-heading: Type.TString;
 axes: Type.TArray<Type.TObject<{
 id: Type.TString;
 texts: Type.TObject<{
+high: Type.TString;
 low: Type.TString;
 middle: Type.TString;
-high: Type.TString;
 }>;
 }>>;
+cast: Type.TOptional<Type.TArray<Type.TString>>;
 drives: Type.TArray<Type.TObject<{
-id: Type.TString;
+cues: Type.TArray<Type.TString>;
 group: Type.TString;
-tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
+id: Type.TString;
 texts: Type.TObject<{
 aboveAll: Type.TString;
-clearly: Type.TString;
 atTimes: Type.TString;
+clearly: Type.TString;
 }>;
-cues: Type.TArray<Type.TString>;
-}>>;
-perResident: Type.TObject<{
-min: Type.TInteger;
-max: Type.TInteger;
-}>;
-lightShare: Type.TNumber;
-spreadPer: Type.TInteger;
-figures: Type.TOptional<Type.TArray<Type.TObject<{
-id: Type.TString;
-title: Type.TString;
-profession: Type.TString;
 tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
+}>>;
+figures: Type.TOptional<Type.TArray<Type.TObject<{
 bigFive: Type.TArray<Type.TObject<{
 axis: Type.TString;
 level: Type.TUnion<[Type.TLiteral<"low">, Type.TLiteral<"middle">, Type.TLiteral<"high">]>;
 }>>;
+direction: Type.TOptional<Type.TUnknown>;
 drives: Type.TArray<Type.TObject<{
 drive: Type.TString;
 intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Type.TLiteral<"atTimes">]>;
 }>>;
+id: Type.TString;
+profession: Type.TString;
 text: Type.TString;
-direction: Type.TOptional<Type.TUnknown>;
+title: Type.TString;
+tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
 }>>>;
 frame: Type.TOptional<Type.TString>;
-cast: Type.TOptional<Type.TArray<Type.TString>>;
+heading: Type.TString;
+lightShare: Type.TNumber;
+noteTools: Type.TArray<Type.TString>;
+perResident: Type.TObject<{
+max: Type.TInteger;
+min: Type.TInteger;
+}>;
+spreadPer: Type.TInteger;
+whisperer: Type.TOptional<Type.TObject<{
+agent: Type.TOptional<Type.TString>;
+}>>;
 whispererCoreMotive: Type.TOptional<Type.TObject<{
 bigFive: Type.TArray<Type.TObject<{
 axis: Type.TString;
@@ -144,10 +148,6 @@ intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Typ
 }>>;
 figure: Type.TOptional<Type.TString>;
 }>>;
-whisperer: Type.TOptional<Type.TObject<{
-agent: Type.TOptional<Type.TString>;
-}>>;
-noteTools: Type.TArray<Type.TString>;
 }>, {
 readonly motive_dealt: Type.TObject<{
 agent: Type.TString;
@@ -184,50 +184,54 @@ figure: Type.TOptional<Type.TString>;
 
 // @public
 export const motivesHead: MechanicHead<"motives", Type.TObject<{
-heading: Type.TString;
 axes: Type.TArray<Type.TObject<{
 id: Type.TString;
 texts: Type.TObject<{
+high: Type.TString;
 low: Type.TString;
 middle: Type.TString;
-high: Type.TString;
 }>;
 }>>;
+cast: Type.TOptional<Type.TArray<Type.TString>>;
 drives: Type.TArray<Type.TObject<{
-id: Type.TString;
+cues: Type.TArray<Type.TString>;
 group: Type.TString;
-tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
+id: Type.TString;
 texts: Type.TObject<{
 aboveAll: Type.TString;
-clearly: Type.TString;
 atTimes: Type.TString;
+clearly: Type.TString;
 }>;
-cues: Type.TArray<Type.TString>;
-}>>;
-perResident: Type.TObject<{
-min: Type.TInteger;
-max: Type.TInteger;
-}>;
-lightShare: Type.TNumber;
-spreadPer: Type.TInteger;
-figures: Type.TOptional<Type.TArray<Type.TObject<{
-id: Type.TString;
-title: Type.TString;
-profession: Type.TString;
 tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
+}>>;
+figures: Type.TOptional<Type.TArray<Type.TObject<{
 bigFive: Type.TArray<Type.TObject<{
 axis: Type.TString;
 level: Type.TUnion<[Type.TLiteral<"low">, Type.TLiteral<"middle">, Type.TLiteral<"high">]>;
 }>>;
+direction: Type.TOptional<Type.TUnknown>;
 drives: Type.TArray<Type.TObject<{
 drive: Type.TString;
 intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Type.TLiteral<"atTimes">]>;
 }>>;
+id: Type.TString;
+profession: Type.TString;
 text: Type.TString;
-direction: Type.TOptional<Type.TUnknown>;
+title: Type.TString;
+tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
 }>>>;
 frame: Type.TOptional<Type.TString>;
-cast: Type.TOptional<Type.TArray<Type.TString>>;
+heading: Type.TString;
+lightShare: Type.TNumber;
+noteTools: Type.TArray<Type.TString>;
+perResident: Type.TObject<{
+max: Type.TInteger;
+min: Type.TInteger;
+}>;
+spreadPer: Type.TInteger;
+whisperer: Type.TOptional<Type.TObject<{
+agent: Type.TOptional<Type.TString>;
+}>>;
 whispererCoreMotive: Type.TOptional<Type.TObject<{
 bigFive: Type.TArray<Type.TObject<{
 axis: Type.TString;
@@ -239,10 +243,6 @@ intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Typ
 }>>;
 figure: Type.TOptional<Type.TString>;
 }>>;
-whisperer: Type.TOptional<Type.TObject<{
-agent: Type.TOptional<Type.TString>;
-}>>;
-noteTools: Type.TArray<Type.TString>;
 }>, Type.TArray<Type.TObject<{
 agent: Type.TString;
 bigFive: Type.TArray<Type.TObject<{
@@ -270,102 +270,106 @@ figure: Type.TOptional<Type.TString>;
 }, {
 readonly "motives/notes/private-core-motive": readonly ["who"];
 }, [], readonly [ServiceDefinition<"motives", {
-readonly drivesOf: {
-readonly kind: "query";
-readonly summary: "The drive ids of the resident's core motive, the strongest first, or null without a core motive (the goals deal follows them).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TArray<Type.TString>, Type.TNull]>;
-};
 readonly cuesOf: {
-readonly kind: "query";
-readonly summary: "The lower-case cue words of the resident's drives (the gamemaker's `characterLeaks` check).";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TString>;
+readonly summary: "The lower-case cue words of the resident's drives (the gamemaker's `characterLeaks` check).";
+};
+readonly drivesOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TArray<Type.TString>, Type.TNull]>;
+readonly summary: "The drive ids of the resident's core motive, the strongest first, or null without a core motive (the goals deal follows them).";
 };
 }>], readonly [ServiceDefinition<"whispers", {
 readonly whisperer: {
-readonly kind: "query";
-readonly summary: "The resident the city chose as the whisperer, or null when none plays (a control run, a game without one).";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The resident the city chose as the whisperer, or null when none plays (a control run, a game without one).";
 };
 }>, ServiceDefinition<"identity", {
-readonly nameOf: {
+readonly display: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly output: Type.TString;
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+};
+readonly nameOf: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly display: {
 readonly kind: "query";
-readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
-readonly input: Type.TObject<{
-text: Type.TString;
-}>;
-readonly output: Type.TString;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
 };
 readonly resolve: {
-readonly kind: "query";
-readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 readonly input: Type.TObject<{
 text: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TString;
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 };
 }>], Readonly<Record<symbol, never>>>;
 
 // @public
 export const MotivesOptions: Type.TObject<{
-    heading: Type.TString;
     axes: Type.TArray<Type.TObject<{
         id: Type.TString;
         texts: Type.TObject<{
+            high: Type.TString;
             low: Type.TString;
             middle: Type.TString;
-            high: Type.TString;
         }>;
     }>>;
+    cast: Type.TOptional<Type.TArray<Type.TString>>;
     drives: Type.TArray<Type.TObject<{
-        id: Type.TString;
+        cues: Type.TArray<Type.TString>;
         group: Type.TString;
-        tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
+        id: Type.TString;
         texts: Type.TObject<{
             aboveAll: Type.TString;
-            clearly: Type.TString;
             atTimes: Type.TString;
+            clearly: Type.TString;
         }>;
-        cues: Type.TArray<Type.TString>;
-    }>>;
-    perResident: Type.TObject<{
-        min: Type.TInteger;
-        max: Type.TInteger;
-    }>;
-    lightShare: Type.TNumber;
-    spreadPer: Type.TInteger;
-    figures: Type.TOptional<Type.TArray<Type.TObject<{
-        id: Type.TString;
-        title: Type.TString;
-        profession: Type.TString;
         tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
+    }>>;
+    figures: Type.TOptional<Type.TArray<Type.TObject<{
         bigFive: Type.TArray<Type.TObject<{
             axis: Type.TString;
             level: Type.TUnion<[Type.TLiteral<"low">, Type.TLiteral<"middle">, Type.TLiteral<"high">]>;
         }>>;
+        direction: Type.TOptional<Type.TUnknown>;
         drives: Type.TArray<Type.TObject<{
             drive: Type.TString;
             intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Type.TLiteral<"atTimes">]>;
         }>>;
+        id: Type.TString;
+        profession: Type.TString;
         text: Type.TString;
-        direction: Type.TOptional<Type.TUnknown>;
+        title: Type.TString;
+        tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
     }>>>;
     frame: Type.TOptional<Type.TString>;
-    cast: Type.TOptional<Type.TArray<Type.TString>>;
+    heading: Type.TString;
+    lightShare: Type.TNumber;
+    noteTools: Type.TArray<Type.TString>;
+    perResident: Type.TObject<{
+        max: Type.TInteger;
+        min: Type.TInteger;
+    }>;
+    spreadPer: Type.TInteger;
+    whisperer: Type.TOptional<Type.TObject<{
+        agent: Type.TOptional<Type.TString>;
+    }>>;
     whispererCoreMotive: Type.TOptional<Type.TObject<{
         bigFive: Type.TArray<Type.TObject<{
             axis: Type.TString;
@@ -377,10 +381,6 @@ export const MotivesOptions: Type.TObject<{
         }>>;
         figure: Type.TOptional<Type.TString>;
     }>>;
-    whisperer: Type.TOptional<Type.TObject<{
-        agent: Type.TOptional<Type.TString>;
-    }>>;
-    noteTools: Type.TArray<Type.TString>;
 }>;
 
 // @public
@@ -388,21 +388,21 @@ export type MotivesOptions = Static<typeof MotivesOptions>;
 
 // @public
 export const MotivesService: ServiceDefinition<"motives", {
-readonly drivesOf: {
-readonly kind: "query";
-readonly summary: "The drive ids of the resident's core motive, the strongest first, or null without a core motive (the goals deal follows them).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TArray<Type.TString>, Type.TNull]>;
-};
 readonly cuesOf: {
-readonly kind: "query";
-readonly summary: "The lower-case cue words of the resident's drives (the gamemaker's `characterLeaks` check).";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TString>;
+readonly summary: "The lower-case cue words of the resident's drives (the gamemaker's `characterLeaks` check).";
+};
+readonly drivesOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TArray<Type.TString>, Type.TNull]>;
+readonly summary: "The drive ids of the resident's core motive, the strongest first, or null without a core motive (the goals deal follows them).";
 };
 }>;
 

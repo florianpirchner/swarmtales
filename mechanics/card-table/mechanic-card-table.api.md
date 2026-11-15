@@ -25,15 +25,15 @@ export function cardOf(id: string): Card | undefined;
 
 // @public
 export const cardTable: MechanicDefinition<"card-table", Type.TObject<{
+seats: Type.TOptional<Type.TArray<Type.TString>>;
 suits: Type.TArray<Type.TObject<{
 name: Type.TString;
 ranks: Type.TInteger;
 }>>;
-seats: Type.TOptional<Type.TArray<Type.TString>>;
 }>, {
 readonly cards_dealt: Type.TObject<{
-deal: Type.TInteger;
 cards: Type.TInteger;
+deal: Type.TInteger;
 hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 }>;
 }, "viewHand">;
@@ -41,103 +41,103 @@ hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 // @public
 export const CardTableEvents: EventsDefinition<"card-table", {
 readonly cards_dealt: Type.TObject<{
-deal: Type.TInteger;
 cards: Type.TInteger;
+deal: Type.TInteger;
 hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 }>;
 }>;
 
 // @public
 export const cardTableHead: MechanicHead<"card-table", Type.TObject<{
+seats: Type.TOptional<Type.TArray<Type.TString>>;
 suits: Type.TArray<Type.TObject<{
 name: Type.TString;
 ranks: Type.TInteger;
 }>>;
-seats: Type.TOptional<Type.TArray<Type.TString>>;
 }>, Type.TObject<{
+deals: Type.TInteger;
 hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 stock: Type.TArray<Type.TString>;
-deals: Type.TInteger;
 }>, TableState, {
 readonly cards_dealt: Type.TObject<{
-deal: Type.TInteger;
 cards: Type.TInteger;
+deal: Type.TInteger;
 hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 }>;
 }, {
 readonly "card-table/tools/viewHand": readonly [];
 }, [], readonly [ServiceDefinition<"card-table", {
-readonly seats: {
+readonly deal: {
+readonly input: Type.TObject<{
+cards: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TInteger;
+readonly summary: "Collects every card, shuffles the whole deck with the run's seeded stream (label: the deal's number) and deals `cards` to each seat, one at a time in seat order. Returns the deal's number, from 1; writes `cards_dealt` (audience human).";
+};
+readonly draw: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Moves the top card of the draw pile into the seat's hand and returns it; null (nothing changes) when the pile is empty.";
+};
+readonly give: {
+readonly input: Type.TObject<{
+card: Type.TString;
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Puts a card (back) into the seat's hand.";
+};
+readonly hand: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "The seats in table order (the residents who get cards).";
-readonly input: Type.TObject<{}>;
 readonly output: Type.TArray<Type.TString>;
+readonly summary: "A seat's hand, sorted by suit and rank; empty for a resident without a seat.";
+};
+readonly holds: {
+readonly input: Type.TObject<{
+card: Type.TString;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the seat holds the card.";
+};
+readonly seats: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "The seats in table order (the residents who get cards).";
+};
+readonly stock: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "The draw pile: the cards not in any hand, top card first (never shown to a resident; a reference listener may read it).";
 };
 readonly suits: {
-readonly kind: "query";
-readonly summary: "The deck's suits in order, with their rank counts.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TObject<{
 name: Type.TString;
 ranks: Type.TInteger;
 }>>;
-};
-readonly hand: {
-readonly kind: "query";
-readonly summary: "A seat's hand, sorted by suit and rank; empty for a resident without a seat.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly holds: {
-readonly kind: "query";
-readonly summary: "Whether the seat holds the card.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-card: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly deal: {
-readonly kind: "command";
-readonly summary: "Collects every card, shuffles the whole deck with the run's seeded stream (label: the deal's number) and deals `cards` to each seat, one at a time in seat order. Returns the deal's number, from 1; writes `cards_dealt` (audience human).";
-readonly input: Type.TObject<{
-cards: Type.TInteger;
-}>;
-readonly output: Type.TInteger;
-};
-readonly stock: {
-readonly kind: "query";
-readonly summary: "The draw pile: the cards not in any hand, top card first (never shown to a resident; a reference listener may read it).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly draw: {
-readonly kind: "command";
-readonly summary: "Moves the top card of the draw pile into the seat's hand and returns it; null (nothing changes) when the pile is empty.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The deck's suits in order, with their rank counts.";
 };
 readonly take: {
-readonly kind: "command";
-readonly summary: "Removes the card from the seat's hand; false (nothing changes) when the seat does not hold it.";
 readonly input: Type.TObject<{
-resident: Type.TString;
 card: Type.TString;
+resident: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TBoolean;
-};
-readonly give: {
-readonly kind: "command";
-readonly summary: "Puts a card (back) into the seat's hand.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-card: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Removes the card from the seat's hand; false (nothing changes) when the seat does not hold it.";
 };
 }>], [], {
 viewHand: Type.TObject<{}>;
@@ -145,77 +145,77 @@ viewHand: Type.TObject<{}>;
 
 // @public
 export const CardTableService: ServiceDefinition<"card-table", {
-readonly seats: {
+readonly deal: {
+readonly input: Type.TObject<{
+cards: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TInteger;
+readonly summary: "Collects every card, shuffles the whole deck with the run's seeded stream (label: the deal's number) and deals `cards` to each seat, one at a time in seat order. Returns the deal's number, from 1; writes `cards_dealt` (audience human).";
+};
+readonly draw: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Moves the top card of the draw pile into the seat's hand and returns it; null (nothing changes) when the pile is empty.";
+};
+readonly give: {
+readonly input: Type.TObject<{
+card: Type.TString;
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Puts a card (back) into the seat's hand.";
+};
+readonly hand: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "The seats in table order (the residents who get cards).";
-readonly input: Type.TObject<{}>;
 readonly output: Type.TArray<Type.TString>;
+readonly summary: "A seat's hand, sorted by suit and rank; empty for a resident without a seat.";
+};
+readonly holds: {
+readonly input: Type.TObject<{
+card: Type.TString;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the seat holds the card.";
+};
+readonly seats: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "The seats in table order (the residents who get cards).";
+};
+readonly stock: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "The draw pile: the cards not in any hand, top card first (never shown to a resident; a reference listener may read it).";
 };
 readonly suits: {
-readonly kind: "query";
-readonly summary: "The deck's suits in order, with their rank counts.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TObject<{
 name: Type.TString;
 ranks: Type.TInteger;
 }>>;
-};
-readonly hand: {
-readonly kind: "query";
-readonly summary: "A seat's hand, sorted by suit and rank; empty for a resident without a seat.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly holds: {
-readonly kind: "query";
-readonly summary: "Whether the seat holds the card.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-card: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly deal: {
-readonly kind: "command";
-readonly summary: "Collects every card, shuffles the whole deck with the run's seeded stream (label: the deal's number) and deals `cards` to each seat, one at a time in seat order. Returns the deal's number, from 1; writes `cards_dealt` (audience human).";
-readonly input: Type.TObject<{
-cards: Type.TInteger;
-}>;
-readonly output: Type.TInteger;
-};
-readonly stock: {
-readonly kind: "query";
-readonly summary: "The draw pile: the cards not in any hand, top card first (never shown to a resident; a reference listener may read it).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly draw: {
-readonly kind: "command";
-readonly summary: "Moves the top card of the draw pile into the seat's hand and returns it; null (nothing changes) when the pile is empty.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The deck's suits in order, with their rank counts.";
 };
 readonly take: {
-readonly kind: "command";
-readonly summary: "Removes the card from the seat's hand; false (nothing changes) when the seat does not hold it.";
 readonly input: Type.TObject<{
-resident: Type.TString;
 card: Type.TString;
+resident: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TBoolean;
-};
-readonly give: {
-readonly kind: "command";
-readonly summary: "Puts a card (back) into the seat's hand.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-card: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Removes the card from the seat's hand; false (nothing changes) when the seat does not hold it.";
 };
 }>;
 
@@ -251,9 +251,9 @@ export type SuitSpec = Static<typeof SuitSpec>;
 
 // @public
 export const TableSlice: Type.TObject<{
+    deals: Type.TInteger;
     hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
     stock: Type.TArray<Type.TString>;
-    deals: Type.TInteger;
 }>;
 
 // @public

@@ -13,15 +13,15 @@ depth: Type.TInteger;
 maxNodes: Type.TInteger;
 }>, {
 move_scored: Type.TObject<{
-game: Type.TInteger;
-turnNo: Type.TInteger;
-side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
-class: Type.TUnion<[Type.TLiteral<"best">, Type.TLiteral<"inaccuracy">, Type.TLiteral<"blunder">, Type.TLiteral<"missed_win">]>;
-best: Type.TInteger;
-played: Type.TInteger;
-depth: Type.TInteger;
 alternatives: Type.TInteger;
+best: Type.TInteger;
+class: Type.TUnion<[Type.TLiteral<"best">, Type.TLiteral<"inaccuracy">, Type.TLiteral<"blunder">, Type.TLiteral<"missed_win">]>;
+depth: Type.TInteger;
+game: Type.TInteger;
 missedMill: Type.TBoolean;
+played: Type.TInteger;
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+turnNo: Type.TInteger;
 }>;
 }, never>;
 

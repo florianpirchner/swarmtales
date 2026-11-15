@@ -17,15 +17,15 @@ import { Type } from 'typebox';
 
 // @public
 export const PetitionRecord: Type.TObject<{
+    deadlineMinute: Type.TInteger;
     id: Type.TString;
+    openedAt: Type.TInteger;
+    resolvedAt: Type.TOptional<Type.TInteger>;
+    signers: Type.TArray<Type.TString>;
+    status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
     text: Type.TString;
     threshold: Type.TInteger;
-    deadlineMinute: Type.TInteger;
     visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-    openedAt: Type.TInteger;
-    status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
-    signers: Type.TArray<Type.TString>;
-    resolvedAt: Type.TOptional<Type.TInteger>;
 }>;
 
 // @public
@@ -34,23 +34,23 @@ export type PetitionRecord = Static<typeof PetitionRecord>;
 // @public
 export const petitions: MechanicDefinition<"petitions", NoOptions, {
 readonly petition_opened: Type.TObject<{
+against: Type.TArray<Type.TString>;
+deadlineMinute: Type.TInteger;
 petition: Type.TString;
 text: Type.TString;
 threshold: Type.TInteger;
-deadlineMinute: Type.TInteger;
 visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-against: Type.TArray<Type.TString>;
-}>;
-readonly petition_signed: Type.TObject<{
-petition: Type.TString;
-agent: Type.TString;
-signatures: Type.TInteger;
 }>;
 readonly petition_resolved: Type.TObject<{
-petition: Type.TString;
 outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+petition: Type.TString;
 signatures: Type.TInteger;
 signers: Type.TArray<Type.TString>;
+}>;
+readonly petition_signed: Type.TObject<{
+agent: Type.TString;
+petition: Type.TString;
+signatures: Type.TInteger;
 }>;
 }, "listPetitions" | "resolvePetition" | "signPetition">;
 
@@ -60,245 +60,245 @@ export type PetitionsCtx = CtxOf<typeof petitionsHead>;
 // @public
 export const PetitionsEvents: EventsDefinition<"petitions", {
 readonly petition_opened: Type.TObject<{
+against: Type.TArray<Type.TString>;
+deadlineMinute: Type.TInteger;
 petition: Type.TString;
 text: Type.TString;
 threshold: Type.TInteger;
-deadlineMinute: Type.TInteger;
 visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-against: Type.TArray<Type.TString>;
-}>;
-readonly petition_signed: Type.TObject<{
-petition: Type.TString;
-agent: Type.TString;
-signatures: Type.TInteger;
 }>;
 readonly petition_resolved: Type.TObject<{
-petition: Type.TString;
 outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+petition: Type.TString;
 signatures: Type.TInteger;
 signers: Type.TArray<Type.TString>;
+}>;
+readonly petition_signed: Type.TObject<{
+agent: Type.TString;
+petition: Type.TString;
+signatures: Type.TInteger;
 }>;
 }>;
 
 // @public
 export const petitionsHead: MechanicHead<"petitions", NoOptions, Type.TObject<{
 petitions: Type.TArray<Type.TObject<{
+deadlineMinute: Type.TInteger;
 id: Type.TString;
+openedAt: Type.TInteger;
+resolvedAt: Type.TOptional<Type.TInteger>;
+signers: Type.TArray<Type.TString>;
+status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
 text: Type.TString;
 threshold: Type.TInteger;
-deadlineMinute: Type.TInteger;
 visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-openedAt: Type.TInteger;
-status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
-signers: Type.TArray<Type.TString>;
-resolvedAt: Type.TOptional<Type.TInteger>;
 }>>;
 }>, {
 petitions: {
-resolvedAt?: number;
+deadlineMinute: number;
 id: string;
+openedAt: number;
+resolvedAt?: number;
+signers: string[];
+status: "failed" | "open" | "passed";
 text: string;
 threshold: number;
-deadlineMinute: number;
 visibility: "public" | "secret";
-openedAt: number;
-status: "failed" | "open" | "passed";
-signers: string[];
 }[];
 }, {
 readonly petition_opened: Type.TObject<{
+against: Type.TArray<Type.TString>;
+deadlineMinute: Type.TInteger;
 petition: Type.TString;
 text: Type.TString;
 threshold: Type.TInteger;
-deadlineMinute: Type.TInteger;
 visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-against: Type.TArray<Type.TString>;
-}>;
-readonly petition_signed: Type.TObject<{
-petition: Type.TString;
-agent: Type.TString;
-signatures: Type.TInteger;
 }>;
 readonly petition_resolved: Type.TObject<{
-petition: Type.TString;
 outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+petition: Type.TString;
 signatures: Type.TInteger;
 signers: Type.TArray<Type.TString>;
 }>;
+readonly petition_signed: Type.TObject<{
+agent: Type.TString;
+petition: Type.TString;
+signatures: Type.TInteger;
+}>;
 }, {
-readonly "petitions/tools/signPetition": readonly [];
-readonly "petitions/tools/listPetitions": readonly [];
-readonly "petitions/replies/petition-signatures": readonly ["signatures", "threshold", "deadline"];
-readonly "petitions/replies/petition-signers": readonly ["signers"];
+readonly "petitions/noun-many": readonly [];
+readonly "petitions/noun-one": readonly [];
+readonly "petitions/opened": readonly ["id", "text", "threshold", "noun", "deadline", "visibility"];
 readonly "petitions/replies/petition-secret": readonly [];
-readonly "petitions/replies/petition-you-signed": readonly [];
-readonly "petitions/replies/petition-you-not-signed": readonly [];
+readonly "petitions/replies/petition-signatures": readonly ["signatures", "threshold", "deadline"];
 readonly "petitions/replies/petition-signed": readonly ["petition"];
+readonly "petitions/replies/petition-signers": readonly ["signers"];
+readonly "petitions/replies/petition-you-not-signed": readonly [];
+readonly "petitions/replies/petition-you-signed": readonly [];
 readonly "petitions/replies/petitions-none": readonly [];
-readonly "petitions/tools/resolvePetition": readonly [];
+readonly "petitions/resolved": readonly ["id", "outcome", "signatures", "threshold", "signers"];
 readonly "petitions/signed-by": readonly ["signers"];
+readonly "petitions/tools/listPetitions": readonly [];
+readonly "petitions/tools/resolvePetition": readonly [];
+readonly "petitions/tools/signPetition": readonly [];
 readonly "petitions/visibility-public": readonly [];
 readonly "petitions/visibility-secret": readonly [];
-readonly "petitions/noun-one": readonly [];
-readonly "petitions/noun-many": readonly [];
-readonly "petitions/opened": readonly ["id", "text", "threshold", "noun", "deadline", "visibility"];
-readonly "petitions/resolved": readonly ["id", "outcome", "signatures", "threshold", "signers"];
 }, readonly [ServiceDefinition<"channels", {
-readonly post: {
+readonly boardPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+};
+readonly couldRead: {
+readonly input: Type.TObject<{
+group: Type.TString;
+number: Type.TInteger;
+reader: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+};
+readonly createCityGroup: {
+readonly input: Type.TObject<{
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+};
+readonly deliver: {
+readonly input: Type.TObject<{
+from: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+};
+readonly dmRecords: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+answered: Type.TBoolean;
+deliveredAfter: Type.TOptional<Type.TInteger>;
+deliveredTick: Type.TOptional<Type.TInteger>;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+to: Type.TString;
+}>>;
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+};
+readonly dmWindow: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+from: Type.TInteger;
+limit: Type.TInteger;
+sent: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+};
+readonly group: {
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+founder: Type.TString;
+id: Type.TString;
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+removed: Type.TBoolean;
+treasurer: Type.TString;
+}>, Type.TNull]>;
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+};
+readonly groupPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+group: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+};
+readonly notify: {
 readonly input: Type.TObject<{
 author: Type.TString;
 text: Type.TString;
-kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+to: Type.TString;
 }>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+};
+readonly pendingDms: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+};
+readonly post: {
+readonly input: Type.TObject<{
+author: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+text: Type.TString;
+}>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 postSeq: Type.TInteger;
 }>;
-};
-readonly notify: {
-readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
-readonly input: Type.TObject<{
-to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
-readonly deliver: {
-readonly kind: "command";
-readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
-readonly input: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TObject<{
-number: Type.TInteger;
-}>;
-};
-readonly dmRecords: {
-readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-tick: Type.TInteger;
-answered: Type.TBoolean;
-deliveredTick: Type.TOptional<Type.TInteger>;
-deliveredAfter: Type.TOptional<Type.TInteger>;
-}>>;
-};
-readonly boardPost: {
-readonly kind: "query";
-readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly pendingDms: {
-readonly kind: "query";
-readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly dmWindow: {
-readonly kind: "query";
-readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-sent: Type.TInteger;
-limit: Type.TInteger;
-from: Type.TInteger;
-until: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly createCityGroup: {
-readonly kind: "command";
-readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
-readonly input: Type.TObject<{
-name: Type.TString;
-members: Type.TArray<Type.TString>;
-}>;
-readonly output: Type.TObject<{
-group: Type.TString;
-}>;
-};
-readonly removeCityGroup: {
-readonly kind: "command";
-readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
-readonly input: Type.TObject<{
-group: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
 };
 readonly postGroupAsCity: {
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
-readonly input: Type.TObject<{
-group: Type.TString;
-text: Type.TString;
-}>;
 readonly output: Type.TNull;
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
 };
-readonly group: {
-readonly kind: "query";
-readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly removeCityGroup: {
 readonly input: Type.TObject<{
 group: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TObject<{
-id: Type.TString;
-name: Type.TString;
-founder: Type.TString;
-treasurer: Type.TString;
-members: Type.TArray<Type.TString>;
-removed: Type.TBoolean;
-}>, Type.TNull]>;
-};
-readonly groupPost: {
-readonly kind: "query";
-readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-group: Type.TString;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly couldRead: {
-readonly kind: "query";
-readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
-readonly input: Type.TObject<{
-group: Type.TString;
-reader: Type.TString;
-number: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
 };
 }>], readonly [ServiceDefinition<"petitions", {
 readonly open: {
-readonly kind: "command";
-readonly summary: "Opens a petition (old `openPetition`): writes `petition_opened` and the city's board post. A taken id is refused with `DUPLICATE_PETITION`.";
 readonly input: Type.TObject<{
+against: Type.TOptional<Type.TArray<Type.TString>>;
+deadlineMinute: Type.TInteger;
 id: Type.TString;
 text: Type.TString;
 threshold: Type.TUnion<[Type.TObject<{
@@ -306,35 +306,35 @@ count: Type.TInteger;
 }>, Type.TObject<{
 fraction: Type.TNumber;
 }>]>;
-deadlineMinute: Type.TInteger;
 visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-against: Type.TOptional<Type.TArray<Type.TString>>;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
 ok: Type.TLiteral<true>;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TString;
 detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Opens a petition (old `openPetition`): writes `petition_opened` and the city's board post. A taken id is refused with `DUPLICATE_PETITION`.";
 };
 }>], [], {
+listPetitions: Type.TObject<{}>;
 resolvePetition: Type.TObject<{
-petition: Type.TString;
 outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+petition: Type.TString;
 }>;
 signPetition: Type.TObject<{
 petitionId: Type.TString;
 }>;
-listPetitions: Type.TObject<{}>;
 }>;
 
 // @public
 export const PetitionsService: ServiceDefinition<"petitions", {
 readonly open: {
-readonly kind: "command";
-readonly summary: "Opens a petition (old `openPetition`): writes `petition_opened` and the city's board post. A taken id is refused with `DUPLICATE_PETITION`.";
 readonly input: Type.TObject<{
+against: Type.TOptional<Type.TArray<Type.TString>>;
+deadlineMinute: Type.TInteger;
 id: Type.TString;
 text: Type.TString;
 threshold: Type.TUnion<[Type.TObject<{
@@ -342,32 +342,32 @@ count: Type.TInteger;
 }>, Type.TObject<{
 fraction: Type.TNumber;
 }>]>;
-deadlineMinute: Type.TInteger;
 visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-against: Type.TOptional<Type.TArray<Type.TString>>;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
 ok: Type.TLiteral<true>;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TString;
 detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Opens a petition (old `openPetition`): writes `petition_opened` and the city's board post. A taken id is refused with `DUPLICATE_PETITION`.";
 };
 }>;
 
 // @public
 export const PetitionsSlice: Type.TObject<{
     petitions: Type.TArray<Type.TObject<{
+        deadlineMinute: Type.TInteger;
         id: Type.TString;
+        openedAt: Type.TInteger;
+        resolvedAt: Type.TOptional<Type.TInteger>;
+        signers: Type.TArray<Type.TString>;
+        status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
         text: Type.TString;
         threshold: Type.TInteger;
-        deadlineMinute: Type.TInteger;
         visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-        openedAt: Type.TInteger;
-        status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
-        signers: Type.TArray<Type.TString>;
-        resolvedAt: Type.TOptional<Type.TInteger>;
     }>>;
 }>;
 
@@ -379,8 +379,8 @@ export type PetitionsToolCtx = ToolCtxOf<typeof petitionsHead>;
 
 // @public
 export const ResolvePetition: ToolRef<"resolvePetition", Type.TObject<{
-petition: Type.TString;
 outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+petition: Type.TString;
 }>>;
 
 // @public

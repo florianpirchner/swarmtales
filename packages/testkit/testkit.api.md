@@ -71,8 +71,8 @@ export function countsOf(timeline: readonly OracleEntry[]): Oracle["counts"];
 
 // @public
 export function eventBurst(timeline: readonly OracleEntry[], source: string, type: string, occurrence?: number): {
-    readonly index: number;
     readonly entries: readonly OracleEntry[];
+    readonly index: number;
 };
 
 // @public
@@ -84,8 +84,8 @@ max: Type.TInteger;
 }>, {
 guessed: Type.TObject<{
 by: Type.TString;
-value: Type.TInteger;
 hint: Type.TUnion<[Type.TLiteral<"low">, Type.TLiteral<"high">, Type.TLiteral<"right">]>;
+value: Type.TInteger;
 }>;
 }, "guess">;
 
@@ -98,8 +98,8 @@ winner: Type.TOptional<Type.TString>;
 }>, never, {
 guessed: Type.TObject<{
 by: Type.TString;
-value: Type.TInteger;
 hint: Type.TUnion<[Type.TLiteral<"low">, Type.TLiteral<"high">, Type.TLiteral<"right">]>;
+value: Type.TInteger;
 }>;
 }, Readonly<Record<symbol, never>>, [], [], [], {
 guess: Type.TObject<{
@@ -135,38 +135,38 @@ export const OracleEntrySchema: Type.TUnion<[Type.TObject<{
     k: Type.TLiteral<"minute">;
     minute: Type.TInteger;
 }>, Type.TObject<{
-    k: Type.TLiteral<"turn">;
-    resident: Type.TString;
-    pass: Type.TInteger;
     block: Type.TInteger;
     inputs: Type.TArray<Type.TObject<{
-        source: Type.TString;
         kind: Type.TOptional<Type.TString>;
+        source: Type.TString;
         text: Type.TString;
     }>>;
-}>, Type.TObject<{
-    k: Type.TLiteral<"skip">;
-    resident: Type.TString;
+    k: Type.TLiteral<"turn">;
     pass: Type.TInteger;
+    resident: Type.TString;
+}>, Type.TObject<{
     block: Type.TInteger;
+    k: Type.TLiteral<"skip">;
+    pass: Type.TInteger;
+    resident: Type.TString;
 }>, Type.TObject<{
-    k: Type.TLiteral<"call">;
     actor: Type.TString;
-    tool: Type.TString;
-    params: Type.TUnknown;
-    ok: Type.TBoolean;
-    reply: Type.TOptional<Type.TString>;
-    endsTurn: Type.TOptional<Type.TBoolean>;
     code: Type.TOptional<Type.TString>;
-    stage: Type.TOptional<Type.TUnion<[Type.TLiteral<"lock">, Type.TLiteral<"parse">, Type.TLiteral<"limit">, Type.TLiteral<"afford">, Type.TLiteral<"rule">, Type.TLiteral<"guard">, Type.TLiteral<"consult">, Type.TLiteral<"execute">]>>;
     detail: Type.TOptional<Type.TString>;
+    endsTurn: Type.TOptional<Type.TBoolean>;
+    k: Type.TLiteral<"call">;
+    ok: Type.TBoolean;
+    params: Type.TUnknown;
+    reply: Type.TOptional<Type.TString>;
+    stage: Type.TOptional<Type.TUnion<[Type.TLiteral<"lock">, Type.TLiteral<"parse">, Type.TLiteral<"limit">, Type.TLiteral<"afford">, Type.TLiteral<"rule">, Type.TLiteral<"guard">, Type.TLiteral<"consult">, Type.TLiteral<"execute">]>>;
+    tool: Type.TString;
 }>, Type.TObject<{
-    k: Type.TLiteral<"event">;
-    source: Type.TString;
-    type: Type.TString;
     actor: Type.TString;
     audience: Type.TOptional<Type.TArray<Type.TString>>;
+    k: Type.TLiteral<"event">;
     payload: Type.TUnknown;
+    source: Type.TString;
+    type: Type.TString;
 }>, Type.TObject<{
     k: Type.TLiteral<"resume">;
     minute: Type.TInteger;
@@ -191,100 +191,100 @@ export interface OracleOptions extends Pick<PlayOptions, "installed" | "prompts"
 
 // @public
 export const OracleSchema: Type.TObject<{
-    format: Type.TLiteral<"swarmtales.oracle">;
-    version: Type.TLiteral<1>;
-    game: Type.TString;
-    variant: Type.TString;
-    seed: Type.TNumber;
-    runtimeRevision: Type.TInteger;
-    source: Type.TObject<{
-        kind: Type.TUnion<[Type.TLiteral<"live-replay">, Type.TLiteral<"scripted">]>;
-        from: Type.TString;
-        note: Type.TOptional<Type.TString>;
-        fidelity: Type.TOptional<Type.TObject<{
-            turns: Type.TInteger;
-            turnsWithEqualInputs: Type.TInteger;
-            calls: Type.TInteger;
-            callsWithEqualResult: Type.TInteger;
-            turnsLeft: Type.TInteger;
-        }>>;
+    counts: Type.TObject<{
+        entries: Type.TRecord<"^.*$", Type.TInteger>;
+        events: Type.TRecord<"^.*$", Type.TInteger>;
     }>;
+    end: Type.TOptional<Type.TObject<{
+        limit: Type.TOptional<Type.TString>;
+        minute: Type.TInteger;
+        reason: Type.TUnion<[Type.TLiteral<"referee">, Type.TLiteral<"minutes">]>;
+    }>>;
+    format: Type.TLiteral<"swarmtales.oracle">;
+    game: Type.TString;
+    runtimeRevision: Type.TInteger;
+    seed: Type.TNumber;
     setup: Type.TObject<{
-        story: Type.TString;
-        seed: Type.TNumber;
-        minutes: Type.TInteger;
-        residents: Type.TArray<Type.TString>;
+        definition: Type.TOptional<Type.TObject<{
+            effective: Type.TUnknown;
+            file: Type.TString;
+        }>>;
+        limits: Type.TOptional<Type.TUnknown>;
+        locked: Type.TArray<Type.TString>;
         mechanics: Type.TArray<Type.TObject<{
             id: Type.TString;
             options: Type.TUnknown;
         }>>;
+        minutes: Type.TInteger;
         residentTools: Type.TArray<Type.TString>;
-        locked: Type.TArray<Type.TString>;
+        residents: Type.TArray<Type.TString>;
+        seed: Type.TNumber;
+        story: Type.TString;
         turns: Type.TObject<{
-            passes: Type.TInteger;
-            blockSize: Type.TInteger;
             activation: Type.TUnion<[Type.TLiteral<"always">, Type.TLiteral<"onNews">]>;
+            blockSize: Type.TInteger;
             order: Type.TUnion<[Type.TLiteral<"seeded">, Type.TLiteral<"custom">]>;
+            passes: Type.TInteger;
         }>;
-        limits: Type.TOptional<Type.TUnknown>;
-        definition: Type.TOptional<Type.TObject<{
-            file: Type.TString;
-            effective: Type.TUnknown;
-        }>>;
     }>;
-    truncated: Type.TOptional<Type.TObject<{
-        afterMinute: Type.TInteger;
-        reason: Type.TString;
-    }>>;
-    end: Type.TOptional<Type.TObject<{
-        reason: Type.TUnion<[Type.TLiteral<"referee">, Type.TLiteral<"minutes">]>;
-        minute: Type.TInteger;
-        limit: Type.TOptional<Type.TString>;
-    }>>;
-    counts: Type.TObject<{
-        entries: Type.TRecord<"^.*$", Type.TInteger>;
-        events: Type.TRecord<"^.*$", Type.TInteger>;
+    source: Type.TObject<{
+        fidelity: Type.TOptional<Type.TObject<{
+            calls: Type.TInteger;
+            callsWithEqualResult: Type.TInteger;
+            turns: Type.TInteger;
+            turnsLeft: Type.TInteger;
+            turnsWithEqualInputs: Type.TInteger;
+        }>>;
+        from: Type.TString;
+        kind: Type.TUnion<[Type.TLiteral<"live-replay">, Type.TLiteral<"scripted">]>;
+        note: Type.TOptional<Type.TString>;
     }>;
     timeline: Type.TArray<Type.TUnion<[Type.TObject<{
         k: Type.TLiteral<"minute">;
         minute: Type.TInteger;
     }>, Type.TObject<{
-        k: Type.TLiteral<"turn">;
-        resident: Type.TString;
-        pass: Type.TInteger;
         block: Type.TInteger;
         inputs: Type.TArray<Type.TObject<{
-            source: Type.TString;
             kind: Type.TOptional<Type.TString>;
+            source: Type.TString;
             text: Type.TString;
         }>>;
-    }>, Type.TObject<{
-        k: Type.TLiteral<"skip">;
-        resident: Type.TString;
+        k: Type.TLiteral<"turn">;
         pass: Type.TInteger;
+        resident: Type.TString;
+    }>, Type.TObject<{
         block: Type.TInteger;
+        k: Type.TLiteral<"skip">;
+        pass: Type.TInteger;
+        resident: Type.TString;
     }>, Type.TObject<{
-        k: Type.TLiteral<"call">;
         actor: Type.TString;
-        tool: Type.TString;
-        params: Type.TUnknown;
-        ok: Type.TBoolean;
-        reply: Type.TOptional<Type.TString>;
-        endsTurn: Type.TOptional<Type.TBoolean>;
         code: Type.TOptional<Type.TString>;
-        stage: Type.TOptional<Type.TUnion<[Type.TLiteral<"lock">, Type.TLiteral<"parse">, Type.TLiteral<"limit">, Type.TLiteral<"afford">, Type.TLiteral<"rule">, Type.TLiteral<"guard">, Type.TLiteral<"consult">, Type.TLiteral<"execute">]>>;
         detail: Type.TOptional<Type.TString>;
+        endsTurn: Type.TOptional<Type.TBoolean>;
+        k: Type.TLiteral<"call">;
+        ok: Type.TBoolean;
+        params: Type.TUnknown;
+        reply: Type.TOptional<Type.TString>;
+        stage: Type.TOptional<Type.TUnion<[Type.TLiteral<"lock">, Type.TLiteral<"parse">, Type.TLiteral<"limit">, Type.TLiteral<"afford">, Type.TLiteral<"rule">, Type.TLiteral<"guard">, Type.TLiteral<"consult">, Type.TLiteral<"execute">]>>;
+        tool: Type.TString;
     }>, Type.TObject<{
-        k: Type.TLiteral<"event">;
-        source: Type.TString;
-        type: Type.TString;
         actor: Type.TString;
         audience: Type.TOptional<Type.TArray<Type.TString>>;
+        k: Type.TLiteral<"event">;
         payload: Type.TUnknown;
+        source: Type.TString;
+        type: Type.TString;
     }>, Type.TObject<{
         k: Type.TLiteral<"resume">;
         minute: Type.TInteger;
     }>]>>;
+    truncated: Type.TOptional<Type.TObject<{
+        afterMinute: Type.TInteger;
+        reason: Type.TString;
+    }>>;
+    variant: Type.TString;
+    version: Type.TLiteral<1>;
 }>;
 
 // Warning: (ae-forgotten-export) The symbol "Setup" needs to be exported by the entry point index.d.ts
@@ -400,9 +400,9 @@ export interface ReplayInput {
 export interface ReplayResult {
     readonly equal: boolean;
     readonly firstDifference?: {
-        readonly line: number;
         readonly expected: unknown;
         readonly got: unknown;
+        readonly line: number;
     };
     readonly issue?: SwtIssue;
     readonly log: readonly Envelope[];

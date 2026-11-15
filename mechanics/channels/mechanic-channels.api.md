@@ -11,374 +11,374 @@ import { Type } from 'typebox';
 
 // @public
 export const channels: MechanicDefinition<"channels", Type.TObject<{
-dmLimit: Type.TOptional<Type.TObject<{
-windowMinutes: Type.TInteger;
-perWindow: Type.TInteger;
-}>>;
+boardPosts: Type.TInteger;
+city: Type.TOptional<Type.TString>;
 defiance: Type.TBoolean;
 digest: Type.TBoolean;
+dmLimit: Type.TOptional<Type.TObject<{
+perWindow: Type.TInteger;
+windowMinutes: Type.TInteger;
+}>>;
 noteAuthor: Type.TString;
 noteMaxLength: Type.TInteger;
 notesPerAgent: Type.TInteger;
-boardPosts: Type.TInteger;
 windowMinutes: Type.TInteger;
-city: Type.TOptional<Type.TString>;
 }>, {
 readonly board_post: Type.TObject<{
-postSeq: Type.TInteger;
 author: Type.TString;
-text: Type.TString;
 kind: Type.TUnion<[Type.TLiteral<"player">, Type.TLiteral<"city">, Type.TLiteral<"system">]>;
+postSeq: Type.TInteger;
+text: Type.TString;
+}>;
+readonly dm_delivered: Type.TObject<{
+from: Type.TString;
+number: Type.TInteger;
+to: Type.TString;
 }>;
 readonly dm_sent: Type.TObject<{
 from: Type.TString;
-to: Type.TString;
+number: Type.TInteger;
 text: Type.TString;
-number: Type.TInteger;
-}>;
-readonly dm_delivered: Type.TObject<{
-number: Type.TInteger;
-from: Type.TString;
 to: Type.TString;
 }>;
-readonly notice: Type.TObject<{
-to: Type.TString;
+readonly gamemaker_defied: Type.TObject<{
+agent: Type.TString;
+note: Type.TOptional<Type.TInteger>;
+reason: Type.TString;
+}>;
+readonly gamemaker_note: Type.TObject<{
 author: Type.TString;
-text: Type.TString;
 number: Type.TOptional<Type.TInteger>;
+text: Type.TString;
+to: Type.TString;
 }>;
 readonly group_created: Type.TObject<{
-group: Type.TString;
 founder: Type.TString;
+group: Type.TString;
 name: Type.TString;
+}>;
+readonly group_membership: Type.TObject<{
+agent: Type.TString;
+by: Type.TString;
+change: Type.TUnion<[Type.TLiteral<"added">, Type.TLiteral<"removed">, Type.TLiteral<"left">]>;
+group: Type.TString;
+}>;
+readonly group_post: Type.TObject<{
+author: Type.TString;
+group: Type.TString;
+postSeq: Type.TInteger;
+text: Type.TString;
 }>;
 readonly group_removed: Type.TObject<{
 group: Type.TString;
 members: Type.TArray<Type.TString>;
 }>;
-readonly group_membership: Type.TObject<{
-group: Type.TString;
-agent: Type.TString;
-change: Type.TUnion<[Type.TLiteral<"added">, Type.TLiteral<"removed">, Type.TLiteral<"left">]>;
-by: Type.TString;
-}>;
-readonly group_post: Type.TObject<{
-group: Type.TString;
+readonly notice: Type.TObject<{
 author: Type.TString;
-postSeq: Type.TInteger;
+number: Type.TOptional<Type.TInteger>;
 text: Type.TString;
-}>;
-readonly treasury_deposit: Type.TObject<{
-group: Type.TString;
-agent: Type.TString;
-amount: Type.TNumber;
-receipt: Type.TString;
-}>;
-readonly treasury_withdrawal: Type.TObject<{
-group: Type.TString;
-treasurer: Type.TString;
 to: Type.TString;
-amount: Type.TNumber;
-receipt: Type.TString;
 }>;
 readonly treasurer_set: Type.TObject<{
+by: Type.TString;
 group: Type.TString;
 treasurer: Type.TString;
-by: Type.TString;
+}>;
+readonly treasury_deposit: Type.TObject<{
+agent: Type.TString;
+amount: Type.TNumber;
+group: Type.TString;
+receipt: Type.TString;
 }>;
 readonly treasury_settled: Type.TObject<{
 group: Type.TString;
 payouts: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-readonly gamemaker_note: Type.TObject<{
+readonly treasury_withdrawal: Type.TObject<{
+amount: Type.TNumber;
+group: Type.TString;
+receipt: Type.TString;
 to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-number: Type.TOptional<Type.TInteger>;
-}>;
-readonly gamemaker_defied: Type.TObject<{
-agent: Type.TString;
-reason: Type.TString;
-note: Type.TOptional<Type.TInteger>;
+treasurer: Type.TString;
 }>;
 }, "addGroupMember" | "boardNote" | "createGroup" | "defy" | "depositGroup" | "leaveGroup" | "listMyGroups" | "notify" | "postBoard" | "postGroup" | "readBoard" | "readGroup" | "removeGroupMember" | "sendDM" | "setTreasurer" | "withdrawGroup">;
 
 // @public
 export const ChannelsEvents: EventsDefinition<"channels", {
 readonly board_post: Type.TObject<{
-postSeq: Type.TInteger;
 author: Type.TString;
-text: Type.TString;
 kind: Type.TUnion<[Type.TLiteral<"player">, Type.TLiteral<"city">, Type.TLiteral<"system">]>;
+postSeq: Type.TInteger;
+text: Type.TString;
+}>;
+readonly dm_delivered: Type.TObject<{
+from: Type.TString;
+number: Type.TInteger;
+to: Type.TString;
 }>;
 readonly dm_sent: Type.TObject<{
 from: Type.TString;
-to: Type.TString;
+number: Type.TInteger;
 text: Type.TString;
-number: Type.TInteger;
-}>;
-readonly dm_delivered: Type.TObject<{
-number: Type.TInteger;
-from: Type.TString;
 to: Type.TString;
 }>;
-readonly notice: Type.TObject<{
-to: Type.TString;
+readonly gamemaker_defied: Type.TObject<{
+agent: Type.TString;
+note: Type.TOptional<Type.TInteger>;
+reason: Type.TString;
+}>;
+readonly gamemaker_note: Type.TObject<{
 author: Type.TString;
-text: Type.TString;
 number: Type.TOptional<Type.TInteger>;
+text: Type.TString;
+to: Type.TString;
 }>;
 readonly group_created: Type.TObject<{
-group: Type.TString;
 founder: Type.TString;
+group: Type.TString;
 name: Type.TString;
+}>;
+readonly group_membership: Type.TObject<{
+agent: Type.TString;
+by: Type.TString;
+change: Type.TUnion<[Type.TLiteral<"added">, Type.TLiteral<"removed">, Type.TLiteral<"left">]>;
+group: Type.TString;
+}>;
+readonly group_post: Type.TObject<{
+author: Type.TString;
+group: Type.TString;
+postSeq: Type.TInteger;
+text: Type.TString;
 }>;
 readonly group_removed: Type.TObject<{
 group: Type.TString;
 members: Type.TArray<Type.TString>;
 }>;
-readonly group_membership: Type.TObject<{
-group: Type.TString;
-agent: Type.TString;
-change: Type.TUnion<[Type.TLiteral<"added">, Type.TLiteral<"removed">, Type.TLiteral<"left">]>;
-by: Type.TString;
-}>;
-readonly group_post: Type.TObject<{
-group: Type.TString;
+readonly notice: Type.TObject<{
 author: Type.TString;
-postSeq: Type.TInteger;
+number: Type.TOptional<Type.TInteger>;
 text: Type.TString;
-}>;
-readonly treasury_deposit: Type.TObject<{
-group: Type.TString;
-agent: Type.TString;
-amount: Type.TNumber;
-receipt: Type.TString;
-}>;
-readonly treasury_withdrawal: Type.TObject<{
-group: Type.TString;
-treasurer: Type.TString;
 to: Type.TString;
-amount: Type.TNumber;
-receipt: Type.TString;
 }>;
 readonly treasurer_set: Type.TObject<{
+by: Type.TString;
 group: Type.TString;
 treasurer: Type.TString;
-by: Type.TString;
+}>;
+readonly treasury_deposit: Type.TObject<{
+agent: Type.TString;
+amount: Type.TNumber;
+group: Type.TString;
+receipt: Type.TString;
 }>;
 readonly treasury_settled: Type.TObject<{
 group: Type.TString;
 payouts: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-readonly gamemaker_note: Type.TObject<{
+readonly treasury_withdrawal: Type.TObject<{
+amount: Type.TNumber;
+group: Type.TString;
+receipt: Type.TString;
 to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-number: Type.TOptional<Type.TInteger>;
-}>;
-readonly gamemaker_defied: Type.TObject<{
-agent: Type.TString;
-reason: Type.TString;
-note: Type.TOptional<Type.TInteger>;
+treasurer: Type.TString;
 }>;
 }>;
 
 // @public
 export const ChannelsService: ServiceDefinition<"channels", {
-readonly post: {
+readonly boardPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+};
+readonly couldRead: {
+readonly input: Type.TObject<{
+group: Type.TString;
+number: Type.TInteger;
+reader: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+};
+readonly createCityGroup: {
+readonly input: Type.TObject<{
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+};
+readonly deliver: {
+readonly input: Type.TObject<{
+from: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+};
+readonly dmRecords: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+answered: Type.TBoolean;
+deliveredAfter: Type.TOptional<Type.TInteger>;
+deliveredTick: Type.TOptional<Type.TInteger>;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+to: Type.TString;
+}>>;
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+};
+readonly dmWindow: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+from: Type.TInteger;
+limit: Type.TInteger;
+sent: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+};
+readonly group: {
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+founder: Type.TString;
+id: Type.TString;
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+removed: Type.TBoolean;
+treasurer: Type.TString;
+}>, Type.TNull]>;
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+};
+readonly groupPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+group: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+};
+readonly notify: {
 readonly input: Type.TObject<{
 author: Type.TString;
 text: Type.TString;
-kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+to: Type.TString;
 }>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+};
+readonly pendingDms: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+};
+readonly post: {
+readonly input: Type.TObject<{
+author: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+text: Type.TString;
+}>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 postSeq: Type.TInteger;
 }>;
-};
-readonly notify: {
-readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
-readonly input: Type.TObject<{
-to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
-readonly deliver: {
-readonly kind: "command";
-readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
-readonly input: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TObject<{
-number: Type.TInteger;
-}>;
-};
-readonly dmRecords: {
-readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-tick: Type.TInteger;
-answered: Type.TBoolean;
-deliveredTick: Type.TOptional<Type.TInteger>;
-deliveredAfter: Type.TOptional<Type.TInteger>;
-}>>;
-};
-readonly boardPost: {
-readonly kind: "query";
-readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly pendingDms: {
-readonly kind: "query";
-readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly dmWindow: {
-readonly kind: "query";
-readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-sent: Type.TInteger;
-limit: Type.TInteger;
-from: Type.TInteger;
-until: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly createCityGroup: {
-readonly kind: "command";
-readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
-readonly input: Type.TObject<{
-name: Type.TString;
-members: Type.TArray<Type.TString>;
-}>;
-readonly output: Type.TObject<{
-group: Type.TString;
-}>;
-};
-readonly removeCityGroup: {
-readonly kind: "command";
-readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
-readonly input: Type.TObject<{
-group: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
 };
 readonly postGroupAsCity: {
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
-readonly input: Type.TObject<{
-group: Type.TString;
-text: Type.TString;
-}>;
 readonly output: Type.TNull;
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
 };
-readonly group: {
-readonly kind: "query";
-readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly removeCityGroup: {
 readonly input: Type.TObject<{
 group: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TObject<{
-id: Type.TString;
-name: Type.TString;
-founder: Type.TString;
-treasurer: Type.TString;
-members: Type.TArray<Type.TString>;
-removed: Type.TBoolean;
-}>, Type.TNull]>;
-};
-readonly groupPost: {
-readonly kind: "query";
-readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-group: Type.TString;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly couldRead: {
-readonly kind: "query";
-readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
-readonly input: Type.TObject<{
-group: Type.TString;
-reader: Type.TString;
-number: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
 };
 }>;
 
 // @public
 export const NotesService: ServiceDefinition<"notes", {
-readonly check: {
-readonly kind: "query";
-readonly summary: "Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; with `numbered`, only one with the same numbers).";
+readonly budget: {
 readonly input: Type.TObject<{
-text: Type.TString;
 to: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TObject<{
+limit: Type.TInteger;
+used: Type.TInteger;
+}>;
+readonly summary: "The notes to `to` within the current sliding window and the limit: `boardPosts` for the board, `notesPerAgent` for any other reader.";
+};
+readonly check: {
+readonly input: Type.TObject<{
 as: Type.TOptional<Type.TString>;
 numbered: Type.TOptional<Type.TBoolean>;
+text: Type.TString;
+to: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TObject<{
 ok: Type.TLiteral<true>;
 text: Type.TString;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TString;
 detail: Type.TString;
+ok: Type.TLiteral<false>;
 }>]>;
-};
-readonly budget: {
-readonly kind: "query";
-readonly summary: "The notes to `to` within the current sliding window and the limit: `boardPosts` for the board, `notesPerAgent` for any other reader.";
-readonly input: Type.TObject<{
-to: Type.TString;
-}>;
-readonly output: Type.TObject<{
-used: Type.TInteger;
-limit: Type.TInteger;
-}>;
+readonly summary: "Trims the text, strips a signature or a `<author|CITY|city> minute N:` heading, and refuses an empty or long text, or nearly the same text as an earlier note to `as` (default `to`; with `numbered`, only one with the same numbers).";
 };
 readonly record: {
-readonly kind: "command";
-readonly summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a category).";
 readonly input: Type.TObject<{
-to: Type.TString;
-text: Type.TString;
 number: Type.TInteger;
 shown: Type.TOptional<Type.TString>;
+text: Type.TString;
+to: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Records a note under `to` (its budget and repeats) and writes `gamemaker_note` as sent to `shown` (default `to`; the board for the lines of a category).";
 };
 }>;
 

@@ -27,17 +27,17 @@ startPoints: Type.TInteger;
 strictAccounts: Type.TBoolean;
 }>, {
 readonly ledger_entry: Type.TObject<{
-txId: Type.TString;
-debit: Type.TString;
-credit: Type.TString;
 amount: Type.TNumber;
+credit: Type.TString;
+debit: Type.TString;
 reason: Type.TString;
+txId: Type.TString;
 }>;
 readonly transfer: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
 amount: Type.TNumber;
+from: Type.TString;
 memo: Type.TString;
+to: Type.TString;
 txId: Type.TString;
 }>;
 }, "transferPoints">;
@@ -76,242 +76,242 @@ account: Type.TString;
 balance: Type.TNumber;
 }>>;
 entries: Type.TArray<Type.TObject<{
-txId: Type.TString;
-debit: Type.TString;
-credit: Type.TString;
 amount: Type.TNumber;
+credit: Type.TString;
+debit: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
 reason: Type.TString;
 tick: Type.TInteger;
-idempotencyKey: Type.TOptional<Type.TString>;
+txId: Type.TString;
 }>>;
 txSeq: Type.TInteger;
 }>, LedgerState, {
 readonly ledger_entry: Type.TObject<{
-txId: Type.TString;
-debit: Type.TString;
-credit: Type.TString;
 amount: Type.TNumber;
+credit: Type.TString;
+debit: Type.TString;
 reason: Type.TString;
+txId: Type.TString;
 }>;
 readonly transfer: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
 amount: Type.TNumber;
+from: Type.TString;
 memo: Type.TString;
+to: Type.TString;
 txId: Type.TString;
 }>;
 }, {
-readonly "ledger/tools/transferPoints": readonly [];
 readonly "ledger/replies/transfer-ok": readonly ["amount", "target", "balance", "receipt"];
 readonly "ledger/status/points": readonly ["points"];
+readonly "ledger/tools/transferPoints": readonly [];
 }, readonly [ServiceDefinition<"roster", {
 readonly ids: {
-readonly kind: "query";
-readonly summary: "Every resident, in the game's order.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TString>;
-};
-readonly teams: {
-readonly kind: "query";
-readonly summary: "The residents of each team.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
-};
-readonly teamOf: {
-readonly kind: "query";
-readonly summary: "The team of a resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly roles: {
-readonly kind: "query";
-readonly summary: "The residents of each role.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
-};
-readonly roleOf: {
-readonly kind: "query";
-readonly summary: "The role of a resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Every resident, in the game's order.";
 };
 readonly present: {
-readonly kind: "query";
-readonly summary: "Says whether the resident may act now.";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TBoolean;
+readonly summary: "Says whether the resident may act now.";
+};
+readonly roleOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The role of a resident.";
+};
+readonly roles: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+readonly summary: "The residents of each role.";
+};
+readonly teamOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The team of a resident.";
+};
+readonly teams: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+readonly summary: "The residents of each team.";
 };
 }>], readonly [ServiceDefinition<"ledger", {
 readonly balance: {
-readonly kind: "query";
-readonly summary: "An account's points; 0 for an account nobody opened.";
 readonly input: Type.TObject<{
 account: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TNumber;
+readonly summary: "An account's points; 0 for an account nobody opened.";
 };
 readonly balances: {
-readonly kind: "query";
-readonly summary: "Every resident's points, for rankings and standings.";
 readonly input: Type.TObject<{}>;
-readonly output: Type.TRecord<"^.*$", Type.TNumber>;
-};
-readonly open: {
-readonly kind: "command";
-readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
-readonly input: Type.TObject<{
-account: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
-readonly has: {
 readonly kind: "query";
-readonly summary: "Whether the account is open.";
-readonly input: Type.TObject<{
-account: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly mint: {
-readonly kind: "command";
-readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
-readonly input: Type.TObject<{
-account: Type.TString;
-amount: Type.TNumber;
-reason: Type.TString;
-idempotencyKey: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TNull;
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+readonly summary: "Every resident's points, for rankings and standings.";
 };
 readonly burn: {
-readonly kind: "command";
-readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
 readonly input: Type.TObject<{
 account: Type.TString;
 amount: Type.TNumber;
-reason: Type.TString;
 idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+};
+readonly has: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the account is open.";
+};
+readonly mint: {
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
 };
 readonly move: {
-readonly kind: "command";
-readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
 readonly input: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
 amount: Type.TNumber;
-reason: Type.TString;
+from: Type.TString;
 idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+to: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
 ok: Type.TLiteral<true>;
 txId: Type.TString;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+};
+readonly open: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
 };
 }>, ServiceDefinition<"exile-purse", {
 readonly balance: {
-readonly kind: "query";
-readonly summary: "The points of the account.";
 readonly input: Type.TObject<{
 account: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TNumber;
+readonly summary: "The points of the account.";
 };
 readonly burn: {
-readonly kind: "command";
-readonly summary: "Burns points of the account.";
 readonly input: Type.TObject<{
+account: Type.TString;
 amount: Type.TInteger;
 reason: Type.TString;
-account: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Burns points of the account.";
 };
 readonly move: {
-readonly kind: "command";
-readonly summary: "Moves points the account holds to another.";
 readonly input: Type.TObject<{
 amount: Type.TInteger;
-reason: Type.TString;
 from: Type.TString;
+reason: Type.TString;
 to: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Moves points the account holds to another.";
 };
 }>], readonly [ServiceDefinition<"identity", {
-readonly nameOf: {
+readonly display: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly output: Type.TString;
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+};
+readonly nameOf: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly display: {
 readonly kind: "query";
-readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
-readonly input: Type.TObject<{
-text: Type.TString;
-}>;
-readonly output: Type.TString;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
 };
 readonly resolve: {
-readonly kind: "query";
-readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 readonly input: Type.TObject<{
 text: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TString;
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 };
 }>, ServiceDefinition<"receipt-source", {
-readonly ofTransfer: {
-readonly kind: "query";
-readonly summary: "The id of the receipt issued for the booking `txId` of the ledger, or null (old `ofTransfer` of `receipts`).";
+readonly ofLevel: {
 readonly input: Type.TObject<{
-txId: Type.TString;
+level: Type.TInteger;
+resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The id of the receipt issued, or to be issued in the provider's listener, for the resident's correct `submission` of the level of `progression`, or null (decision A64).";
 };
 readonly ofMessage: {
-readonly kind: "query";
-readonly summary: "The id of the receipt issued when the direct message `number` was delivered, or null.";
 readonly input: Type.TObject<{
 number: Type.TInteger;
 }>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly ofLevel: {
 readonly kind: "query";
-readonly summary: "The id of the receipt issued, or to be issued in the provider's listener, for the resident's correct `submission` of the level of `progression`, or null (decision A64).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The id of the receipt issued when the direct message `number` was delivered, or null.";
+};
+readonly ofTransfer: {
+readonly input: Type.TObject<{
+txId: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The id of the receipt issued for the booking `txId` of the ledger, or null (old `ofTransfer` of `receipts`).";
 };
 readonly textsOf: {
-readonly kind: "query";
-readonly summary: "The texts of the receipts the resident is a party to, in the order issued (old `list` of `receipts`), for the reply of `getStatus`.";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TString>;
+readonly summary: "The texts of the receipts the resident is a party to, in the order issued (old `list` of `receipts`), for the reply of `getStatus`.";
 };
 }>], {
 transferPoints: Type.TObject<{
-target: Type.TString;
 amount: Type.TInteger;
 memo: Type.TOptional<Type.TString>;
+target: Type.TString;
 }>;
 }>;
 

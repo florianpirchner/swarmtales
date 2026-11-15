@@ -10,150 +10,150 @@ import { Type } from 'typebox';
 
 // @public
 export const hintTowers: MechanicDefinition<"hint-towers", Type.TObject<{
+debriefNote: Type.TOptional<Type.TString>;
 games: Type.TInteger;
 handSize: Type.TInteger;
-signals: Type.TInteger;
-strikes: Type.TInteger;
-strikePenalty: Type.TInteger;
-debriefNote: Type.TOptional<Type.TString>;
-refillOnTower: Type.TBoolean;
-recent: Type.TInteger;
-playableOdds: Type.TBoolean;
 listCandidates: Type.TInteger;
-maxIdleMinutes: Type.TInteger;
 maxConsecutiveForfeits: Type.TInteger;
-side: Type.TOptional<Type.TString>;
+maxIdleMinutes: Type.TInteger;
+playableOdds: Type.TBoolean;
 quietTools: Type.TArray<Type.TString>;
+recent: Type.TInteger;
+refillOnTower: Type.TBoolean;
+side: Type.TOptional<Type.TString>;
+signals: Type.TInteger;
+strikePenalty: Type.TInteger;
+strikes: Type.TInteger;
 }>, {
-readonly game_started: Type.TObject<{
+readonly card_discarded: Type.TObject<{
+card: Type.TString;
+forfeit: Type.TBoolean;
 game: Type.TInteger;
-seats: Type.TArray<Type.TString>;
-first: Type.TString;
-deck: Type.TInteger;
+seat: Type.TString;
+slot: Type.TInteger;
+turn: Type.TInteger;
+}>;
+readonly card_drawn: Type.TObject<{
+card: Type.TString;
+game: Type.TInteger;
+seat: Type.TString;
+turn: Type.TInteger;
+}>;
+readonly card_played: Type.TObject<{
+card: Type.TString;
+forfeit: Type.TBoolean;
+game: Type.TInteger;
+lit: Type.TBoolean;
+seat: Type.TString;
+slot: Type.TInteger;
+turn: Type.TInteger;
 }>;
 readonly deal_revealed: Type.TObject<{
+baseline: Type.TInteger;
 game: Type.TInteger;
 hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 pile: Type.TArray<Type.TString>;
-baseline: Type.TInteger;
-}>;
-readonly signal_given: Type.TObject<{
-game: Type.TInteger;
-turn: Type.TInteger;
-seat: Type.TString;
-to: Type.TString;
-about: Type.TString;
-slots: Type.TArray<Type.TInteger>;
-forfeit: Type.TBoolean;
-}>;
-readonly card_played: Type.TObject<{
-game: Type.TInteger;
-turn: Type.TInteger;
-seat: Type.TString;
-slot: Type.TInteger;
-card: Type.TString;
-lit: Type.TBoolean;
-forfeit: Type.TBoolean;
-}>;
-readonly card_discarded: Type.TObject<{
-game: Type.TInteger;
-turn: Type.TInteger;
-seat: Type.TString;
-slot: Type.TInteger;
-card: Type.TString;
-forfeit: Type.TBoolean;
-}>;
-readonly card_drawn: Type.TObject<{
-game: Type.TInteger;
-turn: Type.TInteger;
-seat: Type.TString;
-card: Type.TString;
 }>;
 readonly game_ended: Type.TObject<{
-game: Type.TInteger;
-reason: Type.TUnion<[Type.TLiteral<"complete">, Type.TLiteral<"strikes">, Type.TLiteral<"dark">]>;
-score: Type.TInteger;
 deck: Type.TInteger;
+game: Type.TInteger;
 lost: Type.TInteger;
 misfires: Type.TInteger;
+reason: Type.TUnion<[Type.TLiteral<"complete">, Type.TLiteral<"strikes">, Type.TLiteral<"dark">]>;
+score: Type.TInteger;
 signals: Type.TInteger;
 }>;
 readonly game_scored: Type.TObject<{
+baseline: Type.TInteger;
 game: Type.TInteger;
 score: Type.TInteger;
-baseline: Type.TInteger;
+}>;
+readonly game_started: Type.TObject<{
+deck: Type.TInteger;
+first: Type.TString;
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
 }>;
 readonly match_ended: Type.TObject<{
-scores: Type.TArray<Type.TInteger>;
 baselines: Type.TArray<Type.TInteger>;
 invalid: Type.TOptional<Type.TBoolean>;
+scores: Type.TArray<Type.TInteger>;
+}>;
+readonly signal_given: Type.TObject<{
+about: Type.TString;
+forfeit: Type.TBoolean;
+game: Type.TInteger;
+seat: Type.TString;
+slots: Type.TArray<Type.TInteger>;
+to: Type.TString;
+turn: Type.TInteger;
 }>;
 }, "discardSlot" | "giveSignal" | "playSlot" | "viewTowers">;
 
 // @public
 export const HintTowersEvents: EventsDefinition<"hint-towers", {
-readonly game_started: Type.TObject<{
+readonly card_discarded: Type.TObject<{
+card: Type.TString;
+forfeit: Type.TBoolean;
 game: Type.TInteger;
-seats: Type.TArray<Type.TString>;
-first: Type.TString;
-deck: Type.TInteger;
+seat: Type.TString;
+slot: Type.TInteger;
+turn: Type.TInteger;
+}>;
+readonly card_drawn: Type.TObject<{
+card: Type.TString;
+game: Type.TInteger;
+seat: Type.TString;
+turn: Type.TInteger;
+}>;
+readonly card_played: Type.TObject<{
+card: Type.TString;
+forfeit: Type.TBoolean;
+game: Type.TInteger;
+lit: Type.TBoolean;
+seat: Type.TString;
+slot: Type.TInteger;
+turn: Type.TInteger;
 }>;
 readonly deal_revealed: Type.TObject<{
+baseline: Type.TInteger;
 game: Type.TInteger;
 hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 pile: Type.TArray<Type.TString>;
-baseline: Type.TInteger;
-}>;
-readonly signal_given: Type.TObject<{
-game: Type.TInteger;
-turn: Type.TInteger;
-seat: Type.TString;
-to: Type.TString;
-about: Type.TString;
-slots: Type.TArray<Type.TInteger>;
-forfeit: Type.TBoolean;
-}>;
-readonly card_played: Type.TObject<{
-game: Type.TInteger;
-turn: Type.TInteger;
-seat: Type.TString;
-slot: Type.TInteger;
-card: Type.TString;
-lit: Type.TBoolean;
-forfeit: Type.TBoolean;
-}>;
-readonly card_discarded: Type.TObject<{
-game: Type.TInteger;
-turn: Type.TInteger;
-seat: Type.TString;
-slot: Type.TInteger;
-card: Type.TString;
-forfeit: Type.TBoolean;
-}>;
-readonly card_drawn: Type.TObject<{
-game: Type.TInteger;
-turn: Type.TInteger;
-seat: Type.TString;
-card: Type.TString;
 }>;
 readonly game_ended: Type.TObject<{
-game: Type.TInteger;
-reason: Type.TUnion<[Type.TLiteral<"complete">, Type.TLiteral<"strikes">, Type.TLiteral<"dark">]>;
-score: Type.TInteger;
 deck: Type.TInteger;
+game: Type.TInteger;
 lost: Type.TInteger;
 misfires: Type.TInteger;
+reason: Type.TUnion<[Type.TLiteral<"complete">, Type.TLiteral<"strikes">, Type.TLiteral<"dark">]>;
+score: Type.TInteger;
 signals: Type.TInteger;
 }>;
 readonly game_scored: Type.TObject<{
+baseline: Type.TInteger;
 game: Type.TInteger;
 score: Type.TInteger;
-baseline: Type.TInteger;
+}>;
+readonly game_started: Type.TObject<{
+deck: Type.TInteger;
+first: Type.TString;
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
 }>;
 readonly match_ended: Type.TObject<{
-scores: Type.TArray<Type.TInteger>;
 baselines: Type.TArray<Type.TInteger>;
 invalid: Type.TOptional<Type.TBoolean>;
+scores: Type.TArray<Type.TInteger>;
+}>;
+readonly signal_given: Type.TObject<{
+about: Type.TString;
+forfeit: Type.TBoolean;
+game: Type.TInteger;
+seat: Type.TString;
+slots: Type.TArray<Type.TInteger>;
+to: Type.TString;
+turn: Type.TInteger;
 }>;
 }>;
 

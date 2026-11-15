@@ -47,10 +47,10 @@ export interface Call {
     readonly activation?: number;
     readonly actor: string;
     readonly answer?: {
-        readonly seq: number;
-        readonly ok: boolean;
-        readonly text: string;
         readonly code?: string;
+        readonly ok: boolean;
+        readonly seq: number;
+        readonly text: string;
     };
     readonly as: string;
     readonly basis?: number;
@@ -96,11 +96,11 @@ export interface Count {
 // @public
 export interface Decision {
     readonly amendments: readonly {
+        readonly by: string;
+        readonly proposal: unknown;
+        readonly reason?: string;
         readonly seq: number;
         readonly tick: number;
-        readonly by: string;
-        readonly reason?: string;
-        readonly proposal: unknown;
     }[];
     readonly deadline: number;
     readonly holders: readonly string[];
@@ -110,10 +110,10 @@ export interface Decision {
     readonly proposal: unknown;
     readonly seq: number;
     readonly settled?: {
-        readonly seq: number;
-        readonly tick: number;
         readonly changed: boolean;
         readonly proposal: unknown;
+        readonly seq: number;
+        readonly tick: number;
     };
     readonly tick: number;
 }
@@ -318,10 +318,10 @@ export interface RunModel {
     readonly name: string;
     readonly report?: string;
     readonly texts: {
-        readonly events: string;
         readonly chain?: string;
-        readonly publicKey?: string;
+        readonly events: string;
         readonly manifest?: string;
+        readonly publicKey?: string;
     };
     readonly transcripts: readonly Transcript[];
     readonly usage?: UsageFile;
@@ -375,10 +375,10 @@ export type RunVerification =
     readonly signed: false;
     readonly unreadable?: string;
 } | {
-    readonly signed: true;
-    readonly verdict: ChainVerdict;
     readonly checkedWith: "given key" | "run.pub";
     readonly key?: string;
+    readonly signed: true;
+    readonly verdict: ChainVerdict;
 };
 
 // @public

@@ -9,80 +9,80 @@ import { Type } from 'typebox';
 
 // @public
 export const chess: MechanicDefinition<"chess", Type.TObject<{
-games: Type.TInteger;
-alternateColours: Type.TBoolean;
-maxPlies: Type.TInteger;
 adjudicateMargin: Type.TInteger;
-maxIdleTurns: Type.TInteger;
-maxForfeits: Type.TInteger;
-showLegalMoves: Type.TBoolean;
-showThreats: Type.TBoolean;
-score: Type.TBoolean;
-teams: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
+alternateColours: Type.TBoolean;
 coach: Type.TBoolean;
 coachMoves: Type.TInteger;
-wakeTeam: Type.TBoolean;
-freshContext: Type.TBoolean;
 compactBoard: Type.TBoolean;
 compactMoves: Type.TInteger;
+freshContext: Type.TBoolean;
+games: Type.TInteger;
+maxForfeits: Type.TInteger;
+maxIdleTurns: Type.TInteger;
+maxPlies: Type.TInteger;
+score: Type.TBoolean;
 settleCap: Type.TBoolean;
+showLegalMoves: Type.TBoolean;
+showThreats: Type.TBoolean;
+teams: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
+wakeTeam: Type.TBoolean;
 }>, {
-game_started: Type.TObject<{
+coach_review: Type.TObject<{
 game: Type.TInteger;
-white: Type.TString;
-black: Type.TString;
-}>;
-move_played: Type.TObject<{
-game: Type.TInteger;
-ply: Type.TInteger;
-colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
-by: Type.TString;
-san: Type.TString;
-written: Type.TString;
-fen: Type.TString;
-forfeit: Type.TBoolean;
-}>;
-move_refused: Type.TObject<{
-game: Type.TInteger;
-ply: Type.TInteger;
-colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
-by: Type.TString;
-written: Type.TString;
-count: Type.TInteger;
-}>;
-move_scored: Type.TObject<{
-game: Type.TInteger;
-ply: Type.TInteger;
-colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
-by: Type.TString;
-san: Type.TString;
-best: Type.TString;
-bestValue: Type.TNumber;
-playedValue: Type.TNumber;
-loss: Type.TNumber;
-class: Type.TUnion<[Type.TLiteral<"good">, Type.TLiteral<"inaccuracy">, Type.TLiteral<"mistake">, Type.TLiteral<"blunder">]>;
+losses: Type.TInteger;
+side: Type.TString;
+text: Type.TString;
 }>;
 game_ended: Type.TObject<{
+black: Type.TString;
+forfeits: Type.TRecord<"^.*$", Type.TInteger>;
+game: Type.TInteger;
+illegal: Type.TRecord<"^.*$", Type.TInteger>;
+moves: Type.TArray<Type.TString>;
 pgn: Type.TString;
+plies: Type.TInteger;
+reason: Type.TUnion<[Type.TLiteral<"checkmate">, Type.TLiteral<"stalemate">, Type.TLiteral<"threefold_repetition">, Type.TLiteral<"fifty_moves">, Type.TLiteral<"insufficient_material">, Type.TLiteral<"move_cap">, Type.TLiteral<"forfeits">, Type.TLiteral<"resignation">]>;
+resigned: Type.TOptional<Type.TString>;
+result: Type.TUnion<[Type.TLiteral<"1-0">, Type.TLiteral<"0-1">, Type.TLiteral<"1/2-1/2">]>;
+white: Type.TString;
+}>;
+game_started: Type.TObject<{
+black: Type.TString;
 game: Type.TInteger;
 white: Type.TString;
-black: Type.TString;
-result: Type.TUnion<[Type.TLiteral<"1-0">, Type.TLiteral<"0-1">, Type.TLiteral<"1/2-1/2">]>;
-reason: Type.TUnion<[Type.TLiteral<"checkmate">, Type.TLiteral<"stalemate">, Type.TLiteral<"threefold_repetition">, Type.TLiteral<"fifty_moves">, Type.TLiteral<"insufficient_material">, Type.TLiteral<"move_cap">, Type.TLiteral<"forfeits">, Type.TLiteral<"resignation">]>;
-plies: Type.TInteger;
-moves: Type.TArray<Type.TString>;
-illegal: Type.TRecord<"^.*$", Type.TInteger>;
-forfeits: Type.TRecord<"^.*$", Type.TInteger>;
-resigned: Type.TOptional<Type.TString>;
 }>;
 match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
-coach_review: Type.TObject<{
+move_played: Type.TObject<{
+by: Type.TString;
+colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
+fen: Type.TString;
+forfeit: Type.TBoolean;
 game: Type.TInteger;
-side: Type.TString;
-losses: Type.TInteger;
-text: Type.TString;
+ply: Type.TInteger;
+san: Type.TString;
+written: Type.TString;
+}>;
+move_refused: Type.TObject<{
+by: Type.TString;
+colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
+count: Type.TInteger;
+game: Type.TInteger;
+ply: Type.TInteger;
+written: Type.TString;
+}>;
+move_scored: Type.TObject<{
+best: Type.TString;
+bestValue: Type.TNumber;
+by: Type.TString;
+class: Type.TUnion<[Type.TLiteral<"good">, Type.TLiteral<"inaccuracy">, Type.TLiteral<"mistake">, Type.TLiteral<"blunder">]>;
+colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
+game: Type.TInteger;
+loss: Type.TNumber;
+playedValue: Type.TNumber;
+ply: Type.TInteger;
+san: Type.TString;
 }>;
 }, "playMove" | "resign" | "viewBoard">;
 

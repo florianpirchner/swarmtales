@@ -81,18 +81,18 @@ export type DirectorUse = Static<typeof DirectorUseSchema>;
 
 // @public
 export const DirectorUseSchema: Type.TObject<{
-    use: Type.TString;
     as: Type.TOptional<Type.TString>;
-    options: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
-    model: Type.TOptional<Type.TObject<{
-        id: Type.TString;
-        thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
-        maxOutputTokens: Type.TOptional<Type.TInteger>;
-    }>>;
     limits: Type.TOptional<Type.TObject<{
         maxCalls: Type.TOptional<Type.TInteger>;
         maxCostUsd: Type.TOptional<Type.TNumber>;
     }>>;
+    model: Type.TOptional<Type.TObject<{
+        id: Type.TString;
+        maxOutputTokens: Type.TOptional<Type.TInteger>;
+        thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
+    }>>;
+    options: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+    use: Type.TString;
 }>;
 
 // @public
@@ -119,23 +119,23 @@ export interface Envelope<T extends string = string, P = unknown> {
 
 // @public
 export function envelopeLogIssues(lines: readonly unknown[]): readonly {
-    readonly line: number;
     readonly kind: "basis" | "causedBy" | "envelope" | "seq" | "tick";
+    readonly line: number;
     readonly reason: string;
 }[];
 
 // @public
 export const EnvelopeSchema: Type.TObject<{
-    seq: Type.TInteger;
-    tick: Type.TInteger;
-    source: Type.TString;
-    type: Type.TString;
     actor: Type.TUnsafe<ActorId>;
-    causedBy: Type.TOptional<Type.TInteger>;
-    basis: Type.TOptional<Type.TInteger>;
-    tool: Type.TOptional<Type.TString>;
     audience: Type.TOptional<Type.TArray<Type.TString>>;
+    basis: Type.TOptional<Type.TInteger>;
+    causedBy: Type.TOptional<Type.TInteger>;
     payload: Type.TUnknown;
+    seq: Type.TInteger;
+    source: Type.TString;
+    tick: Type.TInteger;
+    tool: Type.TOptional<Type.TString>;
+    type: Type.TString;
 }>;
 
 // @public
@@ -170,67 +170,67 @@ export type GameData = Static<typeof GameDefinitionSchema>;
 
 // @public
 export const GameDefinitionSchema: Type.TObject<{
-    schema: Type.TLiteral<1>;
-    id: Type.TString;
-    title: Type.TOptional<Type.TString>;
-    seed: Type.TOptional<Type.TInteger>;
-    residents: Type.TUnion<[Type.TInteger, Type.TArray<Type.TString>]>;
-    teams: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
-    roles: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
-    mechanics: Type.TArray<Type.TObject<{
-        use: Type.TString;
-        options: Type.TOptional<Type.TUnknown>;
-        as: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
-    }>>;
+    briefing: Type.TOptional<Type.TUnion<[Type.TString, Type.TRecord<"^.*$", Type.TString>]>>;
     directors: Type.TOptional<Type.TArray<Type.TObject<{
-        use: Type.TString;
         as: Type.TOptional<Type.TString>;
-        options: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
-        model: Type.TOptional<Type.TObject<{
-            id: Type.TString;
-            thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
-            maxOutputTokens: Type.TOptional<Type.TInteger>;
-        }>>;
         limits: Type.TOptional<Type.TObject<{
             maxCalls: Type.TOptional<Type.TInteger>;
             maxCostUsd: Type.TOptional<Type.TNumber>;
         }>>;
+        model: Type.TOptional<Type.TObject<{
+            id: Type.TString;
+            maxOutputTokens: Type.TOptional<Type.TInteger>;
+            thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
+        }>>;
+        options: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+        use: Type.TString;
     }>>>;
+    end: Type.TObject<{
+        ticks: Type.TInteger;
+    }>;
     grants: Type.TOptional<Type.TRecord<"^.*$", Type.TUnion<[Type.TArray<Type.TString>, Type.TObject<{
-        drop: Type.TOptional<Type.TArray<Type.TString>>;
         add: Type.TOptional<Type.TArray<Type.TString>>;
+        drop: Type.TOptional<Type.TArray<Type.TString>>;
     }>]>>>;
+    id: Type.TString;
+    limits: Type.TOptional<Type.TObject<{
+        maxCallsPerTick: Type.TOptional<Type.TInteger>;
+    }>>;
     locked: Type.TOptional<Type.TArray<Type.TString>>;
+    mechanics: Type.TArray<Type.TObject<{
+        as: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+        options: Type.TOptional<Type.TUnknown>;
+        use: Type.TString;
+    }>>;
+    model: Type.TOptional<Type.TUnion<[Type.TString, Type.TObject<{
+        id: Type.TString;
+        maxOutputTokens: Type.TOptional<Type.TInteger>;
+        thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
+    }>]>>;
+    prompt: Type.TOptional<Type.TObject<{
+        character: Type.TOptional<Type.TString>;
+        frame: Type.TOptional<Type.TString>;
+    }>>;
+    residents: Type.TUnion<[Type.TInteger, Type.TArray<Type.TString>]>;
+    roles: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
     scheduler: Type.TOptional<Type.TObject<{
         id: Type.TString;
         options: Type.TOptional<Type.TUnknown>;
     }>>;
-    limits: Type.TOptional<Type.TObject<{
-        maxCallsPerTick: Type.TOptional<Type.TInteger>;
-    }>>;
-    end: Type.TObject<{
-        ticks: Type.TInteger;
-    }>;
+    schema: Type.TLiteral<1>;
+    seed: Type.TOptional<Type.TInteger>;
+    teams: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
+    title: Type.TOptional<Type.TString>;
     win: Type.TOptional<Type.TObject<{
         fact: Type.TString;
-    }>>;
-    briefing: Type.TOptional<Type.TUnion<[Type.TString, Type.TRecord<"^.*$", Type.TString>]>>;
-    model: Type.TOptional<Type.TUnion<[Type.TString, Type.TObject<{
-        id: Type.TString;
-        thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
-        maxOutputTokens: Type.TOptional<Type.TInteger>;
-    }>]>>;
-    prompt: Type.TOptional<Type.TObject<{
-        frame: Type.TOptional<Type.TString>;
-        character: Type.TOptional<Type.TString>;
     }>>;
 }>;
 
 // @public
 export type InputLine = string | {
     readonly kind: string;
-    readonly text: string;
     readonly order?: number;
+    readonly text: string;
 };
 
 // @public
@@ -242,8 +242,8 @@ export interface InputNote {
 
 // @public
 export const InputNoteSchema: Type.TObject<{
-    source: Type.TString;
     kind: Type.TOptional<Type.TString>;
+    source: Type.TString;
     text: Type.TString;
 }>;
 
@@ -261,11 +261,11 @@ export interface Job {
 
 // @public
 export const JobSchema: Type.TObject<{
+    data: Type.TOptional<Type.TUnsafe<JsonValue>>;
     id: Type.TInteger;
-    owner: Type.TString;
     job: Type.TString;
     next: Type.TInteger;
-    data: Type.TOptional<Type.TUnsafe<JsonValue>>;
+    owner: Type.TString;
 }>;
 
 // @public
@@ -294,80 +294,80 @@ export interface Kernel {
 
 // @public
 export const KERNEL_EVENTS: {
-    readonly run_started: Type.TObject<{
-        game: Type.TString;
-        seed: Type.TInteger;
-        maxTicks: Type.TInteger;
-        actors: Type.TArray<Type.TString>;
-        plugins: Type.TArray<Type.TString>;
-    }>;
-    readonly tick_started: Type.TObject<{}>;
-    readonly tick_ended: Type.TObject<{}>;
-    readonly job_ran: Type.TObject<{
-        owner: Type.TString;
-        job: Type.TString;
-    }>;
-    readonly activation_opened: Type.TObject<{
-        actor: Type.TString;
-        inputs: Type.TArray<Type.TObject<{
-            source: Type.TString;
-            kind: Type.TOptional<Type.TString>;
-            text: Type.TString;
-        }>>;
-        detail: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
-    }>;
     readonly activation_closed: Type.TObject<{
         actor: Type.TString;
         calls: Type.TInteger;
         outcome: Type.TUnion<[Type.TLiteral<"acted">, Type.TLiteral<"no-call">, Type.TLiteral<"error">]>;
     }>;
-    readonly tool_called: Type.TObject<{
-        as: Type.TString;
-        params: Type.TUnknown;
+    readonly activation_opened: Type.TObject<{
+        actor: Type.TString;
+        detail: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+        inputs: Type.TArray<Type.TObject<{
+            kind: Type.TOptional<Type.TString>;
+            source: Type.TString;
+            text: Type.TString;
+        }>>;
     }>;
-    readonly tool_refused: Type.TObject<{
-        as: Type.TString;
-        stage: Type.TString;
-        code: Type.TString;
-        detail: Type.TOptional<Type.TString>;
-    }>;
-    readonly tool_result: Type.TObject<{
-        as: Type.TString;
-        reply: Type.TString;
-        endsTurn: Type.TOptional<Type.TBoolean>;
-    }>;
-    readonly service_called: Type.TObject<{
-        service: Type.TString;
-        method: Type.TString;
-        caller: Type.TString;
-        input: Type.TUnknown;
+    readonly actor_resumed: Type.TObject<{
+        actor: Type.TString;
+        by: Type.TString;
     }>;
     readonly actor_suspended: Type.TObject<{
         actor: Type.TString;
         by: Type.TString;
         reason: Type.TString;
     }>;
-    readonly actor_resumed: Type.TObject<{
-        actor: Type.TString;
-        by: Type.TString;
-    }>;
-    readonly tool_locked: Type.TObject<{
-        actor: Type.TString;
-        tool: Type.TString;
-        by: Type.TString;
-    }>;
-    readonly tool_unlocked: Type.TObject<{
-        actor: Type.TString;
-        tool: Type.TString;
-        by: Type.TString;
+    readonly job_ran: Type.TObject<{
+        job: Type.TString;
+        owner: Type.TString;
     }>;
     readonly limit_reached: Type.TObject<{
         limit: Type.TString;
         reason: Type.TString;
     }>;
     readonly run_ended: Type.TObject<{
-        reason: Type.TString;
         detail: Type.TOptional<Type.TString>;
+        reason: Type.TString;
+    }>;
+    readonly run_started: Type.TObject<{
+        actors: Type.TArray<Type.TString>;
+        game: Type.TString;
+        maxTicks: Type.TInteger;
+        plugins: Type.TArray<Type.TString>;
+        seed: Type.TInteger;
+    }>;
+    readonly service_called: Type.TObject<{
+        caller: Type.TString;
+        input: Type.TUnknown;
+        method: Type.TString;
+        service: Type.TString;
+    }>;
+    readonly tick_ended: Type.TObject<{}>;
+    readonly tick_started: Type.TObject<{}>;
+    readonly tool_called: Type.TObject<{
+        as: Type.TString;
+        params: Type.TUnknown;
+    }>;
+    readonly tool_locked: Type.TObject<{
+        actor: Type.TString;
+        by: Type.TString;
+        tool: Type.TString;
+    }>;
+    readonly tool_refused: Type.TObject<{
+        as: Type.TString;
+        code: Type.TString;
+        detail: Type.TOptional<Type.TString>;
+        stage: Type.TString;
+    }>;
+    readonly tool_result: Type.TObject<{
+        as: Type.TString;
+        endsTurn: Type.TOptional<Type.TBoolean>;
+        reply: Type.TString;
+    }>;
+    readonly tool_unlocked: Type.TObject<{
+        actor: Type.TString;
+        by: Type.TString;
+        tool: Type.TString;
     }>;
 };
 
@@ -375,8 +375,8 @@ export const KERNEL_EVENTS: {
 export interface KernelDefinition {
     readonly actors: readonly ActorSpec[];
     readonly game: {
-        readonly id: string;
         readonly hash: string;
+        readonly id: string;
     };
     readonly grants: Readonly<Record<string, readonly CanonicalTool[]>>;
     readonly limits: KernelLimits;
@@ -425,35 +425,35 @@ export interface KernelSnapshot {
 
 // @public
 export const KernelSnapshotSchema: Type.TObject<{
-    format: Type.TLiteral<"swarmtales.kernel">;
-    version: Type.TLiteral<1>;
-    game: Type.TString;
-    gameHash: Type.TString;
-    seed: Type.TInteger;
-    tick: Type.TInteger;
-    seq: Type.TInteger;
     ended: Type.TOptional<Type.TObject<{
+        limit: Type.TOptional<Type.TString>;
         reason: Type.TUnion<[Type.TLiteral<"ticks">, Type.TLiteral<"limit">, Type.TLiteral<"error">]>;
         tick: Type.TInteger;
-        limit: Type.TOptional<Type.TString>;
     }>>;
-    suspensions: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
-    locks: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+    format: Type.TLiteral<"swarmtales.kernel">;
+    game: Type.TString;
+    gameHash: Type.TString;
     jobs: Type.TArray<Type.TObject<{
+        data: Type.TOptional<Type.TUnsafe<JsonValue>>;
         id: Type.TInteger;
-        owner: Type.TString;
         job: Type.TString;
         next: Type.TInteger;
-        data: Type.TOptional<Type.TUnsafe<JsonValue>>;
+        owner: Type.TString;
     }>>;
+    locks: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
     plugins: Type.TRecord<"^.*$", Type.TObject<{
-        version: Type.TInteger;
         data: Type.TUnknown;
+        version: Type.TInteger;
     }>>;
     scheduler: Type.TOptional<Type.TObject<{
-        version: Type.TInteger;
         data: Type.TUnknown;
+        version: Type.TInteger;
     }>>;
+    seed: Type.TInteger;
+    seq: Type.TInteger;
+    suspensions: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+    tick: Type.TInteger;
+    version: Type.TLiteral<1>;
 }>;
 
 // @public
@@ -502,13 +502,13 @@ export interface MetricDefinition {
 
 // @public
 export type ModelAnswer = {
+    readonly costUsd: number;
     readonly ok: true;
     readonly value: unknown;
-    readonly costUsd: number;
 } | {
+    readonly detail: string;
     readonly ok: false;
     readonly reason: "error" | "invalid" | "limit";
-    readonly detail: string;
 };
 
 // @public
@@ -517,8 +517,8 @@ export type ModelChoice = Static<typeof ModelChoiceSchema>;
 // @public
 export const ModelChoiceSchema: Type.TObject<{
     id: Type.TString;
-    thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
     maxOutputTokens: Type.TOptional<Type.TInteger>;
+    thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
 }>;
 
 // @public
@@ -670,8 +670,8 @@ export interface ResumeInput {
 
 // @public
 export type ReviewAnswer = {
-    readonly ok: true;
     readonly answer: unknown;
+    readonly ok: true;
 } | {
     readonly ok: false;
 };
@@ -706,9 +706,9 @@ export interface RunEnd {
 
 // @public
 export const RunEndSchema: Type.TObject<{
+    limit: Type.TOptional<Type.TString>;
     reason: Type.TUnion<[Type.TLiteral<"ticks">, Type.TLiteral<"limit">, Type.TLiteral<"error">]>;
     tick: Type.TInteger;
-    limit: Type.TOptional<Type.TString>;
 }>;
 
 // @public
@@ -723,80 +723,80 @@ export type RunManifest = Static<typeof RunManifestSchema>;
 
 // @public
 export const RunManifestSchema: Type.TObject<{
-    format: Type.TLiteral<"swarmtales-run">;
-    version: Type.TLiteral<1>;
-    run: Type.TObject<{
-        id: Type.TString;
-        startedAt: Type.TString;
-        purpose: Type.TUnion<[Type.TLiteral<"smoke">, Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
-    }>;
-    game: Type.TObject<{
-        id: Type.TString;
-        title: Type.TOptional<Type.TString>;
-        hash: Type.TString;
-        params: Type.TRecord<"^.*$", Type.TUnknown>;
-    }>;
-    kernel: Type.TObject<{
-        revision: Type.TInteger;
-        version: Type.TString;
-        commit: Type.TOptional<Type.TString>;
-        dirty: Type.TOptional<Type.TBoolean>;
-        node: Type.TString;
-    }>;
-    scheduler: Type.TObject<{
-        id: Type.TString;
-        revision: Type.TInteger;
-        determinism: Type.TString;
-        options: Type.TUnknown;
-        optionsHash: Type.TString;
-    }>;
-    plugins: Type.TArray<Type.TObject<{
-        id: Type.TString;
-        package: Type.TString;
-        version: Type.TString;
-        optionsHash: Type.TString;
-    }>>;
     actors: Type.TArray<Type.TObject<{
+        driver: Type.TString;
+        grant: Type.TString;
         id: Type.TString;
         kind: Type.TString;
-        grant: Type.TString;
-        driver: Type.TString;
         model: Type.TOptional<Type.TObject<{
+            params: Type.TObject<{
+                maxOutputTokens: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
+                temperature: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
+                thinking: Type.TString;
+                topP: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
+            }>;
+            pricing: Type.TString;
             provider: Type.TString;
             requestedId: Type.TString;
             resolvedId: Type.TString;
-            params: Type.TObject<{
-                temperature: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
-                topP: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
-                maxOutputTokens: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
-                thinking: Type.TString;
-            }>;
-            pricing: Type.TString;
         }>>;
         textHashes: Type.TRecord<"^.*$", Type.TString>;
     }>>;
-    texts: Type.TRecord<"^.*$", Type.TString>;
-    seed: Type.TInteger;
-    replicate: Type.TInteger;
-    limits: Type.TObject<{
-        maxTicks: Type.TInteger;
-        maxCallsPerTick: Type.TOptional<Type.TInteger>;
-        budgetUsd: Type.TOptional<Type.TNumber>;
+    experiment: Type.TOptional<Type.TObject<{
+        arm: Type.TString;
+        id: Type.TString;
+        specHash: Type.TString;
+    }>>;
+    format: Type.TLiteral<"swarmtales-run">;
+    game: Type.TObject<{
+        hash: Type.TString;
+        id: Type.TString;
+        params: Type.TRecord<"^.*$", Type.TUnknown>;
+        title: Type.TOptional<Type.TString>;
     }>;
-    naming: Type.TLiteral<1>;
+    human: Type.TOptional<Type.TLiteral<true>>;
+    kernel: Type.TObject<{
+        commit: Type.TOptional<Type.TString>;
+        dirty: Type.TOptional<Type.TBoolean>;
+        node: Type.TString;
+        revision: Type.TInteger;
+        version: Type.TString;
+    }>;
+    limits: Type.TObject<{
+        budgetUsd: Type.TOptional<Type.TNumber>;
+        maxCallsPerTick: Type.TOptional<Type.TInteger>;
+        maxTicks: Type.TInteger;
+    }>;
     log: Type.TObject<{
         format: Type.TString;
         version: Type.TInteger;
     }>;
+    naming: Type.TLiteral<1>;
+    plugins: Type.TArray<Type.TObject<{
+        id: Type.TString;
+        optionsHash: Type.TString;
+        package: Type.TString;
+        version: Type.TString;
+    }>>;
+    replicate: Type.TInteger;
     resumedFrom: Type.TOptional<Type.TObject<{
         snapshotHash: Type.TString;
     }>>;
-    human: Type.TOptional<Type.TLiteral<true>>;
-    experiment: Type.TOptional<Type.TObject<{
+    run: Type.TObject<{
         id: Type.TString;
-        specHash: Type.TString;
-        arm: Type.TString;
-    }>>;
+        purpose: Type.TUnion<[Type.TLiteral<"smoke">, Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
+        startedAt: Type.TString;
+    }>;
+    scheduler: Type.TObject<{
+        determinism: Type.TString;
+        id: Type.TString;
+        options: Type.TUnknown;
+        optionsHash: Type.TString;
+        revision: Type.TInteger;
+    }>;
+    seed: Type.TInteger;
+    texts: Type.TRecord<"^.*$", Type.TString>;
+    version: Type.TLiteral<1>;
 }>;
 
 // @public
@@ -900,9 +900,9 @@ export type StagedOutcome = {
     readonly ok: true;
     readonly reply: string;
 } | {
-    readonly ok: false;
     readonly code: string;
     readonly detail?: string;
+    readonly ok: false;
 };
 
 // @public
@@ -926,17 +926,17 @@ export const STEP_LIMIT = "STEP_LIMIT";
 
 // @public
 export const StoredEnvelopeSchema: Type.TObject<{
-    at: Type.TString;
-    seq: Type.TInteger;
-    tick: Type.TInteger;
-    source: Type.TString;
-    type: Type.TString;
     actor: Type.TUnsafe<ActorId>;
-    causedBy: Type.TOptional<Type.TInteger>;
-    basis: Type.TOptional<Type.TInteger>;
-    tool: Type.TOptional<Type.TString>;
+    at: Type.TString;
     audience: Type.TOptional<Type.TArray<Type.TString>>;
+    basis: Type.TOptional<Type.TInteger>;
+    causedBy: Type.TOptional<Type.TInteger>;
     payload: Type.TUnknown;
+    seq: Type.TInteger;
+    source: Type.TString;
+    tick: Type.TInteger;
+    tool: Type.TOptional<Type.TString>;
+    type: Type.TString;
 }>;
 
 // @public
@@ -966,16 +966,16 @@ export type SwtIssue = Static<typeof SwtIssueSchema>;
 // @public
 export const SwtIssueSchema: Type.TObject<{
     code: Type.TString;
+    details: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+    fix: Type.TString;
     summary: Type.TString;
     where: Type.TOptional<Type.TObject<{
         file: Type.TOptional<Type.TString>;
         line: Type.TOptional<Type.TInteger>;
-        path: Type.TOptional<Type.TString>;
         package: Type.TOptional<Type.TString>;
+        path: Type.TOptional<Type.TString>;
     }>>;
     why: Type.TString;
-    fix: Type.TString;
-    details: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
 }>;
 
 // @public

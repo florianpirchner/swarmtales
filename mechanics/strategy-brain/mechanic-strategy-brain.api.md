@@ -9,40 +9,40 @@ import { Type } from 'typebox';
 
 // @public
 export const strategyBrain: MechanicDefinition<"strategy-brain", Type.TObject<{
-enabled: Type.TBoolean;
-brainTeams: Type.TOptional<Type.TArray<Type.TString>>;
-maxWords: Type.TInteger;
-maxRules: Type.TInteger;
-teams: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
-retroMaxPosts: Type.TInteger;
-retroMaxMinutes: Type.TInteger;
-shared: Type.TBoolean;
 brainAtStart: Type.TBoolean;
+brainTeams: Type.TOptional<Type.TArray<Type.TString>>;
+enabled: Type.TBoolean;
+maxRules: Type.TInteger;
+maxWords: Type.TInteger;
 postTool: Type.TString;
-retroFocus: Type.TString;
-solo: Type.TBoolean;
-tooLongDetail: Type.TOptional<Type.TUnion<[Type.TLiteral<"plain">, Type.TLiteral<"cut">]>>;
-showResults: Type.TOptional<Type.TBoolean>;
 quietEnds: Type.TOptional<Type.TBoolean>;
+retroFocus: Type.TString;
+retroMaxMinutes: Type.TInteger;
+retroMaxPosts: Type.TInteger;
+shared: Type.TBoolean;
+showResults: Type.TOptional<Type.TBoolean>;
+solo: Type.TBoolean;
+teams: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+tooLongDetail: Type.TOptional<Type.TUnion<[Type.TLiteral<"plain">, Type.TLiteral<"cut">]>>;
 }>, {
 brain_written: Type.TObject<{
-team: Type.TString;
-game: Type.TInteger;
-version: Type.TInteger;
 author: Type.TString;
-words: Type.TInteger;
-hash: Type.TString;
-text: Type.TString;
-}>;
-retro_started: Type.TObject<{
-team: Type.TString;
 game: Type.TInteger;
-captain: Type.TString;
+hash: Type.TString;
+team: Type.TString;
+text: Type.TString;
+version: Type.TInteger;
+words: Type.TInteger;
 }>;
 retro_closed: Type.TObject<{
-team: Type.TString;
 game: Type.TInteger;
 reason: Type.TUnion<[Type.TLiteral<"written">, Type.TLiteral<"max_posts">, Type.TLiteral<"timeout">]>;
+team: Type.TString;
+}>;
+retro_started: Type.TObject<{
+captain: Type.TString;
+game: Type.TInteger;
+team: Type.TString;
 }>;
 }, "readBrain" | "writeBrain">;
 

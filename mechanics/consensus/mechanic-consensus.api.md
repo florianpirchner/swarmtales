@@ -11,68 +11,68 @@ import { Type } from 'typebox';
 
 // @public
 export const consensus: MechanicDefinition<"consensus", Type.TObject<{
-tool: Type.TString;
-param: Type.TString;
-rule: Type.TLiteral<"majority">;
+maxConsecutiveForfeits: Type.TInteger;
 maxRounds: Type.TInteger;
 onDeadlock: Type.TUnion<[Type.TLiteral<"forfeitRandomLegalMove">, Type.TLiteral<"refuse">]>;
-maxConsecutiveForfeits: Type.TInteger;
+param: Type.TString;
+rule: Type.TLiteral<"majority">;
 teams: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+tool: Type.TString;
 }>, {
-move_proposed: Type.TObject<{
+consensus_deadlocked: Type.TObject<{
+rounds: Type.TInteger;
 team: Type.TString;
+}>;
+consensus_forfeited: Type.TObject<{
+cell: Type.TInteger;
+rounds: Type.TInteger;
+team: Type.TString;
+}>;
+consensus_reached: Type.TObject<{
+agree: Type.TInteger;
+cell: Type.TInteger;
+disagree: Type.TInteger;
+team: Type.TString;
+}>;
+match_invalid: Type.TObject<{
+forfeits: Type.TInteger;
+reason: Type.TString;
+}>;
+move_proposed: Type.TObject<{
 captain: Type.TString;
 cell: Type.TInteger;
 reason: Type.TString;
+team: Type.TString;
 }>;
 vote_cast: Type.TObject<{
+agree: Type.TBoolean;
+cell: Type.TInteger;
+outcome: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"reached">, Type.TLiteral<"rejected">]>;
+reason: Type.TString;
 team: Type.TString;
 voter: Type.TString;
-cell: Type.TInteger;
-agree: Type.TBoolean;
-reason: Type.TString;
-outcome: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"reached">, Type.TLiteral<"rejected">]>;
-}>;
-consensus_reached: Type.TObject<{
-team: Type.TString;
-cell: Type.TInteger;
-agree: Type.TInteger;
-disagree: Type.TInteger;
-}>;
-consensus_forfeited: Type.TObject<{
-team: Type.TString;
-cell: Type.TInteger;
-rounds: Type.TInteger;
-}>;
-consensus_deadlocked: Type.TObject<{
-team: Type.TString;
-rounds: Type.TInteger;
-}>;
-match_invalid: Type.TObject<{
-reason: Type.TString;
-forfeits: Type.TInteger;
 }>;
 }, "castVote" | "proposeMove">;
 
 // @public
 export const ConsensusAgreedService: ServiceDefinition<"consensus-agreed", {
 readonly agreed: {
-readonly kind: "query";
-readonly summary: "The value a team agreed on and has not played yet; null before the team agreed and for an unknown team. The `sample` of the gated tool reads it, so that the fake driver plays the agreed value.";
 readonly input: Type.TObject<{
 team: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TNull, Type.TInteger]>;
+readonly summary: "The value a team agreed on and has not played yet; null before the team agreed and for an unknown team. The `sample` of the gated tool reads it, so that the fake driver plays the agreed value.";
 };
 }>;
 
 // @public
 export const ConsensusService: ServiceDefinition<"consensus", {
 readonly reset: {
-readonly kind: "command";
-readonly summary: "Forgets every proposal, vote, agreement and timer (a new game begins); the forfeit counters stay.";
 readonly input: Type.TObject<{}>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Forgets every proposal, vote, agreement and timer (a new game begins); the forfeit counters stay.";
 };
 }>;
 

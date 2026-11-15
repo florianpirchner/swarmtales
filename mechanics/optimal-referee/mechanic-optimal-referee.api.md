@@ -12,12 +12,12 @@ export const optimalReferee: MechanicDefinition<"optimal-referee", Type.TObject<
 maxEmptyCells: Type.TInteger;
 }>, {
 move_scored: Type.TObject<{
+class: Type.TUnion<[Type.TLiteral<"optimal">, Type.TLiteral<"blunder">, Type.TLiteral<"missed_win">, Type.TLiteral<"missed_block">]>;
 game: Type.TInteger;
 moveNo: Type.TInteger;
 side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
-value_before: Type.TInteger;
 value_after: Type.TInteger;
-class: Type.TUnion<[Type.TLiteral<"optimal">, Type.TLiteral<"blunder">, Type.TLiteral<"missed_win">, Type.TLiteral<"missed_block">]>;
+value_before: Type.TInteger;
 }>;
 }, never>;
 

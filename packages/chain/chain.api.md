@@ -36,8 +36,8 @@ export type ChainCheckpoint = Static<typeof ChainCheckpointSchema>;
 // @public
 export const ChainCheckpointSchema: Type.TObject<{
     genesis: Type.TString;
-    lines: Type.TInteger;
     hash: Type.TString;
+    lines: Type.TInteger;
     publicKey: Type.TString;
     signature: Type.TString;
     state: Type.TOptional<Type.TString>;
@@ -54,33 +54,33 @@ export type ChainGenesisInput = Omit<ChainGenesis, "algorithm" | "canonical" | "
 
 // @public
 export const ChainGenesisSchema: Type.TObject<{
-    version: Type.TLiteral<1>;
-    commit: Type.TOptional<Type.TString>;
-    runtime: Type.TOptional<Type.TInteger>;
-    run: Type.TOptional<Type.TString>;
-    preregistration: Type.TOptional<Type.TString>;
-    story: Type.TString;
-    storyHash: Type.TString;
-    seed: Type.TNumber;
-    models: Type.TRecord<"^.*$", Type.TString>;
-    commitments: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
-    format: Type.TLiteral<"swarmtales-chain">;
     algorithm: Type.TLiteral<"ed25519">;
-    digest: Type.TLiteral<"sha256">;
     canonical: Type.TLiteral<"RFC 8785">;
+    commit: Type.TOptional<Type.TString>;
+    commitments: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+    digest: Type.TLiteral<"sha256">;
+    format: Type.TLiteral<"swarmtales-chain">;
+    models: Type.TRecord<"^.*$", Type.TString>;
+    preregistration: Type.TOptional<Type.TString>;
     publicKey: Type.TString;
     resumedFrom: Type.TOptional<Type.TObject<{
-        file: Type.TString;
-        run: Type.TOptional<Type.TString>;
         checkpoint: Type.TOptional<Type.TObject<{
             genesis: Type.TString;
-            lines: Type.TInteger;
             hash: Type.TString;
+            lines: Type.TInteger;
             publicKey: Type.TString;
             signature: Type.TString;
             state: Type.TOptional<Type.TString>;
         }>>;
+        file: Type.TString;
+        run: Type.TOptional<Type.TString>;
     }>>;
+    run: Type.TOptional<Type.TString>;
+    runtime: Type.TOptional<Type.TInteger>;
+    seed: Type.TNumber;
+    story: Type.TString;
+    storyHash: Type.TString;
+    version: Type.TLiteral<1>;
 }>;
 
 // @public
@@ -91,29 +91,29 @@ export type ChainGenesisV2Input = Omit<ChainGenesisV2, "algorithm" | "canonical"
 
 // @public
 export const ChainGenesisV2Schema: Type.TObject<{
-    version: Type.TLiteral<2>;
-    manifest: Type.TString;
+    algorithm: Type.TLiteral<"ed25519">;
+    canonical: Type.TLiteral<"RFC 8785">;
+    digest: Type.TLiteral<"sha256">;
+    format: Type.TLiteral<"swarmtales-chain">;
     log: Type.TObject<{
         format: Type.TString;
         version: Type.TInteger;
     }>;
-    format: Type.TLiteral<"swarmtales-chain">;
-    algorithm: Type.TLiteral<"ed25519">;
-    digest: Type.TLiteral<"sha256">;
-    canonical: Type.TLiteral<"RFC 8785">;
+    manifest: Type.TString;
     publicKey: Type.TString;
     resumedFrom: Type.TOptional<Type.TObject<{
-        file: Type.TString;
-        run: Type.TOptional<Type.TString>;
         checkpoint: Type.TOptional<Type.TObject<{
             genesis: Type.TString;
-            lines: Type.TInteger;
             hash: Type.TString;
+            lines: Type.TInteger;
             publicKey: Type.TString;
             signature: Type.TString;
             state: Type.TOptional<Type.TString>;
         }>>;
+        file: Type.TString;
+        run: Type.TOptional<Type.TString>;
     }>>;
+    version: Type.TLiteral<2>;
 }>;
 
 // @public
@@ -150,63 +150,63 @@ export const EVENTS_FILE = "events.jsonl";
 
 // @public
 export const GenesisEntrySchema: Type.TObject<{
-    kind: Type.TLiteral<"genesis">;
-    seq: Type.TLiteral<0>;
-    previousHash: Type.TString;
-    hash: Type.TString;
     genesis: Type.TUnion<[Type.TObject<{
-        version: Type.TLiteral<1>;
-        commit: Type.TOptional<Type.TString>;
-        runtime: Type.TOptional<Type.TInteger>;
-        run: Type.TOptional<Type.TString>;
-        preregistration: Type.TOptional<Type.TString>;
-        story: Type.TString;
-        storyHash: Type.TString;
-        seed: Type.TNumber;
-        models: Type.TRecord<"^.*$", Type.TString>;
-        commitments: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
-        format: Type.TLiteral<"swarmtales-chain">;
         algorithm: Type.TLiteral<"ed25519">;
-        digest: Type.TLiteral<"sha256">;
         canonical: Type.TLiteral<"RFC 8785">;
+        commit: Type.TOptional<Type.TString>;
+        commitments: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+        digest: Type.TLiteral<"sha256">;
+        format: Type.TLiteral<"swarmtales-chain">;
+        models: Type.TRecord<"^.*$", Type.TString>;
+        preregistration: Type.TOptional<Type.TString>;
         publicKey: Type.TString;
         resumedFrom: Type.TOptional<Type.TObject<{
-            file: Type.TString;
-            run: Type.TOptional<Type.TString>;
             checkpoint: Type.TOptional<Type.TObject<{
                 genesis: Type.TString;
-                lines: Type.TInteger;
                 hash: Type.TString;
+                lines: Type.TInteger;
                 publicKey: Type.TString;
                 signature: Type.TString;
                 state: Type.TOptional<Type.TString>;
             }>>;
+            file: Type.TString;
+            run: Type.TOptional<Type.TString>;
         }>>;
+        run: Type.TOptional<Type.TString>;
+        runtime: Type.TOptional<Type.TInteger>;
+        seed: Type.TNumber;
+        story: Type.TString;
+        storyHash: Type.TString;
+        version: Type.TLiteral<1>;
     }>, Type.TObject<{
-        version: Type.TLiteral<2>;
-        manifest: Type.TString;
+        algorithm: Type.TLiteral<"ed25519">;
+        canonical: Type.TLiteral<"RFC 8785">;
+        digest: Type.TLiteral<"sha256">;
+        format: Type.TLiteral<"swarmtales-chain">;
         log: Type.TObject<{
             format: Type.TString;
             version: Type.TInteger;
         }>;
-        format: Type.TLiteral<"swarmtales-chain">;
-        algorithm: Type.TLiteral<"ed25519">;
-        digest: Type.TLiteral<"sha256">;
-        canonical: Type.TLiteral<"RFC 8785">;
+        manifest: Type.TString;
         publicKey: Type.TString;
         resumedFrom: Type.TOptional<Type.TObject<{
-            file: Type.TString;
-            run: Type.TOptional<Type.TString>;
             checkpoint: Type.TOptional<Type.TObject<{
                 genesis: Type.TString;
-                lines: Type.TInteger;
                 hash: Type.TString;
+                lines: Type.TInteger;
                 publicKey: Type.TString;
                 signature: Type.TString;
                 state: Type.TOptional<Type.TString>;
             }>>;
+            file: Type.TString;
+            run: Type.TOptional<Type.TString>;
         }>>;
+        version: Type.TLiteral<2>;
     }>]>;
+    hash: Type.TString;
+    kind: Type.TLiteral<"genesis">;
+    previousHash: Type.TString;
+    seq: Type.TLiteral<0>;
 }>;
 
 // @public

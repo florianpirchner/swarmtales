@@ -9,44 +9,44 @@ import { Type } from 'typebox';
 
 // @public
 export const gridGame: MechanicDefinition<"grid-game", Type.TObject<{
-size: Type.TInteger;
-line: Type.TInteger;
-games: Type.TInteger;
 alternateStart: Type.TBoolean;
 fixedCaptain: Type.TBoolean;
-wakeTeam: Type.TBoolean;
+games: Type.TInteger;
+line: Type.TInteger;
+size: Type.TInteger;
 teams: Type.TOptional<Type.TObject<{
-X: Type.TArray<Type.TString>;
 O: Type.TArray<Type.TString>;
+X: Type.TArray<Type.TString>;
 }>>;
+wakeTeam: Type.TBoolean;
 }>, {
-readonly game_started: Type.TObject<{
-game: Type.TInteger;
-startingSide: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
-xTeam: Type.TArray<Type.TString>;
-oTeam: Type.TArray<Type.TString>;
-}>;
-readonly move_played: Type.TObject<{
-game: Type.TInteger;
-side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
-by: Type.TString;
-cell: Type.TInteger;
-moveNo: Type.TInteger;
-forfeit: Type.TBoolean;
-}>;
 readonly game_ended: Type.TObject<{
 game: Type.TInteger;
+moves: Type.TArray<Type.TInteger>;
 result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
 winLine: Type.TOptional<Type.TArray<Type.TInteger>>;
-moves: Type.TArray<Type.TInteger>;
+}>;
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+oTeam: Type.TArray<Type.TString>;
+startingSide: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+xTeam: Type.TArray<Type.TString>;
 }>;
 readonly match_ended: Type.TObject<{
+invalid: Type.TOptional<Type.TBoolean>;
 tally: Type.TObject<{
-X: Type.TInteger;
 O: Type.TInteger;
+X: Type.TInteger;
 draw: Type.TInteger;
 }>;
-invalid: Type.TOptional<Type.TBoolean>;
+}>;
+readonly move_played: Type.TObject<{
+by: Type.TString;
+cell: Type.TInteger;
+forfeit: Type.TBoolean;
+game: Type.TInteger;
+moveNo: Type.TInteger;
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
 }>;
 }, "playMove" | "viewBoard">;
 

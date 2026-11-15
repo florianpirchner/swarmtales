@@ -14,9 +14,9 @@ import { Type } from 'typebox';
 
 // @public
 export const ACTOR_KEYS: {
-    readonly requests: "models.requests.";
     readonly costUsd: "models.costUsd.";
     readonly noCalls: "run.noCallActivations.";
+    readonly requests: "models.requests.";
 };
 
 // @public
@@ -52,8 +52,8 @@ export interface ChessEngine {
     readonly analyse: (fen: string, depth: number) => Analysis;
     readonly licence: string;
     readonly ruler: {
-        readonly engine: string;
         readonly commit: string;
+        readonly engine: string;
         readonly sha256: string;
     };
     readonly title: string;
@@ -62,8 +62,8 @@ export interface ChessEngine {
 // @public
 export function chessGamesOf(lines: readonly ChessLine[]): {
     readonly games: ReadonlyMap<number, {
-        readonly white: string;
         readonly black: string;
+        readonly white: string;
     }>;
     readonly moves: ReadonlyMap<number, readonly ChessMove[]>;
 };
@@ -111,73 +111,73 @@ export type ExperimentResults = Static<typeof ExperimentResultsSchema>;
 
 // @public
 export const ExperimentResultsSchema: Type.TObject<{
-    format: Type.TLiteral<"swarmtales-results">;
-    version: Type.TLiteral<1>;
-    spec: Type.TObject<{
-        id: Type.TString;
-        hash: Type.TString;
-    }>;
     code: Type.TObject<{
         commit: Type.TString;
         kernelRevision: Type.TInteger;
     }>;
-    runs: Type.TArray<Type.TObject<{
-        run: Type.TString;
-        arm: Type.TString;
-        seed: Type.TInteger;
-        replicate: Type.TInteger;
-        manifestHash: Type.TString;
-        head: Type.TString;
-        status: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"excluded">, Type.TLiteral<"stopped">]>;
-        reason: Type.TOptional<Type.TString>;
-        costUsd: Type.TNumber;
-    }>>;
-    values: Type.TArray<Type.TObject<{
-        run: Type.TString;
-        metric: Type.TString;
-        value: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
-    }>>;
-    estimates: Type.TArray<Type.TObject<{
-        metric: Type.TString;
-        role: Type.TUnion<[Type.TLiteral<"primary">, Type.TLiteral<"secondary">, Type.TLiteral<"guardrail">]>;
-        contrast: Type.TArray<Type.TString>;
-        estimator: Type.TString;
-        estimate: Type.TNumber;
-        se: Type.TNumber;
-        interval: Type.TTuple<[Type.TNumber, Type.TNumber]>;
-        n: Type.TInteger;
-        nPerArm: Type.TOptional<Type.TArray<Type.TInteger>>;
-        test: Type.TString;
-        p: Type.TNumber;
-        over: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"finished">]>;
-    }>>;
-    pass: Type.TOptional<Type.TObject<{
-        rule: Type.TString;
-        estimate: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
-        n: Type.TInteger;
-        verdict: Type.TUnion<[Type.TLiteral<"kept">, Type.TLiteral<"not-kept">, Type.TLiteral<"no-verdict">]>;
-    }>>;
-    guardrails: Type.TArray<Type.TObject<{
-        metric: Type.TString;
-        per: Type.TOptional<Type.TString>;
-        arm: Type.TString;
-        value: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
-        held: Type.TBoolean;
-        codes: Type.TOptional<Type.TArray<Type.TString>>;
-    }>>;
-    tolerance: Type.TOptional<Type.TObject<{
-        kind: Type.TUnion<[Type.TLiteral<"mean">, Type.TLiteral<"share">]>;
-        baselineMean: Type.TNumber;
-        newMean: Type.TNumber;
-        difference: Type.TNumber;
-        se: Type.TNumber;
-        within: Type.TBoolean;
-    }>>;
     deviations: Type.TArray<Type.TObject<{
         at: Type.TString;
         what: Type.TString;
         why: Type.TString;
     }>>;
+    estimates: Type.TArray<Type.TObject<{
+        contrast: Type.TArray<Type.TString>;
+        estimate: Type.TNumber;
+        estimator: Type.TString;
+        interval: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+        metric: Type.TString;
+        n: Type.TInteger;
+        nPerArm: Type.TOptional<Type.TArray<Type.TInteger>>;
+        over: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"finished">]>;
+        p: Type.TNumber;
+        role: Type.TUnion<[Type.TLiteral<"primary">, Type.TLiteral<"secondary">, Type.TLiteral<"guardrail">]>;
+        se: Type.TNumber;
+        test: Type.TString;
+    }>>;
+    format: Type.TLiteral<"swarmtales-results">;
+    guardrails: Type.TArray<Type.TObject<{
+        arm: Type.TString;
+        codes: Type.TOptional<Type.TArray<Type.TString>>;
+        held: Type.TBoolean;
+        metric: Type.TString;
+        per: Type.TOptional<Type.TString>;
+        value: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
+    }>>;
+    pass: Type.TOptional<Type.TObject<{
+        estimate: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
+        n: Type.TInteger;
+        rule: Type.TString;
+        verdict: Type.TUnion<[Type.TLiteral<"kept">, Type.TLiteral<"not-kept">, Type.TLiteral<"no-verdict">]>;
+    }>>;
+    runs: Type.TArray<Type.TObject<{
+        arm: Type.TString;
+        costUsd: Type.TNumber;
+        head: Type.TString;
+        manifestHash: Type.TString;
+        reason: Type.TOptional<Type.TString>;
+        replicate: Type.TInteger;
+        run: Type.TString;
+        seed: Type.TInteger;
+        status: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"excluded">, Type.TLiteral<"stopped">]>;
+    }>>;
+    spec: Type.TObject<{
+        hash: Type.TString;
+        id: Type.TString;
+    }>;
+    tolerance: Type.TOptional<Type.TObject<{
+        baselineMean: Type.TNumber;
+        difference: Type.TNumber;
+        kind: Type.TUnion<[Type.TLiteral<"mean">, Type.TLiteral<"share">]>;
+        newMean: Type.TNumber;
+        se: Type.TNumber;
+        within: Type.TBoolean;
+    }>>;
+    values: Type.TArray<Type.TObject<{
+        metric: Type.TString;
+        run: Type.TString;
+        value: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
+    }>>;
+    version: Type.TLiteral<1>;
 }>;
 
 // @public
@@ -185,61 +185,61 @@ export type ExperimentSpec = Static<typeof ExperimentSpecSchema>;
 
 // @public
 export const ExperimentSpecSchema: Type.TObject<{
-    format: Type.TLiteral<"swarmtales-experiment">;
-    version: Type.TLiteral<1>;
-    id: Type.TString;
-    question: Type.TString;
-    purpose: Type.TUnion<[Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
-    game: Type.TString;
-    model: Type.TObject<{
-        provider: Type.TString;
-        id: Type.TString;
-        thinking: Type.TOptional<Type.TString>;
-    }>;
+    allowedRefusals: Type.TOptional<Type.TArray<Type.TString>>;
     arms: Type.TArray<Type.TObject<{
+        control: Type.TOptional<Type.TBoolean>;
         id: Type.TString;
         params: Type.TRecord<"^.*$", Type.TUnknown>;
-        control: Type.TOptional<Type.TBoolean>;
     }>>;
-    seeds: Type.TArray<Type.TInteger>;
-    replicates: Type.TInteger;
+    baseline: Type.TOptional<Type.TString>;
+    budget: Type.TObject<{
+        estimateUsdPerRun: Type.TRecord<"^.*$", Type.TNumber>;
+        perRunUsd: Type.TNumber;
+        totalUsd: Type.TNumber;
+    }>;
+    concurrency: Type.TOptional<Type.TInteger>;
     design: Type.TUnion<[Type.TLiteral<"paired">, Type.TLiteral<"unpaired">, Type.TLiteral<"replicates">]>;
+    exclusions: Type.TArray<Type.TUnion<[Type.TLiteral<"failed-request">, Type.TLiteral<"missed-decision">, Type.TLiteral<"cost-cap">, Type.TLiteral<"error-end">]>>;
+    format: Type.TLiteral<"swarmtales-experiment">;
+    game: Type.TString;
+    id: Type.TString;
     metrics: Type.TObject<{
-        primary: Type.TString;
-        secondary: Type.TArray<Type.TString>;
         guardrails: Type.TArray<Type.TObject<{
-            metric: Type.TString;
-            per: Type.TOptional<Type.TString>;
             arm: Type.TOptional<Type.TString>;
             max: Type.TOptional<Type.TNumber>;
+            metric: Type.TString;
             min: Type.TOptional<Type.TNumber>;
+            per: Type.TOptional<Type.TString>;
             within: Type.TOptional<Type.TObject<{
                 of: Type.TNumber;
                 share: Type.TNumber;
             }>>;
         }>>;
+        primary: Type.TString;
+        secondary: Type.TArray<Type.TString>;
+    }>;
+    model: Type.TObject<{
+        id: Type.TString;
+        provider: Type.TString;
+        thinking: Type.TOptional<Type.TString>;
     }>;
     pass: Type.TOptional<Type.TObject<{
         contrast: Type.TTuple<[Type.TString, Type.TString]>;
-        sign: Type.TUnion<[Type.TLiteral<"positive">, Type.TLiteral<"negative">]>;
         minN: Type.TInteger;
+        sign: Type.TUnion<[Type.TLiteral<"positive">, Type.TLiteral<"negative">]>;
     }>>;
-    allowedRefusals: Type.TOptional<Type.TArray<Type.TString>>;
-    exclusions: Type.TArray<Type.TUnion<[Type.TLiteral<"failed-request">, Type.TLiteral<"missed-decision">, Type.TLiteral<"cost-cap">, Type.TLiteral<"error-end">]>>;
-    budget: Type.TObject<{
-        perRunUsd: Type.TNumber;
-        totalUsd: Type.TNumber;
-        estimateUsdPerRun: Type.TRecord<"^.*$", Type.TNumber>;
-    }>;
-    concurrency: Type.TOptional<Type.TInteger>;
+    purpose: Type.TUnion<[Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
+    question: Type.TString;
+    replicates: Type.TInteger;
+    seeds: Type.TArray<Type.TInteger>;
     shareAt: Type.TOptional<Type.TNumber>;
-    baseline: Type.TOptional<Type.TString>;
     tolerance: Type.TOptional<Type.TUnion<[Type.TObject<{
         kind: Type.TLiteral<"mean">;
     }>, Type.TObject<{
         kind: Type.TLiteral<"share">;
         threshold: Type.TNumber;
     }>]>>;
+    version: Type.TLiteral<1>;
 }>;
 
 // @public
@@ -247,93 +247,93 @@ export type ExperimentState = Readonly<Static<typeof ExperimentStateSchema>>;
 
 // @public
 export const ExperimentStateSchema: Type.TObject<{
-    spec: Type.TObject<{
-        format: Type.TLiteral<"swarmtales-experiment">;
-        version: Type.TLiteral<1>;
-        id: Type.TString;
-        question: Type.TString;
-        purpose: Type.TUnion<[Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
-        game: Type.TString;
-        model: Type.TObject<{
-            provider: Type.TString;
-            id: Type.TString;
-            thinking: Type.TOptional<Type.TString>;
+    code: Type.TOptional<Type.TObject<{
+        commit: Type.TString;
+        kernelRevision: Type.TInteger;
+    }>>;
+    runs: Type.TArray<Type.TObject<{
+        costUsd: Type.TNumber;
+        directory: Type.TString;
+        planned: Type.TObject<{
+            arm: Type.TString;
+            index: Type.TInteger;
+            params: Type.TRecord<"^.*$", Type.TUnknown>;
+            replicate: Type.TInteger;
+            seed: Type.TInteger;
         }>;
+        reason: Type.TOptional<Type.TString>;
+        replaces: Type.TOptional<Type.TInteger>;
+        status: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"excluded">, Type.TLiteral<"stopped">]>;
+    }>>;
+    spec: Type.TObject<{
+        allowedRefusals: Type.TOptional<Type.TArray<Type.TString>>;
         arms: Type.TArray<Type.TObject<{
+            control: Type.TOptional<Type.TBoolean>;
             id: Type.TString;
             params: Type.TRecord<"^.*$", Type.TUnknown>;
-            control: Type.TOptional<Type.TBoolean>;
         }>>;
-        seeds: Type.TArray<Type.TInteger>;
-        replicates: Type.TInteger;
+        baseline: Type.TOptional<Type.TString>;
+        budget: Type.TObject<{
+            estimateUsdPerRun: Type.TRecord<"^.*$", Type.TNumber>;
+            perRunUsd: Type.TNumber;
+            totalUsd: Type.TNumber;
+        }>;
+        concurrency: Type.TOptional<Type.TInteger>;
         design: Type.TUnion<[Type.TLiteral<"paired">, Type.TLiteral<"unpaired">, Type.TLiteral<"replicates">]>;
+        exclusions: Type.TArray<Type.TUnion<[Type.TLiteral<"failed-request">, Type.TLiteral<"missed-decision">, Type.TLiteral<"cost-cap">, Type.TLiteral<"error-end">]>>;
+        format: Type.TLiteral<"swarmtales-experiment">;
+        game: Type.TString;
+        id: Type.TString;
         metrics: Type.TObject<{
-            primary: Type.TString;
-            secondary: Type.TArray<Type.TString>;
             guardrails: Type.TArray<Type.TObject<{
-                metric: Type.TString;
-                per: Type.TOptional<Type.TString>;
                 arm: Type.TOptional<Type.TString>;
                 max: Type.TOptional<Type.TNumber>;
+                metric: Type.TString;
                 min: Type.TOptional<Type.TNumber>;
+                per: Type.TOptional<Type.TString>;
                 within: Type.TOptional<Type.TObject<{
                     of: Type.TNumber;
                     share: Type.TNumber;
                 }>>;
             }>>;
+            primary: Type.TString;
+            secondary: Type.TArray<Type.TString>;
+        }>;
+        model: Type.TObject<{
+            id: Type.TString;
+            provider: Type.TString;
+            thinking: Type.TOptional<Type.TString>;
         }>;
         pass: Type.TOptional<Type.TObject<{
             contrast: Type.TTuple<[Type.TString, Type.TString]>;
-            sign: Type.TUnion<[Type.TLiteral<"positive">, Type.TLiteral<"negative">]>;
             minN: Type.TInteger;
+            sign: Type.TUnion<[Type.TLiteral<"positive">, Type.TLiteral<"negative">]>;
         }>>;
-        allowedRefusals: Type.TOptional<Type.TArray<Type.TString>>;
-        exclusions: Type.TArray<Type.TUnion<[Type.TLiteral<"failed-request">, Type.TLiteral<"missed-decision">, Type.TLiteral<"cost-cap">, Type.TLiteral<"error-end">]>>;
-        budget: Type.TObject<{
-            perRunUsd: Type.TNumber;
-            totalUsd: Type.TNumber;
-            estimateUsdPerRun: Type.TRecord<"^.*$", Type.TNumber>;
-        }>;
-        concurrency: Type.TOptional<Type.TInteger>;
+        purpose: Type.TUnion<[Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
+        question: Type.TString;
+        replicates: Type.TInteger;
+        seeds: Type.TArray<Type.TInteger>;
         shareAt: Type.TOptional<Type.TNumber>;
-        baseline: Type.TOptional<Type.TString>;
         tolerance: Type.TOptional<Type.TUnion<[Type.TObject<{
             kind: Type.TLiteral<"mean">;
         }>, Type.TObject<{
             kind: Type.TLiteral<"share">;
             threshold: Type.TNumber;
         }>]>>;
+        version: Type.TLiteral<1>;
     }>;
     specHash: Type.TString;
-    runs: Type.TArray<Type.TObject<{
-        planned: Type.TObject<{
-            index: Type.TInteger;
-            arm: Type.TString;
-            seed: Type.TInteger;
-            replicate: Type.TInteger;
-            params: Type.TRecord<"^.*$", Type.TUnknown>;
-        }>;
-        directory: Type.TString;
-        status: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"excluded">, Type.TLiteral<"stopped">]>;
-        reason: Type.TOptional<Type.TString>;
-        replaces: Type.TOptional<Type.TInteger>;
-        costUsd: Type.TNumber;
-    }>>;
     spentUsd: Type.TNumber;
     started: Type.TOptional<Type.TArray<Type.TObject<{
         planned: Type.TObject<{
-            index: Type.TInteger;
             arm: Type.TString;
-            seed: Type.TInteger;
-            replicate: Type.TInteger;
+            index: Type.TInteger;
             params: Type.TRecord<"^.*$", Type.TUnknown>;
+            replicate: Type.TInteger;
+            seed: Type.TInteger;
         }>;
         reservedUsd: Type.TNumber;
     }>>>;
-    code: Type.TOptional<Type.TObject<{
-        commit: Type.TString;
-        kernelRevision: Type.TInteger;
-    }>>;
 }>;
 
 // @public
@@ -372,33 +372,33 @@ export type NoiseFloor = Static<typeof NoiseFloorSchema>;
 
 // @public
 export const NoiseFloorSchema: Type.TObject<{
-    format: Type.TLiteral<"swarmtales-noise-floor">;
-    version: Type.TLiteral<1>;
-    game: Type.TString;
     arm: Type.TString;
-    seed: Type.TInteger;
+    format: Type.TLiteral<"swarmtales-noise-floor">;
+    game: Type.TString;
+    guardrails: Type.TRecord<"^.*$", Type.TObject<{
+        bootstrap95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+        max: Type.TNumber;
+        mean: Type.TNumber;
+        min: Type.TNumber;
+        n: Type.TInteger;
+        sd: Type.TNumber;
+        t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+    }>>;
+    kernelRevision: Type.TInteger;
     metric: Type.TString;
     platform: Type.TUnion<[Type.TLiteral<"legacy">, Type.TLiteral<"rewrite">]>;
-    kernelRevision: Type.TInteger;
-    values: Type.TArray<Type.TNumber>;
+    seed: Type.TInteger;
     summary: Type.TObject<{
-        n: Type.TInteger;
-        mean: Type.TNumber;
-        sd: Type.TNumber;
-        min: Type.TNumber;
-        max: Type.TNumber;
-        t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
         bootstrap95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+        max: Type.TNumber;
+        mean: Type.TNumber;
+        min: Type.TNumber;
+        n: Type.TInteger;
+        sd: Type.TNumber;
+        t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
     }>;
-    guardrails: Type.TRecord<"^.*$", Type.TObject<{
-        n: Type.TInteger;
-        mean: Type.TNumber;
-        sd: Type.TNumber;
-        min: Type.TNumber;
-        max: Type.TNumber;
-        t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
-        bootstrap95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
-    }>>;
+    values: Type.TArray<Type.TNumber>;
+    version: Type.TLiteral<1>;
 }>;
 
 // @public
@@ -462,8 +462,8 @@ export function runExperiment(spec: ExperimentSpec, play: PlayRun, options: Expe
 export interface RunFacts {
     readonly arm?: string;
     readonly end: {
-        readonly reason: string;
         readonly limit?: string;
+        readonly reason: string;
         readonly tick: number;
     };
     readonly game: string;
@@ -518,8 +518,8 @@ export interface ScoredPly {
 
 // @public
 export function share(hits: number, n: number): {
-    readonly share: number;
     readonly interval95: readonly [number, number];
+    readonly share: number;
 };
 
 // @public
@@ -540,13 +540,13 @@ export function summarize(values: readonly number[], seed?: number): NoiseSummar
 
 // @public
 export const SummarySchema: Type.TObject<{
-    n: Type.TInteger;
-    mean: Type.TNumber;
-    sd: Type.TNumber;
-    min: Type.TNumber;
-    max: Type.TNumber;
-    t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
     bootstrap95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+    max: Type.TNumber;
+    mean: Type.TNumber;
+    min: Type.TNumber;
+    n: Type.TInteger;
+    sd: Type.TNumber;
+    t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
 }>;
 
 // @public

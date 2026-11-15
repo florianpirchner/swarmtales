@@ -10,223 +10,223 @@ import { Type } from 'typebox';
 // @public
 export const AllowanceService: ServiceDefinition<"allowance", {
 readonly left: {
-readonly kind: "query";
-readonly summary: "The resident's marks in the current window, or null where marks do not apply (old `left` of `marks`).";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TObject<{
-remaining: Type.TNumber;
 budget: Type.TNumber;
+remaining: Type.TNumber;
 }>, Type.TNull]>;
+readonly summary: "The resident's marks in the current window, or null where marks do not apply (old `left` of `marks`).";
 };
 readonly priceOf: {
-readonly kind: "query";
-readonly summary: "What a message on the channel costs the resident now, or null where marks do not apply (old `priceOf` of `marks`).";
 readonly input: Type.TObject<{
-resident: Type.TString;
 channel: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"group">, Type.TLiteral<"dm">, Type.TLiteral<"receipt">]>;
+resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TNumber, Type.TNull]>;
+readonly summary: "What a message on the channel costs the resident now, or null where marks do not apply (old `priceOf` of `marks`).";
 };
 }>;
 
 // @public
 export const BrainSourceService: ServiceDefinition<"brain-source", {
 readonly game: {
-readonly kind: "query";
-readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TInteger;
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
 };
 readonly hold: {
-readonly kind: "command";
-readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
 readonly input: Type.TObject<{}>;
+readonly kind: "command";
 readonly output: Type.TBoolean;
+readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
 };
 readonly release: {
-readonly kind: "command";
-readonly summary: "Lets a held game start. A no-op when nothing is held.";
 readonly input: Type.TObject<{}>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Lets a held game start. A no-op when nothing is held.";
 };
 }>;
 
 // @public
 export const CapExemptionService: ServiceDefinition<"cap-exemption", {
 readonly exempt: {
-readonly kind: "query";
-readonly summary: "True when the message from `from` to `to` is exempt from the cap (old `exemptFromCap`: the accused of a holdout tribunal to those who lack its fragment).";
 readonly input: Type.TObject<{
 from: Type.TString;
 to: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TBoolean;
+readonly summary: "True when the message from `from` to `to` is exempt from the cap (old `exemptFromCap`: the accused of a holdout tribunal to those who lack its fragment).";
 };
 }>;
 
 // @public
 export const ConsensusSourceService: ServiceDefinition<"consensus-source", {
-readonly team: {
-readonly kind: "query";
-readonly summary: "The team on move now; an empty string when no team may act.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TString;
-};
 readonly captain: {
-readonly kind: "query";
-readonly summary: "The resident who proposes for the team on move; an empty string when there is none.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TString;
-};
-readonly legalCells: {
-readonly kind: "query";
-readonly summary: "The values the gated parameter may take for the team on move (empty when none or no team is on move).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TInteger>;
-};
-readonly playForfeit: {
-readonly kind: "command";
-readonly summary: "Plays `cell` for the team on move as a forfeit (the move timer ran out). False when it could not be played.";
-readonly input: Type.TObject<{
-cell: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
+readonly summary: "The resident who proposes for the team on move; an empty string when there is none.";
 };
 readonly invalidate: {
-readonly kind: "command";
-readonly summary: "Ends the match as invalid (nobody played it; forfeits only) so the run ends. False when the match is already over.";
 readonly input: Type.TObject<{
 reason: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TBoolean;
+readonly summary: "Ends the match as invalid (nobody played it; forfeits only) so the run ends. False when the match is already over.";
+};
+readonly legalCells: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TInteger>;
+readonly summary: "The values the gated parameter may take for the team on move (empty when none or no team is on move).";
+};
+readonly playForfeit: {
+readonly input: Type.TObject<{
+cell: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Plays `cell` for the team on move as a forfeit (the move timer ran out). False when it could not be played.";
+};
+readonly team: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TString;
+readonly summary: "The team on move now; an empty string when no team may act.";
 };
 }>;
 
 // @public
 export const FiguresService: ServiceDefinition<"figures", {
+readonly collected: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+from: Type.TString;
+into: Type.TArray<Type.TString>;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "The message's marks were spent: `from` is a new sender in `into` (the `newSender` of `receive`); writes `cast_collected`.";
+};
 readonly isActive: {
-readonly kind: "query";
-readonly summary: "Whether a resident may write to this figure now: it exists, is not hidden and not retired (old `cast.isActive`).";
 readonly input: Type.TObject<{
 cast: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TBoolean;
+readonly summary: "Whether a resident may write to this figure now: it exists, is not hidden and not retired (old `cast.isActive`).";
 };
 readonly receive: {
-readonly kind: "command";
-readonly summary: "A resident's direct message to a figure, after the checks of the router: collected while a collection runs; writes `cast_dm` with the number the router took.";
 readonly input: Type.TObject<{
-from: Type.TString;
 cast: Type.TString;
-text: Type.TString;
+from: Type.TString;
 number: Type.TInteger;
+text: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 collections: Type.TArray<Type.TString>;
 newSender: Type.TArray<Type.TString>;
 }>;
-};
-readonly collected: {
-readonly kind: "command";
-readonly summary: "The message's marks were spent: `from` is a new sender in `into` (the `newSender` of `receive`); writes `cast_collected`.";
-readonly input: Type.TObject<{
-from: Type.TString;
-cast: Type.TString;
-into: Type.TArray<Type.TString>;
-}>;
-readonly output: Type.TNull;
+readonly summary: "A resident's direct message to a figure, after the checks of the router: collected while a collection runs; writes `cast_dm` with the number the router took.";
 };
 }>;
 
 // @public
 export const IdentityService: ServiceDefinition<"identity", {
-readonly nameOf: {
+readonly display: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly output: Type.TString;
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+};
+readonly nameOf: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly display: {
 readonly kind: "query";
-readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
-readonly input: Type.TObject<{
-text: Type.TString;
-}>;
-readonly output: Type.TString;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
 };
 readonly resolve: {
-readonly kind: "query";
-readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 readonly input: Type.TObject<{
 text: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TString;
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 };
 }>;
 
 // @public
 export const NoticesService: ServiceDefinition<"notices", {
-readonly post: {
+readonly notify: {
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Writes a post of the city on the public board, as `channels.post` does.";
+readonly output: Type.TNull;
+readonly summary: "Leaves a private notice for a resident, as `channels.notify` does; the resident reads it at its next activation.";
+};
+readonly post: {
 readonly input: Type.TObject<{
 author: Type.TString;
 text: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 postSeq: Type.TInteger;
 }>;
-};
-readonly notify: {
-readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident, as `channels.notify` does; the resident reads it at its next activation.";
-readonly input: Type.TObject<{
-to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Writes a post of the city on the public board, as `channels.post` does.";
 };
 }>;
 
 // @public
 export const ReceiptSourceService: ServiceDefinition<"receipt-source", {
-readonly ofTransfer: {
-readonly kind: "query";
-readonly summary: "The id of the receipt issued for the booking `txId` of the ledger, or null (old `ofTransfer` of `receipts`).";
+readonly ofLevel: {
 readonly input: Type.TObject<{
-txId: Type.TString;
+level: Type.TInteger;
+resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The id of the receipt issued, or to be issued in the provider's listener, for the resident's correct `submission` of the level of `progression`, or null (decision A64).";
 };
 readonly ofMessage: {
-readonly kind: "query";
-readonly summary: "The id of the receipt issued when the direct message `number` was delivered, or null.";
 readonly input: Type.TObject<{
 number: Type.TInteger;
 }>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly ofLevel: {
 readonly kind: "query";
-readonly summary: "The id of the receipt issued, or to be issued in the provider's listener, for the resident's correct `submission` of the level of `progression`, or null (decision A64).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The id of the receipt issued when the direct message `number` was delivered, or null.";
+};
+readonly ofTransfer: {
+readonly input: Type.TObject<{
+txId: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The id of the receipt issued for the booking `txId` of the ledger, or null (old `ofTransfer` of `receipts`).";
 };
 readonly textsOf: {
-readonly kind: "query";
-readonly summary: "The texts of the receipts the resident is a party to, in the order issued (old `list` of `receipts`), for the reply of `getStatus`.";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TString>;
+readonly summary: "The texts of the receipts the resident is a party to, in the order issued (old `list` of `receipts`), for the reply of `getStatus`.";
 };
 }>;
 

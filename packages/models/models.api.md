@@ -35,8 +35,8 @@ import { Type } from 'typebox';
 
 // @public
 export function act(...calls: readonly {
-    readonly name: string;
     readonly args?: JsonObject;
+    readonly name: string;
 }[]): ScriptStep;
 
 // @public
@@ -153,8 +153,8 @@ export function limitsFor(maxTokens: number, limits: RequestLimits): RequestLimi
 
 // @public
 export type Look = (activation: Activation, question: {
-    readonly system: string;
     readonly input: string;
+    readonly system: string;
 }) => Promise<void>;
 
 // @public
@@ -176,8 +176,8 @@ export interface LookInput {
 
 // @public
 export const MODEL_DEFAULTS: Readonly<{
-    readonly thinking: "medium";
     readonly maxOutputTokens: 4000;
+    readonly thinking: "medium";
 }>;
 
 // @public
@@ -355,20 +355,20 @@ export type SavedSessions = Static<typeof SavedSessionsSchema>;
 
 // @public
 export const SavedSessionSchema: Type.TObject<{
+    declared: Type.TArray<Type.TString>;
     format: Type.TLiteral<1>;
     initial: Type.TArray<Type.TString>;
-    declared: Type.TArray<Type.TString>;
-    notice: Type.TOptional<Type.TArray<Type.TString>>;
     messages: Type.TArray<Type.TString>;
+    notice: Type.TOptional<Type.TArray<Type.TString>>;
 }>;
 
 // @public
 export const SavedSessionsSchema: Type.TRecord<"^.*$", Type.TObject<{
+    declared: Type.TArray<Type.TString>;
     format: Type.TLiteral<1>;
     initial: Type.TArray<Type.TString>;
-    declared: Type.TArray<Type.TString>;
-    notice: Type.TOptional<Type.TArray<Type.TString>>;
     messages: Type.TArray<Type.TString>;
+    notice: Type.TOptional<Type.TArray<Type.TString>>;
 }>>;
 
 // @public

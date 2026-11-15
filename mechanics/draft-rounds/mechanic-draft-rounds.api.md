@@ -9,90 +9,90 @@ import { Type } from 'typebox';
 
 // @public
 export const draftRounds: MechanicDefinition<"draft-rounds", Type.TObject<{
-games: Type.TInteger;
-packs: Type.TInteger;
-packSize: Type.TInteger;
-wilds: Type.TInteger;
-majorityBonus: Type.TInteger;
 burnCost: Type.TInteger;
-placeBonus: Type.TArray<Type.TInteger>;
+deadline: Type.TInteger;
+frozenHands: Type.TOptional<Type.TBoolean>;
+games: Type.TInteger;
+majorityBonus: Type.TInteger;
 maxBurns: Type.TInteger;
 openHands: Type.TBoolean;
-frozenHands: Type.TOptional<Type.TBoolean>;
-deadline: Type.TInteger;
+packSize: Type.TInteger;
+packs: Type.TInteger;
+placeBonus: Type.TArray<Type.TInteger>;
 showEarlierPoints: Type.TOptional<Type.TBoolean>;
+wilds: Type.TInteger;
 }>, {
-draft_game_started: Type.TObject<{
-game: Type.TInteger;
-seats: Type.TArray<Type.TString>;
-deck: Type.TArray<Type.TObject<{
-id: Type.TString;
-kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
-}>>;
-}>;
-draft_pick_opened: Type.TObject<{
-game: Type.TInteger;
-pack: Type.TInteger;
-step: Type.TInteger;
-sizes: Type.TRecord<"^.*$", Type.TInteger>;
-}>;
 draft_card_picked: Type.TObject<{
-game: Type.TInteger;
-pack: Type.TInteger;
-step: Type.TInteger;
-resident: Type.TString;
-card: Type.TObject<{
-id: Type.TString;
-kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
-}>;
+best: Type.TNumber;
 burned: Type.TOptional<Type.TObject<{
 id: Type.TString;
 kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
 }>>;
-packSize: Type.TInteger;
-gain: Type.TNumber;
-best: Type.TNumber;
-regret: Type.TNumber;
+card: Type.TObject<{
+id: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
+}>;
 denied: Type.TBoolean;
+gain: Type.TNumber;
+game: Type.TInteger;
 missed: Type.TBoolean;
+pack: Type.TInteger;
+packSize: Type.TInteger;
+regret: Type.TNumber;
+resident: Type.TString;
 returnable: Type.TOptional<Type.TBoolean>;
+step: Type.TInteger;
 }>;
 draft_game_ended: Type.TObject<{
+breakdown: Type.TRecord<"^.*$", Type.TObject<{
+bonus: Type.TNumber;
+burns: Type.TInteger;
+majorities: Type.TArray<Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>>;
+place: Type.TInteger;
+placeBonus: Type.TNumber;
+sets: Type.TNumber;
+total: Type.TNumber;
+}>>;
 game: Type.TInteger;
 hands: Type.TRecord<"^.*$", Type.TArray<Type.TObject<{
 id: Type.TString;
 kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
 }>>>;
-breakdown: Type.TRecord<"^.*$", Type.TObject<{
-sets: Type.TNumber;
-majorities: Type.TArray<Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>>;
-bonus: Type.TNumber;
-burns: Type.TInteger;
-place: Type.TInteger;
-placeBonus: Type.TNumber;
-total: Type.TNumber;
-}>>;
 totals: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
 draft_game_scored: Type.TObject<{
 game: Type.TInteger;
 reference: Type.TObject<{
+efficiency: Type.TNumber;
 seats: Type.TRecord<"^.*$", Type.TObject<{
-score: Type.TNumber;
-greedy: Type.TNumber;
-regret: Type.TNumber;
-hatePicks: Type.TInteger;
 burns: Type.TInteger;
-missed: Type.TInteger;
-lane: Type.TString;
 focus: Type.TNumber;
+greedy: Type.TNumber;
+hatePicks: Type.TInteger;
+lane: Type.TString;
+missed: Type.TInteger;
+regret: Type.TNumber;
+score: Type.TNumber;
 }>>;
 sharedLanes: Type.TInteger;
-efficiency: Type.TNumber;
 }>;
+}>;
+draft_game_started: Type.TObject<{
+deck: Type.TArray<Type.TObject<{
+id: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
+}>>;
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
 }>;
 draft_match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+draft_pick_opened: Type.TObject<{
+game: Type.TInteger;
+pack: Type.TInteger;
+sizes: Type.TRecord<"^.*$", Type.TInteger>;
+step: Type.TInteger;
 }>;
 }, "pick" | "viewTable">;
 

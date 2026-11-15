@@ -14,122 +14,122 @@ import { ViewOf } from '@swarmtales/sdk';
 
 // @public
 export const convoy: MechanicDefinition<"convoy", Type.TObject<{
-games: Type.TInteger;
-saboteurs: Type.TInteger;
+cooldown: Type.TInteger;
 crews: Type.TArray<Type.TInteger>;
 damageToLose: Type.TInteger;
-cooldown: Type.TInteger;
-talkPosts: Type.TInteger;
-maxTalkLength: Type.TInteger;
 deadline: Type.TInteger;
-talkMinutes: Type.TInteger;
+games: Type.TInteger;
+maxTalkLength: Type.TInteger;
 quietEnds: Type.TOptional<Type.TBoolean>;
+saboteurs: Type.TInteger;
+talkMinutes: Type.TInteger;
+talkPosts: Type.TInteger;
 }>, {
-convoy_game_started: Type.TObject<{
+convoy_accused: Type.TObject<{
+accused: Type.TArray<Type.TString>;
 game: Type.TInteger;
-seats: Type.TArray<Type.TString>;
-roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
-}>;
-convoy_crew_proposed: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-proposal: Type.TInteger;
 missed: Type.TBoolean;
-}>;
-convoy_spoken: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-from: Type.TString;
-text: Type.TString;
-}>;
-convoy_votes_revealed: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-missed: Type.TArray<Type.TString>;
-confidence: Type.TBoolean;
-}>;
-convoy_card_played: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
 seat: Type.TString;
-card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
-missed: Type.TBoolean;
-mayDamage: Type.TBoolean;
-}>;
-convoy_stage_revealed: Type.TObject<{
-stage: Type.TInteger;
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-rejected: Type.TOptional<Type.TObject<{
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-}>>;
-votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-noVote: Type.TOptional<Type.TArray<Type.TString>>;
-damage: Type.TInteger;
-damaged: Type.TBoolean;
-audit: Type.TOptional<Type.TObject<{
-seat: Type.TString;
-card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-by: Type.TString;
-}>>;
 }>;
 convoy_audited: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-seat: Type.TString;
-card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
 by: Type.TString;
-}>;
-convoy_accused: Type.TObject<{
+card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
 game: Type.TInteger;
 seat: Type.TString;
-accused: Type.TArray<Type.TString>;
+stage: Type.TInteger;
+}>;
+convoy_card_played: Type.TObject<{
+card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
+game: Type.TInteger;
+mayDamage: Type.TBoolean;
 missed: Type.TBoolean;
+role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
+seat: Type.TString;
+stage: Type.TInteger;
+}>;
+convoy_crew_proposed: Type.TObject<{
+crew: Type.TArray<Type.TString>;
+game: Type.TInteger;
+lead: Type.TString;
+missed: Type.TBoolean;
+proposal: Type.TInteger;
+stage: Type.TInteger;
 }>;
 convoy_game_ended: Type.TObject<{
-game: Type.TInteger;
-winner: Type.TUnion<[Type.TLiteral<"convoy">, Type.TLiteral<"saboteurs">]>;
-roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
-damaged: Type.TInteger;
-stages: Type.TInteger;
 cards: Type.TArray<Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-seat: Type.TString;
 card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
-missed: Type.TBoolean;
+game: Type.TInteger;
 mayDamage: Type.TBoolean;
+missed: Type.TBoolean;
+role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
+seat: Type.TString;
+stage: Type.TInteger;
 }>>;
+damaged: Type.TInteger;
+game: Type.TInteger;
+roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
+stages: Type.TInteger;
 totals: Type.TRecord<"^.*$", Type.TNumber>;
+winner: Type.TUnion<[Type.TLiteral<"convoy">, Type.TLiteral<"saboteurs">]>;
 }>;
 convoy_game_scored: Type.TObject<{
 game: Type.TInteger;
+posterior: Type.TRecord<"^.*$", Type.TNumber>;
 seats: Type.TRecord<"^.*$", Type.TObject<{
-role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
 accused: Type.TArray<Type.TString>;
-hits: Type.TInteger;
-trackerHits: Type.TInteger;
-trackerMass: Type.TNumber;
-rightVotes: Type.TInteger;
-votes: Type.TInteger;
 chances: Type.TInteger;
 damage: Type.TInteger;
-selfReveals: Type.TInteger;
+hits: Type.TInteger;
 missed: Type.TInteger;
+rightVotes: Type.TInteger;
+role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
+selfReveals: Type.TInteger;
+trackerHits: Type.TInteger;
+trackerMass: Type.TNumber;
+votes: Type.TInteger;
 }>>;
 tracker: Type.TArray<Type.TString>;
-posterior: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+convoy_game_started: Type.TObject<{
+game: Type.TInteger;
+roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
+seats: Type.TArray<Type.TString>;
 }>;
 convoy_match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+convoy_spoken: Type.TObject<{
+from: Type.TString;
+game: Type.TInteger;
+stage: Type.TInteger;
+text: Type.TString;
+}>;
+convoy_stage_revealed: Type.TObject<{
+audit: Type.TOptional<Type.TObject<{
+by: Type.TString;
+card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
+seat: Type.TString;
+}>>;
+crew: Type.TArray<Type.TString>;
+damage: Type.TInteger;
+damaged: Type.TBoolean;
+lead: Type.TString;
+noVote: Type.TOptional<Type.TArray<Type.TString>>;
+rejected: Type.TOptional<Type.TObject<{
+crew: Type.TArray<Type.TString>;
+lead: Type.TString;
+}>>;
+stage: Type.TInteger;
+votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
+}>;
+convoy_votes_revealed: Type.TObject<{
+confidence: Type.TBoolean;
+crew: Type.TArray<Type.TString>;
+game: Type.TInteger;
+lead: Type.TString;
+missed: Type.TArray<Type.TString>;
+stage: Type.TInteger;
+votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
 }>;
 }, "accuse" | "audit" | "playCrewCard" | "proposeCrew" | "speak" | "viewConvoy" | "voteConfidence">;
 
@@ -138,323 +138,334 @@ export type ConvoyCtx = CtxOf<typeof convoyHead>;
 
 // @public
 export const convoyHead: MechanicHead<"convoy", Type.TObject<{
-games: Type.TInteger;
-saboteurs: Type.TInteger;
+cooldown: Type.TInteger;
 crews: Type.TArray<Type.TInteger>;
 damageToLose: Type.TInteger;
-cooldown: Type.TInteger;
-talkPosts: Type.TInteger;
-maxTalkLength: Type.TInteger;
 deadline: Type.TInteger;
-talkMinutes: Type.TInteger;
+games: Type.TInteger;
+maxTalkLength: Type.TInteger;
 quietEnds: Type.TOptional<Type.TBoolean>;
+saboteurs: Type.TInteger;
+talkMinutes: Type.TInteger;
+talkPosts: Type.TInteger;
 }>, Type.TObject<{
-seats: Type.TArray<Type.TString>;
-game: Type.TInteger;
-roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
-phase: Type.TUnion<[Type.TLiteral<"idle">, Type.TLiteral<"propose">, Type.TLiteral<"talk">, Type.TLiteral<"vote">, Type.TLiteral<"play">, Type.TLiteral<"accuse">]>;
-opened: Type.TInteger;
-stage: Type.TInteger;
-lead: Type.TString;
-nextLead: Type.TInteger;
-proposals: Type.TInteger;
-crew: Type.TArray<Type.TString>;
-rejected: Type.TOptional<Type.TObject<{
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-}>>;
-votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-firstVotes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-noVote: Type.TArray<Type.TString>;
-plays: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>>;
-lastDamage: Type.TRecord<"^.*$", Type.TInteger>;
-owing: Type.TArray<Type.TString>;
-told: Type.TArray<Type.TString>;
+accusations: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+auditUsed: Type.TBoolean;
 briefed: Type.TArray<Type.TString>;
-stages: Type.TArray<Type.TObject<{
-stage: Type.TInteger;
-lead: Type.TString;
 crew: Type.TArray<Type.TString>;
-rejected: Type.TOptional<Type.TObject<{
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-}>>;
-votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-noVote: Type.TOptional<Type.TArray<Type.TString>>;
-damage: Type.TInteger;
-damaged: Type.TBoolean;
-audit: Type.TOptional<Type.TObject<{
-seat: Type.TString;
-card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-by: Type.TString;
-}>>;
-}>>;
-sealed: Type.TArray<Type.TObject<{
+due: Type.TBoolean;
+finished: Type.TBoolean;
+firstVotes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
 game: Type.TInteger;
-stage: Type.TInteger;
-seat: Type.TString;
-card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
-missed: Type.TBoolean;
-mayDamage: Type.TBoolean;
-}>>;
+held: Type.TBoolean;
+lastDamage: Type.TRecord<"^.*$", Type.TInteger>;
+lead: Type.TString;
 log: Type.TArray<Type.TString>;
-talk: Type.TArray<Type.TObject<{
-stage: Type.TInteger;
-from: Type.TString;
-text: Type.TString;
+missed: Type.TRecord<"^.*$", Type.TInteger>;
+nextLead: Type.TInteger;
+noVote: Type.TArray<Type.TString>;
+opened: Type.TInteger;
+owing: Type.TArray<Type.TString>;
+phase: Type.TUnion<[Type.TLiteral<"idle">, Type.TLiteral<"propose">, Type.TLiteral<"talk">, Type.TLiteral<"vote">, Type.TLiteral<"play">, Type.TLiteral<"accuse">]>;
+plays: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>>;
+proposals: Type.TInteger;
+rejected: Type.TOptional<Type.TObject<{
+crew: Type.TArray<Type.TString>;
+lead: Type.TString;
 }>>;
+roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
+running: Type.TBoolean;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+sealed: Type.TArray<Type.TObject<{
+card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
+game: Type.TInteger;
+mayDamage: Type.TBoolean;
+missed: Type.TBoolean;
+role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
+seat: Type.TString;
+stage: Type.TInteger;
+}>>;
+seats: Type.TArray<Type.TString>;
 seenLog: Type.TRecord<"^.*$", Type.TInteger>;
 spoken: Type.TRecord<"^.*$", Type.TInteger>;
-auditUsed: Type.TBoolean;
-accusations: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
-missed: Type.TRecord<"^.*$", Type.TInteger>;
-scores: Type.TRecord<"^.*$", Type.TNumber>;
-running: Type.TBoolean;
-finished: Type.TBoolean;
-held: Type.TBoolean;
-due: Type.TBoolean;
-}>, {
-rejected?: {
-lead: string;
-crew: string[];
-};
-talk: {
-stage: number;
-from: string;
-text: string;
-}[];
-stage: number;
-lead: string;
-crew: string[];
-votes: Record<string, "no" | "yes">;
-noVote: string[];
-game: number;
-missed: Record<string, number>;
-seats: string[];
-roles: Record<string, "loyal" | "saboteur">;
-phase: "accuse" | "idle" | "play" | "propose" | "talk" | "vote";
-opened: number;
-nextLead: number;
-proposals: number;
-firstVotes: Record<string, "no" | "yes">;
-plays: Record<string, "damage" | "safe">;
-lastDamage: Record<string, number>;
-owing: string[];
-told: string[];
-briefed: string[];
-stages: {
-rejected?: {
-lead: string;
-crew: string[];
-};
-noVote?: string[];
-audit?: {
-seat: string;
-card: "damage" | "safe";
-by: string;
-};
-damage: number;
-stage: number;
-lead: string;
-crew: string[];
-votes: Record<string, "no" | "yes">;
-damaged: boolean;
-}[];
-sealed: {
-stage: number;
-seat: string;
-card: "damage" | "safe";
-game: number;
-role: "loyal" | "saboteur";
-missed: boolean;
-mayDamage: boolean;
-}[];
-log: string[];
-seenLog: Record<string, number>;
-spoken: Record<string, number>;
-auditUsed: boolean;
-accusations: Record<string, string[]>;
-scores: Record<string, number>;
-running: boolean;
-finished: boolean;
-held: boolean;
-due: boolean;
-}, {
-convoy_game_started: Type.TObject<{
-game: Type.TInteger;
-seats: Type.TArray<Type.TString>;
-roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
-}>;
-convoy_crew_proposed: Type.TObject<{
-game: Type.TInteger;
 stage: Type.TInteger;
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-proposal: Type.TInteger;
-missed: Type.TBoolean;
-}>;
-convoy_spoken: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-from: Type.TString;
-text: Type.TString;
-}>;
-convoy_votes_revealed: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-missed: Type.TArray<Type.TString>;
-confidence: Type.TBoolean;
-}>;
-convoy_card_played: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-seat: Type.TString;
+stages: Type.TArray<Type.TObject<{
+audit: Type.TOptional<Type.TObject<{
+by: Type.TString;
 card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
-missed: Type.TBoolean;
-mayDamage: Type.TBoolean;
-}>;
-convoy_stage_revealed: Type.TObject<{
-stage: Type.TInteger;
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
-rejected: Type.TOptional<Type.TObject<{
-lead: Type.TString;
-crew: Type.TArray<Type.TString>;
+seat: Type.TString;
 }>>;
-votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-noVote: Type.TOptional<Type.TArray<Type.TString>>;
+crew: Type.TArray<Type.TString>;
 damage: Type.TInteger;
 damaged: Type.TBoolean;
-audit: Type.TOptional<Type.TObject<{
-seat: Type.TString;
-card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-by: Type.TString;
+lead: Type.TString;
+noVote: Type.TOptional<Type.TArray<Type.TString>>;
+rejected: Type.TOptional<Type.TObject<{
+crew: Type.TArray<Type.TString>;
+lead: Type.TString;
 }>>;
+stage: Type.TInteger;
+votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
+}>>;
+talk: Type.TArray<Type.TObject<{
+from: Type.TString;
+stage: Type.TInteger;
+text: Type.TString;
+}>>;
+told: Type.TArray<Type.TString>;
+votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
+}>, {
+accusations: Record<string, string[]>;
+auditUsed: boolean;
+briefed: string[];
+crew: string[];
+due: boolean;
+finished: boolean;
+firstVotes: Record<string, "no" | "yes">;
+game: number;
+held: boolean;
+lastDamage: Record<string, number>;
+lead: string;
+log: string[];
+missed: Record<string, number>;
+nextLead: number;
+noVote: string[];
+opened: number;
+owing: string[];
+phase: "accuse" | "idle" | "play" | "propose" | "talk" | "vote";
+plays: Record<string, "damage" | "safe">;
+proposals: number;
+rejected?: {
+crew: string[];
+lead: string;
+};
+roles: Record<string, "loyal" | "saboteur">;
+running: boolean;
+scores: Record<string, number>;
+sealed: {
+card: "damage" | "safe";
+game: number;
+mayDamage: boolean;
+missed: boolean;
+role: "loyal" | "saboteur";
+seat: string;
+stage: number;
+}[];
+seats: string[];
+seenLog: Record<string, number>;
+spoken: Record<string, number>;
+stage: number;
+stages: {
+audit?: {
+by: string;
+card: "damage" | "safe";
+seat: string;
+};
+crew: string[];
+damage: number;
+damaged: boolean;
+lead: string;
+noVote?: string[];
+rejected?: {
+crew: string[];
+lead: string;
+};
+stage: number;
+votes: Record<string, "no" | "yes">;
+}[];
+talk: {
+from: string;
+stage: number;
+text: string;
+}[];
+told: string[];
+votes: Record<string, "no" | "yes">;
+}, {
+convoy_accused: Type.TObject<{
+accused: Type.TArray<Type.TString>;
+game: Type.TInteger;
+missed: Type.TBoolean;
+seat: Type.TString;
 }>;
 convoy_audited: Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-seat: Type.TString;
-card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
 by: Type.TString;
-}>;
-convoy_accused: Type.TObject<{
+card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
 game: Type.TInteger;
 seat: Type.TString;
-accused: Type.TArray<Type.TString>;
+stage: Type.TInteger;
+}>;
+convoy_card_played: Type.TObject<{
+card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
+game: Type.TInteger;
+mayDamage: Type.TBoolean;
 missed: Type.TBoolean;
+role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
+seat: Type.TString;
+stage: Type.TInteger;
+}>;
+convoy_crew_proposed: Type.TObject<{
+crew: Type.TArray<Type.TString>;
+game: Type.TInteger;
+lead: Type.TString;
+missed: Type.TBoolean;
+proposal: Type.TInteger;
+stage: Type.TInteger;
 }>;
 convoy_game_ended: Type.TObject<{
-game: Type.TInteger;
-winner: Type.TUnion<[Type.TLiteral<"convoy">, Type.TLiteral<"saboteurs">]>;
-roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
-damaged: Type.TInteger;
-stages: Type.TInteger;
 cards: Type.TArray<Type.TObject<{
-game: Type.TInteger;
-stage: Type.TInteger;
-seat: Type.TString;
 card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
-missed: Type.TBoolean;
+game: Type.TInteger;
 mayDamage: Type.TBoolean;
+missed: Type.TBoolean;
+role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
+seat: Type.TString;
+stage: Type.TInteger;
 }>>;
+damaged: Type.TInteger;
+game: Type.TInteger;
+roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
+stages: Type.TInteger;
 totals: Type.TRecord<"^.*$", Type.TNumber>;
+winner: Type.TUnion<[Type.TLiteral<"convoy">, Type.TLiteral<"saboteurs">]>;
 }>;
 convoy_game_scored: Type.TObject<{
 game: Type.TInteger;
+posterior: Type.TRecord<"^.*$", Type.TNumber>;
 seats: Type.TRecord<"^.*$", Type.TObject<{
-role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
 accused: Type.TArray<Type.TString>;
-hits: Type.TInteger;
-trackerHits: Type.TInteger;
-trackerMass: Type.TNumber;
-rightVotes: Type.TInteger;
-votes: Type.TInteger;
 chances: Type.TInteger;
 damage: Type.TInteger;
-selfReveals: Type.TInteger;
+hits: Type.TInteger;
 missed: Type.TInteger;
+rightVotes: Type.TInteger;
+role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
+selfReveals: Type.TInteger;
+trackerHits: Type.TInteger;
+trackerMass: Type.TNumber;
+votes: Type.TInteger;
 }>>;
 tracker: Type.TArray<Type.TString>;
-posterior: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+convoy_game_started: Type.TObject<{
+game: Type.TInteger;
+roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
+seats: Type.TArray<Type.TString>;
 }>;
 convoy_match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
+convoy_spoken: Type.TObject<{
+from: Type.TString;
+game: Type.TInteger;
+stage: Type.TInteger;
+text: Type.TString;
+}>;
+convoy_stage_revealed: Type.TObject<{
+audit: Type.TOptional<Type.TObject<{
+by: Type.TString;
+card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
+seat: Type.TString;
+}>>;
+crew: Type.TArray<Type.TString>;
+damage: Type.TInteger;
+damaged: Type.TBoolean;
+lead: Type.TString;
+noVote: Type.TOptional<Type.TArray<Type.TString>>;
+rejected: Type.TOptional<Type.TObject<{
+crew: Type.TArray<Type.TString>;
+lead: Type.TString;
+}>>;
+stage: Type.TInteger;
+votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
+}>;
+convoy_votes_revealed: Type.TObject<{
+confidence: Type.TBoolean;
+crew: Type.TArray<Type.TString>;
+game: Type.TInteger;
+lead: Type.TString;
+missed: Type.TArray<Type.TString>;
+stage: Type.TInteger;
+votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
+}>;
 }, {
-readonly "convoy/tools/viewConvoy": readonly [];
-readonly "convoy/tools/proposeCrew": readonly [];
-readonly "convoy/tools/speak": readonly [];
-readonly "convoy/tools/voteConfidence": readonly [];
-readonly "convoy/tools/playCrewCard": readonly [];
-readonly "convoy/tools/audit": readonly [];
-readonly "convoy/tools/accuse": readonly [];
-readonly "convoy/rules": readonly ["seats", "saboteurs", "stages", "crews", "damageToLose", "cooldown", "talkPosts"];
 readonly "convoy/game-head": readonly ["game", "games"];
 readonly "convoy/role-loyal": readonly ["seat", "saboteurs"];
 readonly "convoy/role-saboteur": readonly ["seat", "partners", "cooldown", "damageToLose"];
+readonly "convoy/rules": readonly ["seats", "saboteurs", "stages", "crews", "damageToLose", "cooldown", "talkPosts"];
+readonly "convoy/task-accuse": readonly ["seat", "count"];
+readonly "convoy/task-play": readonly ["seat", "stage", "crew", "choice"];
 readonly "convoy/task-propose": readonly ["seat", "stage", "stages", "size", "damaged", "damageToLose", "vote"];
 readonly "convoy/task-talk": readonly ["seat", "stage", "lead", "crew", "posts", "audit"];
 readonly "convoy/task-vote": readonly ["seat", "stage", "lead", "crew"];
-readonly "convoy/task-play": readonly ["seat", "stage", "crew", "choice"];
-readonly "convoy/task-accuse": readonly ["seat", "count"];
+readonly "convoy/tools/accuse": readonly [];
+readonly "convoy/tools/audit": readonly [];
+readonly "convoy/tools/playCrewCard": readonly [];
+readonly "convoy/tools/proposeCrew": readonly [];
+readonly "convoy/tools/speak": readonly [];
+readonly "convoy/tools/viewConvoy": readonly [];
+readonly "convoy/tools/voteConfidence": readonly [];
 }, [], readonly [ServiceDefinition<"brain-source", {
 readonly game: {
-readonly kind: "query";
-readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TInteger;
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
 };
 readonly hold: {
-readonly kind: "command";
-readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
 readonly input: Type.TObject<{}>;
+readonly kind: "command";
 readonly output: Type.TBoolean;
+readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
 };
 readonly release: {
-readonly kind: "command";
-readonly summary: "Lets a held game start. A no-op when nothing is held.";
 readonly input: Type.TObject<{}>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Lets a held game start. A no-op when nothing is held.";
 };
 }>], readonly [ServiceDefinition<"strategy-brain", {
-readonly gameStarted: {
-readonly kind: "command";
-readonly summary: "A game started: every resident of a team gets a fresh context with the briefing at the next turn.";
-readonly input: Type.TObject<{
-game: Type.TInteger;
-first: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
 readonly briefing: {
-readonly kind: "query";
-readonly summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TString;
+readonly summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.";
 };
 readonly gameEnded: {
-readonly kind: "command";
-readonly summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).";
 readonly input: Type.TObject<{
 game: Type.TInteger;
-summary: Type.TString;
-moves: Type.TOptional<Type.TArray<Type.TInteger>>;
 line: Type.TOptional<Type.TArray<Type.TArray<Type.TString>>>;
+moves: Type.TOptional<Type.TArray<Type.TInteger>>;
 review: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+summary: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).";
+};
+readonly gameStarted: {
+readonly input: Type.TObject<{
+first: Type.TString;
+game: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "A game started: every resident of a team gets a fresh context with the briefing at the next turn.";
 };
 }>], {
-viewConvoy: Type.TObject<{}>;
+accuse: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
+seats: Type.TArray<Type.TString>;
+}>;
+audit: Type.TObject<{
+seat: Type.TString;
+stage: Type.TInteger;
+}>;
+playCrewCard: Type.TObject<{
+card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
+reason: Type.TOptional<Type.TString>;
+}>;
 proposeCrew: Type.TObject<{
 crew: Type.TArray<Type.TString>;
 reason: Type.TOptional<Type.TString>;
@@ -462,91 +473,80 @@ reason: Type.TOptional<Type.TString>;
 speak: Type.TObject<{
 text: Type.TString;
 }>;
+viewConvoy: Type.TObject<{}>;
 voteConfidence: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
 vote: Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>;
-reason: Type.TOptional<Type.TString>;
-}>;
-playCrewCard: Type.TObject<{
-card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-reason: Type.TOptional<Type.TString>;
-}>;
-audit: Type.TObject<{
-seat: Type.TString;
-stage: Type.TInteger;
-}>;
-accuse: Type.TObject<{
-seats: Type.TArray<Type.TString>;
-reason: Type.TOptional<Type.TString>;
 }>;
 }>;
 
 // @public
 export const ConvoySlice: Type.TObject<{
-    seats: Type.TArray<Type.TString>;
-    game: Type.TInteger;
-    roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
-    phase: Type.TUnion<[Type.TLiteral<"idle">, Type.TLiteral<"propose">, Type.TLiteral<"talk">, Type.TLiteral<"vote">, Type.TLiteral<"play">, Type.TLiteral<"accuse">]>;
-    opened: Type.TInteger;
-    stage: Type.TInteger;
-    lead: Type.TString;
-    nextLead: Type.TInteger;
-    proposals: Type.TInteger;
-    crew: Type.TArray<Type.TString>;
-    rejected: Type.TOptional<Type.TObject<{
-        lead: Type.TString;
-        crew: Type.TArray<Type.TString>;
-    }>>;
-    votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-    firstVotes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-    noVote: Type.TArray<Type.TString>;
-    plays: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>>;
-    lastDamage: Type.TRecord<"^.*$", Type.TInteger>;
-    owing: Type.TArray<Type.TString>;
-    told: Type.TArray<Type.TString>;
+    accusations: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+    auditUsed: Type.TBoolean;
     briefed: Type.TArray<Type.TString>;
-    stages: Type.TArray<Type.TObject<{
-        stage: Type.TInteger;
-        lead: Type.TString;
-        crew: Type.TArray<Type.TString>;
-        rejected: Type.TOptional<Type.TObject<{
-            lead: Type.TString;
-            crew: Type.TArray<Type.TString>;
-        }>>;
-        votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
-        noVote: Type.TOptional<Type.TArray<Type.TString>>;
-        damage: Type.TInteger;
-        damaged: Type.TBoolean;
-        audit: Type.TOptional<Type.TObject<{
-            seat: Type.TString;
-            card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-            by: Type.TString;
-        }>>;
-    }>>;
-    sealed: Type.TArray<Type.TObject<{
-        game: Type.TInteger;
-        stage: Type.TInteger;
-        seat: Type.TString;
-        card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
-        role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
-        missed: Type.TBoolean;
-        mayDamage: Type.TBoolean;
-    }>>;
+    crew: Type.TArray<Type.TString>;
+    due: Type.TBoolean;
+    finished: Type.TBoolean;
+    firstVotes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
+    game: Type.TInteger;
+    held: Type.TBoolean;
+    lastDamage: Type.TRecord<"^.*$", Type.TInteger>;
+    lead: Type.TString;
     log: Type.TArray<Type.TString>;
-    talk: Type.TArray<Type.TObject<{
-        stage: Type.TInteger;
-        from: Type.TString;
-        text: Type.TString;
+    missed: Type.TRecord<"^.*$", Type.TInteger>;
+    nextLead: Type.TInteger;
+    noVote: Type.TArray<Type.TString>;
+    opened: Type.TInteger;
+    owing: Type.TArray<Type.TString>;
+    phase: Type.TUnion<[Type.TLiteral<"idle">, Type.TLiteral<"propose">, Type.TLiteral<"talk">, Type.TLiteral<"vote">, Type.TLiteral<"play">, Type.TLiteral<"accuse">]>;
+    plays: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>>;
+    proposals: Type.TInteger;
+    rejected: Type.TOptional<Type.TObject<{
+        crew: Type.TArray<Type.TString>;
+        lead: Type.TString;
     }>>;
+    roles: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>>;
+    running: Type.TBoolean;
+    scores: Type.TRecord<"^.*$", Type.TNumber>;
+    sealed: Type.TArray<Type.TObject<{
+        card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
+        game: Type.TInteger;
+        mayDamage: Type.TBoolean;
+        missed: Type.TBoolean;
+        role: Type.TUnion<[Type.TLiteral<"loyal">, Type.TLiteral<"saboteur">]>;
+        seat: Type.TString;
+        stage: Type.TInteger;
+    }>>;
+    seats: Type.TArray<Type.TString>;
     seenLog: Type.TRecord<"^.*$", Type.TInteger>;
     spoken: Type.TRecord<"^.*$", Type.TInteger>;
-    auditUsed: Type.TBoolean;
-    accusations: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
-    missed: Type.TRecord<"^.*$", Type.TInteger>;
-    scores: Type.TRecord<"^.*$", Type.TNumber>;
-    running: Type.TBoolean;
-    finished: Type.TBoolean;
-    held: Type.TBoolean;
-    due: Type.TBoolean;
+    stage: Type.TInteger;
+    stages: Type.TArray<Type.TObject<{
+        audit: Type.TOptional<Type.TObject<{
+            by: Type.TString;
+            card: Type.TUnion<[Type.TLiteral<"safe">, Type.TLiteral<"damage">]>;
+            seat: Type.TString;
+        }>>;
+        crew: Type.TArray<Type.TString>;
+        damage: Type.TInteger;
+        damaged: Type.TBoolean;
+        lead: Type.TString;
+        noVote: Type.TOptional<Type.TArray<Type.TString>>;
+        rejected: Type.TOptional<Type.TObject<{
+            crew: Type.TArray<Type.TString>;
+            lead: Type.TString;
+        }>>;
+        stage: Type.TInteger;
+        votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
+    }>>;
+    talk: Type.TArray<Type.TObject<{
+        from: Type.TString;
+        stage: Type.TInteger;
+        text: Type.TString;
+    }>>;
+    told: Type.TArray<Type.TString>;
+    votes: Type.TRecord<"^.*$", Type.TUnion<[Type.TLiteral<"yes">, Type.TLiteral<"no">]>>;
 }>;
 
 // @public

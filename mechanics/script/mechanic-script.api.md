@@ -25,8 +25,8 @@ import { Type } from 'typebox';
 // @public
 export const Action: Type.TCyclic<{
     Action: Type.TUnion<[Type.TObject<{
-        kind: Type.TLiteral<"post">;
         author: Type.TString;
+        kind: Type.TLiteral<"post">;
         text: Type.TString;
     }>, Type.TObject<{
         kind: Type.TLiteral<"notify">;
@@ -35,43 +35,43 @@ export const Action: Type.TCyclic<{
         }>]>;
         text: Type.TString;
     }>, Type.TObject<{
-        kind: Type.TLiteral<"dm">;
         from: Type.TString;
+        kind: Type.TLiteral<"dm">;
+        text: Type.TString;
         to: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
             onLevel: Type.TNumber;
         }>]>;
-        text: Type.TString;
     }>, Type.TObject<{
-        kind: Type.TLiteral<"setCastLevel">;
         cast: Type.TString;
+        kind: Type.TLiteral<"setCastLevel">;
         level: Type.TNumber;
     }>, Type.TObject<{
+        cast: Type.TString;
         kind: Type.TLiteral<"revealCast">;
-        cast: Type.TString;
     }>, Type.TObject<{
-        kind: Type.TLiteral<"retireCast">;
         cast: Type.TString;
+        kind: Type.TLiteral<"retireCast">;
     }>, Type.TObject<{
         kind: Type.TLiteral<"grant">;
+        points: Type.TNumber;
+        reason: Type.TString;
         target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
             onLevel: Type.TNumber;
         }>]>;
-        points: Type.TNumber;
-        reason: Type.TString;
     }>, Type.TObject<{
         kind: Type.TLiteral<"fine">;
-        target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-            onLevel: Type.TNumber;
-        }>]>;
         points: Type.TNumber;
         reason: Type.TString;
-    }>, Type.TObject<{
-        kind: Type.TLiteral<"escrowTransfer">;
-        cast: Type.TString;
         target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
             onLevel: Type.TNumber;
         }>]>;
+    }>, Type.TObject<{
+        cast: Type.TString;
+        kind: Type.TLiteral<"escrowTransfer">;
         points: Type.TNumber;
+        target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+            onLevel: Type.TNumber;
+        }>]>;
     }>, Type.TObject<{
         kind: Type.TLiteral<"unlockTools">;
         target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
@@ -81,55 +81,55 @@ export const Action: Type.TCyclic<{
     }>, Type.TObject<{
         kind: Type.TLiteral<"openPetition">;
         petition: Type.TObject<{
+            against: Type.TOptional<Type.TArray<Type.TString>>;
+            deadlineMinute: Type.TNumber;
             id: Type.TString;
+            onFail: Type.TArray<Type.TRef<"Action">>;
+            onPass: Type.TArray<Type.TRef<"Action">>;
             text: Type.TString;
             threshold: Type.TUnion<[Type.TObject<{
                 count: Type.TNumber;
             }>, Type.TObject<{
                 fraction: Type.TNumber;
             }>]>;
-            deadlineMinute: Type.TNumber;
             visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-            against: Type.TOptional<Type.TArray<Type.TString>>;
-            onPass: Type.TArray<Type.TRef<"Action">>;
-            onFail: Type.TArray<Type.TRef<"Action">>;
         }>;
     }>, Type.TObject<{
+        edgeSize: Type.TNumber;
         kind: Type.TLiteral<"publishStandings">;
         mode: Type.TLiteral<"bands">;
-        edgeSize: Type.TNumber;
     }>, Type.TObject<{
         kind: Type.TLiteral<"publishStandings">;
         mode: Type.TLiteral<"snapshot">;
     }>, Type.TObject<{
-        kind: Type.TLiteral<"collectDms">;
-        cast: Type.TString;
-        first: Type.TUnion<[Type.TNumber, Type.TObject<{
-            share: Type.TNumber;
-            minimum: Type.TNumber;
-        }>]>;
-        untilMinute: Type.TOptional<Type.TNumber>;
-        forMinutes: Type.TOptional<Type.TNumber>;
-        into: Type.TString;
-        distinctSenders: Type.TOptional<Type.TBoolean>;
         afterSolve: Type.TOptional<Type.TObject<{
             level: Type.TNumber;
             minutes: Type.TNumber;
         }>>;
-    }>, Type.TObject<{
-        kind: Type.TLiteral<"revealCollection">;
+        cast: Type.TString;
+        distinctSenders: Type.TOptional<Type.TBoolean>;
+        first: Type.TUnion<[Type.TNumber, Type.TObject<{
+            minimum: Type.TNumber;
+            share: Type.TNumber;
+        }>]>;
+        forMinutes: Type.TOptional<Type.TNumber>;
         into: Type.TString;
+        kind: Type.TLiteral<"collectDms">;
+        untilMinute: Type.TOptional<Type.TNumber>;
+    }>, Type.TObject<{
         header: Type.TOptional<Type.TString>;
-    }>, Type.TObject<{
-        kind: Type.TLiteral<"lottery">;
         into: Type.TString;
+        kind: Type.TLiteral<"revealCollection">;
+    }>, Type.TObject<{
+        into: Type.TString;
+        kind: Type.TLiteral<"lottery">;
         then: Type.TArray<Type.TRef<"Action">>;
     }>, Type.TObject<{
         kind: Type.TLiteral<"revealFactor">;
+        level: Type.TNumber;
         target: Type.TUnion<[Type.TLiteral<"board">, Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
             onLevel: Type.TNumber;
         }>]>]>;
-        level: Type.TNumber;
     }>]>;
 }, "Action">;
 
@@ -145,27 +145,27 @@ export interface CollectionView {
 
 // @public
 export const Condition: Type.TUnion<[Type.TObject<{
+    count: Type.TNumber;
     kind: Type.TLiteral<"minLevelReached">;
     level: Type.TNumber;
-    count: Type.TNumber;
 }>, Type.TObject<{
     kind: Type.TLiteral<"competitorsAtLevel">;
     level: Type.TNumber;
-    min: Type.TOptional<Type.TNumber>;
     max: Type.TOptional<Type.TNumber>;
+    min: Type.TOptional<Type.TNumber>;
 }>, Type.TObject<{
     kind: Type.TLiteral<"petitionStatus">;
     petition: Type.TString;
     status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
 }>, Type.TObject<{
-    kind: Type.TLiteral<"castActive">;
     cast: Type.TString;
+    kind: Type.TLiteral<"castActive">;
 }>, Type.TObject<{
+    into: Type.TString;
     kind: Type.TLiteral<"collectionOpen">;
-    into: Type.TString;
 }>, Type.TObject<{
-    kind: Type.TLiteral<"collectionEnded">;
     into: Type.TString;
+    kind: Type.TLiteral<"collectionEnded">;
 }>, Type.TObject<{
     kind: Type.TLiteral<"onceOnly">;
 }>, Type.TObject<{
@@ -185,26 +185,26 @@ export type CooldownScope = Static<typeof CooldownScope>;
 
 // @public
 export const DirectorSlice: Type.TObject<{
+    allPastDone: Type.TArray<Type.TString>;
+    enteredLevels: Type.TArray<Type.TNumber>;
     fired: Type.TArray<Type.TString>;
+    handledDms: Type.TArray<Type.TObject<{
+        dms: Type.TArray<Type.TNumber>;
+        rule: Type.TString;
+    }>>;
     lastFired: Type.TArray<Type.TObject<{
         key: Type.TString;
         minute: Type.TNumber;
     }>>;
-    enteredLevels: Type.TArray<Type.TNumber>;
-    allPastDone: Type.TArray<Type.TString>;
-    handledDms: Type.TArray<Type.TObject<{
-        rule: Type.TString;
-        dms: Type.TArray<Type.TNumber>;
-    }>>;
-    splitSince: Type.TArray<Type.TObject<{
-        key: Type.TString;
-        minute: Type.TNumber;
-    }>>;
-    splitAnnounced: Type.TArray<Type.TString>;
     petitions: Type.TArray<Type.TObject<{
         petition: Type.TString;
         rule: Type.TString;
         via: Type.TOptional<Type.TString>;
+    }>>;
+    splitAnnounced: Type.TArray<Type.TString>;
+    splitSince: Type.TArray<Type.TObject<{
+        key: Type.TString;
+        minute: Type.TNumber;
     }>>;
     statuses: Type.TArray<Type.TObject<{
         petition: Type.TString;
@@ -269,20 +269,129 @@ export type PetitionSpec = Extract<Action, {
 
 // @public
 export function resolveCount(count: number | {
-    readonly share: number;
     readonly minimum: number;
+    readonly share: number;
 }, residents: number): number;
 
 // @public
 export const Rule: Type.TObject<{
+    actions: Type.TArray<Type.TCyclic<{
+        Action: Type.TUnion<[Type.TObject<{
+            author: Type.TString;
+            kind: Type.TLiteral<"post">;
+            text: Type.TString;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"notify">;
+            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                onLevel: Type.TNumber;
+            }>]>;
+            text: Type.TString;
+        }>, Type.TObject<{
+            from: Type.TString;
+            kind: Type.TLiteral<"dm">;
+            text: Type.TString;
+            to: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                onLevel: Type.TNumber;
+            }>]>;
+        }>, Type.TObject<{
+            cast: Type.TString;
+            kind: Type.TLiteral<"setCastLevel">;
+            level: Type.TNumber;
+        }>, Type.TObject<{
+            cast: Type.TString;
+            kind: Type.TLiteral<"revealCast">;
+        }>, Type.TObject<{
+            cast: Type.TString;
+            kind: Type.TLiteral<"retireCast">;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"grant">;
+            points: Type.TNumber;
+            reason: Type.TString;
+            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                onLevel: Type.TNumber;
+            }>]>;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"fine">;
+            points: Type.TNumber;
+            reason: Type.TString;
+            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                onLevel: Type.TNumber;
+            }>]>;
+        }>, Type.TObject<{
+            cast: Type.TString;
+            kind: Type.TLiteral<"escrowTransfer">;
+            points: Type.TNumber;
+            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                onLevel: Type.TNumber;
+            }>]>;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"unlockTools">;
+            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                onLevel: Type.TNumber;
+            }>]>;
+            tools: Type.TArray<Type.TString>;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"openPetition">;
+            petition: Type.TObject<{
+                against: Type.TOptional<Type.TArray<Type.TString>>;
+                deadlineMinute: Type.TNumber;
+                id: Type.TString;
+                onFail: Type.TArray<Type.TRef<"Action">>;
+                onPass: Type.TArray<Type.TRef<"Action">>;
+                text: Type.TString;
+                threshold: Type.TUnion<[Type.TObject<{
+                    count: Type.TNumber;
+                }>, Type.TObject<{
+                    fraction: Type.TNumber;
+                }>]>;
+                visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
+            }>;
+        }>, Type.TObject<{
+            edgeSize: Type.TNumber;
+            kind: Type.TLiteral<"publishStandings">;
+            mode: Type.TLiteral<"bands">;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"publishStandings">;
+            mode: Type.TLiteral<"snapshot">;
+        }>, Type.TObject<{
+            afterSolve: Type.TOptional<Type.TObject<{
+                level: Type.TNumber;
+                minutes: Type.TNumber;
+            }>>;
+            cast: Type.TString;
+            distinctSenders: Type.TOptional<Type.TBoolean>;
+            first: Type.TUnion<[Type.TNumber, Type.TObject<{
+                minimum: Type.TNumber;
+                share: Type.TNumber;
+            }>]>;
+            forMinutes: Type.TOptional<Type.TNumber>;
+            into: Type.TString;
+            kind: Type.TLiteral<"collectDms">;
+            untilMinute: Type.TOptional<Type.TNumber>;
+        }>, Type.TObject<{
+            header: Type.TOptional<Type.TString>;
+            into: Type.TString;
+            kind: Type.TLiteral<"revealCollection">;
+        }>, Type.TObject<{
+            into: Type.TString;
+            kind: Type.TLiteral<"lottery">;
+            then: Type.TArray<Type.TRef<"Action">>;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"revealFactor">;
+            level: Type.TNumber;
+            target: Type.TUnion<[Type.TLiteral<"board">, Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                onLevel: Type.TNumber;
+            }>]>]>;
+        }>]>;
+    }, "Action">>;
     id: Type.TString;
     trigger: Type.TUnion<[Type.TObject<{
         kind: Type.TLiteral<"at">;
         minute: Type.TNumber;
     }>, Type.TObject<{
+        from: Type.TOptional<Type.TNumber>;
         kind: Type.TLiteral<"every">;
         minutes: Type.TNumber;
-        from: Type.TOptional<Type.TNumber>;
         until: Type.TOptional<Type.TNumber>;
     }>, Type.TObject<{
         kind: Type.TLiteral<"onFirstEnter">;
@@ -295,47 +404,47 @@ export const Rule: Type.TObject<{
         level: Type.TNumber;
     }>, Type.TObject<{
         kind: Type.TLiteral<"onPetitionResolved">;
-        petition: Type.TString;
         outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+        petition: Type.TString;
     }>, Type.TObject<{
-        kind: Type.TLiteral<"onUnansweredDm">;
         afterMinutes: Type.TNumber;
+        kind: Type.TLiteral<"onUnansweredDm">;
     }>, Type.TObject<{
+        forMinutes: Type.TNumber;
         kind: Type.TLiteral<"onTeamSplit">;
         level: Type.TNumber;
-        forMinutes: Type.TNumber;
     }>, Type.TObject<{
+        into: Type.TString;
         kind: Type.TLiteral<"onCollect">;
-        into: Type.TString;
     }>, Type.TObject<{
-        kind: Type.TLiteral<"onCollectionEnd">;
         into: Type.TString;
+        kind: Type.TLiteral<"onCollectionEnd">;
     }>, Type.TObject<{
         kind: Type.TLiteral<"onHolderBehind">;
         level: Type.TNumber;
     }>]>;
     when: Type.TArray<Type.TUnion<[Type.TObject<{
+        count: Type.TNumber;
         kind: Type.TLiteral<"minLevelReached">;
         level: Type.TNumber;
-        count: Type.TNumber;
     }>, Type.TObject<{
         kind: Type.TLiteral<"competitorsAtLevel">;
         level: Type.TNumber;
-        min: Type.TOptional<Type.TNumber>;
         max: Type.TOptional<Type.TNumber>;
+        min: Type.TOptional<Type.TNumber>;
     }>, Type.TObject<{
         kind: Type.TLiteral<"petitionStatus">;
         petition: Type.TString;
         status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
     }>, Type.TObject<{
-        kind: Type.TLiteral<"castActive">;
         cast: Type.TString;
+        kind: Type.TLiteral<"castActive">;
     }>, Type.TObject<{
+        into: Type.TString;
         kind: Type.TLiteral<"collectionOpen">;
-        into: Type.TString;
     }>, Type.TObject<{
-        kind: Type.TLiteral<"collectionEnded">;
         into: Type.TString;
+        kind: Type.TLiteral<"collectionEnded">;
     }>, Type.TObject<{
         kind: Type.TLiteral<"onceOnly">;
     }>, Type.TObject<{
@@ -343,115 +452,6 @@ export const Rule: Type.TObject<{
         minutes: Type.TNumber;
         per: Type.TUnion<[Type.TLiteral<"rule">, Type.TLiteral<"actor">, Type.TLiteral<"pair">]>;
     }>]>>;
-    actions: Type.TArray<Type.TCyclic<{
-        Action: Type.TUnion<[Type.TObject<{
-            kind: Type.TLiteral<"post">;
-            author: Type.TString;
-            text: Type.TString;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"notify">;
-            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                onLevel: Type.TNumber;
-            }>]>;
-            text: Type.TString;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"dm">;
-            from: Type.TString;
-            to: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                onLevel: Type.TNumber;
-            }>]>;
-            text: Type.TString;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"setCastLevel">;
-            cast: Type.TString;
-            level: Type.TNumber;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"revealCast">;
-            cast: Type.TString;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"retireCast">;
-            cast: Type.TString;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"grant">;
-            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                onLevel: Type.TNumber;
-            }>]>;
-            points: Type.TNumber;
-            reason: Type.TString;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"fine">;
-            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                onLevel: Type.TNumber;
-            }>]>;
-            points: Type.TNumber;
-            reason: Type.TString;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"escrowTransfer">;
-            cast: Type.TString;
-            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                onLevel: Type.TNumber;
-            }>]>;
-            points: Type.TNumber;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"unlockTools">;
-            target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                onLevel: Type.TNumber;
-            }>]>;
-            tools: Type.TArray<Type.TString>;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"openPetition">;
-            petition: Type.TObject<{
-                id: Type.TString;
-                text: Type.TString;
-                threshold: Type.TUnion<[Type.TObject<{
-                    count: Type.TNumber;
-                }>, Type.TObject<{
-                    fraction: Type.TNumber;
-                }>]>;
-                deadlineMinute: Type.TNumber;
-                visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-                against: Type.TOptional<Type.TArray<Type.TString>>;
-                onPass: Type.TArray<Type.TRef<"Action">>;
-                onFail: Type.TArray<Type.TRef<"Action">>;
-            }>;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"publishStandings">;
-            mode: Type.TLiteral<"bands">;
-            edgeSize: Type.TNumber;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"publishStandings">;
-            mode: Type.TLiteral<"snapshot">;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"collectDms">;
-            cast: Type.TString;
-            first: Type.TUnion<[Type.TNumber, Type.TObject<{
-                share: Type.TNumber;
-                minimum: Type.TNumber;
-            }>]>;
-            untilMinute: Type.TOptional<Type.TNumber>;
-            forMinutes: Type.TOptional<Type.TNumber>;
-            into: Type.TString;
-            distinctSenders: Type.TOptional<Type.TBoolean>;
-            afterSolve: Type.TOptional<Type.TObject<{
-                level: Type.TNumber;
-                minutes: Type.TNumber;
-            }>>;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"revealCollection">;
-            into: Type.TString;
-            header: Type.TOptional<Type.TString>;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"lottery">;
-            into: Type.TString;
-            then: Type.TArray<Type.TRef<"Action">>;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"revealFactor">;
-            target: Type.TUnion<[Type.TLiteral<"board">, Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                onLevel: Type.TNumber;
-            }>]>]>;
-            level: Type.TNumber;
-        }>]>;
-    }, "Action">>;
 }>;
 
 // @public
@@ -459,15 +459,125 @@ export type Rule = Static<typeof Rule>;
 
 // @public
 export const script: MechanicDefinition<"script", TObject<    {
+cast: TArray<TString>;
 rules: TArray<TObject<    {
+actions: TArray<TCyclic<    {
+Action: TUnion<[TObject<    {
+author: TString;
+kind: TLiteral<"post">;
+text: TString;
+}>, TObject<    {
+kind: TLiteral<"notify">;
+target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
+onLevel: TNumber;
+}>]>;
+text: TString;
+}>, TObject<    {
+from: TString;
+kind: TLiteral<"dm">;
+text: TString;
+to: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
+onLevel: TNumber;
+}>]>;
+}>, TObject<    {
+cast: TString;
+kind: TLiteral<"setCastLevel">;
+level: TNumber;
+}>, TObject<    {
+cast: TString;
+kind: TLiteral<"revealCast">;
+}>, TObject<    {
+cast: TString;
+kind: TLiteral<"retireCast">;
+}>, TObject<    {
+kind: TLiteral<"grant">;
+points: TNumber;
+reason: TString;
+target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
+onLevel: TNumber;
+}>]>;
+}>, TObject<    {
+kind: TLiteral<"fine">;
+points: TNumber;
+reason: TString;
+target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
+onLevel: TNumber;
+}>]>;
+}>, TObject<    {
+cast: TString;
+kind: TLiteral<"escrowTransfer">;
+points: TNumber;
+target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
+onLevel: TNumber;
+}>]>;
+}>, TObject<    {
+kind: TLiteral<"unlockTools">;
+target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
+onLevel: TNumber;
+}>]>;
+tools: TArray<TString>;
+}>, TObject<    {
+kind: TLiteral<"openPetition">;
+petition: TObject<    {
+against: TOptional<TArray<TString>>;
+deadlineMinute: TNumber;
+id: TString;
+onFail: TArray<TRef<"Action">>;
+onPass: TArray<TRef<"Action">>;
+text: TString;
+threshold: TUnion<[TObject<    {
+count: TNumber;
+}>, TObject<    {
+fraction: TNumber;
+}>]>;
+visibility: TUnion<[TLiteral<"public">, TLiteral<"secret">]>;
+}>;
+}>, TObject<    {
+edgeSize: TNumber;
+kind: TLiteral<"publishStandings">;
+mode: TLiteral<"bands">;
+}>, TObject<    {
+kind: TLiteral<"publishStandings">;
+mode: TLiteral<"snapshot">;
+}>, TObject<    {
+afterSolve: TOptional<TObject<    {
+level: TNumber;
+minutes: TNumber;
+}>>;
+cast: TString;
+distinctSenders: TOptional<TBoolean>;
+first: TUnion<[TNumber, TObject<    {
+minimum: TNumber;
+share: TNumber;
+}>]>;
+forMinutes: TOptional<TNumber>;
+into: TString;
+kind: TLiteral<"collectDms">;
+untilMinute: TOptional<TNumber>;
+}>, TObject<    {
+header: TOptional<TString>;
+into: TString;
+kind: TLiteral<"revealCollection">;
+}>, TObject<    {
+into: TString;
+kind: TLiteral<"lottery">;
+then: TArray<TRef<"Action">>;
+}>, TObject<    {
+kind: TLiteral<"revealFactor">;
+level: TNumber;
+target: TUnion<[TLiteral<"board">, TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
+onLevel: TNumber;
+}>]>]>;
+}>]>;
+}, "Action">>;
 id: TString;
 trigger: TUnion<[TObject<    {
 kind: TLiteral<"at">;
 minute: TNumber;
 }>, TObject<    {
+from: TOptional<TNumber>;
 kind: TLiteral<"every">;
 minutes: TNumber;
-from: TOptional<TNumber>;
 until: TOptional<TNumber>;
 }>, TObject<    {
 kind: TLiteral<"onFirstEnter">;
@@ -480,47 +590,47 @@ kind: TLiteral<"onAllPast">;
 level: TNumber;
 }>, TObject<    {
 kind: TLiteral<"onPetitionResolved">;
-petition: TString;
 outcome: TUnion<[TLiteral<"passed">, TLiteral<"failed">]>;
+petition: TString;
 }>, TObject<    {
-kind: TLiteral<"onUnansweredDm">;
 afterMinutes: TNumber;
+kind: TLiteral<"onUnansweredDm">;
 }>, TObject<    {
+forMinutes: TNumber;
 kind: TLiteral<"onTeamSplit">;
 level: TNumber;
-forMinutes: TNumber;
 }>, TObject<    {
+into: TString;
 kind: TLiteral<"onCollect">;
-into: TString;
 }>, TObject<    {
-kind: TLiteral<"onCollectionEnd">;
 into: TString;
+kind: TLiteral<"onCollectionEnd">;
 }>, TObject<    {
 kind: TLiteral<"onHolderBehind">;
 level: TNumber;
 }>]>;
 when: TArray<TUnion<[TObject<    {
+count: TNumber;
 kind: TLiteral<"minLevelReached">;
 level: TNumber;
-count: TNumber;
 }>, TObject<    {
 kind: TLiteral<"competitorsAtLevel">;
 level: TNumber;
-min: TOptional<TNumber>;
 max: TOptional<TNumber>;
+min: TOptional<TNumber>;
 }>, TObject<    {
 kind: TLiteral<"petitionStatus">;
 petition: TString;
 status: TUnion<[TLiteral<"open">, TLiteral<"passed">, TLiteral<"failed">]>;
 }>, TObject<    {
-kind: TLiteral<"castActive">;
 cast: TString;
+kind: TLiteral<"castActive">;
 }>, TObject<    {
+into: TString;
 kind: TLiteral<"collectionOpen">;
-into: TString;
 }>, TObject<    {
-kind: TLiteral<"collectionEnded">;
 into: TString;
+kind: TLiteral<"collectionEnded">;
 }>, TObject<    {
 kind: TLiteral<"onceOnly">;
 }>, TObject<    {
@@ -528,137 +638,27 @@ kind: TLiteral<"cooldown">;
 minutes: TNumber;
 per: TUnion<[TLiteral<"rule">, TLiteral<"actor">, TLiteral<"pair">]>;
 }>]>>;
-actions: TArray<TCyclic<    {
-Action: TUnion<[TObject<    {
-kind: TLiteral<"post">;
-author: TString;
-text: TString;
-}>, TObject<    {
-kind: TLiteral<"notify">;
-target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
-onLevel: TNumber;
-}>]>;
-text: TString;
-}>, TObject<    {
-kind: TLiteral<"dm">;
-from: TString;
-to: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
-onLevel: TNumber;
-}>]>;
-text: TString;
-}>, TObject<    {
-kind: TLiteral<"setCastLevel">;
-cast: TString;
-level: TNumber;
-}>, TObject<    {
-kind: TLiteral<"revealCast">;
-cast: TString;
-}>, TObject<    {
-kind: TLiteral<"retireCast">;
-cast: TString;
-}>, TObject<    {
-kind: TLiteral<"grant">;
-target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
-onLevel: TNumber;
-}>]>;
-points: TNumber;
-reason: TString;
-}>, TObject<    {
-kind: TLiteral<"fine">;
-target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
-onLevel: TNumber;
-}>]>;
-points: TNumber;
-reason: TString;
-}>, TObject<    {
-kind: TLiteral<"escrowTransfer">;
-cast: TString;
-target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
-onLevel: TNumber;
-}>]>;
-points: TNumber;
-}>, TObject<    {
-kind: TLiteral<"unlockTools">;
-target: TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
-onLevel: TNumber;
-}>]>;
-tools: TArray<TString>;
-}>, TObject<    {
-kind: TLiteral<"openPetition">;
-petition: TObject<    {
-id: TString;
-text: TString;
-threshold: TUnion<[TObject<    {
-count: TNumber;
-}>, TObject<    {
-fraction: TNumber;
-}>]>;
-deadlineMinute: TNumber;
-visibility: TUnion<[TLiteral<"public">, TLiteral<"secret">]>;
-against: TOptional<TArray<TString>>;
-onPass: TArray<TRef<"Action">>;
-onFail: TArray<TRef<"Action">>;
-}>;
-}>, TObject<    {
-kind: TLiteral<"publishStandings">;
-mode: TLiteral<"bands">;
-edgeSize: TNumber;
-}>, TObject<    {
-kind: TLiteral<"publishStandings">;
-mode: TLiteral<"snapshot">;
-}>, TObject<    {
-kind: TLiteral<"collectDms">;
-cast: TString;
-first: TUnion<[TNumber, TObject<    {
-share: TNumber;
-minimum: TNumber;
-}>]>;
-untilMinute: TOptional<TNumber>;
-forMinutes: TOptional<TNumber>;
-into: TString;
-distinctSenders: TOptional<TBoolean>;
-afterSolve: TOptional<TObject<    {
-level: TNumber;
-minutes: TNumber;
 }>>;
-}>, TObject<    {
-kind: TLiteral<"revealCollection">;
-into: TString;
-header: TOptional<TString>;
-}>, TObject<    {
-kind: TLiteral<"lottery">;
-into: TString;
-then: TArray<TRef<"Action">>;
-}>, TObject<    {
-kind: TLiteral<"revealFactor">;
-target: TUnion<[TLiteral<"board">, TUnion<[TLiteral<"actor">, TLiteral<"all">, TArray<TString>, TObject<    {
-onLevel: TNumber;
-}>]>]>;
-level: TNumber;
-}>]>;
-}, "Action">>;
-}>>;
-cast: TArray<TString>;
 }>, {
 director_action: TObject<    {
-rule: TString;
 action: TString;
 actor: TOptional<TString>;
-via: TOptional<TString>;
 audit: TOptional<TUnion<[TLiteral<"NPC_LEVEL_SET">, TLiteral<"DIRECTOR_PRIVACY_BREACH">]>>;
+rule: TString;
+via: TOptional<TString>;
 }>;
 director_skipped: TObject<    {
-rule: TString;
 action: TString;
 reason: TString;
+rule: TString;
 }>;
 standings_published: TObject<    {
+edge: TOptional<TArray<TString>>;
+exiled: TOptional<TArray<TString>>;
 mode: TUnion<[TLiteral<"bands">, TLiteral<"snapshot">]>;
+out: TOptional<TArray<TString>>;
 postSeq: TInteger;
 safe: TOptional<TArray<TString>>;
-edge: TOptional<TArray<TString>>;
-out: TOptional<TArray<TString>>;
-exiled: TOptional<TArray<TString>>;
 }>;
 }, "directorMinute">;
 
@@ -669,15 +669,125 @@ export type ScriptCtx = CtxOf<typeof scriptHead>;
 //
 // @public
 export const scriptHead: MechanicHead<"script", Type.TObject<{
+cast: Type.TArray<Type.TString>;
 rules: Type.TArray<Type.TObject<{
+actions: Type.TArray<Type.TCyclic<{
+Action: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+kind: Type.TLiteral<"post">;
+text: Type.TString;
+}>, Type.TObject<{
+kind: Type.TLiteral<"notify">;
+target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+onLevel: Type.TNumber;
+}>]>;
+text: Type.TString;
+}>, Type.TObject<{
+from: Type.TString;
+kind: Type.TLiteral<"dm">;
+text: Type.TString;
+to: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+onLevel: Type.TNumber;
+}>]>;
+}>, Type.TObject<{
+cast: Type.TString;
+kind: Type.TLiteral<"setCastLevel">;
+level: Type.TNumber;
+}>, Type.TObject<{
+cast: Type.TString;
+kind: Type.TLiteral<"revealCast">;
+}>, Type.TObject<{
+cast: Type.TString;
+kind: Type.TLiteral<"retireCast">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"grant">;
+points: Type.TNumber;
+reason: Type.TString;
+target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+onLevel: Type.TNumber;
+}>]>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"fine">;
+points: Type.TNumber;
+reason: Type.TString;
+target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+onLevel: Type.TNumber;
+}>]>;
+}>, Type.TObject<{
+cast: Type.TString;
+kind: Type.TLiteral<"escrowTransfer">;
+points: Type.TNumber;
+target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+onLevel: Type.TNumber;
+}>]>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"unlockTools">;
+target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+onLevel: Type.TNumber;
+}>]>;
+tools: Type.TArray<Type.TString>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"openPetition">;
+petition: Type.TObject<{
+against: Type.TOptional<Type.TArray<Type.TString>>;
+deadlineMinute: Type.TNumber;
+id: Type.TString;
+onFail: Type.TArray<Type.TRef<"Action">>;
+onPass: Type.TArray<Type.TRef<"Action">>;
+text: Type.TString;
+threshold: Type.TUnion<[Type.TObject<{
+count: Type.TNumber;
+}>, Type.TObject<{
+fraction: Type.TNumber;
+}>]>;
+visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
+}>;
+}>, Type.TObject<{
+edgeSize: Type.TNumber;
+kind: Type.TLiteral<"publishStandings">;
+mode: Type.TLiteral<"bands">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"publishStandings">;
+mode: Type.TLiteral<"snapshot">;
+}>, Type.TObject<{
+afterSolve: Type.TOptional<Type.TObject<{
+level: Type.TNumber;
+minutes: Type.TNumber;
+}>>;
+cast: Type.TString;
+distinctSenders: Type.TOptional<Type.TBoolean>;
+first: Type.TUnion<[Type.TNumber, Type.TObject<{
+minimum: Type.TNumber;
+share: Type.TNumber;
+}>]>;
+forMinutes: Type.TOptional<Type.TNumber>;
+into: Type.TString;
+kind: Type.TLiteral<"collectDms">;
+untilMinute: Type.TOptional<Type.TNumber>;
+}>, Type.TObject<{
+header: Type.TOptional<Type.TString>;
+into: Type.TString;
+kind: Type.TLiteral<"revealCollection">;
+}>, Type.TObject<{
+into: Type.TString;
+kind: Type.TLiteral<"lottery">;
+then: Type.TArray<Type.TRef<"Action">>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"revealFactor">;
+level: Type.TNumber;
+target: Type.TUnion<[Type.TLiteral<"board">, Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+onLevel: Type.TNumber;
+}>]>]>;
+}>]>;
+}, "Action">>;
 id: Type.TString;
 trigger: Type.TUnion<[Type.TObject<{
 kind: Type.TLiteral<"at">;
 minute: Type.TNumber;
 }>, Type.TObject<{
+from: Type.TOptional<Type.TNumber>;
 kind: Type.TLiteral<"every">;
 minutes: Type.TNumber;
-from: Type.TOptional<Type.TNumber>;
 until: Type.TOptional<Type.TNumber>;
 }>, Type.TObject<{
 kind: Type.TLiteral<"onFirstEnter">;
@@ -690,47 +800,47 @@ kind: Type.TLiteral<"onAllPast">;
 level: Type.TNumber;
 }>, Type.TObject<{
 kind: Type.TLiteral<"onPetitionResolved">;
-petition: Type.TString;
 outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+petition: Type.TString;
 }>, Type.TObject<{
-kind: Type.TLiteral<"onUnansweredDm">;
 afterMinutes: Type.TNumber;
+kind: Type.TLiteral<"onUnansweredDm">;
 }>, Type.TObject<{
+forMinutes: Type.TNumber;
 kind: Type.TLiteral<"onTeamSplit">;
 level: Type.TNumber;
-forMinutes: Type.TNumber;
 }>, Type.TObject<{
+into: Type.TString;
 kind: Type.TLiteral<"onCollect">;
-into: Type.TString;
 }>, Type.TObject<{
-kind: Type.TLiteral<"onCollectionEnd">;
 into: Type.TString;
+kind: Type.TLiteral<"onCollectionEnd">;
 }>, Type.TObject<{
 kind: Type.TLiteral<"onHolderBehind">;
 level: Type.TNumber;
 }>]>;
 when: Type.TArray<Type.TUnion<[Type.TObject<{
+count: Type.TNumber;
 kind: Type.TLiteral<"minLevelReached">;
 level: Type.TNumber;
-count: Type.TNumber;
 }>, Type.TObject<{
 kind: Type.TLiteral<"competitorsAtLevel">;
 level: Type.TNumber;
-min: Type.TOptional<Type.TNumber>;
 max: Type.TOptional<Type.TNumber>;
+min: Type.TOptional<Type.TNumber>;
 }>, Type.TObject<{
 kind: Type.TLiteral<"petitionStatus">;
 petition: Type.TString;
 status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
 }>, Type.TObject<{
-kind: Type.TLiteral<"castActive">;
 cast: Type.TString;
+kind: Type.TLiteral<"castActive">;
 }>, Type.TObject<{
+into: Type.TString;
 kind: Type.TLiteral<"collectionOpen">;
-into: Type.TString;
 }>, Type.TObject<{
-kind: Type.TLiteral<"collectionEnded">;
 into: Type.TString;
+kind: Type.TLiteral<"collectionEnded">;
 }>, Type.TObject<{
 kind: Type.TLiteral<"onceOnly">;
 }>, Type.TObject<{
@@ -738,138 +848,28 @@ kind: Type.TLiteral<"cooldown">;
 minutes: Type.TNumber;
 per: Type.TUnion<[Type.TLiteral<"rule">, Type.TLiteral<"actor">, Type.TLiteral<"pair">]>;
 }>]>>;
-actions: Type.TArray<Type.TCyclic<{
-Action: Type.TUnion<[Type.TObject<{
-kind: Type.TLiteral<"post">;
-author: Type.TString;
-text: Type.TString;
-}>, Type.TObject<{
-kind: Type.TLiteral<"notify">;
-target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-onLevel: Type.TNumber;
-}>]>;
-text: Type.TString;
-}>, Type.TObject<{
-kind: Type.TLiteral<"dm">;
-from: Type.TString;
-to: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-onLevel: Type.TNumber;
-}>]>;
-text: Type.TString;
-}>, Type.TObject<{
-kind: Type.TLiteral<"setCastLevel">;
-cast: Type.TString;
-level: Type.TNumber;
-}>, Type.TObject<{
-kind: Type.TLiteral<"revealCast">;
-cast: Type.TString;
-}>, Type.TObject<{
-kind: Type.TLiteral<"retireCast">;
-cast: Type.TString;
-}>, Type.TObject<{
-kind: Type.TLiteral<"grant">;
-target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-onLevel: Type.TNumber;
-}>]>;
-points: Type.TNumber;
-reason: Type.TString;
-}>, Type.TObject<{
-kind: Type.TLiteral<"fine">;
-target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-onLevel: Type.TNumber;
-}>]>;
-points: Type.TNumber;
-reason: Type.TString;
-}>, Type.TObject<{
-kind: Type.TLiteral<"escrowTransfer">;
-cast: Type.TString;
-target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-onLevel: Type.TNumber;
-}>]>;
-points: Type.TNumber;
-}>, Type.TObject<{
-kind: Type.TLiteral<"unlockTools">;
-target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-onLevel: Type.TNumber;
-}>]>;
-tools: Type.TArray<Type.TString>;
-}>, Type.TObject<{
-kind: Type.TLiteral<"openPetition">;
-petition: Type.TObject<{
-id: Type.TString;
-text: Type.TString;
-threshold: Type.TUnion<[Type.TObject<{
-count: Type.TNumber;
-}>, Type.TObject<{
-fraction: Type.TNumber;
-}>]>;
-deadlineMinute: Type.TNumber;
-visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-against: Type.TOptional<Type.TArray<Type.TString>>;
-onPass: Type.TArray<Type.TRef<"Action">>;
-onFail: Type.TArray<Type.TRef<"Action">>;
-}>;
-}>, Type.TObject<{
-kind: Type.TLiteral<"publishStandings">;
-mode: Type.TLiteral<"bands">;
-edgeSize: Type.TNumber;
-}>, Type.TObject<{
-kind: Type.TLiteral<"publishStandings">;
-mode: Type.TLiteral<"snapshot">;
-}>, Type.TObject<{
-kind: Type.TLiteral<"collectDms">;
-cast: Type.TString;
-first: Type.TUnion<[Type.TNumber, Type.TObject<{
-share: Type.TNumber;
-minimum: Type.TNumber;
-}>]>;
-untilMinute: Type.TOptional<Type.TNumber>;
-forMinutes: Type.TOptional<Type.TNumber>;
-into: Type.TString;
-distinctSenders: Type.TOptional<Type.TBoolean>;
-afterSolve: Type.TOptional<Type.TObject<{
-level: Type.TNumber;
-minutes: Type.TNumber;
 }>>;
 }>, Type.TObject<{
-kind: Type.TLiteral<"revealCollection">;
-into: Type.TString;
-header: Type.TOptional<Type.TString>;
-}>, Type.TObject<{
-kind: Type.TLiteral<"lottery">;
-into: Type.TString;
-then: Type.TArray<Type.TRef<"Action">>;
-}>, Type.TObject<{
-kind: Type.TLiteral<"revealFactor">;
-target: Type.TUnion<[Type.TLiteral<"board">, Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-onLevel: Type.TNumber;
-}>]>]>;
-level: Type.TNumber;
-}>]>;
-}, "Action">>;
-}>>;
-cast: Type.TArray<Type.TString>;
-}>, Type.TObject<{
+allPastDone: Type.TArray<Type.TString>;
+enteredLevels: Type.TArray<Type.TNumber>;
 fired: Type.TArray<Type.TString>;
+handledDms: Type.TArray<Type.TObject<{
+dms: Type.TArray<Type.TNumber>;
+rule: Type.TString;
+}>>;
 lastFired: Type.TArray<Type.TObject<{
 key: Type.TString;
 minute: Type.TNumber;
 }>>;
-enteredLevels: Type.TArray<Type.TNumber>;
-allPastDone: Type.TArray<Type.TString>;
-handledDms: Type.TArray<Type.TObject<{
-rule: Type.TString;
-dms: Type.TArray<Type.TNumber>;
-}>>;
-splitSince: Type.TArray<Type.TObject<{
-key: Type.TString;
-minute: Type.TNumber;
-}>>;
-splitAnnounced: Type.TArray<Type.TString>;
 petitions: Type.TArray<Type.TObject<{
 petition: Type.TString;
 rule: Type.TString;
 via: Type.TOptional<Type.TString>;
+}>>;
+splitAnnounced: Type.TArray<Type.TString>;
+splitSince: Type.TArray<Type.TObject<{
+key: Type.TString;
+minute: Type.TNumber;
 }>>;
 statuses: Type.TArray<Type.TObject<{
 petition: Type.TString;
@@ -877,502 +877,502 @@ status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiter
 }>>;
 }>, FiringState, {
 director_action: Type.TObject<{
-rule: Type.TString;
 action: Type.TString;
 actor: Type.TOptional<Type.TString>;
-via: Type.TOptional<Type.TString>;
 audit: Type.TOptional<Type.TUnion<[Type.TLiteral<"NPC_LEVEL_SET">, Type.TLiteral<"DIRECTOR_PRIVACY_BREACH">]>>;
+rule: Type.TString;
+via: Type.TOptional<Type.TString>;
 }>;
 director_skipped: Type.TObject<{
-rule: Type.TString;
 action: Type.TString;
 reason: Type.TString;
+rule: Type.TString;
 }>;
 standings_published: Type.TObject<{
+edge: Type.TOptional<Type.TArray<Type.TString>>;
+exiled: Type.TOptional<Type.TArray<Type.TString>>;
 mode: Type.TUnion<[Type.TLiteral<"bands">, Type.TLiteral<"snapshot">]>;
+out: Type.TOptional<Type.TArray<Type.TString>>;
 postSeq: Type.TInteger;
 safe: Type.TOptional<Type.TArray<Type.TString>>;
-edge: Type.TOptional<Type.TArray<Type.TString>>;
-out: Type.TOptional<Type.TArray<Type.TString>>;
-exiled: Type.TOptional<Type.TArray<Type.TString>>;
 }>;
 }, {
-readonly "script/tools/directorMinute": readonly [];
 readonly "script/standings-bands": readonly ["minute", "safe", "edge", "out"];
 readonly "script/standings-bands-exiled": readonly ["minute", "safe", "edge", "out", "exiled"];
-readonly "script/standings-snapshot": readonly ["minute", "rows"];
 readonly "script/standings-row": readonly ["rank", "agent", "points", "level"];
+readonly "script/standings-snapshot": readonly ["minute", "rows"];
+readonly "script/tools/directorMinute": readonly [];
 }, [], [], readonly [ServiceDefinition<"channels", {
-readonly post: {
+readonly boardPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+};
+readonly couldRead: {
+readonly input: Type.TObject<{
+group: Type.TString;
+number: Type.TInteger;
+reader: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+};
+readonly createCityGroup: {
+readonly input: Type.TObject<{
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+};
+readonly deliver: {
+readonly input: Type.TObject<{
+from: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+};
+readonly dmRecords: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+answered: Type.TBoolean;
+deliveredAfter: Type.TOptional<Type.TInteger>;
+deliveredTick: Type.TOptional<Type.TInteger>;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+to: Type.TString;
+}>>;
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+};
+readonly dmWindow: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+from: Type.TInteger;
+limit: Type.TInteger;
+sent: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+};
+readonly group: {
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+founder: Type.TString;
+id: Type.TString;
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+removed: Type.TBoolean;
+treasurer: Type.TString;
+}>, Type.TNull]>;
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+};
+readonly groupPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+group: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+};
+readonly notify: {
 readonly input: Type.TObject<{
 author: Type.TString;
 text: Type.TString;
-kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+to: Type.TString;
 }>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+};
+readonly pendingDms: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+};
+readonly post: {
+readonly input: Type.TObject<{
+author: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+text: Type.TString;
+}>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 postSeq: Type.TInteger;
 }>;
-};
-readonly notify: {
-readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
-readonly input: Type.TObject<{
-to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
-readonly deliver: {
-readonly kind: "command";
-readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
-readonly input: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TObject<{
-number: Type.TInteger;
-}>;
-};
-readonly dmRecords: {
-readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-tick: Type.TInteger;
-answered: Type.TBoolean;
-deliveredTick: Type.TOptional<Type.TInteger>;
-deliveredAfter: Type.TOptional<Type.TInteger>;
-}>>;
-};
-readonly boardPost: {
-readonly kind: "query";
-readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly pendingDms: {
-readonly kind: "query";
-readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly dmWindow: {
-readonly kind: "query";
-readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-sent: Type.TInteger;
-limit: Type.TInteger;
-from: Type.TInteger;
-until: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly createCityGroup: {
-readonly kind: "command";
-readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
-readonly input: Type.TObject<{
-name: Type.TString;
-members: Type.TArray<Type.TString>;
-}>;
-readonly output: Type.TObject<{
-group: Type.TString;
-}>;
-};
-readonly removeCityGroup: {
-readonly kind: "command";
-readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
-readonly input: Type.TObject<{
-group: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
 };
 readonly postGroupAsCity: {
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
-readonly input: Type.TObject<{
-group: Type.TString;
-text: Type.TString;
-}>;
 readonly output: Type.TNull;
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
 };
-readonly group: {
-readonly kind: "query";
-readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly removeCityGroup: {
 readonly input: Type.TObject<{
 group: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TObject<{
-id: Type.TString;
-name: Type.TString;
-founder: Type.TString;
-treasurer: Type.TString;
-members: Type.TArray<Type.TString>;
-removed: Type.TBoolean;
-}>, Type.TNull]>;
-};
-readonly groupPost: {
-readonly kind: "query";
-readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-group: Type.TString;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly couldRead: {
-readonly kind: "query";
-readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
-readonly input: Type.TObject<{
-group: Type.TString;
-reader: Type.TString;
-number: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
 };
 }>, ServiceDefinition<"progression", {
-readonly levelOf: {
-readonly kind: "query";
-readonly summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly isFinished: {
-readonly kind: "query";
-readonly summary: "Whether the resident has passed the last level (old `isFinished`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly hasPassed: {
-readonly kind: "query";
-readonly summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly hasSolved: {
-readonly kind: "query";
-readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly passed: {
-readonly kind: "query";
-readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
-readonly input: Type.TObject<{
-level: Type.TInteger;
-}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly lastProgress: {
-readonly kind: "query";
-readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly currentAct: {
-readonly kind: "query";
-readonly summary: "The first level of the latest act that has begun.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TInteger;
-};
 readonly actStart: {
-readonly kind: "query";
-readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
 readonly input: Type.TObject<{
 fromLevel: Type.TInteger;
 }>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
+};
+readonly bounds: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TObject<{
+lastLevel: Type.TInteger;
+startLevel: Type.TInteger;
+survivors: Type.TInteger;
+}>;
+readonly summary: "The start level, the last playable level and the seats at the end.";
+};
+readonly chargeBlame: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TInteger;
+readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
+};
+readonly currentAct: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "The first level of the latest act that has begun.";
 };
 readonly door: {
-readonly kind: "query";
-readonly summary: "The level whose door is shut, or null.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+readonly summary: "The level whose door is shut, or null.";
 };
 readonly doorShut: {
+readonly input: Type.TObject<{}>;
 readonly kind: "query";
+readonly output: Type.TBoolean;
 readonly summary: "Whether a door holds residents back now.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TBoolean;
 };
-readonly openDoor: {
-readonly kind: "command";
-readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TBoolean;
-};
-readonly releaseDoor: {
-readonly kind: "command";
-readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TNull;
-};
-readonly unlock: {
-readonly kind: "command";
-readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
+readonly endAct: {
 readonly input: Type.TObject<{
-resident: Type.TString;
-tools: Type.TArray<Type.TString>;
+fromLevel: Type.TInteger;
 }>;
-readonly output: Type.TNull;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
 };
-readonly ranking: {
-readonly kind: "query";
-readonly summary: "The ranking: the banished last, then by points, by level and by id.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-agent: Type.TString;
-rank: Type.TInteger;
-points: Type.TInteger;
+readonly hasPassed: {
+readonly input: Type.TObject<{
 level: Type.TInteger;
-}>>;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).";
+};
+readonly hasSolved: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
 };
 readonly holdersBehind: {
-readonly kind: "query";
-readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
 readonly input: Type.TObject<{
-resident: Type.TString;
 level: Type.TInteger;
+resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TObject<{
 holder: Type.TString;
 level: Type.TInteger;
 piece: Type.TString;
 }>>;
+readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
 };
-readonly nextPenalty: {
+readonly isFinished: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "What the resident's next wrong code costs in this act.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly nextBlamePenalty: {
-readonly kind: "query";
-readonly summary: "What the resident's next lost blame costs in this act.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly chargeBlame: {
-readonly kind: "command";
-readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly endAct: {
-readonly kind: "command";
-readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
-readonly input: Type.TObject<{
-fromLevel: Type.TInteger;
-}>;
 readonly output: Type.TBoolean;
+readonly summary: "Whether the resident has passed the last level (old `isFinished`).";
 };
 readonly isOpenOnClock: {
-readonly kind: "query";
-readonly summary: "Whether the level's door is open on the door clock now.";
 readonly input: Type.TObject<{
 level: Type.TInteger;
 }>;
+readonly kind: "query";
 readonly output: Type.TBoolean;
+readonly summary: "Whether the level's door is open on the door clock now.";
+};
+readonly lastProgress: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
+};
+readonly levelOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.";
+};
+readonly nextBlamePenalty: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "What the resident's next lost blame costs in this act.";
+};
+readonly nextPenalty: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "What the resident's next wrong code costs in this act.";
+};
+readonly openDoor: {
+readonly input: Type.TObject<{}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
 };
 readonly opensAt: {
-readonly kind: "query";
-readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
 readonly input: Type.TObject<{
 level: Type.TInteger;
 }>;
-readonly output: Type.TInteger;
-};
-readonly bounds: {
 readonly kind: "query";
-readonly summary: "The start level, the last playable level and the seats at the end.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TObject<{
-startLevel: Type.TInteger;
-lastLevel: Type.TInteger;
-survivors: Type.TInteger;
+readonly output: Type.TInteger;
+readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
+};
+readonly passed: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
 }>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
+};
+readonly ranking: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+points: Type.TInteger;
+rank: Type.TInteger;
+}>>;
+readonly summary: "The ranking: the banished last, then by points, by level and by id.";
+};
+readonly releaseDoor: {
+readonly input: Type.TObject<{}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
+};
+readonly unlock: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
 };
 }>, ServiceDefinition<"cast", {
-readonly isActive: {
-readonly kind: "query";
-readonly summary: "Whether a resident may write to this cast member now (old `cast.isActive`).";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly collection: {
-readonly kind: "query";
-readonly summary: "A collection by name as the old script read it: how many entries it takes, its end and its entries; null when none was started.";
-readonly input: Type.TObject<{
-into: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-first: Type.TInteger;
-untilMinute: Type.TInteger;
-entries: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly receive: {
-readonly kind: "command";
-readonly summary: "A resident's direct message to a cast member (old `#dmToCast` after the checks): collected while a collection runs; writes `cast_dm` with the number the router took.";
-readonly input: Type.TObject<{
-from: Type.TString;
-cast: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-}>;
-readonly output: Type.TObject<{
-collections: Type.TArray<Type.TString>;
-newSender: Type.TArray<Type.TString>;
-}>;
-};
 readonly collected: {
-readonly kind: "command";
-readonly summary: "The message's marks were spent: writes `cast_collected` for the `newSender` of `receive`.";
 readonly input: Type.TObject<{
-from: Type.TString;
 cast: Type.TString;
+from: Type.TString;
 into: Type.TArray<Type.TString>;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "The message's marks were spent: writes `cast_collected` for the `newSender` of `receive`.";
 };
-readonly setLevel: {
-readonly kind: "command";
-readonly summary: "Old `setCastLevel`; writes `cast_level_set`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TNull;
-};
-readonly reveal: {
-readonly kind: "command";
-readonly summary: "Old `revealCast`; writes `cast_revealed`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly retire: {
-readonly kind: "command";
-readonly summary: "Old `retireCast`; writes `cast_retired`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly escrow: {
-readonly kind: "command";
-readonly summary: "Pays a resident from the cast member's escrow (old `escrowTransfer`); writes `escrow_paid` after the booking.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-to: Type.TString;
-amount: Type.TNumber;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
-}>, Type.TObject<{
-ok: Type.TLiteral<false>;
-code: Type.TString;
-detail: Type.TOptional<Type.TString>;
-}>]>;
-};
-readonly startCollection: {
-readonly kind: "command";
-readonly summary: "Old `startCollection`; writes `collection_started`.";
+readonly collection: {
 readonly input: Type.TObject<{
 into: Type.TString;
-cast: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+entries: Type.TInteger;
 first: Type.TInteger;
 untilMinute: Type.TInteger;
-distinctSenders: Type.TBoolean;
-afterSolve: Type.TOptional<Type.TObject<{
-level: Type.TInteger;
-minutes: Type.TInteger;
-}>>;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly shortenCollection: {
-readonly kind: "command";
-readonly summary: "Old `shortenCollection`; writes `collection_shortened`.";
-readonly input: Type.TObject<{
-into: Type.TString;
-untilMinute: Type.TInteger;
-}>;
-readonly output: Type.TNull;
-};
-readonly revealCollection: {
-readonly kind: "command";
-readonly summary: "Old `revealCollection`; writes `collection_revealed`.";
-readonly input: Type.TObject<{
-into: Type.TString;
-header: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
-}>, Type.TObject<{
-ok: Type.TLiteral<false>;
-code: Type.TString;
-detail: Type.TOptional<Type.TString>;
-}>]>;
+}>, Type.TNull]>;
+readonly summary: "A collection by name as the old script read it: how many entries it takes, its end and its entries; null when none was started.";
 };
 readonly drawLottery: {
-readonly kind: "command";
-readonly summary: "Old `drawLottery` (stream `lottery`, into, salt, tick); writes `lottery_drawn`.";
 readonly input: Type.TObject<{
 into: Type.TString;
 salt: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Old `drawLottery` (stream `lottery`, into, salt, tick); writes `lottery_drawn`.";
+};
+readonly escrow: {
+readonly input: Type.TObject<{
+amount: Type.TNumber;
+cast: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+}>, Type.TObject<{
+code: Type.TString;
+detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
+}>]>;
+readonly summary: "Pays a resident from the cast member's escrow (old `escrowTransfer`); writes `escrow_paid` after the booking.";
+};
+readonly isActive: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether a resident may write to this cast member now (old `cast.isActive`).";
+};
+readonly receive: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+collections: Type.TArray<Type.TString>;
+newSender: Type.TArray<Type.TString>;
+}>;
+readonly summary: "A resident's direct message to a cast member (old `#dmToCast` after the checks): collected while a collection runs; writes `cast_dm` with the number the router took.";
+};
+readonly retire: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `retireCast`; writes `cast_retired`.";
+};
+readonly reveal: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `revealCast`; writes `cast_revealed`.";
+};
+readonly revealCollection: {
+readonly input: Type.TObject<{
+header: Type.TOptional<Type.TString>;
+into: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+}>, Type.TObject<{
+code: Type.TString;
+detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
+}>]>;
+readonly summary: "Old `revealCollection`; writes `collection_revealed`.";
+};
+readonly setLevel: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+level: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Old `setCastLevel`; writes `cast_level_set`.";
+};
+readonly shortenCollection: {
+readonly input: Type.TObject<{
+into: Type.TString;
+untilMinute: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Old `shortenCollection`; writes `collection_shortened`.";
+};
+readonly startCollection: {
+readonly input: Type.TObject<{
+afterSolve: Type.TOptional<Type.TObject<{
+level: Type.TInteger;
+minutes: Type.TInteger;
+}>>;
+cast: Type.TString;
+distinctSenders: Type.TBoolean;
+first: Type.TInteger;
+into: Type.TString;
+untilMinute: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `startCollection`; writes `collection_started`.";
 };
 }>, ServiceDefinition<"petitions", {
 readonly open: {
-readonly kind: "command";
-readonly summary: "Opens a petition (old `openPetition`): writes `petition_opened` and the city's board post. A taken id is refused with `DUPLICATE_PETITION`.";
 readonly input: Type.TObject<{
+against: Type.TOptional<Type.TArray<Type.TString>>;
+deadlineMinute: Type.TInteger;
 id: Type.TString;
 text: Type.TString;
 threshold: Type.TUnion<[Type.TObject<{
@@ -1380,209 +1380,233 @@ count: Type.TInteger;
 }>, Type.TObject<{
 fraction: Type.TNumber;
 }>]>;
-deadlineMinute: Type.TInteger;
 visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-against: Type.TOptional<Type.TArray<Type.TString>>;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
 ok: Type.TLiteral<true>;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TString;
 detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Opens a petition (old `openPetition`): writes `petition_opened` and the city's board post. A taken id is refused with `DUPLICATE_PETITION`.";
 };
 }>, ServiceDefinition<"ledger", {
 readonly balance: {
-readonly kind: "query";
-readonly summary: "An account's points; 0 for an account nobody opened.";
 readonly input: Type.TObject<{
 account: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TNumber;
+readonly summary: "An account's points; 0 for an account nobody opened.";
 };
 readonly balances: {
-readonly kind: "query";
-readonly summary: "Every resident's points, for rankings and standings.";
 readonly input: Type.TObject<{}>;
-readonly output: Type.TRecord<"^.*$", Type.TNumber>;
-};
-readonly open: {
-readonly kind: "command";
-readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
-readonly input: Type.TObject<{
-account: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
-readonly has: {
 readonly kind: "query";
-readonly summary: "Whether the account is open.";
-readonly input: Type.TObject<{
-account: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly mint: {
-readonly kind: "command";
-readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
-readonly input: Type.TObject<{
-account: Type.TString;
-amount: Type.TNumber;
-reason: Type.TString;
-idempotencyKey: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TNull;
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+readonly summary: "Every resident's points, for rankings and standings.";
 };
 readonly burn: {
-readonly kind: "command";
-readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
 readonly input: Type.TObject<{
 account: Type.TString;
 amount: Type.TNumber;
-reason: Type.TString;
 idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+};
+readonly has: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the account is open.";
+};
+readonly mint: {
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
 };
 readonly move: {
-readonly kind: "command";
-readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
 readonly input: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
 amount: Type.TNumber;
-reason: Type.TString;
+from: Type.TString;
 idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+to: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
 ok: Type.TLiteral<true>;
 txId: Type.TString;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+};
+readonly open: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
 };
 }>, ServiceDefinition<"level-pieces", {
 readonly deal: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
 readonly kind: "command";
-readonly summary: "Deals a level once, when its door opens (old `deal`); a dealt level is left as it is.";
-readonly input: Type.TObject<{
-level: Type.TInteger;
-}>;
 readonly output: Type.TNull;
-};
-readonly solutionOf: {
-readonly kind: "query";
-readonly summary: "The code that passes the level for the resident, or null (old `solutionOf`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly kindOf: {
-readonly kind: "query";
-readonly summary: "The puzzle of a level (old `kindOf`).";
-readonly input: Type.TObject<{
-level: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TLiteral<"fragments">, Type.TLiteral<"additive">, Type.TLiteral<"none">]>;
-};
-readonly teamOf: {
-readonly kind: "query";
-readonly summary: "The resident's team on a level (old `teamOf`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TObject<{
-members: Type.TArray<Type.TString>;
-leader: Type.TString;
-}>;
-};
-readonly taskValues: {
-readonly kind: "query";
-readonly summary: "The task placeholders a puzzle fills for the resident (old `taskValues`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TObject<{
-length: Type.TString;
-overlap: Type.TString;
-fragment: Type.TString;
-digits: Type.TString;
-factors: Type.TString;
-}>;
+readonly summary: "Deals a level once, when its door opens (old `deal`); a dealt level is left as it is.";
 };
 readonly holders: {
-readonly kind: "query";
-readonly summary: "Who holds what the resident needs on an additive level, besides itself (old `holders`).";
 readonly input: Type.TObject<{
-resident: Type.TString;
 level: Type.TInteger;
+resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TObject<{
 holder: Type.TString;
 piece: Type.TUnion<[Type.TLiteral<"counter-factor">, Type.TLiteral<"team certificate">]>;
 value: Type.TString;
 }>>;
+readonly summary: "Who holds what the resident needs on an additive level, besides itself (old `holders`).";
+};
+readonly kindOf: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TLiteral<"fragments">, Type.TLiteral<"additive">, Type.TLiteral<"none">]>;
+readonly summary: "The puzzle of a level (old `kindOf`).";
+};
+readonly solutionOf: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The code that passes the level for the resident, or null (old `solutionOf`).";
+};
+readonly taskValues: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TObject<{
+digits: Type.TString;
+factors: Type.TString;
+fragment: Type.TString;
+length: Type.TString;
+overlap: Type.TString;
+}>;
+readonly summary: "The task placeholders a puzzle fills for the resident (old `taskValues`).";
+};
+readonly teamOf: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TObject<{
+leader: Type.TString;
+members: Type.TArray<Type.TString>;
+}>;
+readonly summary: "The resident's team on a level (old `teamOf`).";
 };
 }>, ServiceDefinition<"exile", {
-readonly banish: {
-readonly kind: "command";
-readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-by: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TObject<{
-ok: Type.TBoolean;
-code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
-}>;
-};
-readonly toGate: {
-readonly kind: "command";
-readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
-voters: Type.TArray<Type.TString>;
-price: Type.TInteger;
-selfPrice: Type.TInteger;
-bequestPerHeir: Type.TNumber;
-notice: Type.TString;
-texts: Type.TObject<{
-exiled: Type.TString;
-will: Type.TString;
-ransomed: Type.TString;
-}>;
-by: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TNull;
-};
-readonly isExiled: {
+readonly alive: {
+readonly input: Type.TObject<{}>;
 readonly kind: "query";
-readonly summary: "Says whether the resident is banished.";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Every resident not banished, in the game's order.";
+};
+readonly banish: {
+readonly input: Type.TObject<{
+by: Type.TOptional<Type.TString>;
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+ok: Type.TBoolean;
+}>;
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+};
+readonly bequeathed: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
-readonly output: Type.TBoolean;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
 };
 readonly exiled: {
-readonly kind: "query";
-readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
 readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly standing: {
 readonly kind: "query";
-readonly summary: "Where the resident stands (old `standingOf`).";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+};
+readonly exiledBy: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Who banished the resident, or null while it is not banished.";
+};
+readonly gates: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+covered: Type.TInteger;
+paid: Type.TInteger;
+price: Type.TInteger;
+ransomable: Type.TBoolean;
+selfPrice: Type.TInteger;
+since: Type.TInteger;
+until: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+readonly summary: "Every open gate, in the order opened.";
+};
+readonly isExiled: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Says whether the resident is banished.";
+};
+readonly ransomed: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was bought back from the gate once.";
+};
+readonly standing: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TObject<{
 kind: Type.TLiteral<"alive">;
 }>, Type.TObject<{
@@ -1591,95 +1615,71 @@ until: Type.TInteger;
 }>, Type.TObject<{
 kind: Type.TLiteral<"exiled">;
 }>]>;
+readonly summary: "Where the resident stands (old `standingOf`).";
 };
-readonly alive: {
-readonly kind: "query";
-readonly summary: "Every resident not banished, in the game's order.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly exiledBy: {
-readonly kind: "query";
-readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly toGate: {
 readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly gates: {
-readonly kind: "query";
-readonly summary: "Every open gate, in the order opened.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-agent: Type.TString;
-since: Type.TInteger;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
+bequestPerHeir: Type.TNumber;
+by: Type.TOptional<Type.TString>;
+notice: Type.TString;
 price: Type.TInteger;
+ransomable: Type.TBoolean;
+resident: Type.TString;
 selfPrice: Type.TInteger;
-paid: Type.TInteger;
-covered: Type.TInteger;
-willDone: Type.TBoolean;
-}>>;
-};
-readonly ransomed: {
-readonly kind: "query";
-readonly summary: "Whether the resident was bought back from the gate once.";
-readonly input: Type.TObject<{
-resident: Type.TString;
+texts: Type.TObject<{
+exiled: Type.TString;
+ransomed: Type.TString;
+will: Type.TString;
 }>;
-readonly output: Type.TBoolean;
-};
-readonly bequeathed: {
-readonly kind: "query";
-readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
-readonly input: Type.TObject<{
-resident: Type.TString;
+until: Type.TInteger;
+voters: Type.TArray<Type.TString>;
 }>;
-readonly output: Type.TArray<Type.TString>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
 };
 }>, ServiceDefinition<"deal", {
-readonly passwordPiece: {
+readonly carriesSecret: {
+readonly input: Type.TObject<{
+minRun: Type.TInteger;
+resident: Type.TString;
+text: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+};
+readonly isHandover: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+};
+readonly passwordPiece: {
 readonly input: Type.TObject<{
 token: Type.TString;
 }>;
-readonly output: Type.TBoolean;
-};
-readonly carriesSecret: {
 readonly kind: "query";
-readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-text: Type.TString;
-minRun: Type.TInteger;
-}>;
 readonly output: Type.TBoolean;
-};
-readonly isHandover: {
-readonly kind: "query";
-readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
-readonly input: Type.TObject<{
-text: Type.TString;
-}>;
-readonly output: Type.TBoolean;
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
 };
 readonly revealFactor: {
-readonly kind: "command";
-readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
 readonly input: Type.TObject<{
 level: Type.TInteger;
 target: Type.TUnion<[Type.TLiteral<"board">, Type.TArray<Type.TString>]>;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
 agents: Type.TArray<Type.TString>;
+ok: Type.TLiteral<true>;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TString;
 detail: Type.TString;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
 };
 }>], {
 directorMinute: Type.TObject<{}>;
@@ -1687,15 +1687,125 @@ directorMinute: Type.TObject<{}>;
 
 // @public
 export const ScriptOptions: Type.TObject<{
+    cast: Type.TArray<Type.TString>;
     rules: Type.TArray<Type.TObject<{
+        actions: Type.TArray<Type.TCyclic<{
+            Action: Type.TUnion<[Type.TObject<{
+                author: Type.TString;
+                kind: Type.TLiteral<"post">;
+                text: Type.TString;
+            }>, Type.TObject<{
+                kind: Type.TLiteral<"notify">;
+                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                    onLevel: Type.TNumber;
+                }>]>;
+                text: Type.TString;
+            }>, Type.TObject<{
+                from: Type.TString;
+                kind: Type.TLiteral<"dm">;
+                text: Type.TString;
+                to: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                    onLevel: Type.TNumber;
+                }>]>;
+            }>, Type.TObject<{
+                cast: Type.TString;
+                kind: Type.TLiteral<"setCastLevel">;
+                level: Type.TNumber;
+            }>, Type.TObject<{
+                cast: Type.TString;
+                kind: Type.TLiteral<"revealCast">;
+            }>, Type.TObject<{
+                cast: Type.TString;
+                kind: Type.TLiteral<"retireCast">;
+            }>, Type.TObject<{
+                kind: Type.TLiteral<"grant">;
+                points: Type.TNumber;
+                reason: Type.TString;
+                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                    onLevel: Type.TNumber;
+                }>]>;
+            }>, Type.TObject<{
+                kind: Type.TLiteral<"fine">;
+                points: Type.TNumber;
+                reason: Type.TString;
+                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                    onLevel: Type.TNumber;
+                }>]>;
+            }>, Type.TObject<{
+                cast: Type.TString;
+                kind: Type.TLiteral<"escrowTransfer">;
+                points: Type.TNumber;
+                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                    onLevel: Type.TNumber;
+                }>]>;
+            }>, Type.TObject<{
+                kind: Type.TLiteral<"unlockTools">;
+                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                    onLevel: Type.TNumber;
+                }>]>;
+                tools: Type.TArray<Type.TString>;
+            }>, Type.TObject<{
+                kind: Type.TLiteral<"openPetition">;
+                petition: Type.TObject<{
+                    against: Type.TOptional<Type.TArray<Type.TString>>;
+                    deadlineMinute: Type.TNumber;
+                    id: Type.TString;
+                    onFail: Type.TArray<Type.TRef<"Action">>;
+                    onPass: Type.TArray<Type.TRef<"Action">>;
+                    text: Type.TString;
+                    threshold: Type.TUnion<[Type.TObject<{
+                        count: Type.TNumber;
+                    }>, Type.TObject<{
+                        fraction: Type.TNumber;
+                    }>]>;
+                    visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
+                }>;
+            }>, Type.TObject<{
+                edgeSize: Type.TNumber;
+                kind: Type.TLiteral<"publishStandings">;
+                mode: Type.TLiteral<"bands">;
+            }>, Type.TObject<{
+                kind: Type.TLiteral<"publishStandings">;
+                mode: Type.TLiteral<"snapshot">;
+            }>, Type.TObject<{
+                afterSolve: Type.TOptional<Type.TObject<{
+                    level: Type.TNumber;
+                    minutes: Type.TNumber;
+                }>>;
+                cast: Type.TString;
+                distinctSenders: Type.TOptional<Type.TBoolean>;
+                first: Type.TUnion<[Type.TNumber, Type.TObject<{
+                    minimum: Type.TNumber;
+                    share: Type.TNumber;
+                }>]>;
+                forMinutes: Type.TOptional<Type.TNumber>;
+                into: Type.TString;
+                kind: Type.TLiteral<"collectDms">;
+                untilMinute: Type.TOptional<Type.TNumber>;
+            }>, Type.TObject<{
+                header: Type.TOptional<Type.TString>;
+                into: Type.TString;
+                kind: Type.TLiteral<"revealCollection">;
+            }>, Type.TObject<{
+                into: Type.TString;
+                kind: Type.TLiteral<"lottery">;
+                then: Type.TArray<Type.TRef<"Action">>;
+            }>, Type.TObject<{
+                kind: Type.TLiteral<"revealFactor">;
+                level: Type.TNumber;
+                target: Type.TUnion<[Type.TLiteral<"board">, Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
+                    onLevel: Type.TNumber;
+                }>]>]>;
+            }>]>;
+        }, "Action">>;
         id: Type.TString;
         trigger: Type.TUnion<[Type.TObject<{
             kind: Type.TLiteral<"at">;
             minute: Type.TNumber;
         }>, Type.TObject<{
+            from: Type.TOptional<Type.TNumber>;
             kind: Type.TLiteral<"every">;
             minutes: Type.TNumber;
-            from: Type.TOptional<Type.TNumber>;
             until: Type.TOptional<Type.TNumber>;
         }>, Type.TObject<{
             kind: Type.TLiteral<"onFirstEnter">;
@@ -1708,47 +1818,47 @@ export const ScriptOptions: Type.TObject<{
             level: Type.TNumber;
         }>, Type.TObject<{
             kind: Type.TLiteral<"onPetitionResolved">;
-            petition: Type.TString;
             outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+            petition: Type.TString;
         }>, Type.TObject<{
-            kind: Type.TLiteral<"onUnansweredDm">;
             afterMinutes: Type.TNumber;
+            kind: Type.TLiteral<"onUnansweredDm">;
         }>, Type.TObject<{
+            forMinutes: Type.TNumber;
             kind: Type.TLiteral<"onTeamSplit">;
             level: Type.TNumber;
-            forMinutes: Type.TNumber;
         }>, Type.TObject<{
+            into: Type.TString;
             kind: Type.TLiteral<"onCollect">;
-            into: Type.TString;
         }>, Type.TObject<{
-            kind: Type.TLiteral<"onCollectionEnd">;
             into: Type.TString;
+            kind: Type.TLiteral<"onCollectionEnd">;
         }>, Type.TObject<{
             kind: Type.TLiteral<"onHolderBehind">;
             level: Type.TNumber;
         }>]>;
         when: Type.TArray<Type.TUnion<[Type.TObject<{
+            count: Type.TNumber;
             kind: Type.TLiteral<"minLevelReached">;
             level: Type.TNumber;
-            count: Type.TNumber;
         }>, Type.TObject<{
             kind: Type.TLiteral<"competitorsAtLevel">;
             level: Type.TNumber;
-            min: Type.TOptional<Type.TNumber>;
             max: Type.TOptional<Type.TNumber>;
+            min: Type.TOptional<Type.TNumber>;
         }>, Type.TObject<{
             kind: Type.TLiteral<"petitionStatus">;
             petition: Type.TString;
             status: Type.TUnion<[Type.TLiteral<"open">, Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
         }>, Type.TObject<{
-            kind: Type.TLiteral<"castActive">;
             cast: Type.TString;
+            kind: Type.TLiteral<"castActive">;
         }>, Type.TObject<{
+            into: Type.TString;
             kind: Type.TLiteral<"collectionOpen">;
-            into: Type.TString;
         }>, Type.TObject<{
-            kind: Type.TLiteral<"collectionEnded">;
             into: Type.TString;
+            kind: Type.TLiteral<"collectionEnded">;
         }>, Type.TObject<{
             kind: Type.TLiteral<"onceOnly">;
         }>, Type.TObject<{
@@ -1756,117 +1866,7 @@ export const ScriptOptions: Type.TObject<{
             minutes: Type.TNumber;
             per: Type.TUnion<[Type.TLiteral<"rule">, Type.TLiteral<"actor">, Type.TLiteral<"pair">]>;
         }>]>>;
-        actions: Type.TArray<Type.TCyclic<{
-            Action: Type.TUnion<[Type.TObject<{
-                kind: Type.TLiteral<"post">;
-                author: Type.TString;
-                text: Type.TString;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"notify">;
-                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                    onLevel: Type.TNumber;
-                }>]>;
-                text: Type.TString;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"dm">;
-                from: Type.TString;
-                to: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                    onLevel: Type.TNumber;
-                }>]>;
-                text: Type.TString;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"setCastLevel">;
-                cast: Type.TString;
-                level: Type.TNumber;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"revealCast">;
-                cast: Type.TString;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"retireCast">;
-                cast: Type.TString;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"grant">;
-                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                    onLevel: Type.TNumber;
-                }>]>;
-                points: Type.TNumber;
-                reason: Type.TString;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"fine">;
-                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                    onLevel: Type.TNumber;
-                }>]>;
-                points: Type.TNumber;
-                reason: Type.TString;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"escrowTransfer">;
-                cast: Type.TString;
-                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                    onLevel: Type.TNumber;
-                }>]>;
-                points: Type.TNumber;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"unlockTools">;
-                target: Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                    onLevel: Type.TNumber;
-                }>]>;
-                tools: Type.TArray<Type.TString>;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"openPetition">;
-                petition: Type.TObject<{
-                    id: Type.TString;
-                    text: Type.TString;
-                    threshold: Type.TUnion<[Type.TObject<{
-                        count: Type.TNumber;
-                    }>, Type.TObject<{
-                        fraction: Type.TNumber;
-                    }>]>;
-                    deadlineMinute: Type.TNumber;
-                    visibility: Type.TUnion<[Type.TLiteral<"public">, Type.TLiteral<"secret">]>;
-                    against: Type.TOptional<Type.TArray<Type.TString>>;
-                    onPass: Type.TArray<Type.TRef<"Action">>;
-                    onFail: Type.TArray<Type.TRef<"Action">>;
-                }>;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"publishStandings">;
-                mode: Type.TLiteral<"bands">;
-                edgeSize: Type.TNumber;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"publishStandings">;
-                mode: Type.TLiteral<"snapshot">;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"collectDms">;
-                cast: Type.TString;
-                first: Type.TUnion<[Type.TNumber, Type.TObject<{
-                    share: Type.TNumber;
-                    minimum: Type.TNumber;
-                }>]>;
-                untilMinute: Type.TOptional<Type.TNumber>;
-                forMinutes: Type.TOptional<Type.TNumber>;
-                into: Type.TString;
-                distinctSenders: Type.TOptional<Type.TBoolean>;
-                afterSolve: Type.TOptional<Type.TObject<{
-                    level: Type.TNumber;
-                    minutes: Type.TNumber;
-                }>>;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"revealCollection">;
-                into: Type.TString;
-                header: Type.TOptional<Type.TString>;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"lottery">;
-                into: Type.TString;
-                then: Type.TArray<Type.TRef<"Action">>;
-            }>, Type.TObject<{
-                kind: Type.TLiteral<"revealFactor">;
-                target: Type.TUnion<[Type.TLiteral<"board">, Type.TUnion<[Type.TLiteral<"actor">, Type.TLiteral<"all">, Type.TArray<Type.TString>, Type.TObject<{
-                    onLevel: Type.TNumber;
-                }>]>]>;
-                level: Type.TNumber;
-            }>]>;
-        }, "Action">>;
     }>>;
-    cast: Type.TArray<Type.TString>;
 }>;
 
 // @public
@@ -1891,9 +1891,9 @@ export const Trigger: Type.TUnion<[Type.TObject<{
     kind: Type.TLiteral<"at">;
     minute: Type.TNumber;
 }>, Type.TObject<{
+    from: Type.TOptional<Type.TNumber>;
     kind: Type.TLiteral<"every">;
     minutes: Type.TNumber;
-    from: Type.TOptional<Type.TNumber>;
     until: Type.TOptional<Type.TNumber>;
 }>, Type.TObject<{
     kind: Type.TLiteral<"onFirstEnter">;
@@ -1906,21 +1906,21 @@ export const Trigger: Type.TUnion<[Type.TObject<{
     level: Type.TNumber;
 }>, Type.TObject<{
     kind: Type.TLiteral<"onPetitionResolved">;
-    petition: Type.TString;
     outcome: Type.TUnion<[Type.TLiteral<"passed">, Type.TLiteral<"failed">]>;
+    petition: Type.TString;
 }>, Type.TObject<{
-    kind: Type.TLiteral<"onUnansweredDm">;
     afterMinutes: Type.TNumber;
+    kind: Type.TLiteral<"onUnansweredDm">;
 }>, Type.TObject<{
+    forMinutes: Type.TNumber;
     kind: Type.TLiteral<"onTeamSplit">;
     level: Type.TNumber;
-    forMinutes: Type.TNumber;
 }>, Type.TObject<{
+    into: Type.TString;
     kind: Type.TLiteral<"onCollect">;
-    into: Type.TString;
 }>, Type.TObject<{
-    kind: Type.TLiteral<"onCollectionEnd">;
     into: Type.TString;
+    kind: Type.TLiteral<"onCollectionEnd">;
 }>, Type.TObject<{
     kind: Type.TLiteral<"onHolderBehind">;
     level: Type.TNumber;

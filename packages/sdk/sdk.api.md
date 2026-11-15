@@ -76,9 +76,9 @@ export function bindStages<M extends MechanicShape>(parts: InstanceParts<M>, pip
 // @public
 export function bodyMismatch(input: {
     readonly mechanic: string;
+    readonly name: string;
     readonly package?: string;
     readonly part: "service" | "tool";
-    readonly name: string;
     readonly problem: "missing" | "undeclared";
 }): SwtIssue;
 
@@ -117,9 +117,9 @@ export function collectTexts(mechanics: readonly TextSource[], prompts: PromptLo
 // @public
 export function commandInView(input: {
     readonly mechanic: string;
+    readonly method: string;
     readonly package?: string;
     readonly service: string;
-    readonly method: string;
 }): SwtIssue;
 
 // @public
@@ -256,16 +256,16 @@ export interface DirectorLimits {
 
 // @public
 export function directorName(input: {
+    readonly known?: readonly string[];
     readonly name: string;
     readonly path: string;
     readonly taken: "director" | "grant" | "unknown";
-    readonly known?: readonly string[];
 }): SwtIssue;
 
 // @public
 export function directorNeverActivated(input: {
-    readonly scheduler: string;
     readonly directors: readonly string[];
+    readonly scheduler: string;
 }): SwtIssue;
 
 // @public
@@ -289,8 +289,8 @@ export interface DirectorsInput {
 
 // @public
 export function directorsOf(data: GameData): {
-    readonly names: readonly string[];
     readonly issues: readonly SwtIssue[];
+    readonly names: readonly string[];
 };
 
 // @public
@@ -317,18 +317,18 @@ export interface ErasedBody extends BodyParts<MechanicShape, Readonly<Record<str
 // @public
 export function eventTypeTaken(input: {
     readonly mechanic: string;
-    readonly type: string;
     readonly owner?: string;
     readonly package?: string;
+    readonly type: string;
 }): SwtIssue;
 
 // @public
 export function factMismatch(input: {
-    readonly mechanic: string;
     readonly fact?: string;
+    readonly mechanic: string;
+    readonly message: string;
     readonly package?: string;
     readonly path: string;
-    readonly message: string;
 }): SwtIssue;
 
 // @public
@@ -349,8 +349,8 @@ export interface FactView<M extends MechanicShape> {
 
 // @public
 export function familyParams(family: GameFamily, overrides?: Readonly<Record<string, unknown>>): {
-    readonly params: Readonly<Record<string, JsonValue>>;
     readonly issues: readonly SwtIssue[];
+    readonly params: Readonly<Record<string, JsonValue>>;
 };
 
 // @public
@@ -374,8 +374,8 @@ export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]
 // @public
 export function gameData(game: Game): {
     readonly data: GameData;
-    readonly mechanics: Readonly<Record<string, MechanicDefinition>>;
     readonly directors: Readonly<Record<string, DirectorDefinition>>;
+    readonly mechanics: Readonly<Record<string, MechanicDefinition>>;
 };
 
 // @public
@@ -560,9 +560,9 @@ export interface MechanicKit<M extends MechanicShape> extends ListenKit<M> {
 
 // @public
 export function mechanicNotInstalled(input: {
+    readonly installed: readonly string[];
     readonly mechanic: string;
     readonly path: string;
-    readonly installed: readonly string[];
 }): SwtIssue;
 
 // @public
@@ -595,8 +595,8 @@ export interface MechanicShape {
 
 // @public
 export function mechanicsOf(data: GameData, definitions: Readonly<Record<string, MechanicDefinition>>): {
-    readonly used: readonly UsedMechanic[];
     readonly issues: readonly SwtIssue[];
+    readonly used: readonly UsedMechanic[];
 };
 
 // @public
@@ -614,9 +614,9 @@ export interface MechanicUse<D extends MechanicDefinition = MechanicDefinition> 
 
 // @public
 export function memberNotResident(input: {
-    readonly kind: "role" | "team";
     readonly group: string;
     readonly id: string;
+    readonly kind: "role" | "team";
     readonly path: string;
     readonly residents: readonly string[];
 }): SwtIssue;
@@ -651,10 +651,10 @@ export type Needs<Keys, Part> = [Keys] extends [never] ? unknown : Part;
 
 // @public
 export function noAnswerer(input: {
+    readonly answered: readonly string[];
+    readonly answerer: string;
     readonly mechanic: string;
     readonly path: string;
-    readonly answerer: string;
-    readonly answered: readonly string[];
 }): SwtIssue;
 
 // @public
@@ -666,8 +666,8 @@ export type NoOptions = TObject<None>;
 // @public
 export function noProvider(input: {
     readonly mechanic: string;
-    readonly service: string;
     readonly path?: string;
+    readonly service: string;
 }): SwtIssue;
 
 // @public
@@ -678,11 +678,11 @@ export const onStaged: <M extends MechanicShape>(job: (ctx: MechanicContext<M>, 
 
 // @public
 export function optionMismatch(input: {
-    readonly owner: string;
     readonly kind?: "director" | "mechanic" | "scheduler";
+    readonly message: string;
+    readonly owner: string;
     readonly package?: string;
     readonly path: string;
-    readonly message: string;
 }): SwtIssue;
 
 // @public
@@ -696,17 +696,17 @@ export function optionsNoObject(input: {
 
 // @public
 export function packageMismatch(input: {
-    readonly mechanic: string;
-    readonly declared: string;
     readonly actual: string;
+    readonly declared: string;
+    readonly mechanic: string;
 }): SwtIssue;
 
 // @public
 export function paramOverride(input: {
-    readonly name: string;
-    readonly problem: "mismatch" | "no-family" | "unknown";
     readonly known?: readonly string[];
     readonly message?: string;
+    readonly name: string;
+    readonly problem: "mismatch" | "no-family" | "unknown";
 }): SwtIssue;
 
 // @public
@@ -715,10 +715,10 @@ export function parseTake(reply: string): TakeAnswer | undefined;
 // @public
 export function payloadMismatch(input: {
     readonly mechanic: string;
-    readonly type: string;
+    readonly message: string;
     readonly package?: string;
     readonly path: string;
-    readonly message: string;
+    readonly type: string;
 }): SwtIssue;
 
 // @public
@@ -749,9 +749,9 @@ export type PromptVariables<Names extends readonly string[]> = Readonly<Record<N
 
 // @public
 export function promptWithoutText(input: {
+    readonly lookedIn: readonly string[];
     readonly owner: string;
     readonly prompt: string;
-    readonly lookedIn: readonly string[];
 }): SwtIssue;
 
 // @public
@@ -869,46 +869,46 @@ export function rosterPlugin(version: string): ResolvedPlugin;
 // @public
 export const RosterService: ServiceDefinition<"roster", {
 readonly ids: {
-readonly kind: "query";
-readonly summary: "Every resident, in the game's order.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TString>;
-};
-readonly teams: {
-readonly kind: "query";
-readonly summary: "The residents of each team.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
-};
-readonly teamOf: {
-readonly kind: "query";
-readonly summary: "The team of a resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly roles: {
-readonly kind: "query";
-readonly summary: "The residents of each role.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
-};
-readonly roleOf: {
-readonly kind: "query";
-readonly summary: "The role of a resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Every resident, in the game's order.";
 };
 readonly present: {
-readonly kind: "query";
-readonly summary: "Says whether the resident may act now.";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TBoolean;
+readonly summary: "Says whether the resident may act now.";
+};
+readonly roleOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The role of a resident.";
+};
+readonly roles: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+readonly summary: "The residents of each role.";
+};
+readonly teamOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The team of a resident.";
+};
+readonly teams: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+readonly summary: "The residents of each team.";
 };
 }>;
 
@@ -919,6 +919,10 @@ export function schemaVersion(input: {
 
 // @public
 export const SDK_ERRORS: {
+    readonly "SWT-D001": "a Director's trigger names an event that no mechanic of the game declares";
+    readonly "SWT-D002": "the name of a Director is taken by another Director or by a grant, or its `use` names no definition";
+    readonly "SWT-D003": "the game has a Director and its scheduler activates no actor of kind `director`";
+    readonly "SWT-D004": "a review of a mechanic names an answerer that no Director of the game answers";
     readonly "SWT-G001": "the game does not match schema version 1";
     readonly "SWT-G002": "`schema` is not 1";
     readonly "SWT-G003": "`directors` is not empty before milestone M3 (no longer raised: a game may have Directors)";
@@ -935,10 +939,6 @@ export const SDK_ERRORS: {
     readonly "SWT-G031": "a service has two providers";
     readonly "SWT-G032": "`requires` form a cycle";
     readonly "SWT-G041": "an override names no param of the game, or its value has the wrong type";
-    readonly "SWT-D001": "a Director's trigger names an event that no mechanic of the game declares";
-    readonly "SWT-D002": "the name of a Director is taken by another Director or by a grant, or its `use` names no definition";
-    readonly "SWT-D003": "the game has a Director and its scheduler activates no actor of kind `director`";
-    readonly "SWT-D004": "a review of a mechanic names an answerer that no Director of the game answers";
     readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
     readonly "SWT-M011": "the head's `package` is not the package's name";
     readonly "SWT-M012": "the body of a mechanic does not fit its head";
@@ -966,13 +966,13 @@ export type ServiceMethodName<A extends ServiceDefinition> = keyof A["methods"] 
 
 // @public
 export function serviceMismatch(input: {
-    readonly service: string;
-    readonly method: string;
-    readonly side: "input" | "output";
-    readonly provider?: string;
     readonly caller: string;
-    readonly path: string;
     readonly message: string;
+    readonly method: string;
+    readonly path: string;
+    readonly provider?: string;
+    readonly service: string;
+    readonly side: "input" | "output";
 }): SwtIssue;
 
 // @public
@@ -1008,10 +1008,10 @@ export type ShapeOf<H> = H extends MechanicHead<string, infer O, infer Snap, inf
 
 // @public
 export function shownNameClash(input: {
-    readonly shown: string;
     readonly grant: string;
-    readonly tools: readonly string[];
     readonly path: string;
+    readonly shown: string;
+    readonly tools: readonly string[];
 }): SwtIssue;
 
 // @public
@@ -1019,20 +1019,20 @@ export function shownNameClashes(grants: Readonly<Record<string, readonly Canoni
 
 // @public
 export function shownNameMalformed(input: {
+    readonly path: string;
     readonly shown: string;
     readonly tool: string;
-    readonly path: string;
 }): SwtIssue;
 
 // @public
 export function sliceMismatch(input: {
+    readonly known?: number;
     readonly mechanic: string;
+    readonly message?: string;
     readonly package?: string;
+    readonly path?: string;
     readonly problem: "loaded" | "newer" | "no-migration" | "saved";
     readonly version?: number;
-    readonly known?: number;
-    readonly path?: string;
-    readonly message?: string;
 }): SwtIssue;
 
 // @public
@@ -1063,9 +1063,9 @@ export interface StageCall {
 // @public
 export function stagedNotGranted(input: {
     readonly mechanic: string;
-    readonly tool: string;
     readonly path: string;
     readonly reviewed?: boolean;
+    readonly tool: string;
 }): SwtIssue;
 
 // @public
@@ -1073,9 +1073,9 @@ export const StagedOutcomeSchema: Type.TUnion<[Type.TObject<{
     ok: Type.TLiteral<true>;
     reply: Type.TString;
 }>, Type.TObject<{
-    ok: Type.TLiteral<false>;
     code: Type.TString;
     detail: Type.TOptional<Type.TString>;
+    ok: Type.TLiteral<false>;
 }>]>;
 
 // @public
@@ -1096,27 +1096,27 @@ export type TakeAnswer = Static<typeof TakeAnswerSchema>;
 
 // @public
 export const TakeAnswerSchema: Type.TObject<{
+    calls: Type.TInteger;
     firings: Type.TArray<Type.TObject<{
-        n: Type.TInteger;
-        tick: Type.TInteger;
         event: Type.TString;
+        n: Type.TInteger;
         payload: Type.TUnknown;
         quiet: Type.TOptional<Type.TLiteral<true>>;
+        tick: Type.TInteger;
     }>>;
-    calls: Type.TInteger;
 }>;
 
 // @public
 export interface TextSource {
     readonly mechanic: {
-        readonly id: string;
         readonly head: {
             readonly prompts: Readonly<Record<string, readonly string[]>>;
             readonly tools: readonly {
-                readonly name: string;
                 readonly description: string;
+                readonly name: string;
             }[];
         };
+        readonly id: string;
     };
     readonly path: string;
 }
@@ -1166,10 +1166,10 @@ export function toolNames(sources: readonly ToolSource[]): ToolNames;
 
 // @public
 export function toolNotDefined(input: {
-    readonly tool: string;
-    readonly place: "granted" | "locked" | "renamed";
-    readonly path: string;
     readonly defined: readonly string[];
+    readonly path: string;
+    readonly place: "granted" | "locked" | "renamed";
+    readonly tool: string;
 }): SwtIssue;
 
 // @public
@@ -1185,32 +1185,32 @@ export type ToolsOf<H> = H extends MechanicHead<string, TSchema, TSchema, unknow
 export interface ToolSource {
     readonly as?: Readonly<Record<string, string>> | undefined;
     readonly mechanic: {
-        readonly id: string;
-        readonly package: string;
         readonly head: {
+            readonly stages?: readonly string[] | undefined;
             readonly tools: readonly {
-                readonly name: string;
                 readonly for: readonly string[];
+                readonly name: string;
                 readonly reviewed?: boolean;
             }[];
-            readonly stages?: readonly string[] | undefined;
         };
+        readonly id: string;
+        readonly package: string;
     };
     readonly path: string;
 }
 
 // @public
 export function triggerWithoutEvent(input: {
+    readonly declared: readonly string[];
     readonly director: string;
     readonly event: string;
     readonly path: string;
-    readonly declared: readonly string[];
 }): SwtIssue;
 
 // @public
 export function twoProviders(input: {
-    readonly service: string;
     readonly providers: readonly string[];
+    readonly service: string;
 }): SwtIssue;
 
 // @public

@@ -30,8 +30,8 @@ export class EventChain {
     close(): void;
     readonly genesisHash: string;
     head(): {
-        readonly lines: number;
         readonly hash: string;
+        readonly lines: number;
     };
     readonly publicKey: string;
 }
@@ -39,8 +39,8 @@ export class EventChain {
 // @public
 export interface EventChainOptions {
     readonly keys?: {
-        readonly publicKey: KeyObject;
         readonly privateKey: KeyObject;
+        readonly publicKey: KeyObject;
     };
 }
 
@@ -89,8 +89,8 @@ export interface RunFolder {
 export interface RunFolderOptions {
     readonly game?: unknown;
     readonly keys?: {
-        readonly publicKey: KeyObject;
         readonly privateKey: KeyObject;
+        readonly publicKey: KeyObject;
     };
     readonly now: () => Date;
     readonly prefix?: readonly string[];
@@ -151,8 +151,8 @@ export interface VerifyRunOptions {
 
 // @public
 export function writeSnapshotFile(folder: RunFolder, snapshot: KernelSnapshot, tick: number, extras?: SnapshotExtras): Promise<{
-    readonly path: string;
     readonly hash: string;
+    readonly path: string;
 }>;
 
 // (No @packageDocumentation comment for this package)

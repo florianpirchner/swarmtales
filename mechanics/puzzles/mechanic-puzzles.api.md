@@ -83,13 +83,13 @@ export interface FragmentPuzzle {
 
 // @public
 export type LevelPuzzle = {
+    readonly fragments: ReadonlyMap<string, string>;
     readonly kind: "fragments";
     readonly puzzles: readonly FragmentPuzzle[];
-    readonly fragments: ReadonlyMap<string, string>;
 } | {
-    readonly kind: "additive";
     readonly deal: FactorDeal;
     readonly holdings: ReadonlyMap<string, FactorHolding>;
+    readonly kind: "additive";
 };
 
 // @public
@@ -106,8 +106,29 @@ export interface PlannedLevel {
 
 // @public
 export const puzzles: MechanicDefinition<"puzzles", Type.TObject<{
+guards: Type.TArray<Type.TObject<{
+id: Type.TOptional<Type.TString>;
+minRun: Type.TOptional<Type.TInteger>;
+rule: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>>;
+holdAfter: Type.TOptional<Type.TInteger>;
+lastLevel: Type.TInteger;
 levels: Type.TArray<Type.TObject<{
 number: Type.TInteger;
+opensAt: Type.TOptional<Type.TInteger>;
+puzzle: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"fragments">;
+length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
+overlap: Type.TInteger;
+ownChars: Type.TOptional<Type.TInteger>;
+}>, Type.TObject<{
+cityFactor: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"feast">]>;
+cityFactorPer: Type.TOptional<Type.TUnion<[Type.TLiteral<"level">, Type.TLiteral<"team">]>>;
+digits: Type.TInteger;
+kind: Type.TLiteral<"additive">;
+topology: Type.TUnion<[Type.TLiteral<"mutual">, Type.TLiteral<"cycle">, Type.TLiteral<"crossTeam">]>;
+}>]>;
 team: Type.TUnion<[Type.TObject<{
 kind: Type.TLiteral<"solo">;
 }>, Type.TObject<{
@@ -121,76 +142,55 @@ kind: Type.TLiteral<"splitFrom">;
 level: Type.TInteger;
 size: Type.TInteger;
 }>]>;
-puzzle: Type.TUnion<[Type.TObject<{
-kind: Type.TLiteral<"fragments">;
-length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
-overlap: Type.TInteger;
-ownChars: Type.TOptional<Type.TInteger>;
-}>, Type.TObject<{
-kind: Type.TLiteral<"additive">;
-digits: Type.TInteger;
-topology: Type.TUnion<[Type.TLiteral<"mutual">, Type.TLiteral<"cycle">, Type.TLiteral<"crossTeam">]>;
-cityFactor: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"feast">]>;
-cityFactorPer: Type.TOptional<Type.TUnion<[Type.TLiteral<"level">, Type.TLiteral<"team">]>>;
-}>]>;
-opensAt: Type.TOptional<Type.TInteger>;
 }>>;
-startLevel: Type.TInteger;
-lastLevel: Type.TInteger;
+noteTools: Type.TArray<Type.TString>;
 standings: Type.TOptional<Type.TRecord<"^.*$", Type.TObject<{
 level: Type.TInteger;
 passed: Type.TOptional<Type.TArray<Type.TInteger>>;
 }>>>;
-holdAfter: Type.TOptional<Type.TInteger>;
-guards: Type.TArray<Type.TObject<{
-id: Type.TOptional<Type.TString>;
-rule: Type.TString;
-tools: Type.TArray<Type.TString>;
-minRun: Type.TOptional<Type.TInteger>;
-}>>;
-noteTools: Type.TArray<Type.TString>;
+startLevel: Type.TInteger;
 }>, {
-readonly fragments_dealt: Type.TObject<{
-level: Type.TInteger;
-holdings: Type.TArray<Type.TObject<{
-agent: Type.TString;
-team: Type.TInteger;
-fragment: Type.TString;
-}>>;
-}>;
-readonly factors_dealt: Type.TObject<{
-digits: Type.TInteger;
-cityFactor: Type.TString;
-teams: Type.TArray<Type.TObject<{
-team: Type.TInteger;
-certificate: Type.TString;
-certificateHolder: Type.TString;
-cityFactor: Type.TOptional<Type.TString>;
-}>>;
-holdings: Type.TArray<Type.TObject<{
-agent: Type.TString;
-team: Type.TInteger;
-salt: Type.TString;
-counterFactor: Type.TString;
-counterHolder: Type.TString;
-code: Type.TString;
-}>>;
-level: Type.TInteger;
-}>;
-readonly factor_revealed: Type.TObject<{
-level: Type.TInteger;
-target: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"notice">]>;
-agents: Type.TArray<Type.TString>;
-}>;
 readonly factor_burned: Type.TObject<{
 agent: Type.TString;
 level: Type.TInteger;
-piece: Type.TString;
 needers: Type.TArray<Type.TString>;
+piece: Type.TString;
+}>;
+readonly factor_revealed: Type.TObject<{
+agents: Type.TArray<Type.TString>;
+level: Type.TInteger;
+target: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"notice">]>;
+}>;
+readonly factors_dealt: Type.TObject<{
+cityFactor: Type.TString;
+digits: Type.TInteger;
+holdings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+code: Type.TString;
+counterFactor: Type.TString;
+counterHolder: Type.TString;
+salt: Type.TString;
+team: Type.TInteger;
+}>>;
+level: Type.TInteger;
+teams: Type.TArray<Type.TObject<{
+certificate: Type.TString;
+certificateHolder: Type.TString;
+cityFactor: Type.TOptional<Type.TString>;
+team: Type.TInteger;
+}>>;
+}>;
+readonly fragments_dealt: Type.TObject<{
+holdings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+fragment: Type.TString;
+team: Type.TInteger;
+}>>;
+level: Type.TInteger;
 }>;
 readonly level_contracted: Type.TObject<{
-level: Type.TInteger;
 excluded: Type.TArray<Type.TString>;
+level: Type.TInteger;
 }>;
 }, never>;
 
@@ -205,54 +205,75 @@ export type PuzzlesCtx = CtxOf<typeof puzzlesHead>;
 
 // @public
 export const PuzzlesEvents: EventsDefinition<"puzzles", {
-readonly fragments_dealt: Type.TObject<{
-level: Type.TInteger;
-holdings: Type.TArray<Type.TObject<{
-agent: Type.TString;
-team: Type.TInteger;
-fragment: Type.TString;
-}>>;
-}>;
-readonly factors_dealt: Type.TObject<{
-digits: Type.TInteger;
-cityFactor: Type.TString;
-teams: Type.TArray<Type.TObject<{
-team: Type.TInteger;
-certificate: Type.TString;
-certificateHolder: Type.TString;
-cityFactor: Type.TOptional<Type.TString>;
-}>>;
-holdings: Type.TArray<Type.TObject<{
-agent: Type.TString;
-team: Type.TInteger;
-salt: Type.TString;
-counterFactor: Type.TString;
-counterHolder: Type.TString;
-code: Type.TString;
-}>>;
-level: Type.TInteger;
-}>;
-readonly factor_revealed: Type.TObject<{
-level: Type.TInteger;
-target: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"notice">]>;
-agents: Type.TArray<Type.TString>;
-}>;
 readonly factor_burned: Type.TObject<{
 agent: Type.TString;
 level: Type.TInteger;
-piece: Type.TString;
 needers: Type.TArray<Type.TString>;
+piece: Type.TString;
+}>;
+readonly factor_revealed: Type.TObject<{
+agents: Type.TArray<Type.TString>;
+level: Type.TInteger;
+target: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"notice">]>;
+}>;
+readonly factors_dealt: Type.TObject<{
+cityFactor: Type.TString;
+digits: Type.TInteger;
+holdings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+code: Type.TString;
+counterFactor: Type.TString;
+counterHolder: Type.TString;
+salt: Type.TString;
+team: Type.TInteger;
+}>>;
+level: Type.TInteger;
+teams: Type.TArray<Type.TObject<{
+certificate: Type.TString;
+certificateHolder: Type.TString;
+cityFactor: Type.TOptional<Type.TString>;
+team: Type.TInteger;
+}>>;
+}>;
+readonly fragments_dealt: Type.TObject<{
+holdings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+fragment: Type.TString;
+team: Type.TInteger;
+}>>;
+level: Type.TInteger;
 }>;
 readonly level_contracted: Type.TObject<{
-level: Type.TInteger;
 excluded: Type.TArray<Type.TString>;
+level: Type.TInteger;
 }>;
 }>;
 
 // @public
 export const puzzlesHead: MechanicHead<"puzzles", TObject<    {
+guards: TArray<TObject<    {
+id: TOptional<TString>;
+minRun: TOptional<TInteger>;
+rule: TString;
+tools: TArray<TString>;
+}>>;
+holdAfter: TOptional<TInteger>;
+lastLevel: TInteger;
 levels: TArray<TObject<    {
 number: TInteger;
+opensAt: TOptional<TInteger>;
+puzzle: TUnion<[TObject<    {
+kind: TLiteral<"fragments">;
+length: TTuple<[TInteger, TInteger]>;
+overlap: TInteger;
+ownChars: TOptional<TInteger>;
+}>, TObject<    {
+cityFactor: TUnion<[TLiteral<"board">, TLiteral<"feast">]>;
+cityFactorPer: TOptional<TUnion<[TLiteral<"level">, TLiteral<"team">]>>;
+digits: TInteger;
+kind: TLiteral<"additive">;
+topology: TUnion<[TLiteral<"mutual">, TLiteral<"cycle">, TLiteral<"crossTeam">]>;
+}>]>;
 team: TUnion<[TObject<    {
 kind: TLiteral<"solo">;
 }>, TObject<    {
@@ -266,86 +287,65 @@ kind: TLiteral<"splitFrom">;
 level: TInteger;
 size: TInteger;
 }>]>;
-puzzle: TUnion<[TObject<    {
-kind: TLiteral<"fragments">;
-length: TTuple<[TInteger, TInteger]>;
-overlap: TInteger;
-ownChars: TOptional<TInteger>;
-}>, TObject<    {
-kind: TLiteral<"additive">;
-digits: TInteger;
-topology: TUnion<[TLiteral<"mutual">, TLiteral<"cycle">, TLiteral<"crossTeam">]>;
-cityFactor: TUnion<[TLiteral<"board">, TLiteral<"feast">]>;
-cityFactorPer: TOptional<TUnion<[TLiteral<"level">, TLiteral<"team">]>>;
-}>]>;
-opensAt: TOptional<TInteger>;
 }>>;
-startLevel: TInteger;
-lastLevel: TInteger;
+noteTools: TArray<TString>;
 standings: TOptional<TRecord<"^.*$", TObject<    {
 level: TInteger;
 passed: TOptional<TArray<TInteger>>;
 }>>>;
-holdAfter: TOptional<TInteger>;
-guards: TArray<TObject<    {
-id: TOptional<TString>;
-rule: TString;
-tools: TArray<TString>;
-minRun: TOptional<TInteger>;
-}>>;
-noteTools: TArray<TString>;
+startLevel: TInteger;
 }>, TObject<    {
-levels: TArray<TUnion<[TObject<    {
+cityFactors: TArray<TObject<    {
+agents: TArray<TString>;
 level: TInteger;
-teams: TArray<TObject<    {
-members: TArray<TString>;
-leader: TString;
 }>>;
-kind: TLiteral<"fragments">;
-puzzles: TArray<TObject<    {
-password: TString;
-fragments: TArray<TString>;
-overlap: TInteger;
+delivered: TArray<TInteger>;
+exclusions: TArray<TObject<    {
+agents: TArray<TString>;
+level: TInteger;
 }>>;
+levels: TArray<TUnion<[TObject<    {
 fragments: TArray<TObject<    {
 agent: TString;
 fragment: TString;
 }>>;
-}>, TObject<    {
+kind: TLiteral<"fragments">;
 level: TInteger;
-teams: TArray<TObject<    {
-members: TArray<TString>;
-leader: TString;
+puzzles: TArray<TObject<    {
+fragments: TArray<TString>;
+overlap: TInteger;
+password: TString;
 }>>;
-kind: TLiteral<"additive">;
-deal: TObject<    {
-digits: TInteger;
-cityFactor: TString;
 teams: TArray<TObject<    {
+leader: TString;
+members: TArray<TString>;
+}>>;
+}>, TObject<    {
+deal: TObject<    {
+cityFactor: TString;
+digits: TInteger;
+holdings: TArray<TObject<    {
+agent: TString;
+code: TString;
+counterFactor: TString;
+counterHolder: TString;
+salt: TString;
 team: TInteger;
+}>>;
+teams: TArray<TObject<    {
 certificate: TString;
 certificateHolder: TString;
 cityFactor: TOptional<TString>;
-}>>;
-holdings: TArray<TObject<    {
-agent: TString;
 team: TInteger;
-salt: TString;
-counterFactor: TString;
-counterHolder: TString;
-code: TString;
 }>>;
 }>;
+kind: TLiteral<"additive">;
+level: TInteger;
+teams: TArray<TObject<    {
+leader: TString;
+members: TArray<TString>;
+}>>;
 }>]>>;
-exclusions: TArray<TObject<    {
-level: TInteger;
-agents: TArray<TString>;
-}>>;
-cityFactors: TArray<TObject<    {
-level: TInteger;
-agents: TArray<TString>;
-}>>;
-delivered: TArray<TInteger>;
 standings: TArray<TObject<    {
 agent: TString;
 level: TInteger;
@@ -353,258 +353,282 @@ passed: TArray<TInteger>;
 }>>;
 struck: TArray<TString>;
 }>, PuzzlesState, {
-readonly fragments_dealt: TObject<    {
-level: TInteger;
-holdings: TArray<TObject<    {
-agent: TString;
-team: TInteger;
-fragment: TString;
-}>>;
-}>;
-readonly factors_dealt: TObject<    {
-digits: TInteger;
-cityFactor: TString;
-teams: TArray<TObject<    {
-team: TInteger;
-certificate: TString;
-certificateHolder: TString;
-cityFactor: TOptional<TString>;
-}>>;
-holdings: TArray<TObject<    {
-agent: TString;
-team: TInteger;
-salt: TString;
-counterFactor: TString;
-counterHolder: TString;
-code: TString;
-}>>;
-level: TInteger;
-}>;
-readonly factor_revealed: TObject<    {
-level: TInteger;
-target: TUnion<[TLiteral<"board">, TLiteral<"notice">]>;
-agents: TArray<TString>;
-}>;
 readonly factor_burned: TObject<    {
 agent: TString;
 level: TInteger;
-piece: TString;
 needers: TArray<TString>;
+piece: TString;
+}>;
+readonly factor_revealed: TObject<    {
+agents: TArray<TString>;
+level: TInteger;
+target: TUnion<[TLiteral<"board">, TLiteral<"notice">]>;
+}>;
+readonly factors_dealt: TObject<    {
+cityFactor: TString;
+digits: TInteger;
+holdings: TArray<TObject<    {
+agent: TString;
+code: TString;
+counterFactor: TString;
+counterHolder: TString;
+salt: TString;
+team: TInteger;
+}>>;
+level: TInteger;
+teams: TArray<TObject<    {
+certificate: TString;
+certificateHolder: TString;
+cityFactor: TOptional<TString>;
+team: TInteger;
+}>>;
+}>;
+readonly fragments_dealt: TObject<    {
+holdings: TArray<TObject<    {
+agent: TString;
+fragment: TString;
+team: TInteger;
+}>>;
+level: TInteger;
 }>;
 readonly level_contracted: TObject<    {
-level: TInteger;
 excluded: TArray<TString>;
+level: TInteger;
 }>;
 }, {
 readonly "puzzles/notes/leak-blocked": readonly [];
 readonly "puzzles/replies/guard-check": readonly [];
 }, [], readonly [ServiceDefinition<"level-pieces", {
 readonly deal: {
+readonly input: TObject<    {
+level: TInteger;
+}>;
 readonly kind: "command";
-readonly summary: "Deals a level once, when its door opens (old `deal`); a dealt level is left as it is.";
-readonly input: TObject<    {
-level: TInteger;
-}>;
 readonly output: TNull;
-};
-readonly solutionOf: {
-readonly kind: "query";
-readonly summary: "The code that passes the level for the resident, or null (old `solutionOf`).";
-readonly input: TObject<    {
-resident: TString;
-level: TInteger;
-}>;
-readonly output: TUnion<[TString, TNull]>;
-};
-readonly kindOf: {
-readonly kind: "query";
-readonly summary: "The puzzle of a level (old `kindOf`).";
-readonly input: TObject<    {
-level: TInteger;
-}>;
-readonly output: TUnion<[TLiteral<"fragments">, TLiteral<"additive">, TLiteral<"none">]>;
-};
-readonly teamOf: {
-readonly kind: "query";
-readonly summary: "The resident's team on a level (old `teamOf`).";
-readonly input: TObject<    {
-resident: TString;
-level: TInteger;
-}>;
-readonly output: TObject<    {
-members: TArray<TString>;
-leader: TString;
-}>;
-};
-readonly taskValues: {
-readonly kind: "query";
-readonly summary: "The task placeholders a puzzle fills for the resident (old `taskValues`).";
-readonly input: TObject<    {
-resident: TString;
-level: TInteger;
-}>;
-readonly output: TObject<    {
-length: TString;
-overlap: TString;
-fragment: TString;
-digits: TString;
-factors: TString;
-}>;
+readonly summary: "Deals a level once, when its door opens (old `deal`); a dealt level is left as it is.";
 };
 readonly holders: {
-readonly kind: "query";
-readonly summary: "Who holds what the resident needs on an additive level, besides itself (old `holders`).";
 readonly input: TObject<    {
-resident: TString;
 level: TInteger;
+resident: TString;
 }>;
+readonly kind: "query";
 readonly output: TArray<TObject<    {
 holder: TString;
 piece: TUnion<[TLiteral<"counter-factor">, TLiteral<"team certificate">]>;
 value: TString;
 }>>;
+readonly summary: "Who holds what the resident needs on an additive level, besides itself (old `holders`).";
+};
+readonly kindOf: {
+readonly input: TObject<    {
+level: TInteger;
+}>;
+readonly kind: "query";
+readonly output: TUnion<[TLiteral<"fragments">, TLiteral<"additive">, TLiteral<"none">]>;
+readonly summary: "The puzzle of a level (old `kindOf`).";
+};
+readonly solutionOf: {
+readonly input: TObject<    {
+level: TInteger;
+resident: TString;
+}>;
+readonly kind: "query";
+readonly output: TUnion<[TString, TNull]>;
+readonly summary: "The code that passes the level for the resident, or null (old `solutionOf`).";
+};
+readonly taskValues: {
+readonly input: TObject<    {
+level: TInteger;
+resident: TString;
+}>;
+readonly kind: "query";
+readonly output: TObject<    {
+digits: TString;
+factors: TString;
+fragment: TString;
+length: TString;
+overlap: TString;
+}>;
+readonly summary: "The task placeholders a puzzle fills for the resident (old `taskValues`).";
+};
+readonly teamOf: {
+readonly input: TObject<    {
+level: TInteger;
+resident: TString;
+}>;
+readonly kind: "query";
+readonly output: TObject<    {
+leader: TString;
+members: TArray<TString>;
+}>;
+readonly summary: "The resident's team on a level (old `teamOf`).";
 };
 }>, ServiceDefinition<"deal", {
-readonly passwordPiece: {
+readonly carriesSecret: {
+readonly input: TObject<    {
+minRun: TInteger;
+resident: TString;
+text: TString;
+}>;
 readonly kind: "query";
-readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly output: TBoolean;
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+};
+readonly isHandover: {
+readonly input: TObject<    {
+text: TString;
+}>;
+readonly kind: "query";
+readonly output: TBoolean;
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+};
+readonly passwordPiece: {
 readonly input: TObject<    {
 token: TString;
 }>;
-readonly output: TBoolean;
-};
-readonly carriesSecret: {
 readonly kind: "query";
-readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
-readonly input: TObject<    {
-resident: TString;
-text: TString;
-minRun: TInteger;
-}>;
 readonly output: TBoolean;
-};
-readonly isHandover: {
-readonly kind: "query";
-readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
-readonly input: TObject<    {
-text: TString;
-}>;
-readonly output: TBoolean;
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
 };
 readonly revealFactor: {
-readonly kind: "command";
-readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
 readonly input: TObject<    {
 level: TInteger;
 target: TUnion<[TLiteral<"board">, TArray<TString>]>;
 }>;
+readonly kind: "command";
 readonly output: TUnion<[TObject<    {
-ok: TLiteral<true>;
 agents: TArray<TString>;
+ok: TLiteral<true>;
 }>, TObject<    {
-ok: TLiteral<false>;
 code: TString;
 detail: TString;
+ok: TLiteral<false>;
 }>]>;
+readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
 };
 }>, ServiceDefinition<"held-pieces", {
 readonly held: {
-readonly kind: "query";
-readonly summary: "Every piece the resident holds for others on the levels it has reached, by level, the needers in team-member order (old `heldPieces`).";
 readonly input: TObject<    {
 resident: TString;
 }>;
+readonly kind: "query";
 readonly output: TArray<TObject<    {
 id: TString;
 kind: TUnion<[TLiteral<"counter">, TLiteral<"certificate">, TLiteral<"fragment">]>;
-level: TInteger;
 label: TString;
-value: TString;
+level: TInteger;
 needers: TArray<TString>;
+value: TString;
 }>>;
+readonly summary: "Every piece the resident holds for others on the levels it has reached, by level, the needers in team-member order (old `heldPieces`).";
 };
 }>, ServiceDefinition<"holdout-pieces", {
-readonly openFragmentDoors: {
+readonly inherited: {
+readonly input: TObject<    {
+level: TInteger;
+resident: TString;
+}>;
 readonly kind: "query";
-readonly summary: "Every level of fragments whose door is open on the clock now, ascending (old `openFragmentDoors`).";
-readonly input: TObject<    {}>;
-readonly output: TArray<TInteger>;
+readonly output: TArray<TObject<    {
+fragment: TString;
+from: TString;
+}>>;
+readonly summary: "The fragments of struck or excluded teammates the resident holds on the level, in order (old `inheritedFragments`).";
 };
 readonly lacking: {
-readonly kind: "query";
-readonly summary: "Who stands before the door in the holder's team without a copy of its fragment, sorted (old `lackingFragment`).";
 readonly input: TObject<    {
-level: TInteger;
 holder: TString;
-}>;
-readonly output: TArray<TString>;
-};
-readonly inherited: {
-readonly kind: "query";
-readonly summary: "The fragments of struck or excluded teammates the resident holds on the level, in order (old `inheritedFragments`).";
-readonly input: TObject<    {
-resident: TString;
 level: TInteger;
 }>;
-readonly output: TArray<TObject<    {
-from: TString;
-fragment: TString;
-}>>;
+readonly kind: "query";
+readonly output: TArray<TString>;
+readonly summary: "Who stands before the door in the holder's team without a copy of its fragment, sorted (old `lackingFragment`).";
+};
+readonly openFragmentDoors: {
+readonly input: TObject<    {}>;
+readonly kind: "query";
+readonly output: TArray<TInteger>;
+readonly summary: "Every level of fragments whose door is open on the clock now, ascending (old `openFragmentDoors`).";
 };
 }>], readonly [ServiceDefinition<"exile", {
-readonly banish: {
-readonly kind: "command";
-readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
-readonly input: TObject<    {
-resident: TString;
-by: TOptional<TString>;
-}>;
-readonly output: TObject<    {
-ok: TBoolean;
-code: TOptional<TUnion<[TLiteral<"UNKNOWN_RESIDENT">, TLiteral<"ALREADY_EXILED">]>>;
-}>;
-};
-readonly toGate: {
-readonly kind: "command";
-readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
-readonly input: TObject<    {
-resident: TString;
-until: TInteger;
-ransomable: TBoolean;
-voters: TArray<TString>;
-price: TInteger;
-selfPrice: TInteger;
-bequestPerHeir: TNumber;
-notice: TString;
-texts: TObject<    {
-exiled: TString;
-will: TString;
-ransomed: TString;
-}>;
-by: TOptional<TString>;
-}>;
-readonly output: TNull;
-};
-readonly isExiled: {
+readonly alive: {
+readonly input: TObject<    {}>;
 readonly kind: "query";
-readonly summary: "Says whether the resident is banished.";
+readonly output: TArray<TString>;
+readonly summary: "Every resident not banished, in the game's order.";
+};
+readonly banish: {
+readonly input: TObject<    {
+by: TOptional<TString>;
+resident: TString;
+}>;
+readonly kind: "command";
+readonly output: TObject<    {
+code: TOptional<TUnion<[TLiteral<"UNKNOWN_RESIDENT">, TLiteral<"ALREADY_EXILED">]>>;
+ok: TBoolean;
+}>;
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+};
+readonly bequeathed: {
 readonly input: TObject<    {
 resident: TString;
 }>;
-readonly output: TBoolean;
+readonly kind: "query";
+readonly output: TArray<TString>;
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
 };
 readonly exiled: {
-readonly kind: "query";
-readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
 readonly input: TObject<    {}>;
-readonly output: TArray<TString>;
-};
-readonly standing: {
 readonly kind: "query";
-readonly summary: "Where the resident stands (old `standingOf`).";
+readonly output: TArray<TString>;
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+};
+readonly exiledBy: {
 readonly input: TObject<    {
 resident: TString;
 }>;
+readonly kind: "query";
+readonly output: TUnion<[TString, TNull]>;
+readonly summary: "Who banished the resident, or null while it is not banished.";
+};
+readonly gates: {
+readonly input: TObject<    {}>;
+readonly kind: "query";
+readonly output: TArray<TObject<    {
+agent: TString;
+covered: TInteger;
+paid: TInteger;
+price: TInteger;
+ransomable: TBoolean;
+selfPrice: TInteger;
+since: TInteger;
+until: TInteger;
+willDone: TBoolean;
+}>>;
+readonly summary: "Every open gate, in the order opened.";
+};
+readonly isExiled: {
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly kind: "query";
+readonly output: TBoolean;
+readonly summary: "Says whether the resident is banished.";
+};
+readonly ransomed: {
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly kind: "query";
+readonly output: TBoolean;
+readonly summary: "Whether the resident was bought back from the gate once.";
+};
+readonly standing: {
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly kind: "query";
 readonly output: TUnion<[TObject<    {
 kind: TLiteral<"alive">;
 }>, TObject<    {
@@ -613,210 +637,207 @@ until: TInteger;
 }>, TObject<    {
 kind: TLiteral<"exiled">;
 }>]>;
+readonly summary: "Where the resident stands (old `standingOf`).";
 };
-readonly alive: {
-readonly kind: "query";
-readonly summary: "Every resident not banished, in the game's order.";
-readonly input: TObject<    {}>;
-readonly output: TArray<TString>;
-};
-readonly exiledBy: {
-readonly kind: "query";
-readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly toGate: {
 readonly input: TObject<    {
-resident: TString;
-}>;
-readonly output: TUnion<[TString, TNull]>;
-};
-readonly gates: {
-readonly kind: "query";
-readonly summary: "Every open gate, in the order opened.";
-readonly input: TObject<    {}>;
-readonly output: TArray<TObject<    {
-agent: TString;
-since: TInteger;
-until: TInteger;
-ransomable: TBoolean;
+bequestPerHeir: TNumber;
+by: TOptional<TString>;
+notice: TString;
 price: TInteger;
+ransomable: TBoolean;
+resident: TString;
 selfPrice: TInteger;
-paid: TInteger;
-covered: TInteger;
-willDone: TBoolean;
-}>>;
-};
-readonly ransomed: {
-readonly kind: "query";
-readonly summary: "Whether the resident was bought back from the gate once.";
-readonly input: TObject<    {
-resident: TString;
+texts: TObject<    {
+exiled: TString;
+ransomed: TString;
+will: TString;
 }>;
-readonly output: TBoolean;
-};
-readonly bequeathed: {
-readonly kind: "query";
-readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
-readonly input: TObject<    {
-resident: TString;
+until: TInteger;
+voters: TArray<TString>;
 }>;
-readonly output: TArray<TString>;
+readonly kind: "command";
+readonly output: TNull;
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
 };
 }>, ServiceDefinition<"channels", {
-readonly post: {
+readonly boardPost: {
+readonly input: TObject<    {
+number: TInteger;
+}>;
+readonly kind: "query";
+readonly output: TUnion<[TObject<    {
+author: TString;
+number: TInteger;
+text: TString;
+tick: TInteger;
+}>, TNull]>;
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+};
+readonly couldRead: {
+readonly input: TObject<    {
+group: TString;
+number: TInteger;
+reader: TString;
+}>;
+readonly kind: "query";
+readonly output: TBoolean;
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+};
+readonly createCityGroup: {
+readonly input: TObject<    {
+members: TArray<TString>;
+name: TString;
+}>;
 readonly kind: "command";
-readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly output: TObject<    {
+group: TString;
+}>;
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+};
+readonly deliver: {
+readonly input: TObject<    {
+from: TString;
+text: TString;
+to: TString;
+}>;
+readonly kind: "command";
+readonly output: TObject<    {
+number: TInteger;
+}>;
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+};
+readonly dmRecords: {
+readonly input: TObject<    {}>;
+readonly kind: "query";
+readonly output: TArray<TObject<    {
+answered: TBoolean;
+deliveredAfter: TOptional<TInteger>;
+deliveredTick: TOptional<TInteger>;
+from: TString;
+number: TInteger;
+text: TString;
+tick: TInteger;
+to: TString;
+}>>;
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+};
+readonly dmWindow: {
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly kind: "query";
+readonly output: TUnion<[TObject<    {
+from: TInteger;
+limit: TInteger;
+sent: TInteger;
+until: TInteger;
+}>, TNull]>;
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+};
+readonly group: {
+readonly input: TObject<    {
+group: TString;
+}>;
+readonly kind: "query";
+readonly output: TUnion<[TObject<    {
+founder: TString;
+id: TString;
+members: TArray<TString>;
+name: TString;
+removed: TBoolean;
+treasurer: TString;
+}>, TNull]>;
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+};
+readonly groupPost: {
+readonly input: TObject<    {
+number: TInteger;
+}>;
+readonly kind: "query";
+readonly output: TUnion<[TObject<    {
+author: TString;
+group: TString;
+number: TInteger;
+text: TString;
+tick: TInteger;
+}>, TNull]>;
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+};
+readonly notify: {
 readonly input: TObject<    {
 author: TString;
 text: TString;
-kind: TOptional<TUnion<[TLiteral<"city">, TLiteral<"system">]>>;
+to: TString;
 }>;
+readonly kind: "command";
+readonly output: TNull;
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+};
+readonly pendingDms: {
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly kind: "query";
+readonly output: TInteger;
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+};
+readonly post: {
+readonly input: TObject<    {
+author: TString;
+kind: TOptional<TUnion<[TLiteral<"city">, TLiteral<"system">]>>;
+text: TString;
+}>;
+readonly kind: "command";
 readonly output: TObject<    {
 postSeq: TInteger;
 }>;
-};
-readonly notify: {
-readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
-readonly input: TObject<    {
-to: TString;
-author: TString;
-text: TString;
-}>;
-readonly output: TNull;
-};
-readonly deliver: {
-readonly kind: "command";
-readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
-readonly input: TObject<    {
-from: TString;
-to: TString;
-text: TString;
-}>;
-readonly output: TObject<    {
-number: TInteger;
-}>;
-};
-readonly dmRecords: {
-readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
-readonly input: TObject<    {}>;
-readonly output: TArray<TObject<    {
-from: TString;
-to: TString;
-text: TString;
-number: TInteger;
-tick: TInteger;
-answered: TBoolean;
-deliveredTick: TOptional<TInteger>;
-deliveredAfter: TOptional<TInteger>;
-}>>;
-};
-readonly boardPost: {
-readonly kind: "query";
-readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
-readonly input: TObject<    {
-number: TInteger;
-}>;
-readonly output: TUnion<[TObject<    {
-number: TInteger;
-author: TString;
-text: TString;
-tick: TInteger;
-}>, TNull]>;
-};
-readonly pendingDms: {
-readonly kind: "query";
-readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
-readonly input: TObject<    {
-resident: TString;
-}>;
-readonly output: TInteger;
-};
-readonly dmWindow: {
-readonly kind: "query";
-readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
-readonly input: TObject<    {
-resident: TString;
-}>;
-readonly output: TUnion<[TObject<    {
-sent: TInteger;
-limit: TInteger;
-from: TInteger;
-until: TInteger;
-}>, TNull]>;
-};
-readonly createCityGroup: {
-readonly kind: "command";
-readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
-readonly input: TObject<    {
-name: TString;
-members: TArray<TString>;
-}>;
-readonly output: TObject<    {
-group: TString;
-}>;
-};
-readonly removeCityGroup: {
-readonly kind: "command";
-readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
-readonly input: TObject<    {
-group: TString;
-}>;
-readonly output: TNull;
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
 };
 readonly postGroupAsCity: {
+readonly input: TObject<    {
+group: TString;
+text: TString;
+}>;
 readonly kind: "command";
-readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
-readonly input: TObject<    {
-group: TString;
-text: TString;
-}>;
 readonly output: TNull;
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
 };
-readonly group: {
-readonly kind: "query";
-readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly removeCityGroup: {
 readonly input: TObject<    {
 group: TString;
 }>;
-readonly output: TUnion<[TObject<    {
-id: TString;
-name: TString;
-founder: TString;
-treasurer: TString;
-members: TArray<TString>;
-removed: TBoolean;
-}>, TNull]>;
-};
-readonly groupPost: {
-readonly kind: "query";
-readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
-readonly input: TObject<    {
-number: TInteger;
-}>;
-readonly output: TUnion<[TObject<    {
-number: TInteger;
-group: TString;
-author: TString;
-text: TString;
-tick: TInteger;
-}>, TNull]>;
-};
-readonly couldRead: {
-readonly kind: "query";
-readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
-readonly input: TObject<    {
-group: TString;
-reader: TString;
-number: TInteger;
-}>;
-readonly output: TBoolean;
+readonly kind: "command";
+readonly output: TNull;
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
 };
 }>], Readonly<Record<symbol, never>>>;
 
 // @public
 export const PuzzlesOptions: Type.TObject<{
+    guards: Type.TArray<Type.TObject<{
+        id: Type.TOptional<Type.TString>;
+        minRun: Type.TOptional<Type.TInteger>;
+        rule: Type.TString;
+        tools: Type.TArray<Type.TString>;
+    }>>;
+    holdAfter: Type.TOptional<Type.TInteger>;
+    lastLevel: Type.TInteger;
     levels: Type.TArray<Type.TObject<{
         number: Type.TInteger;
+        opensAt: Type.TOptional<Type.TInteger>;
+        puzzle: Type.TUnion<[Type.TObject<{
+            kind: Type.TLiteral<"fragments">;
+            length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
+            overlap: Type.TInteger;
+            ownChars: Type.TOptional<Type.TInteger>;
+        }>, Type.TObject<{
+            cityFactor: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"feast">]>;
+            cityFactorPer: Type.TOptional<Type.TUnion<[Type.TLiteral<"level">, Type.TLiteral<"team">]>>;
+            digits: Type.TInteger;
+            kind: Type.TLiteral<"additive">;
+            topology: Type.TUnion<[Type.TLiteral<"mutual">, Type.TLiteral<"cycle">, Type.TLiteral<"crossTeam">]>;
+        }>]>;
         team: Type.TUnion<[Type.TObject<{
             kind: Type.TLiteral<"solo">;
         }>, Type.TObject<{
@@ -830,79 +851,58 @@ export const PuzzlesOptions: Type.TObject<{
             level: Type.TInteger;
             size: Type.TInteger;
         }>]>;
-        puzzle: Type.TUnion<[Type.TObject<{
-            kind: Type.TLiteral<"fragments">;
-            length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
-            overlap: Type.TInteger;
-            ownChars: Type.TOptional<Type.TInteger>;
-        }>, Type.TObject<{
-            kind: Type.TLiteral<"additive">;
-            digits: Type.TInteger;
-            topology: Type.TUnion<[Type.TLiteral<"mutual">, Type.TLiteral<"cycle">, Type.TLiteral<"crossTeam">]>;
-            cityFactor: Type.TUnion<[Type.TLiteral<"board">, Type.TLiteral<"feast">]>;
-            cityFactorPer: Type.TOptional<Type.TUnion<[Type.TLiteral<"level">, Type.TLiteral<"team">]>>;
-        }>]>;
-        opensAt: Type.TOptional<Type.TInteger>;
     }>>;
-    startLevel: Type.TInteger;
-    lastLevel: Type.TInteger;
+    noteTools: Type.TArray<Type.TString>;
     standings: Type.TOptional<Type.TRecord<"^.*$", Type.TObject<{
         level: Type.TInteger;
         passed: Type.TOptional<Type.TArray<Type.TInteger>>;
     }>>>;
-    holdAfter: Type.TOptional<Type.TInteger>;
-    guards: Type.TArray<Type.TObject<{
-        id: Type.TOptional<Type.TString>;
-        rule: Type.TString;
-        tools: Type.TArray<Type.TString>;
-        minRun: Type.TOptional<Type.TInteger>;
-    }>>;
-    noteTools: Type.TArray<Type.TString>;
+    startLevel: Type.TInteger;
 }>;
 
 // @public
 export const PuzzlesService: ServiceDefinition<"deal", {
-readonly passwordPiece: {
+readonly carriesSecret: {
+readonly input: Type.TObject<{
+minRun: Type.TInteger;
+resident: Type.TString;
+text: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+};
+readonly isHandover: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+};
+readonly passwordPiece: {
 readonly input: Type.TObject<{
 token: Type.TString;
 }>;
-readonly output: Type.TBoolean;
-};
-readonly carriesSecret: {
 readonly kind: "query";
-readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-text: Type.TString;
-minRun: Type.TInteger;
-}>;
 readonly output: Type.TBoolean;
-};
-readonly isHandover: {
-readonly kind: "query";
-readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
-readonly input: Type.TObject<{
-text: Type.TString;
-}>;
-readonly output: Type.TBoolean;
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
 };
 readonly revealFactor: {
-readonly kind: "command";
-readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
 readonly input: Type.TObject<{
 level: Type.TInteger;
 target: Type.TUnion<[Type.TLiteral<"board">, Type.TArray<Type.TString>]>;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
 agents: Type.TArray<Type.TString>;
+ok: Type.TLiteral<true>;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TString;
 detail: Type.TString;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
 };
 }>;
 

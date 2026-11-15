@@ -14,63 +14,63 @@ import { Type } from 'typebox';
 
 // @public
 export const cast: MechanicDefinition<"cast", Type.TObject<{
-members: Type.TRecord<"^.*$", Type.TObject<{
-level: Type.TInteger;
-hidden: Type.TOptional<Type.TBoolean>;
-escrow: Type.TOptional<Type.TInteger>;
-}>>;
 collections: Type.TArray<Type.TString>;
+members: Type.TRecord<"^.*$", Type.TObject<{
+escrow: Type.TOptional<Type.TInteger>;
+hidden: Type.TOptional<Type.TBoolean>;
+level: Type.TInteger;
+}>>;
 }>, {
+readonly cast_collected: Type.TObject<{
+cast: Type.TString;
+from: Type.TString;
+into: Type.TArray<Type.TString>;
+}>;
+readonly cast_dm: Type.TObject<{
+cast: Type.TString;
+collections: Type.TArray<Type.TString>;
+from: Type.TString;
+number: Type.TOptional<Type.TInteger>;
+text: Type.TString;
+}>;
 readonly cast_level_set: Type.TObject<{
+audit: Type.TLiteral<string>;
 cast: Type.TString;
 level: Type.TInteger;
-audit: Type.TLiteral<string>;
-}>;
-readonly cast_revealed: Type.TObject<{
-cast: Type.TString;
 }>;
 readonly cast_retired: Type.TObject<{
 cast: Type.TString;
 }>;
-readonly cast_dm: Type.TObject<{
-from: Type.TString;
+readonly cast_revealed: Type.TObject<{
 cast: Type.TString;
-text: Type.TString;
-collections: Type.TArray<Type.TString>;
-number: Type.TOptional<Type.TInteger>;
 }>;
-readonly cast_collected: Type.TObject<{
-from: Type.TString;
+readonly collection_revealed: Type.TObject<{
+audit: Type.TLiteral<string>;
 cast: Type.TString;
-into: Type.TArray<Type.TString>;
-}>;
-readonly collection_started: Type.TObject<{
+entries: Type.TInteger;
 into: Type.TString;
-cast: Type.TString;
-first: Type.TInteger;
-untilMinute: Type.TInteger;
+postSeq: Type.TInteger;
 }>;
 readonly collection_shortened: Type.TObject<{
 into: Type.TString;
 untilMinute: Type.TInteger;
 }>;
-readonly collection_revealed: Type.TObject<{
-into: Type.TString;
+readonly collection_started: Type.TObject<{
 cast: Type.TString;
-entries: Type.TInteger;
-postSeq: Type.TInteger;
-audit: Type.TLiteral<string>;
-}>;
-readonly lottery_drawn: Type.TObject<{
+first: Type.TInteger;
 into: Type.TString;
-candidates: Type.TArray<Type.TString>;
-winner: Type.TString;
+untilMinute: Type.TInteger;
 }>;
 readonly escrow_paid: Type.TObject<{
+amount: Type.TNumber;
 cast: Type.TString;
 to: Type.TString;
-amount: Type.TNumber;
 txId: Type.TString;
+}>;
+readonly lottery_drawn: Type.TObject<{
+candidates: Type.TArray<Type.TString>;
+into: Type.TString;
+winner: Type.TString;
 }>;
 }, never>;
 
@@ -79,722 +79,722 @@ export type CastCtx = CtxOf<typeof castHead>;
 
 // @public
 export const CastEvents: EventsDefinition<"cast", {
+readonly cast_collected: Type.TObject<{
+cast: Type.TString;
+from: Type.TString;
+into: Type.TArray<Type.TString>;
+}>;
+readonly cast_dm: Type.TObject<{
+cast: Type.TString;
+collections: Type.TArray<Type.TString>;
+from: Type.TString;
+number: Type.TOptional<Type.TInteger>;
+text: Type.TString;
+}>;
 readonly cast_level_set: Type.TObject<{
+audit: Type.TLiteral<string>;
 cast: Type.TString;
 level: Type.TInteger;
-audit: Type.TLiteral<string>;
-}>;
-readonly cast_revealed: Type.TObject<{
-cast: Type.TString;
 }>;
 readonly cast_retired: Type.TObject<{
 cast: Type.TString;
 }>;
-readonly cast_dm: Type.TObject<{
-from: Type.TString;
+readonly cast_revealed: Type.TObject<{
 cast: Type.TString;
-text: Type.TString;
-collections: Type.TArray<Type.TString>;
-number: Type.TOptional<Type.TInteger>;
 }>;
-readonly cast_collected: Type.TObject<{
-from: Type.TString;
+readonly collection_revealed: Type.TObject<{
+audit: Type.TLiteral<string>;
 cast: Type.TString;
-into: Type.TArray<Type.TString>;
-}>;
-readonly collection_started: Type.TObject<{
+entries: Type.TInteger;
 into: Type.TString;
-cast: Type.TString;
-first: Type.TInteger;
-untilMinute: Type.TInteger;
+postSeq: Type.TInteger;
 }>;
 readonly collection_shortened: Type.TObject<{
 into: Type.TString;
 untilMinute: Type.TInteger;
 }>;
-readonly collection_revealed: Type.TObject<{
-into: Type.TString;
+readonly collection_started: Type.TObject<{
 cast: Type.TString;
-entries: Type.TInteger;
-postSeq: Type.TInteger;
-audit: Type.TLiteral<string>;
-}>;
-readonly lottery_drawn: Type.TObject<{
+first: Type.TInteger;
 into: Type.TString;
-candidates: Type.TArray<Type.TString>;
-winner: Type.TString;
+untilMinute: Type.TInteger;
 }>;
 readonly escrow_paid: Type.TObject<{
+amount: Type.TNumber;
 cast: Type.TString;
 to: Type.TString;
-amount: Type.TNumber;
 txId: Type.TString;
+}>;
+readonly lottery_drawn: Type.TObject<{
+candidates: Type.TArray<Type.TString>;
+into: Type.TString;
+winner: Type.TString;
 }>;
 }>;
 
 // @public
 export const castHead: MechanicHead<"cast", Type.TObject<{
-members: Type.TRecord<"^.*$", Type.TObject<{
-level: Type.TInteger;
-hidden: Type.TOptional<Type.TBoolean>;
-escrow: Type.TOptional<Type.TInteger>;
-}>>;
 collections: Type.TArray<Type.TString>;
-}>, Type.TObject<{
-members: Type.TArray<Type.TObject<{
-id: Type.TString;
+members: Type.TRecord<"^.*$", Type.TObject<{
+escrow: Type.TOptional<Type.TInteger>;
+hidden: Type.TOptional<Type.TBoolean>;
 level: Type.TInteger;
-hidden: Type.TBoolean;
-retired: Type.TBoolean;
 }>>;
+}>, Type.TObject<{
 collections: Type.TArray<Type.TObject<{
-into: Type.TString;
-cast: Type.TString;
-first: Type.TInteger;
-untilMinute: Type.TInteger;
-distinctSenders: Type.TBoolean;
-entries: Type.TArray<Type.TObject<{
-from: Type.TString;
-text: Type.TString;
-minute: Type.TInteger;
-}>>;
 afterSolve: Type.TOptional<Type.TObject<{
 level: Type.TInteger;
 minutes: Type.TInteger;
 }>>;
+cast: Type.TString;
+distinctSenders: Type.TBoolean;
+entries: Type.TArray<Type.TObject<{
+from: Type.TString;
+minute: Type.TInteger;
+text: Type.TString;
+}>>;
+first: Type.TInteger;
+into: Type.TString;
+untilMinute: Type.TInteger;
+}>>;
+members: Type.TArray<Type.TObject<{
+hidden: Type.TBoolean;
+id: Type.TString;
+level: Type.TInteger;
+retired: Type.TBoolean;
 }>>;
 solves: Type.TArray<Type.TObject<{
 level: Type.TInteger;
 tick: Type.TInteger;
 }>>;
 }>, never, {
+readonly cast_collected: Type.TObject<{
+cast: Type.TString;
+from: Type.TString;
+into: Type.TArray<Type.TString>;
+}>;
+readonly cast_dm: Type.TObject<{
+cast: Type.TString;
+collections: Type.TArray<Type.TString>;
+from: Type.TString;
+number: Type.TOptional<Type.TInteger>;
+text: Type.TString;
+}>;
 readonly cast_level_set: Type.TObject<{
+audit: Type.TLiteral<string>;
 cast: Type.TString;
 level: Type.TInteger;
-audit: Type.TLiteral<string>;
-}>;
-readonly cast_revealed: Type.TObject<{
-cast: Type.TString;
 }>;
 readonly cast_retired: Type.TObject<{
 cast: Type.TString;
 }>;
-readonly cast_dm: Type.TObject<{
-from: Type.TString;
+readonly cast_revealed: Type.TObject<{
 cast: Type.TString;
-text: Type.TString;
-collections: Type.TArray<Type.TString>;
-number: Type.TOptional<Type.TInteger>;
 }>;
-readonly cast_collected: Type.TObject<{
-from: Type.TString;
+readonly collection_revealed: Type.TObject<{
+audit: Type.TLiteral<string>;
 cast: Type.TString;
-into: Type.TArray<Type.TString>;
-}>;
-readonly collection_started: Type.TObject<{
+entries: Type.TInteger;
 into: Type.TString;
-cast: Type.TString;
-first: Type.TInteger;
-untilMinute: Type.TInteger;
+postSeq: Type.TInteger;
 }>;
 readonly collection_shortened: Type.TObject<{
 into: Type.TString;
 untilMinute: Type.TInteger;
 }>;
-readonly collection_revealed: Type.TObject<{
-into: Type.TString;
+readonly collection_started: Type.TObject<{
 cast: Type.TString;
-entries: Type.TInteger;
-postSeq: Type.TInteger;
-audit: Type.TLiteral<string>;
-}>;
-readonly lottery_drawn: Type.TObject<{
+first: Type.TInteger;
 into: Type.TString;
-candidates: Type.TArray<Type.TString>;
-winner: Type.TString;
+untilMinute: Type.TInteger;
 }>;
 readonly escrow_paid: Type.TObject<{
+amount: Type.TNumber;
 cast: Type.TString;
 to: Type.TString;
-amount: Type.TNumber;
 txId: Type.TString;
 }>;
+readonly lottery_drawn: Type.TObject<{
+candidates: Type.TArray<Type.TString>;
+into: Type.TString;
+winner: Type.TString;
+}>;
 }, {
-readonly "cast/collection-entry": readonly ["index", "from", "minute", "text"];
 readonly "cast/collection-empty": readonly [];
+readonly "cast/collection-entry": readonly ["index", "from", "minute", "text"];
 }, readonly [ServiceDefinition<"ledger", {
 readonly balance: {
-readonly kind: "query";
-readonly summary: "An account's points; 0 for an account nobody opened.";
 readonly input: Type.TObject<{
 account: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TNumber;
+readonly summary: "An account's points; 0 for an account nobody opened.";
 };
 readonly balances: {
-readonly kind: "query";
-readonly summary: "Every resident's points, for rankings and standings.";
 readonly input: Type.TObject<{}>;
-readonly output: Type.TRecord<"^.*$", Type.TNumber>;
-};
-readonly open: {
-readonly kind: "command";
-readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
-readonly input: Type.TObject<{
-account: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
-readonly has: {
 readonly kind: "query";
-readonly summary: "Whether the account is open.";
-readonly input: Type.TObject<{
-account: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly mint: {
-readonly kind: "command";
-readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
-readonly input: Type.TObject<{
-account: Type.TString;
-amount: Type.TNumber;
-reason: Type.TString;
-idempotencyKey: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TNull;
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+readonly summary: "Every resident's points, for rankings and standings.";
 };
 readonly burn: {
-readonly kind: "command";
-readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
 readonly input: Type.TObject<{
 account: Type.TString;
 amount: Type.TNumber;
-reason: Type.TString;
 idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+};
+readonly has: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the account is open.";
+};
+readonly mint: {
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
 };
 readonly move: {
-readonly kind: "command";
-readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
 readonly input: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
 amount: Type.TNumber;
-reason: Type.TString;
+from: Type.TString;
 idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+to: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
 ok: Type.TLiteral<true>;
 txId: Type.TString;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+};
+readonly open: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
 };
 }>, ServiceDefinition<"channels", {
-readonly post: {
+readonly boardPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+};
+readonly couldRead: {
+readonly input: Type.TObject<{
+group: Type.TString;
+number: Type.TInteger;
+reader: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+};
+readonly createCityGroup: {
+readonly input: Type.TObject<{
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+};
+readonly deliver: {
+readonly input: Type.TObject<{
+from: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+};
+readonly dmRecords: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+answered: Type.TBoolean;
+deliveredAfter: Type.TOptional<Type.TInteger>;
+deliveredTick: Type.TOptional<Type.TInteger>;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+to: Type.TString;
+}>>;
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+};
+readonly dmWindow: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+from: Type.TInteger;
+limit: Type.TInteger;
+sent: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+};
+readonly group: {
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+founder: Type.TString;
+id: Type.TString;
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+removed: Type.TBoolean;
+treasurer: Type.TString;
+}>, Type.TNull]>;
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+};
+readonly groupPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+group: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+};
+readonly notify: {
 readonly input: Type.TObject<{
 author: Type.TString;
 text: Type.TString;
-kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+to: Type.TString;
 }>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+};
+readonly pendingDms: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+};
+readonly post: {
+readonly input: Type.TObject<{
+author: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+text: Type.TString;
+}>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 postSeq: Type.TInteger;
 }>;
-};
-readonly notify: {
-readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
-readonly input: Type.TObject<{
-to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
-readonly deliver: {
-readonly kind: "command";
-readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
-readonly input: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TObject<{
-number: Type.TInteger;
-}>;
-};
-readonly dmRecords: {
-readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-tick: Type.TInteger;
-answered: Type.TBoolean;
-deliveredTick: Type.TOptional<Type.TInteger>;
-deliveredAfter: Type.TOptional<Type.TInteger>;
-}>>;
-};
-readonly boardPost: {
-readonly kind: "query";
-readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly pendingDms: {
-readonly kind: "query";
-readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly dmWindow: {
-readonly kind: "query";
-readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-sent: Type.TInteger;
-limit: Type.TInteger;
-from: Type.TInteger;
-until: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly createCityGroup: {
-readonly kind: "command";
-readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
-readonly input: Type.TObject<{
-name: Type.TString;
-members: Type.TArray<Type.TString>;
-}>;
-readonly output: Type.TObject<{
-group: Type.TString;
-}>;
-};
-readonly removeCityGroup: {
-readonly kind: "command";
-readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
-readonly input: Type.TObject<{
-group: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
 };
 readonly postGroupAsCity: {
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
-readonly input: Type.TObject<{
-group: Type.TString;
-text: Type.TString;
-}>;
 readonly output: Type.TNull;
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
 };
-readonly group: {
-readonly kind: "query";
-readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly removeCityGroup: {
 readonly input: Type.TObject<{
 group: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TObject<{
-id: Type.TString;
-name: Type.TString;
-founder: Type.TString;
-treasurer: Type.TString;
-members: Type.TArray<Type.TString>;
-removed: Type.TBoolean;
-}>, Type.TNull]>;
-};
-readonly groupPost: {
-readonly kind: "query";
-readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-group: Type.TString;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly couldRead: {
-readonly kind: "query";
-readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
-readonly input: Type.TObject<{
-group: Type.TString;
-reader: Type.TString;
-number: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
 };
 }>], readonly [ServiceDefinition<"cast", {
-readonly isActive: {
-readonly kind: "query";
-readonly summary: "Whether a resident may write to this cast member now (old `cast.isActive`).";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly collection: {
-readonly kind: "query";
-readonly summary: "A collection by name as the old script read it: how many entries it takes, its end and its entries; null when none was started.";
-readonly input: Type.TObject<{
-into: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-first: Type.TInteger;
-untilMinute: Type.TInteger;
-entries: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly receive: {
-readonly kind: "command";
-readonly summary: "A resident's direct message to a cast member (old `#dmToCast` after the checks): collected while a collection runs; writes `cast_dm` with the number the router took.";
-readonly input: Type.TObject<{
-from: Type.TString;
-cast: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-}>;
-readonly output: Type.TObject<{
-collections: Type.TArray<Type.TString>;
-newSender: Type.TArray<Type.TString>;
-}>;
-};
 readonly collected: {
-readonly kind: "command";
-readonly summary: "The message's marks were spent: writes `cast_collected` for the `newSender` of `receive`.";
 readonly input: Type.TObject<{
-from: Type.TString;
 cast: Type.TString;
+from: Type.TString;
 into: Type.TArray<Type.TString>;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "The message's marks were spent: writes `cast_collected` for the `newSender` of `receive`.";
 };
-readonly setLevel: {
-readonly kind: "command";
-readonly summary: "Old `setCastLevel`; writes `cast_level_set`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TNull;
-};
-readonly reveal: {
-readonly kind: "command";
-readonly summary: "Old `revealCast`; writes `cast_revealed`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly retire: {
-readonly kind: "command";
-readonly summary: "Old `retireCast`; writes `cast_retired`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly escrow: {
-readonly kind: "command";
-readonly summary: "Pays a resident from the cast member's escrow (old `escrowTransfer`); writes `escrow_paid` after the booking.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-to: Type.TString;
-amount: Type.TNumber;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
-}>, Type.TObject<{
-ok: Type.TLiteral<false>;
-code: Type.TString;
-detail: Type.TOptional<Type.TString>;
-}>]>;
-};
-readonly startCollection: {
-readonly kind: "command";
-readonly summary: "Old `startCollection`; writes `collection_started`.";
+readonly collection: {
 readonly input: Type.TObject<{
 into: Type.TString;
-cast: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+entries: Type.TInteger;
 first: Type.TInteger;
 untilMinute: Type.TInteger;
-distinctSenders: Type.TBoolean;
-afterSolve: Type.TOptional<Type.TObject<{
-level: Type.TInteger;
-minutes: Type.TInteger;
-}>>;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly shortenCollection: {
-readonly kind: "command";
-readonly summary: "Old `shortenCollection`; writes `collection_shortened`.";
-readonly input: Type.TObject<{
-into: Type.TString;
-untilMinute: Type.TInteger;
-}>;
-readonly output: Type.TNull;
-};
-readonly revealCollection: {
-readonly kind: "command";
-readonly summary: "Old `revealCollection`; writes `collection_revealed`.";
-readonly input: Type.TObject<{
-into: Type.TString;
-header: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
-}>, Type.TObject<{
-ok: Type.TLiteral<false>;
-code: Type.TString;
-detail: Type.TOptional<Type.TString>;
-}>]>;
+}>, Type.TNull]>;
+readonly summary: "A collection by name as the old script read it: how many entries it takes, its end and its entries; null when none was started.";
 };
 readonly drawLottery: {
-readonly kind: "command";
-readonly summary: "Old `drawLottery` (stream `lottery`, into, salt, tick); writes `lottery_drawn`.";
 readonly input: Type.TObject<{
 into: Type.TString;
 salt: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Old `drawLottery` (stream `lottery`, into, salt, tick); writes `lottery_drawn`.";
 };
-}>, ServiceDefinition<"cast-extras", {
-readonly active: {
-readonly kind: "query";
-readonly summary: "Declared, revealed and not retired cast members in the game's order, with their public level.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-id: Type.TString;
-level: Type.TInteger;
-}>>;
+readonly escrow: {
+readonly input: Type.TObject<{
+amount: Type.TNumber;
+cast: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+}>, Type.TObject<{
+code: Type.TString;
+detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
+}>]>;
+readonly summary: "Pays a resident from the cast member's escrow (old `escrowTransfer`); writes `escrow_paid` after the booking.";
 };
-}>, ServiceDefinition<"figures", {
 readonly isActive: {
-readonly kind: "query";
-readonly summary: "Whether a resident may write to this figure now: it exists, is not hidden and not retired (old `cast.isActive`).";
 readonly input: Type.TObject<{
 cast: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TBoolean;
+readonly summary: "Whether a resident may write to this cast member now (old `cast.isActive`).";
 };
 readonly receive: {
-readonly kind: "command";
-readonly summary: "A resident's direct message to a figure, after the checks of the router: collected while a collection runs; writes `cast_dm` with the number the router took.";
 readonly input: Type.TObject<{
-from: Type.TString;
 cast: Type.TString;
-text: Type.TString;
+from: Type.TString;
 number: Type.TInteger;
+text: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 collections: Type.TArray<Type.TString>;
 newSender: Type.TArray<Type.TString>;
 }>;
+readonly summary: "A resident's direct message to a cast member (old `#dmToCast` after the checks): collected while a collection runs; writes `cast_dm` with the number the router took.";
 };
-readonly collected: {
-readonly kind: "command";
-readonly summary: "The message's marks were spent: `from` is a new sender in `into` (the `newSender` of `receive`); writes `cast_collected`.";
+readonly retire: {
 readonly input: Type.TObject<{
-from: Type.TString;
 cast: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `retireCast`; writes `cast_retired`.";
+};
+readonly reveal: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `revealCast`; writes `cast_revealed`.";
+};
+readonly revealCollection: {
+readonly input: Type.TObject<{
+header: Type.TOptional<Type.TString>;
+into: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+}>, Type.TObject<{
+code: Type.TString;
+detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
+}>]>;
+readonly summary: "Old `revealCollection`; writes `collection_revealed`.";
+};
+readonly setLevel: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+level: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Old `setCastLevel`; writes `cast_level_set`.";
+};
+readonly shortenCollection: {
+readonly input: Type.TObject<{
+into: Type.TString;
+untilMinute: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Old `shortenCollection`; writes `collection_shortened`.";
+};
+readonly startCollection: {
+readonly input: Type.TObject<{
+afterSolve: Type.TOptional<Type.TObject<{
+level: Type.TInteger;
+minutes: Type.TInteger;
+}>>;
+cast: Type.TString;
+distinctSenders: Type.TBoolean;
+first: Type.TInteger;
+into: Type.TString;
+untilMinute: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `startCollection`; writes `collection_started`.";
+};
+}>, ServiceDefinition<"cast-extras", {
+readonly active: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+id: Type.TString;
+level: Type.TInteger;
+}>>;
+readonly summary: "Declared, revealed and not retired cast members in the game's order, with their public level.";
+};
+}>, ServiceDefinition<"figures", {
+readonly collected: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+from: Type.TString;
 into: Type.TArray<Type.TString>;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "The message's marks were spent: `from` is a new sender in `into` (the `newSender` of `receive`); writes `cast_collected`.";
+};
+readonly isActive: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether a resident may write to this figure now: it exists, is not hidden and not retired (old `cast.isActive`).";
+};
+readonly receive: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+collections: Type.TArray<Type.TString>;
+newSender: Type.TArray<Type.TString>;
+}>;
+readonly summary: "A resident's direct message to a figure, after the checks of the router: collected while a collection runs; writes `cast_dm` with the number the router took.";
 };
 }>], [], Readonly<Record<symbol, never>>>;
 
 // @public
 export const CastOptions: Type.TObject<{
-    members: Type.TRecord<"^.*$", Type.TObject<{
-        level: Type.TInteger;
-        hidden: Type.TOptional<Type.TBoolean>;
-        escrow: Type.TOptional<Type.TInteger>;
-    }>>;
     collections: Type.TArray<Type.TString>;
+    members: Type.TRecord<"^.*$", Type.TObject<{
+        escrow: Type.TOptional<Type.TInteger>;
+        hidden: Type.TOptional<Type.TBoolean>;
+        level: Type.TInteger;
+    }>>;
 }>;
 
 // @public
 export const CastService: ServiceDefinition<"cast", {
-readonly isActive: {
-readonly kind: "query";
-readonly summary: "Whether a resident may write to this cast member now (old `cast.isActive`).";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly collection: {
-readonly kind: "query";
-readonly summary: "A collection by name as the old script read it: how many entries it takes, its end and its entries; null when none was started.";
-readonly input: Type.TObject<{
-into: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-first: Type.TInteger;
-untilMinute: Type.TInteger;
-entries: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly receive: {
-readonly kind: "command";
-readonly summary: "A resident's direct message to a cast member (old `#dmToCast` after the checks): collected while a collection runs; writes `cast_dm` with the number the router took.";
-readonly input: Type.TObject<{
-from: Type.TString;
-cast: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-}>;
-readonly output: Type.TObject<{
-collections: Type.TArray<Type.TString>;
-newSender: Type.TArray<Type.TString>;
-}>;
-};
 readonly collected: {
-readonly kind: "command";
-readonly summary: "The message's marks were spent: writes `cast_collected` for the `newSender` of `receive`.";
 readonly input: Type.TObject<{
-from: Type.TString;
 cast: Type.TString;
+from: Type.TString;
 into: Type.TArray<Type.TString>;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "The message's marks were spent: writes `cast_collected` for the `newSender` of `receive`.";
 };
-readonly setLevel: {
-readonly kind: "command";
-readonly summary: "Old `setCastLevel`; writes `cast_level_set`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TNull;
-};
-readonly reveal: {
-readonly kind: "command";
-readonly summary: "Old `revealCast`; writes `cast_revealed`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly retire: {
-readonly kind: "command";
-readonly summary: "Old `retireCast`; writes `cast_retired`.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly escrow: {
-readonly kind: "command";
-readonly summary: "Pays a resident from the cast member's escrow (old `escrowTransfer`); writes `escrow_paid` after the booking.";
-readonly input: Type.TObject<{
-cast: Type.TString;
-to: Type.TString;
-amount: Type.TNumber;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
-}>, Type.TObject<{
-ok: Type.TLiteral<false>;
-code: Type.TString;
-detail: Type.TOptional<Type.TString>;
-}>]>;
-};
-readonly startCollection: {
-readonly kind: "command";
-readonly summary: "Old `startCollection`; writes `collection_started`.";
+readonly collection: {
 readonly input: Type.TObject<{
 into: Type.TString;
-cast: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+entries: Type.TInteger;
 first: Type.TInteger;
 untilMinute: Type.TInteger;
-distinctSenders: Type.TBoolean;
-afterSolve: Type.TOptional<Type.TObject<{
-level: Type.TInteger;
-minutes: Type.TInteger;
-}>>;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly shortenCollection: {
-readonly kind: "command";
-readonly summary: "Old `shortenCollection`; writes `collection_shortened`.";
-readonly input: Type.TObject<{
-into: Type.TString;
-untilMinute: Type.TInteger;
-}>;
-readonly output: Type.TNull;
-};
-readonly revealCollection: {
-readonly kind: "command";
-readonly summary: "Old `revealCollection`; writes `collection_revealed`.";
-readonly input: Type.TObject<{
-into: Type.TString;
-header: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
-}>, Type.TObject<{
-ok: Type.TLiteral<false>;
-code: Type.TString;
-detail: Type.TOptional<Type.TString>;
-}>]>;
+}>, Type.TNull]>;
+readonly summary: "A collection by name as the old script read it: how many entries it takes, its end and its entries; null when none was started.";
 };
 readonly drawLottery: {
-readonly kind: "command";
-readonly summary: "Old `drawLottery` (stream `lottery`, into, salt, tick); writes `lottery_drawn`.";
 readonly input: Type.TObject<{
 into: Type.TString;
 salt: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Old `drawLottery` (stream `lottery`, into, salt, tick); writes `lottery_drawn`.";
+};
+readonly escrow: {
+readonly input: Type.TObject<{
+amount: Type.TNumber;
+cast: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+}>, Type.TObject<{
+code: Type.TString;
+detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
+}>]>;
+readonly summary: "Pays a resident from the cast member's escrow (old `escrowTransfer`); writes `escrow_paid` after the booking.";
+};
+readonly isActive: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether a resident may write to this cast member now (old `cast.isActive`).";
+};
+readonly receive: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+collections: Type.TArray<Type.TString>;
+newSender: Type.TArray<Type.TString>;
+}>;
+readonly summary: "A resident's direct message to a cast member (old `#dmToCast` after the checks): collected while a collection runs; writes `cast_dm` with the number the router took.";
+};
+readonly retire: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `retireCast`; writes `cast_retired`.";
+};
+readonly reveal: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `revealCast`; writes `cast_revealed`.";
+};
+readonly revealCollection: {
+readonly input: Type.TObject<{
+header: Type.TOptional<Type.TString>;
+into: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+}>, Type.TObject<{
+code: Type.TString;
+detail: Type.TOptional<Type.TString>;
+ok: Type.TLiteral<false>;
+}>]>;
+readonly summary: "Old `revealCollection`; writes `collection_revealed`.";
+};
+readonly setLevel: {
+readonly input: Type.TObject<{
+cast: Type.TString;
+level: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Old `setCastLevel`; writes `cast_level_set`.";
+};
+readonly shortenCollection: {
+readonly input: Type.TObject<{
+into: Type.TString;
+untilMinute: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Old `shortenCollection`; writes `collection_shortened`.";
+};
+readonly startCollection: {
+readonly input: Type.TObject<{
+afterSolve: Type.TOptional<Type.TObject<{
+level: Type.TInteger;
+minutes: Type.TInteger;
+}>>;
+cast: Type.TString;
+distinctSenders: Type.TBoolean;
+first: Type.TInteger;
+into: Type.TString;
+untilMinute: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Old `startCollection`; writes `collection_started`.";
 };
 }>;
 
 // @public
 export const CastSlice: Type.TObject<{
-    members: Type.TArray<Type.TObject<{
-        id: Type.TString;
-        level: Type.TInteger;
-        hidden: Type.TBoolean;
-        retired: Type.TBoolean;
-    }>>;
     collections: Type.TArray<Type.TObject<{
-        into: Type.TString;
-        cast: Type.TString;
-        first: Type.TInteger;
-        untilMinute: Type.TInteger;
-        distinctSenders: Type.TBoolean;
-        entries: Type.TArray<Type.TObject<{
-            from: Type.TString;
-            text: Type.TString;
-            minute: Type.TInteger;
-        }>>;
         afterSolve: Type.TOptional<Type.TObject<{
             level: Type.TInteger;
             minutes: Type.TInteger;
         }>>;
+        cast: Type.TString;
+        distinctSenders: Type.TBoolean;
+        entries: Type.TArray<Type.TObject<{
+            from: Type.TString;
+            minute: Type.TInteger;
+            text: Type.TString;
+        }>>;
+        first: Type.TInteger;
+        into: Type.TString;
+        untilMinute: Type.TInteger;
+    }>>;
+    members: Type.TArray<Type.TObject<{
+        hidden: Type.TBoolean;
+        id: Type.TString;
+        level: Type.TInteger;
+        retired: Type.TBoolean;
     }>>;
     solves: Type.TArray<Type.TObject<{
         level: Type.TInteger;

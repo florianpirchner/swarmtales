@@ -9,158 +9,158 @@ import { Type } from 'typebox';
 
 // @public
 export const clueGrid: MechanicDefinition<"clue-grid", Type.TObject<{
-games: Type.TInteger;
-size: Type.TInteger;
 columns: Type.TInteger;
+deadline: Type.TInteger;
+extraGuess: Type.TBoolean;
+finishBonus: Type.TInteger;
+games: Type.TInteger;
+landedBonus: Type.TInteger;
+maxClues: Type.TInteger;
+maxNumber: Type.TInteger;
 perTeam: Type.TInteger;
 secondFewer: Type.TInteger;
-shadows: Type.TInteger;
-maxNumber: Type.TInteger;
-maxClues: Type.TInteger;
-wordPoints: Type.TInteger;
 shadowPenalty: Type.TInteger;
-landedBonus: Type.TInteger;
-finishBonus: Type.TInteger;
-extraGuess: Type.TBoolean;
-deadline: Type.TInteger;
+shadows: Type.TInteger;
+size: Type.TInteger;
 teams: Type.TOptional<Type.TObject<{
 amber: Type.TArray<Type.TString>;
 teal: Type.TArray<Type.TString>;
 }>>;
+wordPoints: Type.TInteger;
 }>, {
-clue_game_started: Type.TObject<{
-game: Type.TInteger;
-startingTeam: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
-keepers: Type.TObject<{
-amber: Type.TString;
-teal: Type.TString;
-}>;
-words: Type.TArray<Type.TString>;
-}>;
-clue_key_dealt: Type.TObject<{
-game: Type.TInteger;
-key: Type.TArray<Type.TObject<{
-word: Type.TString;
-owner: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">, Type.TLiteral<"fog">, Type.TLiteral<"shadow">]>;
-revealed: Type.TBoolean;
-by: Type.TUnion<[Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>, Type.TNull]>;
-}>>;
-}>;
-clue_given: Type.TObject<{
-game: Type.TInteger;
-team: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
-keeper: Type.TString;
-caller: Type.TString;
-clueNo: Type.TInteger;
-word: Type.TString;
-number: Type.TInteger;
-}>;
-clue_intent: Type.TObject<{
-game: Type.TInteger;
-team: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
-clueNo: Type.TInteger;
-targets: Type.TArray<Type.TString>;
-reason: Type.TString;
-}>;
-clue_word_revealed: Type.TObject<{
-game: Type.TInteger;
-team: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
-by: Type.TString;
-clueNo: Type.TInteger;
-word: Type.TString;
-owner: Type.TString;
-target: Type.TBoolean;
-guessNo: Type.TInteger;
-}>;
 clue_closed: Type.TObject<{
-game: Type.TInteger;
-team: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
-keeper: Type.TString;
 caller: Type.TString;
 clueNo: Type.TInteger;
+end: Type.TUnion<[Type.TUnion<[Type.TLiteral<"wrong">, Type.TLiteral<"stopped">, Type.TLiteral<"limit">, Type.TLiteral<"timeout">, Type.TLiteral<"finished">, Type.TLiteral<"no-clue">]>, Type.TNull]>;
+game: Type.TInteger;
+guesses: Type.TArray<Type.TObject<{
+by: Type.TString;
+owner: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">, Type.TLiteral<"fog">, Type.TLiteral<"shadow">]>;
+target: Type.TBoolean;
 word: Type.TString;
+}>>;
+keeper: Type.TString;
+landed: Type.TBoolean;
 number: Type.TInteger;
 targets: Type.TArray<Type.TString>;
-guesses: Type.TArray<Type.TObject<{
+team: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
 word: Type.TString;
-owner: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">, Type.TLiteral<"fog">, Type.TLiteral<"shadow">]>;
-by: Type.TString;
-target: Type.TBoolean;
-}>>;
-end: Type.TUnion<[Type.TUnion<[Type.TLiteral<"wrong">, Type.TLiteral<"stopped">, Type.TLiteral<"limit">, Type.TLiteral<"timeout">, Type.TLiteral<"finished">, Type.TLiteral<"no-clue">]>, Type.TNull]>;
-landed: Type.TBoolean;
 }>;
 clue_game_ended: Type.TObject<{
 game: Type.TInteger;
-result: Type.TObject<{
-game: Type.TInteger;
-scores: Type.TRecord<"^.*$", Type.TObject<{
-words: Type.TInteger;
-shadows: Type.TInteger;
-landed: Type.TInteger;
-landedPoints: Type.TInteger;
-finished: Type.TBoolean;
-total: Type.TNumber;
-}>>;
-winner: Type.TUnion<[Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>, Type.TLiteral<"draw">]>;
-reason: Type.TUnion<[Type.TLiteral<"finished">, Type.TLiteral<"clues">]>;
-}>;
-totals: Type.TRecord<"^.*$", Type.TNumber>;
 key: Type.TArray<Type.TObject<{
-word: Type.TString;
+by: Type.TUnion<[Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>, Type.TNull]>;
 owner: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">, Type.TLiteral<"fog">, Type.TLiteral<"shadow">]>;
 revealed: Type.TBoolean;
-by: Type.TUnion<[Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>, Type.TNull]>;
+word: Type.TString;
 }>>;
+result: Type.TObject<{
+game: Type.TInteger;
+reason: Type.TUnion<[Type.TLiteral<"finished">, Type.TLiteral<"clues">]>;
+scores: Type.TRecord<"^.*$", Type.TObject<{
+finished: Type.TBoolean;
+landed: Type.TInteger;
+landedPoints: Type.TInteger;
+shadows: Type.TInteger;
+total: Type.TNumber;
+words: Type.TInteger;
+}>>;
+winner: Type.TUnion<[Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>, Type.TLiteral<"draw">]>;
+}>;
+totals: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
 clue_game_scored: Type.TObject<{
 game: Type.TInteger;
 reference: Type.TObject<{
 amber: Type.TObject<{
 clues: Type.TInteger;
-missedClues: Type.TInteger;
-meanNumber: Type.TNumber;
-guesses: Type.TInteger;
-ownHits: Type.TInteger;
-targetHits: Type.TInteger;
-recall: Type.TNumber;
-precision: Type.TNumber;
-opponentHits: Type.TInteger;
 fogHits: Type.TInteger;
+guesses: Type.TInteger;
+meanNumber: Type.TNumber;
+missedClues: Type.TInteger;
+opponentHits: Type.TInteger;
+ownHits: Type.TInteger;
+precision: Type.TNumber;
+recall: Type.TNumber;
 shadowHits: Type.TInteger;
+targetHits: Type.TInteger;
 timeouts: Type.TInteger;
 }>;
 teal: Type.TObject<{
 clues: Type.TInteger;
-missedClues: Type.TInteger;
-meanNumber: Type.TNumber;
-guesses: Type.TInteger;
-ownHits: Type.TInteger;
-targetHits: Type.TInteger;
-recall: Type.TNumber;
-precision: Type.TNumber;
-opponentHits: Type.TInteger;
 fogHits: Type.TInteger;
+guesses: Type.TInteger;
+meanNumber: Type.TNumber;
+missedClues: Type.TInteger;
+opponentHits: Type.TInteger;
+ownHits: Type.TInteger;
+precision: Type.TNumber;
+recall: Type.TNumber;
 shadowHits: Type.TInteger;
+targetHits: Type.TInteger;
 timeouts: Type.TInteger;
 }>;
 }>;
 }>;
+clue_game_started: Type.TObject<{
+game: Type.TInteger;
+keepers: Type.TObject<{
+amber: Type.TString;
+teal: Type.TString;
+}>;
+startingTeam: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
+words: Type.TArray<Type.TString>;
+}>;
+clue_given: Type.TObject<{
+caller: Type.TString;
+clueNo: Type.TInteger;
+game: Type.TInteger;
+keeper: Type.TString;
+number: Type.TInteger;
+team: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
+word: Type.TString;
+}>;
+clue_intent: Type.TObject<{
+clueNo: Type.TInteger;
+game: Type.TInteger;
+reason: Type.TString;
+targets: Type.TArray<Type.TString>;
+team: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
+}>;
+clue_key_dealt: Type.TObject<{
+game: Type.TInteger;
+key: Type.TArray<Type.TObject<{
+by: Type.TUnion<[Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>, Type.TNull]>;
+owner: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">, Type.TLiteral<"fog">, Type.TLiteral<"shadow">]>;
+revealed: Type.TBoolean;
+word: Type.TString;
+}>>;
+}>;
 clue_match_ended: Type.TObject<{
-scores: Type.TRecord<"^.*$", Type.TNumber>;
 results: Type.TArray<Type.TObject<{
 game: Type.TInteger;
+reason: Type.TUnion<[Type.TLiteral<"finished">, Type.TLiteral<"clues">]>;
 scores: Type.TRecord<"^.*$", Type.TObject<{
-words: Type.TInteger;
-shadows: Type.TInteger;
+finished: Type.TBoolean;
 landed: Type.TInteger;
 landedPoints: Type.TInteger;
-finished: Type.TBoolean;
+shadows: Type.TInteger;
 total: Type.TNumber;
+words: Type.TInteger;
 }>>;
 winner: Type.TUnion<[Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>, Type.TLiteral<"draw">]>;
-reason: Type.TUnion<[Type.TLiteral<"finished">, Type.TLiteral<"clues">]>;
 }>>;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+clue_word_revealed: Type.TObject<{
+by: Type.TString;
+clueNo: Type.TInteger;
+game: Type.TInteger;
+guessNo: Type.TInteger;
+owner: Type.TString;
+target: Type.TBoolean;
+team: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"teal">]>;
+word: Type.TString;
 }>;
 }, "endGuesses" | "giveClue" | "guess" | "viewGrid">;
 

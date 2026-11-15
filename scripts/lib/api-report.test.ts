@@ -26,7 +26,58 @@ describe("API report normal form", () => {
 		expect(normalizeReport(text)).toBe(text);
 	});
 
-	it("changes a committed report only by the order of union members", () => {
+	it("gives both member orders of an object type literal one text", () => {
+		const one = ["export const o: Def<{", "factions: number;", "opens: number;", "by: \"a\" | \"b\";", "}>;"].join("\n");
+		const other = ["export const o: Def<{", "opens: number;", "by: \"b\" | \"a\";", "factions: number;", "}>;"].join("\n");
+		expect(normalizeReport(one)).toBe(normalizeReport(other));
+		expect(normalizeReport(one)).toBe(["export const o: Def<{", 'by: "a" | "b";', "factions: number;", "opens: number;", "}>;"].join("\n"));
+	});
+
+	it("keeps a nested block whole, sorts it inside, and sorts the blocks of a union or a parameter list", () => {
+		const text = ["x: {", "ultimatums: {", "number: number;", "debts: {", "needer: string;", "holder: string;", "}[];", "between: string[];", "}[];", "last: number;", "}, {", "b: Type.TArray<Type.TObject<{", "z: Type.TString;", "y: Type.TString;", "}>>;", "a: Type.TInteger;", "} | {", "fn: (input: {", "q: number;", "p: number;", "}) => void;", "c: 1;", "};"];
+		const sorted = ["x: {", "last: number;", "ultimatums: {", "between: string[];", "debts: {", "holder: string;", "needer: string;", "}[];", "number: number;", "}[];", "}, {", "a: Type.TInteger;", "b: Type.TArray<Type.TObject<{", "y: Type.TString;", "z: Type.TString;", "}>>;", "} | {", "c: 1;", "fn: (input: {", "p: number;", "q: number;", "}) => void;", "};"];
+		expect(normalizeReport(text.join("\n"))).toBe(sorted.join("\n"));
+	});
+
+	it("keeps a member's leading comment lines with it, and multi-line union members whole", () => {
+		const text = ["t: {", "// (undocumented)", "readonly z: string;", "readonly m:", '| "x"', '| "y";', "/**", "* The a field {not a block}.", "*/", "readonly a: number;", "};"];
+		const sorted = ["t: {", "/**", "* The a field {not a block}.", "*/", "readonly a: number;", "readonly m:", '| "x"', '| "y";', "// (undocumented)", "readonly z: string;", "};"];
+		expect(normalizeReport(text.join("\n"))).toBe(sorted.join("\n"));
+	});
+
+	it("leaves declarations and blocks that do not split cleanly as they are", () => {
+		const text = [
+			"export interface I {",
+			"    z: string;",
+			"    a: number;",
+			"}",
+			"export enum E {",
+			"    B = 0,",
+			"    A = 1",
+			"}",
+			"export declare class C {",
+			"    z(): void;",
+			"    a(): void;",
+			"}",
+			"t: {",
+			"z: string;",
+			"// trailing",
+			"};",
+			"u: {",
+			"z: string;",
+			"",
+			"a: string;",
+			"};",
+			"v: { b: 1; a: 2 };",
+			"w: {",
+			"z: 1;",
+			"a: 2; }",
+			"",
+		].join("\n");
+		expect(normalizeReport(text)).toBe(text);
+	});
+
+	it("changes a committed report only by the order of union members and object type members", () => {
 		const reports = ["packages", "mechanics", "games", "samples", "apps"].flatMap((group) =>
 			readdirSync(join(REPO_ROOT, group))
 				.filter((name) => statSync(join(REPO_ROOT, group, name)).isDirectory())

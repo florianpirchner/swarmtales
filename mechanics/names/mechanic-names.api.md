@@ -38,16 +38,16 @@ export function nameOf(state: NamesState, agent: string): string | undefined;
 
 // @public
 export const names: MechanicDefinition<"names", Type.TObject<{
-untilMinute: Type.TInteger;
 announcement: Type.TString;
 fallbackWords: Type.TArray<Type.TString>;
-reserved: Type.TArray<Type.TString>;
 off: Type.TBoolean;
+reserved: Type.TArray<Type.TString>;
+untilMinute: Type.TInteger;
 }>, {
 name_chosen: Type.TObject<{
 agent: Type.TString;
-name: Type.TString;
 fallback: Type.TBoolean;
+name: Type.TString;
 }>;
 }, "chooseName">;
 
@@ -56,19 +56,19 @@ export type NamesCtx = CtxOf<typeof namesHead>;
 
 // @public
 export const namesHead: MechanicHead<"names", Type.TObject<{
-untilMinute: Type.TInteger;
 announcement: Type.TString;
 fallbackWords: Type.TArray<Type.TString>;
-reserved: Type.TArray<Type.TString>;
 off: Type.TBoolean;
+reserved: Type.TArray<Type.TString>;
+untilMinute: Type.TInteger;
 }>, Type.TObject<{
 entries: Type.TArray<Type.TObject<{
 agent: Type.TString;
-name: Type.TString;
 fallback: Type.TBoolean;
+name: Type.TString;
 }>>;
-settled: Type.TBoolean;
 off: Type.TOptional<Type.TBoolean>;
+settled: Type.TBoolean;
 shown: Type.TArray<Type.TObject<{
 agent: Type.TString;
 level: Type.TInteger;
@@ -76,289 +76,313 @@ level: Type.TInteger;
 }>, NamesState, {
 name_chosen: Type.TObject<{
 agent: Type.TString;
-name: Type.TString;
 fallback: Type.TBoolean;
+name: Type.TString;
 }>;
 }, {
-readonly "names/tools/chooseName": readonly [];
-readonly "names/replies/name-chosen": readonly ["name"];
-readonly "names/replies/locked": readonly [];
-readonly "names/status/you-are": readonly ["agent"];
 readonly "names/notices/name-announced": readonly ["agent", "name"];
 readonly "names/notices/name-fallback": readonly ["name"];
+readonly "names/replies/locked": readonly [];
+readonly "names/replies/name-chosen": readonly ["name"];
+readonly "names/status/you-are": readonly ["agent"];
+readonly "names/tools/chooseName": readonly [];
 }, [], readonly [ServiceDefinition<"identity", {
-readonly nameOf: {
+readonly display: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+readonly output: Type.TString;
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+};
+readonly nameOf: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly display: {
 readonly kind: "query";
-readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
-readonly input: Type.TObject<{
-text: Type.TString;
-}>;
-readonly output: Type.TString;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
 };
 readonly resolve: {
-readonly kind: "query";
-readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 readonly input: Type.TObject<{
 text: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TString;
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 };
 }>], readonly [ServiceDefinition<"deal", {
-readonly passwordPiece: {
+readonly carriesSecret: {
+readonly input: Type.TObject<{
+minRun: Type.TInteger;
+resident: Type.TString;
+text: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
+};
+readonly isHandover: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
+};
+readonly passwordPiece: {
 readonly input: Type.TObject<{
 token: Type.TString;
 }>;
-readonly output: Type.TBoolean;
-};
-readonly carriesSecret: {
 readonly kind: "query";
-readonly summary: "Whether the text quotes `minRun` or more characters in a row of a fragment of a guarded level (old `carriesSecret`, asked by `receipts`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-text: Type.TString;
-minRun: Type.TInteger;
-}>;
 readonly output: Type.TBoolean;
-};
-readonly isHandover: {
-readonly kind: "query";
-readonly summary: "Whether the text carries a fragment of a dealt level, or three characters in a row of one: a hand-over, not a whisper (old `isHandover`, asked by `whispers`).";
-readonly input: Type.TObject<{
-text: Type.TString;
-}>;
-readonly output: Type.TBoolean;
+readonly summary: "Whether the token is part of a dealt password, so that it stays as written (old `passwordPiece`, asked by `names`).";
 };
 readonly revealFactor: {
-readonly kind: "command";
-readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
 readonly input: Type.TObject<{
 level: Type.TInteger;
 target: Type.TUnion<[Type.TLiteral<"board">, Type.TArray<Type.TString>]>;
 }>;
+readonly kind: "command";
 readonly output: Type.TUnion<[Type.TObject<{
-ok: Type.TLiteral<true>;
 agents: Type.TArray<Type.TString>;
+ok: Type.TLiteral<true>;
 }>, Type.TObject<{
-ok: Type.TLiteral<false>;
 code: Type.TString;
 detail: Type.TString;
+ok: Type.TLiteral<false>;
 }>]>;
+readonly summary: "Releases the city factor of an additive level: a city post on the board, or a private notice to each listed resident who has not received it yet; writes `factor_revealed` (old `revealFactor`, asked by `script`).";
 };
 }>, ServiceDefinition<"channels", {
-readonly post: {
+readonly boardPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+};
+readonly couldRead: {
+readonly input: Type.TObject<{
+group: Type.TString;
+number: Type.TInteger;
+reader: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+};
+readonly createCityGroup: {
+readonly input: Type.TObject<{
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+};
+readonly deliver: {
+readonly input: Type.TObject<{
+from: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+};
+readonly dmRecords: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+answered: Type.TBoolean;
+deliveredAfter: Type.TOptional<Type.TInteger>;
+deliveredTick: Type.TOptional<Type.TInteger>;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+to: Type.TString;
+}>>;
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+};
+readonly dmWindow: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+from: Type.TInteger;
+limit: Type.TInteger;
+sent: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+};
+readonly group: {
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+founder: Type.TString;
+id: Type.TString;
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+removed: Type.TBoolean;
+treasurer: Type.TString;
+}>, Type.TNull]>;
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+};
+readonly groupPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+group: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+};
+readonly notify: {
 readonly input: Type.TObject<{
 author: Type.TString;
 text: Type.TString;
-kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+to: Type.TString;
 }>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+};
+readonly pendingDms: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+};
+readonly post: {
+readonly input: Type.TObject<{
+author: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+text: Type.TString;
+}>;
+readonly kind: "command";
 readonly output: Type.TObject<{
 postSeq: Type.TInteger;
 }>;
-};
-readonly notify: {
-readonly kind: "command";
-readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
-readonly input: Type.TObject<{
-to: Type.TString;
-author: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
-readonly deliver: {
-readonly kind: "command";
-readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
-readonly input: Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-}>;
-readonly output: Type.TObject<{
-number: Type.TInteger;
-}>;
-};
-readonly dmRecords: {
-readonly kind: "query";
-readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-from: Type.TString;
-to: Type.TString;
-text: Type.TString;
-number: Type.TInteger;
-tick: Type.TInteger;
-answered: Type.TBoolean;
-deliveredTick: Type.TOptional<Type.TInteger>;
-deliveredAfter: Type.TOptional<Type.TInteger>;
-}>>;
-};
-readonly boardPost: {
-readonly kind: "query";
-readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly pendingDms: {
-readonly kind: "query";
-readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly dmWindow: {
-readonly kind: "query";
-readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-sent: Type.TInteger;
-limit: Type.TInteger;
-from: Type.TInteger;
-until: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly createCityGroup: {
-readonly kind: "command";
-readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
-readonly input: Type.TObject<{
-name: Type.TString;
-members: Type.TArray<Type.TString>;
-}>;
-readonly output: Type.TObject<{
-group: Type.TString;
-}>;
-};
-readonly removeCityGroup: {
-readonly kind: "command";
-readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
-readonly input: Type.TObject<{
-group: Type.TString;
-}>;
-readonly output: Type.TNull;
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
 };
 readonly postGroupAsCity: {
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
 readonly kind: "command";
-readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
-readonly input: Type.TObject<{
-group: Type.TString;
-text: Type.TString;
-}>;
 readonly output: Type.TNull;
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
 };
-readonly group: {
-readonly kind: "query";
-readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+readonly removeCityGroup: {
 readonly input: Type.TObject<{
 group: Type.TString;
 }>;
-readonly output: Type.TUnion<[Type.TObject<{
-id: Type.TString;
-name: Type.TString;
-founder: Type.TString;
-treasurer: Type.TString;
-members: Type.TArray<Type.TString>;
-removed: Type.TBoolean;
-}>, Type.TNull]>;
-};
-readonly groupPost: {
-readonly kind: "query";
-readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
-readonly input: Type.TObject<{
-number: Type.TInteger;
-}>;
-readonly output: Type.TUnion<[Type.TObject<{
-number: Type.TInteger;
-group: Type.TString;
-author: Type.TString;
-text: Type.TString;
-tick: Type.TInteger;
-}>, Type.TNull]>;
-};
-readonly couldRead: {
-readonly kind: "query";
-readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
-readonly input: Type.TObject<{
-group: Type.TString;
-reader: Type.TString;
-number: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
 };
 }>, ServiceDefinition<"exile", {
-readonly banish: {
-readonly kind: "command";
-readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-by: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TObject<{
-ok: Type.TBoolean;
-code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
-}>;
-};
-readonly toGate: {
-readonly kind: "command";
-readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
-voters: Type.TArray<Type.TString>;
-price: Type.TInteger;
-selfPrice: Type.TInteger;
-bequestPerHeir: Type.TNumber;
-notice: Type.TString;
-texts: Type.TObject<{
-exiled: Type.TString;
-will: Type.TString;
-ransomed: Type.TString;
-}>;
-by: Type.TOptional<Type.TString>;
-}>;
-readonly output: Type.TNull;
-};
-readonly isExiled: {
+readonly alive: {
+readonly input: Type.TObject<{}>;
 readonly kind: "query";
-readonly summary: "Says whether the resident is banished.";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Every resident not banished, in the game's order.";
+};
+readonly banish: {
+readonly input: Type.TObject<{
+by: Type.TOptional<Type.TString>;
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+ok: Type.TBoolean;
+}>;
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+};
+readonly bequeathed: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
-readonly output: Type.TBoolean;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
 };
 readonly exiled: {
-readonly kind: "query";
-readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
 readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly standing: {
 readonly kind: "query";
-readonly summary: "Where the resident stands (old `standingOf`).";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+};
+readonly exiledBy: {
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Who banished the resident, or null while it is not banished.";
+};
+readonly gates: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+covered: Type.TInteger;
+paid: Type.TInteger;
+price: Type.TInteger;
+ransomable: Type.TBoolean;
+selfPrice: Type.TInteger;
+since: Type.TInteger;
+until: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+readonly summary: "Every open gate, in the order opened.";
+};
+readonly isExiled: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Says whether the resident is banished.";
+};
+readonly ransomed: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was bought back from the gate once.";
+};
+readonly standing: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TObject<{
 kind: Type.TLiteral<"alive">;
 }>, Type.TObject<{
@@ -367,232 +391,208 @@ until: Type.TInteger;
 }>, Type.TObject<{
 kind: Type.TLiteral<"exiled">;
 }>]>;
+readonly summary: "Where the resident stands (old `standingOf`).";
 };
-readonly alive: {
-readonly kind: "query";
-readonly summary: "Every resident not banished, in the game's order.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly exiledBy: {
-readonly kind: "query";
-readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly toGate: {
 readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
-};
-readonly gates: {
-readonly kind: "query";
-readonly summary: "Every open gate, in the order opened.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-agent: Type.TString;
-since: Type.TInteger;
-until: Type.TInteger;
-ransomable: Type.TBoolean;
+bequestPerHeir: Type.TNumber;
+by: Type.TOptional<Type.TString>;
+notice: Type.TString;
 price: Type.TInteger;
+ransomable: Type.TBoolean;
+resident: Type.TString;
 selfPrice: Type.TInteger;
-paid: Type.TInteger;
-covered: Type.TInteger;
-willDone: Type.TBoolean;
-}>>;
-};
-readonly ransomed: {
-readonly kind: "query";
-readonly summary: "Whether the resident was bought back from the gate once.";
-readonly input: Type.TObject<{
-resident: Type.TString;
+texts: Type.TObject<{
+exiled: Type.TString;
+ransomed: Type.TString;
+will: Type.TString;
 }>;
-readonly output: Type.TBoolean;
-};
-readonly bequeathed: {
-readonly kind: "query";
-readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
-readonly input: Type.TObject<{
-resident: Type.TString;
+until: Type.TInteger;
+voters: Type.TArray<Type.TString>;
 }>;
-readonly output: Type.TArray<Type.TString>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
 };
 }>, ServiceDefinition<"progression", {
-readonly levelOf: {
-readonly kind: "query";
-readonly summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly isFinished: {
-readonly kind: "query";
-readonly summary: "Whether the resident has passed the last level (old `isFinished`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly hasPassed: {
-readonly kind: "query";
-readonly summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly hasSolved: {
-readonly kind: "query";
-readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-level: Type.TInteger;
-}>;
-readonly output: Type.TBoolean;
-};
-readonly passed: {
-readonly kind: "query";
-readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
-readonly input: Type.TObject<{
-level: Type.TInteger;
-}>;
-readonly output: Type.TArray<Type.TString>;
-};
-readonly lastProgress: {
-readonly kind: "query";
-readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly currentAct: {
-readonly kind: "query";
-readonly summary: "The first level of the latest act that has begun.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TInteger;
-};
 readonly actStart: {
-readonly kind: "query";
-readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
 readonly input: Type.TObject<{
 fromLevel: Type.TInteger;
 }>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
+};
+readonly bounds: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TObject<{
+lastLevel: Type.TInteger;
+startLevel: Type.TInteger;
+survivors: Type.TInteger;
+}>;
+readonly summary: "The start level, the last playable level and the seats at the end.";
+};
+readonly chargeBlame: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TInteger;
+readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
+};
+readonly currentAct: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "The first level of the latest act that has begun.";
 };
 readonly door: {
-readonly kind: "query";
-readonly summary: "The level whose door is shut, or null.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+readonly summary: "The level whose door is shut, or null.";
 };
 readonly doorShut: {
+readonly input: Type.TObject<{}>;
 readonly kind: "query";
+readonly output: Type.TBoolean;
 readonly summary: "Whether a door holds residents back now.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TBoolean;
 };
-readonly openDoor: {
-readonly kind: "command";
-readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TBoolean;
-};
-readonly releaseDoor: {
-readonly kind: "command";
-readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TNull;
-};
-readonly unlock: {
-readonly kind: "command";
-readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
+readonly endAct: {
 readonly input: Type.TObject<{
-resident: Type.TString;
-tools: Type.TArray<Type.TString>;
+fromLevel: Type.TInteger;
 }>;
-readonly output: Type.TNull;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
 };
-readonly ranking: {
-readonly kind: "query";
-readonly summary: "The ranking: the banished last, then by points, by level and by id.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TArray<Type.TObject<{
-agent: Type.TString;
-rank: Type.TInteger;
-points: Type.TInteger;
+readonly hasPassed: {
+readonly input: Type.TObject<{
 level: Type.TInteger;
-}>>;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).";
+};
+readonly hasSolved: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
 };
 readonly holdersBehind: {
-readonly kind: "query";
-readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
 readonly input: Type.TObject<{
-resident: Type.TString;
 level: Type.TInteger;
+resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TArray<Type.TObject<{
 holder: Type.TString;
 level: Type.TInteger;
 piece: Type.TString;
 }>>;
+readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
 };
-readonly nextPenalty: {
+readonly isFinished: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
 readonly kind: "query";
-readonly summary: "What the resident's next wrong code costs in this act.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly nextBlamePenalty: {
-readonly kind: "query";
-readonly summary: "What the resident's next lost blame costs in this act.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly chargeBlame: {
-readonly kind: "command";
-readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
-readonly input: Type.TObject<{
-resident: Type.TString;
-}>;
-readonly output: Type.TInteger;
-};
-readonly endAct: {
-readonly kind: "command";
-readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
-readonly input: Type.TObject<{
-fromLevel: Type.TInteger;
-}>;
 readonly output: Type.TBoolean;
+readonly summary: "Whether the resident has passed the last level (old `isFinished`).";
 };
 readonly isOpenOnClock: {
-readonly kind: "query";
-readonly summary: "Whether the level's door is open on the door clock now.";
 readonly input: Type.TObject<{
 level: Type.TInteger;
 }>;
+readonly kind: "query";
 readonly output: Type.TBoolean;
+readonly summary: "Whether the level's door is open on the door clock now.";
+};
+readonly lastProgress: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
+};
+readonly levelOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.";
+};
+readonly nextBlamePenalty: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "What the resident's next lost blame costs in this act.";
+};
+readonly nextPenalty: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "What the resident's next wrong code costs in this act.";
+};
+readonly openDoor: {
+readonly input: Type.TObject<{}>;
+readonly kind: "command";
+readonly output: Type.TBoolean;
+readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
 };
 readonly opensAt: {
-readonly kind: "query";
-readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
 readonly input: Type.TObject<{
 level: Type.TInteger;
 }>;
-readonly output: Type.TInteger;
-};
-readonly bounds: {
 readonly kind: "query";
-readonly summary: "The start level, the last playable level and the seats at the end.";
-readonly input: Type.TObject<{}>;
-readonly output: Type.TObject<{
-startLevel: Type.TInteger;
-lastLevel: Type.TInteger;
-survivors: Type.TInteger;
+readonly output: Type.TInteger;
+readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
+};
+readonly passed: {
+readonly input: Type.TObject<{
+level: Type.TInteger;
 }>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
+};
+readonly ranking: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+points: Type.TInteger;
+rank: Type.TInteger;
+}>>;
+readonly summary: "The ranking: the banished last, then by points, by level and by id.";
+};
+readonly releaseDoor: {
+readonly input: Type.TObject<{}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
+};
+readonly unlock: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
 };
 }>], {
 chooseName: Type.TObject<{
@@ -605,11 +605,11 @@ export function namesOff(): ReturnType<typeof names>;
 
 // @public
 export const NamesOptions: Type.TObject<{
-    untilMinute: Type.TInteger;
     announcement: Type.TString;
     fallbackWords: Type.TArray<Type.TString>;
-    reserved: Type.TArray<Type.TString>;
     off: Type.TBoolean;
+    reserved: Type.TArray<Type.TString>;
+    untilMinute: Type.TInteger;
 }>;
 
 // @public
@@ -626,8 +626,8 @@ export type NamesToolCtx = ToolCtxOf<typeof namesHead>;
 
 // @public
 export function refusal(state: NamesState, reserved: ReadonlySet<string>, name: string): {
-    readonly error: NameError;
     readonly detail: string;
+    readonly error: NameError;
 } | undefined;
 
 // @public

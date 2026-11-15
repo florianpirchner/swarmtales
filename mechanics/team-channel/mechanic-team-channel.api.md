@@ -10,13 +10,13 @@ import { Type } from 'typebox';
 
 // @public
 export const teamChannel: MechanicDefinition<"team-channel", Type.TObject<{
-teams: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 maxPostsPerMove: Type.TInteger;
 notify: Type.TBoolean;
+teams: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
 }>, {
 team_post: Type.TObject<{
-team: Type.TString;
 from: Type.TString;
+team: Type.TString;
 text: Type.TString;
 }>;
 }, "postTeam" | "readTeam">;
@@ -24,20 +24,20 @@ text: Type.TString;
 // @public
 export const TeamChannelService: ServiceDefinition<"team-channel", {
 readonly newEpoch: {
-readonly kind: "command";
-readonly summary: "Starts a new epoch for a team: readTeam shows only the posts from now on, and posts not yet shown are not announced. False when the team is unknown.";
 readonly input: Type.TObject<{
 team: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TBoolean;
+readonly summary: "Starts a new epoch for a team: readTeam shows only the posts from now on, and posts not yet shown are not announced. False when the team is unknown.";
 };
 readonly resetCap: {
-readonly kind: "command";
-readonly summary: "Opens a new round for a team: every member may post again. False when the team is unknown.";
 readonly input: Type.TObject<{
 team: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TBoolean;
+readonly summary: "Opens a new round for a team: every member may post again. False when the team is unknown.";
 };
 }>;
 

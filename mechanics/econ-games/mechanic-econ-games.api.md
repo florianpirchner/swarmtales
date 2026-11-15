@@ -27,58 +27,19 @@ blocks: Type.TArray<Type.TObject<{
 game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
 rounds: Type.TInteger;
 }>>;
-endowment: Type.TInteger;
-multiplier: Type.TNumber;
-pie: Type.TInteger;
+deadline: Type.TInteger;
 dilemma: Type.TObject<{
 bothA: Type.TNumber;
 bothB: Type.TNumber;
-temptation: Type.TNumber;
 sucker: Type.TNumber;
+temptation: Type.TNumber;
 }>;
-showHorizon: Type.TBoolean;
-deadline: Type.TInteger;
+endowment: Type.TInteger;
+multiplier: Type.TNumber;
+pie: Type.TInteger;
 showEarlierPoints: Type.TOptional<Type.TBoolean>;
+showHorizon: Type.TBoolean;
 }>, {
-block_started: Type.TObject<{
-block: Type.TInteger;
-game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
-rounds: Type.TInteger;
-seats: Type.TArray<Type.TString>;
-}>;
-round_opened: Type.TObject<{
-block: Type.TInteger;
-round: Type.TInteger;
-game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
-pairs: Type.TArray<Type.TArray<Type.TString>>;
-}>;
-decision_made: Type.TObject<{
-block: Type.TInteger;
-round: Type.TInteger;
-resident: Type.TString;
-action: Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>;
-value: Type.TNumber;
-reason: Type.TOptional<Type.TString>;
-}>;
-round_resolved: Type.TObject<{
-block: Type.TInteger;
-round: Type.TInteger;
-game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
-pool: Type.TOptional<Type.TNumber>;
-outcomes: Type.TArray<Type.TObject<{
-resident: Type.TString;
-partner: Type.TOptional<Type.TString>;
-role: Type.TOptional<Type.TUnion<[Type.TLiteral<"proposer">, Type.TLiteral<"responder">]>>;
-action: Type.TOptional<Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>>;
-value: Type.TOptional<Type.TNumber>;
-offer: Type.TOptional<Type.TNumber>;
-accepted: Type.TOptional<Type.TBoolean>;
-partnerOption: Type.TOptional<Type.TUnion<[Type.TLiteral<"A">, Type.TLiteral<"B">]>>;
-payoff: Type.TNumber;
-missed: Type.TBoolean;
-sitsOut: Type.TOptional<Type.TBoolean>;
-}>>;
-}>;
 block_ended: Type.TObject<{
 block: Type.TInteger;
 game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
@@ -91,15 +52,54 @@ game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Ty
 reference: Type.TObject<{
 cooperation: Type.TNumber;
 efficiency: Type.TNumber;
-perRound: Type.TArray<Type.TNumber>;
-missed: Type.TInteger;
 meanOffer: Type.TOptional<Type.TNumber>;
-rejectionRate: Type.TOptional<Type.TNumber>;
+missed: Type.TInteger;
 mutualCooperation: Type.TOptional<Type.TNumber>;
+perRound: Type.TArray<Type.TNumber>;
+rejectionRate: Type.TOptional<Type.TNumber>;
 }>;
+}>;
+block_started: Type.TObject<{
+block: Type.TInteger;
+game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
+rounds: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+}>;
+decision_made: Type.TObject<{
+action: Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>;
+block: Type.TInteger;
+reason: Type.TOptional<Type.TString>;
+resident: Type.TString;
+round: Type.TInteger;
+value: Type.TNumber;
 }>;
 match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+round_opened: Type.TObject<{
+block: Type.TInteger;
+game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
+pairs: Type.TArray<Type.TArray<Type.TString>>;
+round: Type.TInteger;
+}>;
+round_resolved: Type.TObject<{
+block: Type.TInteger;
+game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
+outcomes: Type.TArray<Type.TObject<{
+accepted: Type.TOptional<Type.TBoolean>;
+action: Type.TOptional<Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>>;
+missed: Type.TBoolean;
+offer: Type.TOptional<Type.TNumber>;
+partner: Type.TOptional<Type.TString>;
+partnerOption: Type.TOptional<Type.TUnion<[Type.TLiteral<"A">, Type.TLiteral<"B">]>>;
+payoff: Type.TNumber;
+resident: Type.TString;
+role: Type.TOptional<Type.TUnion<[Type.TLiteral<"proposer">, Type.TLiteral<"responder">]>>;
+sitsOut: Type.TOptional<Type.TBoolean>;
+value: Type.TOptional<Type.TNumber>;
+}>>;
+pool: Type.TOptional<Type.TNumber>;
+round: Type.TInteger;
 }>;
 }, "choose" | "contribute" | "offer" | "respond" | "viewTable">;
 
@@ -114,95 +114,56 @@ blocks: Type.TArray<Type.TObject<{
 game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
 rounds: Type.TInteger;
 }>>;
-endowment: Type.TInteger;
-multiplier: Type.TNumber;
-pie: Type.TInteger;
+deadline: Type.TInteger;
 dilemma: Type.TObject<{
 bothA: Type.TNumber;
 bothB: Type.TNumber;
-temptation: Type.TNumber;
 sucker: Type.TNumber;
+temptation: Type.TNumber;
 }>;
-showHorizon: Type.TBoolean;
-deadline: Type.TInteger;
+endowment: Type.TInteger;
+multiplier: Type.TNumber;
+pie: Type.TInteger;
 showEarlierPoints: Type.TOptional<Type.TBoolean>;
+showHorizon: Type.TBoolean;
 }>, Type.TObject<{
-seats: Type.TArray<Type.TString>;
 block: Type.TInteger;
-round: Type.TInteger;
-phase: Type.TUnion<[Type.TLiteral<"idle">, Type.TLiteral<"decide">, Type.TLiteral<"respond">]>;
-opened: Type.TInteger;
-owing: Type.TArray<Type.TString>;
-told: Type.TArray<Type.TString>;
-briefed: Type.TArray<Type.TString>;
-reported: Type.TOptional<Type.TArray<Type.TString>>;
-values: Type.TRecord<"^.*$", Type.TNumber>;
-reasons: Type.TRecord<"^.*$", Type.TString>;
-missed: Type.TArray<Type.TString>;
-history: Type.TArray<Type.TObject<{
-round: Type.TInteger;
-game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
-pool: Type.TOptional<Type.TNumber>;
-outcomes: Type.TArray<Type.TObject<{
-resident: Type.TString;
-partner: Type.TOptional<Type.TString>;
-role: Type.TOptional<Type.TUnion<[Type.TLiteral<"proposer">, Type.TLiteral<"responder">]>>;
-action: Type.TOptional<Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>>;
-value: Type.TOptional<Type.TNumber>;
-offer: Type.TOptional<Type.TNumber>;
-accepted: Type.TOptional<Type.TBoolean>;
-partnerOption: Type.TOptional<Type.TUnion<[Type.TLiteral<"A">, Type.TLiteral<"B">]>>;
-payoff: Type.TNumber;
-missed: Type.TBoolean;
-sitsOut: Type.TOptional<Type.TBoolean>;
-}>>;
-}>>;
-scores: Type.TRecord<"^.*$", Type.TNumber>;
 blockScores: Type.TRecord<"^.*$", Type.TNumber>;
-running: Type.TBoolean;
+briefed: Type.TArray<Type.TString>;
+due: Type.TBoolean;
 finished: Type.TBoolean;
 held: Type.TBoolean;
-due: Type.TBoolean;
-}>, EconState, {
-block_started: Type.TObject<{
-block: Type.TInteger;
+history: Type.TArray<Type.TObject<{
 game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
-rounds: Type.TInteger;
-seats: Type.TArray<Type.TString>;
-}>;
-round_opened: Type.TObject<{
-block: Type.TInteger;
-round: Type.TInteger;
-game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
-pairs: Type.TArray<Type.TArray<Type.TString>>;
-}>;
-decision_made: Type.TObject<{
-block: Type.TInteger;
-round: Type.TInteger;
-resident: Type.TString;
-action: Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>;
-value: Type.TNumber;
-reason: Type.TOptional<Type.TString>;
-}>;
-round_resolved: Type.TObject<{
-block: Type.TInteger;
-round: Type.TInteger;
-game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
-pool: Type.TOptional<Type.TNumber>;
 outcomes: Type.TArray<Type.TObject<{
-resident: Type.TString;
-partner: Type.TOptional<Type.TString>;
-role: Type.TOptional<Type.TUnion<[Type.TLiteral<"proposer">, Type.TLiteral<"responder">]>>;
-action: Type.TOptional<Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>>;
-value: Type.TOptional<Type.TNumber>;
-offer: Type.TOptional<Type.TNumber>;
 accepted: Type.TOptional<Type.TBoolean>;
+action: Type.TOptional<Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>>;
+missed: Type.TBoolean;
+offer: Type.TOptional<Type.TNumber>;
+partner: Type.TOptional<Type.TString>;
 partnerOption: Type.TOptional<Type.TUnion<[Type.TLiteral<"A">, Type.TLiteral<"B">]>>;
 payoff: Type.TNumber;
-missed: Type.TBoolean;
+resident: Type.TString;
+role: Type.TOptional<Type.TUnion<[Type.TLiteral<"proposer">, Type.TLiteral<"responder">]>>;
 sitsOut: Type.TOptional<Type.TBoolean>;
+value: Type.TOptional<Type.TNumber>;
 }>>;
-}>;
+pool: Type.TOptional<Type.TNumber>;
+round: Type.TInteger;
+}>>;
+missed: Type.TArray<Type.TString>;
+opened: Type.TInteger;
+owing: Type.TArray<Type.TString>;
+phase: Type.TUnion<[Type.TLiteral<"idle">, Type.TLiteral<"decide">, Type.TLiteral<"respond">]>;
+reasons: Type.TRecord<"^.*$", Type.TString>;
+reported: Type.TOptional<Type.TArray<Type.TString>>;
+round: Type.TInteger;
+running: Type.TBoolean;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+seats: Type.TArray<Type.TString>;
+told: Type.TArray<Type.TString>;
+values: Type.TRecord<"^.*$", Type.TNumber>;
+}>, EconState, {
 block_ended: Type.TObject<{
 block: Type.TInteger;
 game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
@@ -215,85 +176,127 @@ game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Ty
 reference: Type.TObject<{
 cooperation: Type.TNumber;
 efficiency: Type.TNumber;
-perRound: Type.TArray<Type.TNumber>;
-missed: Type.TInteger;
 meanOffer: Type.TOptional<Type.TNumber>;
-rejectionRate: Type.TOptional<Type.TNumber>;
+missed: Type.TInteger;
 mutualCooperation: Type.TOptional<Type.TNumber>;
+perRound: Type.TArray<Type.TNumber>;
+rejectionRate: Type.TOptional<Type.TNumber>;
 }>;
+}>;
+block_started: Type.TObject<{
+block: Type.TInteger;
+game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
+rounds: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+}>;
+decision_made: Type.TObject<{
+action: Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>;
+block: Type.TInteger;
+reason: Type.TOptional<Type.TString>;
+resident: Type.TString;
+round: Type.TInteger;
+value: Type.TNumber;
 }>;
 match_ended: Type.TObject<{
 scores: Type.TRecord<"^.*$", Type.TNumber>;
 }>;
+round_opened: Type.TObject<{
+block: Type.TInteger;
+game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
+pairs: Type.TArray<Type.TArray<Type.TString>>;
+round: Type.TInteger;
+}>;
+round_resolved: Type.TObject<{
+block: Type.TInteger;
+game: Type.TUnion<[Type.TLiteral<"public-goods">, Type.TLiteral<"ultimatum">, Type.TLiteral<"dilemma">]>;
+outcomes: Type.TArray<Type.TObject<{
+accepted: Type.TOptional<Type.TBoolean>;
+action: Type.TOptional<Type.TUnion<[Type.TLiteral<"contribute">, Type.TLiteral<"offer">, Type.TLiteral<"respond">, Type.TLiteral<"choose">]>>;
+missed: Type.TBoolean;
+offer: Type.TOptional<Type.TNumber>;
+partner: Type.TOptional<Type.TString>;
+partnerOption: Type.TOptional<Type.TUnion<[Type.TLiteral<"A">, Type.TLiteral<"B">]>>;
+payoff: Type.TNumber;
+resident: Type.TString;
+role: Type.TOptional<Type.TUnion<[Type.TLiteral<"proposer">, Type.TLiteral<"responder">]>>;
+sitsOut: Type.TOptional<Type.TBoolean>;
+value: Type.TOptional<Type.TNumber>;
+}>>;
+pool: Type.TOptional<Type.TNumber>;
+round: Type.TInteger;
+}>;
 }, {
-readonly "econ-games/tools/viewTable": readonly [];
-readonly "econ-games/tools/contribute": readonly [];
-readonly "econ-games/tools/offer": readonly [];
-readonly "econ-games/tools/respond": readonly [];
-readonly "econ-games/tools/choose": readonly [];
+readonly "econ-games/block-head": readonly ["block", "blocks"];
+readonly "econ-games/horizon-hidden": readonly [];
+readonly "econ-games/horizon-known": readonly ["rounds"];
+readonly "econ-games/rules-dilemma": readonly ["bothA", "bothB", "temptation", "sucker"];
 readonly "econ-games/rules-public-goods": readonly ["endowment", "multiplier", "seats"];
 readonly "econ-games/rules-ultimatum": readonly ["pie"];
-readonly "econ-games/rules-dilemma": readonly ["bothA", "bothB", "temptation", "sucker"];
-readonly "econ-games/horizon-known": readonly ["rounds"];
-readonly "econ-games/horizon-hidden": readonly [];
-readonly "econ-games/block-head": readonly ["block", "blocks"];
+readonly "econ-games/sits-out": readonly ["round"];
+readonly "econ-games/task-choose": readonly ["round", "partner"];
 readonly "econ-games/task-contribute": readonly ["round", "endowment"];
 readonly "econ-games/task-offer": readonly ["round", "partner", "pie"];
 readonly "econ-games/task-respond": readonly ["round", "partner", "offer", "keep"];
 readonly "econ-games/task-wait": readonly ["round", "partner"];
-readonly "econ-games/task-choose": readonly ["round", "partner"];
-readonly "econ-games/sits-out": readonly ["round"];
+readonly "econ-games/tools/choose": readonly [];
+readonly "econ-games/tools/contribute": readonly [];
+readonly "econ-games/tools/offer": readonly [];
+readonly "econ-games/tools/respond": readonly [];
+readonly "econ-games/tools/viewTable": readonly [];
 }, [], readonly [ServiceDefinition<"brain-source", {
 readonly game: {
-readonly kind: "query";
-readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
 readonly input: Type.TObject<{}>;
+readonly kind: "query";
 readonly output: Type.TInteger;
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
 };
 readonly hold: {
-readonly kind: "command";
-readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
 readonly input: Type.TObject<{}>;
+readonly kind: "command";
 readonly output: Type.TBoolean;
+readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
 };
 readonly release: {
-readonly kind: "command";
-readonly summary: "Lets a held game start. A no-op when nothing is held.";
 readonly input: Type.TObject<{}>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "Lets a held game start. A no-op when nothing is held.";
 };
 }>], readonly [ServiceDefinition<"strategy-brain", {
-readonly gameStarted: {
-readonly kind: "command";
-readonly summary: "A game started: every resident of a team gets a fresh context with the briefing at the next turn.";
-readonly input: Type.TObject<{
-game: Type.TInteger;
-first: Type.TString;
-}>;
-readonly output: Type.TNull;
-};
 readonly briefing: {
-readonly kind: "query";
-readonly summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.";
 readonly input: Type.TObject<{
 resident: Type.TString;
 }>;
+readonly kind: "query";
 readonly output: Type.TString;
+readonly summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.";
 };
 readonly gameEnded: {
-readonly kind: "command";
-readonly summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).";
 readonly input: Type.TObject<{
 game: Type.TInteger;
-summary: Type.TString;
-moves: Type.TOptional<Type.TArray<Type.TInteger>>;
 line: Type.TOptional<Type.TArray<Type.TArray<Type.TString>>>;
+moves: Type.TOptional<Type.TArray<Type.TInteger>>;
 review: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+summary: Type.TString;
 }>;
+readonly kind: "command";
 readonly output: Type.TNull;
+readonly summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).";
+};
+readonly gameStarted: {
+readonly input: Type.TObject<{
+first: Type.TString;
+game: Type.TInteger;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "A game started: every resident of a team gets a fresh context with the briefing at the next turn.";
 };
 }>], {
-viewTable: Type.TObject<{}>;
+choose: Type.TObject<{
+option: Type.TUnion<[Type.TLiteral<"A">, Type.TLiteral<"B">]>;
+reason: Type.TOptional<Type.TString>;
+}>;
 contribute: Type.TObject<{
 amount: Type.TInteger;
 reason: Type.TOptional<Type.TString>;
@@ -306,10 +309,7 @@ respond: Type.TObject<{
 accept: Type.TBoolean;
 reason: Type.TOptional<Type.TString>;
 }>;
-choose: Type.TObject<{
-option: Type.TUnion<[Type.TLiteral<"A">, Type.TLiteral<"B">]>;
-reason: Type.TOptional<Type.TString>;
-}>;
+viewTable: Type.TObject<{}>;
 }>;
 
 // @public
