@@ -4,6 +4,426 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { ToolCtxOf } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
+
+// @public
+export type HoldemCtx = CtxOf<typeof holdemHead>;
+
+// @public
+export const holdemHead: MechanicHead<"holdem", Type.TObject<{
+games: Type.TInteger;
+hands: Type.TInteger;
+smallBlind: Type.TInteger;
+bigBlind: Type.TInteger;
+smallBet: Type.TInteger;
+bigBet: Type.TInteger;
+cap: Type.TInteger;
+duplicate: Type.TBoolean;
+deadline: Type.TInteger;
+equitySamples: Type.TInteger;
+showBest: Type.TBoolean;
+aid: Type.TBoolean;
+aidSeats: Type.TOptional<Type.TArray<Type.TString>>;
+}>, Type.TObject<{
+seats: Type.TArray<Type.TString>;
+game: Type.TInteger;
+hand: Type.TOptional<Type.TObject<{
+number: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+button: Type.TInteger;
+holes: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+runout: Type.TArray<Type.TString>;
+board: Type.TArray<Type.TString>;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+folded: Type.TArray<Type.TString>;
+invested: Type.TRecord<"^.*$", Type.TNumber>;
+streetIn: Type.TRecord<"^.*$", Type.TNumber>;
+bet: Type.TNumber;
+bets: Type.TInteger;
+acted: Type.TArray<Type.TString>;
+toAct: Type.TString;
+log: Type.TArray<Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"action">;
+seat: Type.TString;
+done: Type.TUnion<[Type.TLiteral<"small blind">, Type.TLiteral<"big blind">, Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+to: Type.TNumber;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+missed: Type.TOptional<Type.TBoolean>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"board">;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+cards: Type.TArray<Type.TString>;
+}>]>>;
+over: Type.TBoolean;
+}>>;
+opened: Type.TInteger;
+briefed: Type.TArray<Type.TString>;
+seenHand: Type.TRecord<"^.*$", Type.TInteger>;
+seenLog: Type.TRecord<"^.*$", Type.TInteger>;
+seenResults: Type.TRecord<"^.*$", Type.TInteger>;
+told: Type.TBoolean;
+results: Type.TArray<Type.TObject<{
+hand: Type.TInteger;
+button: Type.TString;
+pot: Type.TNumber;
+board: Type.TArray<Type.TString>;
+shown: Type.TArray<Type.TObject<{
+seat: Type.TString;
+cards: Type.TArray<Type.TString>;
+best: Type.TString;
+}>>;
+winners: Type.TArray<Type.TString>;
+net: Type.TRecord<"^.*$", Type.TNumber>;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+showdown: Type.TBoolean;
+}>>;
+decisions: Type.TArray<Type.TObject<{
+game: Type.TInteger;
+hand: Type.TInteger;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+resident: Type.TString;
+done: Type.TUnion<[Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+toCall: Type.TNumber;
+pot: Type.TNumber;
+opponents: Type.TInteger;
+equity: Type.TNumber;
+rangeEquity: Type.TNumber;
+potOdds: Type.TNumber;
+baseline: Type.TUnion<[Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+evLoss: Type.TNumber;
+missed: Type.TBoolean;
+}>>;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+gameScores: Type.TRecord<"^.*$", Type.TNumber>;
+running: Type.TBoolean;
+finished: Type.TBoolean;
+held: Type.TBoolean;
+due: Type.TBoolean;
+}>, {
+hand?: {
+number: number;
+seats: string[];
+button: number;
+holes: Record<string, string[]>;
+runout: string[];
+board: string[];
+street: "preflop" | "flop" | "turn" | "river";
+folded: string[];
+invested: Record<string, number>;
+streetIn: Record<string, number>;
+bet: number;
+bets: number;
+acted: string[];
+toAct: string;
+log: ({
+missed?: boolean;
+street: "preflop" | "flop" | "turn" | "river";
+kind: "action";
+seat: string;
+done: "bet" | "small blind" | "big blind" | "fold" | "check" | "call" | "raise";
+to: number;
+} | {
+street: "preflop" | "flop" | "turn" | "river";
+kind: "board";
+cards: string[];
+})[];
+over: boolean;
+};
+seats: string[];
+game: number;
+opened: number;
+briefed: string[];
+seenHand: Record<string, number>;
+seenLog: Record<string, number>;
+seenResults: Record<string, number>;
+told: boolean;
+results: {
+hand: number;
+button: string;
+board: string[];
+street: "preflop" | "flop" | "turn" | "river";
+pot: number;
+shown: {
+seat: string;
+cards: string[];
+best: string;
+}[];
+winners: string[];
+net: Record<string, number>;
+showdown: boolean;
+}[];
+decisions: {
+game: number;
+hand: number;
+street: "preflop" | "flop" | "turn" | "river";
+done: "bet" | "fold" | "check" | "call" | "raise";
+missed: boolean;
+pot: number;
+resident: string;
+toCall: number;
+opponents: number;
+equity: number;
+rangeEquity: number;
+potOdds: number;
+baseline: "bet" | "fold" | "check" | "call" | "raise";
+evLoss: number;
+}[];
+scores: Record<string, number>;
+gameScores: Record<string, number>;
+running: boolean;
+finished: boolean;
+held: boolean;
+due: boolean;
+}, {
+game_started: Type.TObject<{
+game: Type.TInteger;
+hands: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+}>;
+hand_started: Type.TObject<{
+game: Type.TInteger;
+hand: Type.TInteger;
+button: Type.TString;
+seats: Type.TArray<Type.TString>;
+}>;
+cards_dealt: Type.TObject<{
+game: Type.TInteger;
+hand: Type.TInteger;
+holes: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+runout: Type.TArray<Type.TString>;
+}>;
+action_taken: Type.TObject<{
+game: Type.TInteger;
+hand: Type.TInteger;
+seat: Type.TString;
+done: Type.TUnion<[Type.TLiteral<"small blind">, Type.TLiteral<"big blind">, Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+to: Type.TNumber;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+pot: Type.TNumber;
+missed: Type.TOptional<Type.TBoolean>;
+}>;
+board_dealt: Type.TObject<{
+game: Type.TInteger;
+hand: Type.TInteger;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+cards: Type.TArray<Type.TString>;
+}>;
+decision_scored: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
+game: Type.TInteger;
+hand: Type.TInteger;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+resident: Type.TString;
+done: Type.TUnion<[Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+toCall: Type.TNumber;
+pot: Type.TNumber;
+opponents: Type.TInteger;
+equity: Type.TNumber;
+rangeEquity: Type.TNumber;
+potOdds: Type.TNumber;
+baseline: Type.TUnion<[Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+evLoss: Type.TNumber;
+missed: Type.TBoolean;
+}>;
+hand_ended: Type.TObject<{
+hand: Type.TInteger;
+button: Type.TString;
+pot: Type.TNumber;
+board: Type.TArray<Type.TString>;
+shown: Type.TArray<Type.TObject<{
+seat: Type.TString;
+cards: Type.TArray<Type.TString>;
+best: Type.TString;
+}>>;
+winners: Type.TArray<Type.TString>;
+net: Type.TRecord<"^.*$", Type.TNumber>;
+street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+showdown: Type.TBoolean;
+game: Type.TInteger;
+}>;
+game_ended: Type.TObject<{
+game: Type.TInteger;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+totals: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+game_scored: Type.TObject<{
+game: Type.TInteger;
+stats: Type.TRecord<"^.*$", Type.TObject<{
+net: Type.TNumber;
+hands: Type.TInteger;
+decisions: Type.TInteger;
+vpip: Type.TNumber;
+pfr: Type.TNumber;
+aggression: Type.TNumber;
+showdowns: Type.TInteger;
+showdownsWon: Type.TInteger;
+agreement: Type.TNumber;
+evLoss: Type.TNumber;
+missed: Type.TInteger;
+}>>;
+}>;
+match_ended: Type.TObject<{
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+}, {
+readonly "holdem/tools/viewTable": readonly [];
+readonly "holdem/tools/act": readonly [];
+readonly "holdem/rules": readonly ["seats", "smallBlind", "bigBlind", "smallBet", "bigBet", "cap", "hands"];
+readonly "holdem/game-head": readonly ["game", "games"];
+readonly "holdem/hand-head": readonly ["hand", "hands", "seat", "position", "button", "cards"];
+readonly "holdem/task": readonly ["street", "board", "pot", "toCall", "choices"];
+readonly "holdem/best": readonly ["best"];
+readonly "holdem/aid": readonly ["equity", "need", "share"];
+}, [], readonly [ServiceDefinition<"brain-source", {
+readonly game: {
+readonly kind: "query";
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly hold: {
+readonly kind: "command";
+readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly release: {
+readonly kind: "command";
+readonly summary: "Lets a held game start. A no-op when nothing is held.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+}>], readonly [ServiceDefinition<"strategy-brain", {
+readonly gameStarted: {
+readonly kind: "command";
+readonly summary: "A game started: every resident of a team gets a fresh context with the briefing at the next turn.";
+readonly input: Type.TObject<{
+game: Type.TInteger;
+first: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly briefing: {
+readonly kind: "query";
+readonly summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly gameEnded: {
+readonly kind: "command";
+readonly summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).";
+readonly input: Type.TObject<{
+game: Type.TInteger;
+summary: Type.TString;
+moves: Type.TOptional<Type.TArray<Type.TInteger>>;
+line: Type.TOptional<Type.TArray<Type.TArray<Type.TString>>>;
+review: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+}>;
+readonly output: Type.TNull;
+};
+}>], {
+viewTable: Type.TObject<{}>;
+act: Type.TObject<{
+action: Type.TUnion<[Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+reason: Type.TOptional<Type.TString>;
+}>;
+}>;
+
+// @public
+export const HoldemSlice: Type.TObject<{
+    seats: Type.TArray<Type.TString>;
+    game: Type.TInteger;
+    hand: Type.TOptional<Type.TObject<{
+        number: Type.TInteger;
+        seats: Type.TArray<Type.TString>;
+        button: Type.TInteger;
+        holes: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+        runout: Type.TArray<Type.TString>;
+        board: Type.TArray<Type.TString>;
+        street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+        folded: Type.TArray<Type.TString>;
+        invested: Type.TRecord<"^.*$", Type.TNumber>;
+        streetIn: Type.TRecord<"^.*$", Type.TNumber>;
+        bet: Type.TNumber;
+        bets: Type.TInteger;
+        acted: Type.TArray<Type.TString>;
+        toAct: Type.TString;
+        log: Type.TArray<Type.TUnion<[Type.TObject<{
+            kind: Type.TLiteral<"action">;
+            seat: Type.TString;
+            done: Type.TUnion<[Type.TLiteral<"small blind">, Type.TLiteral<"big blind">, Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+            to: Type.TNumber;
+            street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+            missed: Type.TOptional<Type.TBoolean>;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"board">;
+            street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+            cards: Type.TArray<Type.TString>;
+        }>]>>;
+        over: Type.TBoolean;
+    }>>;
+    opened: Type.TInteger;
+    briefed: Type.TArray<Type.TString>;
+    seenHand: Type.TRecord<"^.*$", Type.TInteger>;
+    seenLog: Type.TRecord<"^.*$", Type.TInteger>;
+    seenResults: Type.TRecord<"^.*$", Type.TInteger>;
+    told: Type.TBoolean;
+    results: Type.TArray<Type.TObject<{
+        hand: Type.TInteger;
+        button: Type.TString;
+        pot: Type.TNumber;
+        board: Type.TArray<Type.TString>;
+        shown: Type.TArray<Type.TObject<{
+            seat: Type.TString;
+            cards: Type.TArray<Type.TString>;
+            best: Type.TString;
+        }>>;
+        winners: Type.TArray<Type.TString>;
+        net: Type.TRecord<"^.*$", Type.TNumber>;
+        street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+        showdown: Type.TBoolean;
+    }>>;
+    decisions: Type.TArray<Type.TObject<{
+        game: Type.TInteger;
+        hand: Type.TInteger;
+        street: Type.TUnion<[Type.TLiteral<"preflop">, Type.TLiteral<"flop">, Type.TLiteral<"turn">, Type.TLiteral<"river">]>;
+        resident: Type.TString;
+        done: Type.TUnion<[Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+        toCall: Type.TNumber;
+        pot: Type.TNumber;
+        opponents: Type.TInteger;
+        equity: Type.TNumber;
+        rangeEquity: Type.TNumber;
+        potOdds: Type.TNumber;
+        baseline: Type.TUnion<[Type.TLiteral<"fold">, Type.TLiteral<"check">, Type.TLiteral<"call">, Type.TLiteral<"bet">, Type.TLiteral<"raise">]>;
+        evLoss: Type.TNumber;
+        missed: Type.TBoolean;
+    }>>;
+    scores: Type.TRecord<"^.*$", Type.TNumber>;
+    gameScores: Type.TRecord<"^.*$", Type.TNumber>;
+    running: Type.TBoolean;
+    finished: Type.TBoolean;
+    held: Type.TBoolean;
+    due: Type.TBoolean;
+}>;
+
+// @public
+export type HoldemState = Static<typeof HoldemSlice>;
+
+// @public
+export type HoldemToolCtx = ToolCtxOf<typeof holdemHead>;
+
+// @public
+export type HoldemView = ViewOf<typeof holdemHead>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
