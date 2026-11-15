@@ -5,7 +5,7 @@ swap from game to game, and A01 (team A) is White in game 1. A move is text: che
 game on mate, stalemate, repetition, the fifty-move rule or insufficient material. A move cap stops long games and
 scores them on material; a seat that does not move gets a seeded legal move played for it, and three such moves lose
 the game. Every game starts from a fresh context, and a seat's only memory is a short private "strategy brain" it
-rewrites before the first game and after each game. The mechanic scores every move against a one-ply material
+rewrites before the first game and after each game but the last. The mechanic scores every move against a one-ply material
 baseline for the report; the seats never see it.
 
 The game is a port of `stories/chess` of the old platform (tag `v0-final`): the prompts, the tool names, the

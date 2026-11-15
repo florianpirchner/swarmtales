@@ -7,7 +7,7 @@ that executes an offer only when both sides hold what it moves; part of each tra
 the end of a later round and can be sold early only on credit (a plain promise kept with `give`, or escrow the bank
 holds for a fee). Trades above a size pay a tax, one good spoils every round, and the deal rotates, so every trader
 plays every position once in four games. Every game starts from a fresh context; a trader's only memory is a short
-private "strategy brain" it rewrites before the first game and after each game. The mechanic scores every game
+private "strategy brain" it rewrites before the first game and after each game but the last. The mechanic scores every game
 against the optimal allocation, for the report only.
 
 The game is a port of `stories/salt-market` of the old platform (tag `v0-final`): the prompts, the tool names, the

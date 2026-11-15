@@ -7,7 +7,7 @@ card face down: loyal seats only safe, a saboteur damage at most once in three s
 is revealed. Once per game a lead may audit one earlier card. Three damaged stages stop the convoy and the saboteurs
 win; otherwise the loyal seats win at the last stage. After the crossing every loyal seat names its two suspects.
 Every game starts from a fresh context with new roles; a seat's only memory is a short private "strategy brain" it
-rewrites before the first game and after each game. The mechanic scores every loyal seat's accusations and votes
+rewrites before the first game and after each game but the last. The mechanic scores every loyal seat's accusations and votes
 against a Bayesian tracker of the public record, for the report only.
 
 The game is a port of `stories/convoy` of the old platform (tag `v0-final`): the prompts, the tool names, the

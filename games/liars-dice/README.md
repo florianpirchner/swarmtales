@@ -4,7 +4,7 @@ Four solo seats (A01-A04) play a match of liar's dice. In each game every seat r
 the seats bid in turn on how many dice of a face the whole table holds, each bid higher than the last, until one
 calls the last bid a lie. The call shows every die and the wrong side loses a die; the last seat with dice wins the
 game. Ones are wild. A bid may carry a short public remark, true or not. Every game starts from a fresh context, and
-a seat's only memory is a short private "strategy brain" it rewrites before the first game and after each game. The
+a seat's only memory is a short private "strategy brain" it rewrites before the first game and after each game but the last. The
 mechanic scores every decision against a simple probability baseline for the report; the seats never see it.
 
 The game is a port of `stories/liars-dice` of the old platform (tag `v0-final`): the prompts, the tool names, the

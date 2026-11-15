@@ -4,7 +4,7 @@ Four solo seats (A01-A04) bid on a series of lots with sealed bids and a purse o
 six lots of three kinds, two each: pay-your-bid and pay-the-runner-up lots with private values, and shared-worth
 lots with one hidden worth and a noisy estimate per seat (the winner's curse). A match is several games; each starts
 from a fresh context, a full purse and fresh lots, and a seat's only memory is a short private "strategy brain" it
-rewrites before the first game and after each game. The mechanic scores each game against closed-form single-lot
+rewrites before the first game and after each game but the last. The mechanic scores each game against closed-form single-lot
 references (equilibrium shading, truthful bidding, the curse-free ceiling) for the report; the seats never see it.
 
 The game is a port of `stories/blind-bid` of the old platform (tag `v0-final`): the prompts, the tool names, the
