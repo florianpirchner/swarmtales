@@ -33,6 +33,7 @@
 		"typebox": "1.3.27"
 	},
 	"devDependencies": {
+		"@swarmtales/engine": "workspace:*",
 		"@swarmtales/testkit": "workspace:*"
 	}
 }

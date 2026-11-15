@@ -21,8 +21,13 @@ swt run games/whispers/game.ts --fake
 | `src/story.ts` | the old story data (carried), as `whispersData(receipts)` |
 | `src/story/define.ts`, `src/story/motives.ts` | the helpers of the old story builder and the City's core motives (carried) |
 | `src/compose.ts` | the compose step: the mechanics of the cluster and their options, read from the story and the dials |
-| `test/carried.test.ts` | the story data against `oracles/whispers/setup/*.story.json`, the model blocks |
+| `prompts/receipts/tools/showReceipt.md` | the description of `showReceipt` as Whispers showed it: a DM receipt quotes the DM (J68) |
+| `test/carried.test.ts`, `test/prompt-pins.json` | the story data against `oracles/whispers/setup/*.story.json`, the model blocks, and every prompt file of the game's mechanics, Directors, the library and the game pinned to the sha256 of its old body, with the map of old to new ids |
 | `test/oracle.test.ts`, `test/support.ts` | `whispers-s7`, `-s11` and `-rumours-s7` at level 3, after the registered changes of `oracles/whispers/README.md` |
+| `test/holdout.test.ts` | `whispers-holdout-s7` at level 3 up to the call of the trial, and the trial to its strike by projection |
+| `test/fake.test.ts`, `test/fake.ts` | the fake run of 45 minutes, the gamemaker's look included, with every reachable tool; the drivers of a fake run |
+| `test/standing.test.ts` | replay and resume from every boundary, on fake runs with the Directors acting |
+| `test/story.test.ts` | the old story test (`test/stories/whispers.test.ts` of `legacy`) where it tests the game: one scripted run of all seven doors and the final vote, the control run and the rumours |
 
 ## Params
 

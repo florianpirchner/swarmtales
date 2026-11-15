@@ -42,7 +42,7 @@ mechanics, Directors and params of each game's default build. Family and proof c
 | [Salt Market](#salt-market) | markets, bids and economics | 4 | `salt-market`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `spoil`, `maxWords`, `markOwnOffers` | four oracle files match at level 3 |
 | [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `sealed-auction`, `strategy-brain` | none | a game family: `games`, `lots`, `purse`, `brain`, `maxWords`, `quietEnds` | five oracle files match at level 3 |
 | [Ember Tricks](#ember-tricks) | markets, bids and economics | 4 | `card-table`, `trick-play`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `lever`, `maxWords`, `quietEnds` | four oracle files match at level 3 |
-| [Whispers](#whispers) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `receipts`, `whispers`, `motives`, `puzzles`, `progression`, `cast`, `standoff`, `exile`, `standoff-tribunal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `guard`, `judge` | a game family: `receipts`, `agents`, `minutes`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `gamemaker`, `classifier`, `names`, `coreMotives`, `whisperer`, `guards`, `figureDirection`, `gmDirection` | three of the four oracle files match at level 3 (the holdout file follows in M5-39); replay and resume give the same log |
+| [Whispers](#whispers) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `receipts`, `whispers`, `motives`, `puzzles`, `progression`, `cast`, `standoff`, `exile`, `standoff-tribunal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `guard`, `judge` | a game family: `receipts`, `agents`, `minutes`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `gamemaker`, `classifier`, `names`, `coreMotives`, `whisperer`, `guards`, `figureDirection`, `gmDirection` | three of the four oracle files match at level 3, the holdout file up to its trial and the trial by projection; a fake run reaches every reachable tool; replay and resume give the same log |
 
 <!-- /generated:overview -->
 
@@ -298,8 +298,11 @@ the whisperer can forge one. A gamemaker looks after every round and may put a r
 - Params of the game family: `receipts` (false: the variant `whispers-rumours`, word against word), `minutes`,
   `lastLevel`, the pacing (`passesPerMinute`, `activation`) and the dials of the old story (`gamemaker`,
   `classifier`, `names`, `coreMotives`, `whisperer`, `guards`, `figureDirection`, `gmDirection`).
-- Proof: three of the four oracle files match at level 3, after the registered changes of their README; the story
-  data is byte-identical to the old story files.
+- Proof: three of the four oracle files match at level 3, after the registered changes of their README; the
+  holdout file matches at level 3 up to the gamemaker's call of the trial, and the trial to its lot and strike by a
+  projection at level 1, one tick later from the call. A fake run of 45 minutes, the gamemaker's look included,
+  accepts a call of every tool it can reach; a scripted run of the old story test plays all seven doors and the final
+  vote. The story data is byte-identical to the old story files, and every prompt body to its old file.
 - Links: [folder](games/whispers/), [README](games/whispers/README.md), [oracle files](oracles/whispers/).
 
 ## The games of the old platform

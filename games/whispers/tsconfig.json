@@ -74,6 +74,9 @@
 			"path": "../../packages/prompts"
 		},
 		{
+			"path": "../../packages/engine"
+		},
+		{
 			"path": "../../packages/testkit"
 		}
 	]

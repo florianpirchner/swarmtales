@@ -1,0 +1,1276 @@
+{
+	"mechanics/ledger/prompts/ledger/replies/transfer-ok.md": {
+		"legacy": "library/prompts/replies/transfer-ok.md",
+		"sha256": "cf9329c6d436ae41e9dc8f2abb6851c28dc4a7cbb86c964a8d2f6ded4a865ad5"
+	},
+	"mechanics/ledger/prompts/ledger/status/points.md": {
+		"legacy": "mechanics/ledger/prompts/competitor/status/points.md",
+		"sha256": "ee5ec8bc2b2a979bb0034ab1aa12f40f8c36f1800e557011d07a7645231a8571"
+	},
+	"mechanics/ledger/prompts/ledger/tools/transferPoints.md": {
+		"legacy": "library/prompts/tools/transferPoints.md",
+		"sha256": "8deb0cde1bf8a6354f0f905385cbcce81a007c9db99555b5fb6a2ddafe1186ad",
+		"erratum": "G11",
+		"undo": [
+			[
+				"another resident",
+				"another competitor"
+			]
+		]
+	},
+	"mechanics/marks/prompts/marks/status/marks.md": {
+		"legacy": "library/prompts/competitor/status/marks.md",
+		"sha256": "8a852b482bebdfec5e196f51cd205c807d4faf68a93fc55cab232efb74983c72"
+	},
+	"mechanics/marks/prompts/marks/task/marks-level-refill.md": {
+		"legacy": "mechanics/marks/prompts/task/marks-level-refill.md",
+		"sha256": "440fb188b6352a4a9d11f5062b73f9d19d66e4af1acd40223a059d44e06d649d"
+	},
+	"mechanics/marks/prompts/marks/task/marks-level.md": {
+		"legacy": "mechanics/marks/prompts/task/marks-level.md",
+		"sha256": "ae3f3bac001c9a02674df9027fec123c73a2b6b5c6f06e9cdd41bb1f201edf42"
+	},
+	"mechanics/marks/prompts/marks/task/marks-run.md": {
+		"legacy": "mechanics/marks/prompts/task/marks-run.md",
+		"sha256": "5669890c593c9d51ee0ee8683a6055ea58469597dfddb46b623fdab822c5070a"
+	},
+	"mechanics/names/prompts/names/notices/name-announced.md": {
+		"legacy": "mechanics/names/prompts/notices/name-announced.md",
+		"sha256": "482b00ae23363c2676e6a7d452d6600306f6d414a66cc1bfdea275891e60637b"
+	},
+	"mechanics/names/prompts/names/notices/name-fallback.md": {
+		"legacy": "mechanics/names/prompts/notices/name-fallback.md",
+		"sha256": "4889185bb00bf7caa8ff4ffae76da5b0bd3a7fbf2fcc077549e1f050087590ab"
+	},
+	"mechanics/names/prompts/names/replies/locked.md": {
+		"legacy": "library/prompts/replies/locked.md",
+		"sha256": "b9b8b964507f9e2329c5a7dc9120d9865022f1462e04e3cd08b7f7636bb92f00"
+	},
+	"mechanics/names/prompts/names/replies/name-chosen.md": {
+		"legacy": "library/prompts/replies/name-chosen.md",
+		"sha256": "1a9f3c0a1b2835325a30b76cb4aa34958b7d65fed0c4ce15585608164592fe96"
+	},
+	"mechanics/names/prompts/names/status/you-are.md": {
+		"legacy": "library/prompts/competitor/status/you-are.md",
+		"sha256": "ec102039bb4a99f9668cfec50cd937fdd36f8286c36df85483cc30928023cc94"
+	},
+	"mechanics/names/prompts/names/tools/chooseName.md": {
+		"legacy": "library/prompts/tools/chooseName.md",
+		"sha256": "c8af77603b954cd85a5f888386fc2f74919917d5e83471dcd532dbc70e8aca06"
+	},
+	"mechanics/channels/prompts/channels/input/dm.md": {
+		"legacy": "library/prompts/competitor/input/dm-numbered.md",
+		"sha256": "1a01360a9100db6ab996a63c279418943b63719b96dd24456dffdefa8c6add81"
+	},
+	"mechanics/channels/prompts/channels/input/notice-numbered.md": {
+		"legacy": "library/prompts/competitor/input/notice-numbered.md",
+		"sha256": "429e53aeb0ba862391100730065992c08a14f77f831a5b2a24b2323650671255"
+	},
+	"mechanics/channels/prompts/channels/input/notice.md": {
+		"legacy": "library/prompts/competitor/input/notice.md",
+		"sha256": "3cad3f38cc9aa9751535e993f9af0de4ed9074f935f8120a413f5d1970f5ad82"
+	},
+	"mechanics/channels/prompts/channels/input/unread-nothing.md": {
+		"legacy": "library/prompts/competitor/input/unread-nothing.md",
+		"sha256": "772006a5bebe467ea19d3a956564a61061f6e072a06035484094f52344178870"
+	},
+	"mechanics/channels/prompts/channels/input/unread.md": {
+		"legacy": "library/prompts/competitor/input/unread.md",
+		"sha256": "f931c741b6ba86f546753dc52785d4209db005ddaf824aad69c51dcd679d3111"
+	},
+	"mechanics/channels/prompts/channels/notes/budget-notes.md": {
+		"legacy": "library/prompts/gamemaker/replies/budget-notes.md",
+		"sha256": "4da840dfadf677a69a9e167e0b83c2e581962e181e2a54f39a2d64b7c875e10d"
+	},
+	"mechanics/channels/prompts/channels/notes/budget-posts.md": {
+		"legacy": "library/prompts/gamemaker/replies/budget-posts.md",
+		"sha256": "c0e24ab3bb00bc1d5ff097f6266e4e7aa5a49439824b7531a00d792ec716fb77"
+	},
+	"mechanics/channels/prompts/channels/notes/delivered.md": {
+		"legacy": "library/prompts/gamemaker/replies/delivered.md",
+		"sha256": "2cdfe3ac8e9d86155095a5273a6cb61673c809b8fd6e1710d0ec87472777c2ed"
+	},
+	"mechanics/channels/prompts/channels/notes/exiled.md": {
+		"legacy": "library/prompts/gamemaker/replies/exiled.md",
+		"sha256": "cb536f3d312e0e394f2403c627b5c0966733e1232df6aa526ba5722eab748e41"
+	},
+	"mechanics/channels/prompts/channels/notes/invalid-text.md": {
+		"legacy": "library/prompts/gamemaker/replies/invalid-text.md",
+		"sha256": "bb779ab88b4efc8dd79741d8e16e7857bceee27958259f2f0622b69196e262ea"
+	},
+	"mechanics/channels/prompts/channels/notes/posted.md": {
+		"legacy": "library/prompts/gamemaker/replies/posted.md",
+		"sha256": "f85e34033834c6a1a109a17977950b281a1578a12db4ee4c0203458c4d898302"
+	},
+	"mechanics/channels/prompts/channels/notes/repeated.md": {
+		"legacy": "library/prompts/gamemaker/replies/repeated.md",
+		"sha256": "62b94d05e632613e6a0ab99a875ba8f424c0d497f82c3173028931b551d29883"
+	},
+	"mechanics/channels/prompts/channels/notices/city-group-added.md": {
+		"legacy": "mechanics/channels/prompts/channels/city-group-added.md",
+		"sha256": "a153385f5bf57bcd0d3737912517f921791f4c0d6e22f6c6202016515a1a24a5"
+	},
+	"mechanics/channels/prompts/channels/notices/dm-delivered-receipt.md": {
+		"legacy": "mechanics/channels/prompts/channels/dm-delivered.md",
+		"sha256": "006249783bed5fa25d2a6c2c390e43e168eef04ef445b58abc1876f166cb3171"
+	},
+	"mechanics/channels/prompts/channels/notices/dm-delivered.md": {
+		"legacy": "mechanics/channels/prompts/channels/dm-delivered-plain.md",
+		"sha256": "5fe00a715854b5c424970c35801490fc77f50a00b6edc9afe35d8ea668cb0ed0"
+	},
+	"mechanics/channels/prompts/channels/notices/group-added.md": {
+		"legacy": "mechanics/channels/prompts/channels/group-added.md",
+		"sha256": "93120fea1b726a200fbc46b5522d8af06f245f7b92c86dd223e2681cb89e798b"
+	},
+	"mechanics/channels/prompts/channels/replies/board-hidden.md": {
+		"legacy": "library/prompts/replies/board-hidden.md",
+		"sha256": "f6a9abdd133e966d483e472e3ce8468cb13b44daeb968b5cfcd991cf901c6215"
+	},
+	"mechanics/channels/prompts/channels/replies/board-none.md": {
+		"legacy": "library/prompts/replies/board-none.md",
+		"sha256": "51ec841f88083a9f0a14665f378a7e7a54167e7be7d7c58e065c253ca6f72805"
+	},
+	"mechanics/channels/prompts/channels/replies/board-posted.md": {
+		"legacy": "library/prompts/replies/board-posted.md",
+		"sha256": "7bff8acac869c662d4d1aa0fe368d94d99521ac4aa7fae2da85c84f597e36be8"
+	},
+	"mechanics/channels/prompts/channels/replies/defy-recorded.md": {
+		"legacy": "library/prompts/replies/defy-recorded.md",
+		"sha256": "a532478a2d7d994240633d218644e00070167615d55cd0219806f1b015f34fca"
+	},
+	"mechanics/channels/prompts/channels/replies/dm-sent.md": {
+		"legacy": "library/prompts/replies/dm-sent.md",
+		"sha256": "a74b8971f613370b7e0532010405548ecb402fba5b880845de67dad656e7a89d"
+	},
+	"mechanics/channels/prompts/channels/replies/group-created.md": {
+		"legacy": "library/prompts/replies/group-created.md",
+		"sha256": "385b76a81d1f45c7f2828994b401f90ab7484c0eb3024e4ff6b07061eb15c5ac"
+	},
+	"mechanics/channels/prompts/channels/replies/group-older.md": {
+		"legacy": "library/prompts/replies/group-older.md",
+		"sha256": "75758c23c0be9c77a2f980df57c209bfc45736767db1146091198499c92ce178"
+	},
+	"mechanics/channels/prompts/channels/replies/group-posted.md": {
+		"legacy": "library/prompts/replies/group-posted.md",
+		"sha256": "a583bdd45eb3b70f2e1ffde23367d5dfbc13f39a97603dfd15c5f70734f88425"
+	},
+	"mechanics/channels/prompts/channels/replies/groups-none.md": {
+		"legacy": "library/prompts/replies/groups-none.md",
+		"sha256": "4c6577e5c87f1859cce798a7f31fc1ee05d9d45a93fe697e3bc128d1a6f757c5"
+	},
+	"mechanics/channels/prompts/channels/replies/locked.md": {
+		"legacy": "library/prompts/replies/locked.md",
+		"sha256": "b9b8b964507f9e2329c5a7dc9120d9865022f1462e04e3cd08b7f7636bb92f00"
+	},
+	"mechanics/channels/prompts/channels/replies/marks-left.md": {
+		"legacy": "library/prompts/replies/marks-left.md",
+		"sha256": "c0293e13c206be1b54912a2440f435f42a700c906a9720deb4aa9aa4fb6aac8f"
+	},
+	"mechanics/channels/prompts/channels/status/dm-window.md": {
+		"legacy": "library/prompts/competitor/status/dm-window.md",
+		"sha256": "6d04f513adc057f8807dd393790219d6890b1071a869e76c30999dcd8b31abca"
+	},
+	"mechanics/channels/prompts/channels/tools/addGroupMember.md": {
+		"legacy": "library/prompts/tools/addGroupMember.md",
+		"sha256": "45e259ce75633225abd4eefefc8bcddf07fcf2b8e803f0b497c9753a89fd8df2"
+	},
+	"mechanics/channels/prompts/channels/tools/boardNote.md": {
+		"legacy": "library/prompts/gamemaker/tools/postBoard.md",
+		"sha256": "9da3031532bd18f25dbde96a47a1975daf3ed967c9474e726f3cd5bede703c65"
+	},
+	"mechanics/channels/prompts/channels/tools/createGroup.md": {
+		"legacy": "library/prompts/tools/createGroup.md",
+		"sha256": "119a4a3a17fac741fc898821a35522eea8d94f75038e74a9232b0f7ad56509b7"
+	},
+	"mechanics/channels/prompts/channels/tools/defy.md": {
+		"legacy": "library/prompts/tools/defy.md",
+		"sha256": "3e3c88669003dd8fee2ef6271e005cb2af35446ec3312623d3bb8ab09c5b5d03",
+		"erratum": "J68",
+		"undo": [
+			[
+				"(20-600 characters)",
+				"({{min}}-{{max}} characters)"
+			]
+		]
+	},
+	"mechanics/channels/prompts/channels/tools/depositGroup.md": {
+		"legacy": "library/prompts/tools/depositGroup.md",
+		"sha256": "66c9cc3b66e5bb80ee32e0e0842b53d77f085df15334608afb77b22e90ab39cb"
+	},
+	"mechanics/channels/prompts/channels/tools/leaveGroup.md": {
+		"legacy": "library/prompts/tools/leaveGroup.md",
+		"sha256": "2a6a13f1d74ce9cff47faf5f67614ce6aaea8d63fe874221da139aeafb3da83d"
+	},
+	"mechanics/channels/prompts/channels/tools/listMyGroups.md": {
+		"legacy": "library/prompts/tools/listMyGroups.md",
+		"sha256": "7f350aaa8ccd68ab6a7cf9e1854d7a033bde23930aee83a4c0ad7594600894ea"
+	},
+	"mechanics/channels/prompts/channels/tools/notify.md": {
+		"legacy": "library/prompts/gamemaker/tools/notify.md",
+		"sha256": "7469f453bad081cc81f193f5f27f23d0c91cfeec2266c9a6555d26ed0482df29"
+	},
+	"mechanics/channels/prompts/channels/tools/postBoard.md": {
+		"legacy": "library/prompts/tools/postBoard.md",
+		"sha256": "59fe939d89bdb1f064c2be567ae00b2e75a450d045c0f46e89342762d043a0bf"
+	},
+	"mechanics/channels/prompts/channels/tools/postGroup.md": {
+		"legacy": "library/prompts/tools/postGroup.md",
+		"sha256": "e59bd491d0d98b5351d62cf3c5a0c02b401df24514e05af0b17a359d3507b32e"
+	},
+	"mechanics/channels/prompts/channels/tools/readBoard.md": {
+		"legacy": "library/prompts/tools/readBoard.md",
+		"sha256": "2798c779320d2f544f55862b4e22f0f100af516b0687c4258017eaedbbb1c3f2"
+	},
+	"mechanics/channels/prompts/channels/tools/readGroup.md": {
+		"legacy": "library/prompts/tools/readGroup.md",
+		"sha256": "324fd3e3b3957c56863de060b6b5c74c25f70ee4fd1feef92d168b431a7cdaf3"
+	},
+	"mechanics/channels/prompts/channels/tools/removeGroupMember.md": {
+		"legacy": "library/prompts/tools/removeGroupMember.md",
+		"sha256": "8409ca239cc4f9fef26795b96e3c3e384677698292493056aaf2e16f08d14a84"
+	},
+	"mechanics/channels/prompts/channels/tools/sendDM.md": {
+		"legacy": "library/prompts/tools/sendDM.md",
+		"sha256": "f08490c1d98d140b17163efebae1dffbec6f440b6cc3933a7c95ecf944ee04ac",
+		"erratum": "G11",
+		"undo": [
+			[
+				"another resident",
+				"another competitor"
+			]
+		]
+	},
+	"mechanics/channels/prompts/channels/tools/setTreasurer.md": {
+		"legacy": "library/prompts/tools/setTreasurer.md",
+		"sha256": "ccb386c5bb039d6bf506a1f35b5f6c9ba1b42a118f79d4e451ab7728b770c903"
+	},
+	"mechanics/channels/prompts/channels/tools/withdrawGroup.md": {
+		"legacy": "library/prompts/tools/withdrawGroup.md",
+		"sha256": "435b6032f677cc478acad0eb29eb1d0d04b8c04238bd26aa7389bad66e921d39"
+	},
+	"mechanics/petitions/prompts/petitions/noun-many.md": {
+		"legacy": "mechanics/petitions/prompts/petitions/noun-many.md",
+		"sha256": "06d4e16070e43e455fdd18e3b7b30232008ceb94a7b703f1aa96fd76055e3e69"
+	},
+	"mechanics/petitions/prompts/petitions/noun-one.md": {
+		"legacy": "mechanics/petitions/prompts/petitions/noun-one.md",
+		"sha256": "e5bc2c58bbb0a51702ebe17973eaa4a28668b47457854fb917aa6d2fc45a39bd"
+	},
+	"mechanics/petitions/prompts/petitions/opened.md": {
+		"legacy": "mechanics/petitions/prompts/petitions/opened.md",
+		"sha256": "787e95b3d0ce2c1a3dc3f066d20bb167f169308ee42429065030d56576d90fc9"
+	},
+	"mechanics/petitions/prompts/petitions/replies/petition-secret.md": {
+		"legacy": "library/prompts/replies/petition-secret.md",
+		"sha256": "00afc94f23657a71672e145511e9bc7a4689189d6ca3084125c4bfd9d5308620"
+	},
+	"mechanics/petitions/prompts/petitions/replies/petition-signatures.md": {
+		"legacy": "library/prompts/replies/petition-signatures.md",
+		"sha256": "e30bfca23c4718a5bf342b9c3bf13e224e3cbd1db44695288442ef0a441e4dd4"
+	},
+	"mechanics/petitions/prompts/petitions/replies/petition-signed.md": {
+		"legacy": "library/prompts/replies/petition-signed.md",
+		"sha256": "df3ee721febf4a55eda07a2b1e23ac4633879e2adca7e9a97bc429402beb8c32"
+	},
+	"mechanics/petitions/prompts/petitions/replies/petition-signers.md": {
+		"legacy": "library/prompts/replies/petition-signers.md",
+		"sha256": "77ba14073f0bcc679a4d621ecb789978ccdbace80d217eaf0b39136981f066fe"
+	},
+	"mechanics/petitions/prompts/petitions/replies/petition-you-not-signed.md": {
+		"legacy": "library/prompts/replies/petition-you-not-signed.md",
+		"sha256": "a295fbbef0284b1be1d7333f54a3a4e2545a75f774b40b357d972302b7ce26ac"
+	},
+	"mechanics/petitions/prompts/petitions/replies/petition-you-signed.md": {
+		"legacy": "library/prompts/replies/petition-you-signed.md",
+		"sha256": "e9b6de9f9cac0369932e8f83b3ce2ac8bb68ef9e85e2167790d81dd6c2a786eb"
+	},
+	"mechanics/petitions/prompts/petitions/replies/petitions-none.md": {
+		"legacy": "library/prompts/replies/petitions-none.md",
+		"sha256": "3621592de4cbac5061e52bd7e683376979bdd7204d1f626f1b338a14fb27685d"
+	},
+	"mechanics/petitions/prompts/petitions/resolved.md": {
+		"legacy": "mechanics/petitions/prompts/petitions/resolved.md",
+		"sha256": "183c8b364cac9b886d3594501eb12d8bbc97802bdfc20d4efc34bb81a72456f4"
+	},
+	"mechanics/petitions/prompts/petitions/signed-by.md": {
+		"legacy": "mechanics/petitions/prompts/petitions/signed-by.md",
+		"sha256": "b2edd4bac80ceae519156c185e092c9a63a82793658ea4613d98b33d4a1b451e"
+	},
+	"mechanics/petitions/prompts/petitions/tools/listPetitions.md": {
+		"legacy": "library/prompts/tools/listPetitions.md",
+		"sha256": "3aa8392e3e1f3701cee33f92cdc2d994a00e30e50532b154f2d1c553c814720e"
+	},
+	"mechanics/petitions/prompts/petitions/tools/resolvePetition.md": {
+		"legacy": "mechanics/petitions/prompts/tools/resolvePetition.md",
+		"sha256": "87afc359da77e81aab12f38f8adc9c2cde18416fea96dfc9eb96d26aca1d766a"
+	},
+	"mechanics/petitions/prompts/petitions/tools/signPetition.md": {
+		"legacy": "library/prompts/tools/signPetition.md",
+		"sha256": "746fd46c0410a4173d28db6f61799ef962914056584da45eedc4a546d8d27b49"
+	},
+	"mechanics/petitions/prompts/petitions/visibility-public.md": {
+		"legacy": "mechanics/petitions/prompts/petitions/visibility-public.md",
+		"sha256": "cde1925e8f892f5ddaadebfecbdd060398f5d76d3d19224f60d08343d3bbde20"
+	},
+	"mechanics/petitions/prompts/petitions/visibility-secret.md": {
+		"legacy": "mechanics/petitions/prompts/petitions/visibility-secret.md",
+		"sha256": "06908fc14e511c416d50b0a9a5022f0d4272ff1227817542d87a805927cd96d3"
+	},
+	"mechanics/receipts/prompts/receipts/notices/blame-next.md": {
+		"legacy": "mechanics/receipts/prompts/notices/blame-next.md",
+		"sha256": "0e0bfe313b1616312def82f529229fddd7c5285f082395f44302b13e720c3971"
+	},
+	"mechanics/receipts/prompts/receipts/notices/blame-upheld.md": {
+		"legacy": "mechanics/receipts/prompts/notices/blame-upheld.md",
+		"sha256": "41b81e0064478f90a8167fd23d15efee7442cff74c24a0421eeaa727bce5828a"
+	},
+	"mechanics/receipts/prompts/receipts/notices/blame-wrong.md": {
+		"legacy": "mechanics/receipts/prompts/notices/blame-wrong.md",
+		"sha256": "fbc1d03c8445d44fed664062441920664bb663c4f2e018704d40b52ba3e6d74d"
+	},
+	"mechanics/receipts/prompts/receipts/notices/receipt-shown.md": {
+		"legacy": "mechanics/receipts/prompts/notices/receipt-shown.md",
+		"sha256": "a332a76427eaacf786bf49853299900c79fb05782bd03403bd5b3bf7035a8eab"
+	},
+	"mechanics/receipts/prompts/receipts/records/blame-false.md": {
+		"legacy": "mechanics/receipts/prompts/records/blame-false.md",
+		"sha256": "4c4fd60f200872605406f372163790cbaf2cd5d79999fee81649b47e74033188"
+	},
+	"mechanics/receipts/prompts/receipts/records/blame-judge.md": {
+		"legacy": "mechanics/receipts/prompts/records/blame-judge.md",
+		"sha256": "82a083b80fdc77003933417f9af23510df91f2c754de6cffa2c8588b8e92866d"
+	},
+	"mechanics/receipts/prompts/receipts/records/blame-liar.md": {
+		"legacy": "mechanics/receipts/prompts/records/blame-liar.md",
+		"sha256": "5cd9051875c02bdf430a26cf337b81a8b3ae4e2e808964ece45fc2e21301ad0f"
+	},
+	"mechanics/receipts/prompts/receipts/records/receipt-verified.md": {
+		"legacy": "mechanics/receipts/prompts/records/receipt-verified.md",
+		"sha256": "5b67e7a8f130dc911b428cf8e7982b6d9fc8ddf74351748784bc5f37a3e42c2f"
+	},
+	"mechanics/receipts/prompts/receipts/replies/blame-rejected.md": {
+		"legacy": "library/prompts/replies/blame-rejected.md",
+		"sha256": "483ac16e677b13fe59837cca7ef15dd33841f8f54d81139c11c1cd9169c6e398"
+	},
+	"mechanics/receipts/prompts/receipts/replies/blame-upheld.md": {
+		"legacy": "library/prompts/replies/blame-upheld.md",
+		"sha256": "a61b1e1dfe86844717d0a005639267565bbbe50455e7804b136e59e5e86a879d"
+	},
+	"mechanics/receipts/prompts/receipts/replies/judge-absent.md": {
+		"legacy": "library/prompts/replies/judge-absent.md",
+		"sha256": "e53f59b2d55e8079a48300bfec56ce6d119c9961b9d3db8827889f0da2ef1ef7"
+	},
+	"mechanics/receipts/prompts/receipts/replies/judge-failed.md": {
+		"legacy": "library/prompts/replies/judge-failed.md",
+		"sha256": "ceb3c34d1ffc8527352dc1e01dce588dd68eea68a7576346f4146f3b48f86921"
+	},
+	"mechanics/receipts/prompts/receipts/replies/marks-left.md": {
+		"legacy": "library/prompts/replies/marks-left.md",
+		"sha256": "c0293e13c206be1b54912a2440f435f42a700c906a9720deb4aa9aa4fb6aac8f"
+	},
+	"mechanics/receipts/prompts/receipts/replies/receipt-fragment.md": {
+		"legacy": "library/prompts/replies/receipt-fragment.md",
+		"sha256": "c50e7728bf4f8cf941f482e4b6d86bbcd63417ad135d2f63f85c0663f341d3a3"
+	},
+	"mechanics/receipts/prompts/receipts/replies/shown-board.md": {
+		"legacy": "library/prompts/replies/receipt-shown-board.md",
+		"sha256": "35188dfa5eaa86e23cbd6e4731489fb92b9d3ad38cf0184632e907e1b4e78566"
+	},
+	"mechanics/receipts/prompts/receipts/replies/shown-private.md": {
+		"legacy": "library/prompts/replies/receipt-shown-private.md",
+		"sha256": "74c494b46311fe3cb1c15bf283ce8851baa9b25b5e9af2133839f52e0132e38c"
+	},
+	"mechanics/receipts/prompts/receipts/status/receipt-one.md": {
+		"legacy": "mechanics/receipts/prompts/competitor/status/receipt-one.md",
+		"sha256": "b9e6287845b34fed306b2e1142825618c5317b2d01b0f3525d593082f59c5852"
+	},
+	"mechanics/receipts/prompts/receipts/status/receipts-many.md": {
+		"legacy": "mechanics/receipts/prompts/competitor/status/receipts-many.md",
+		"sha256": "4ad6f7d3ee43aa5cd23f6136e73f6dbd85f194ec0a43bfdb13aa1e7e375e7245"
+	},
+	"mechanics/receipts/prompts/receipts/tools/blame.md": {
+		"legacy": "library/prompts/tools/blame.md",
+		"sha256": "3ee88d475e0deec33d12f855e90a5d811a0e154cca5248f7c85e384d1a041301"
+	},
+	"mechanics/receipts/prompts/receipts/tools/showReceipt.md": {
+		"legacy": "library/prompts/tools/showReceipt.md",
+		"sha256": "5b83c7f3f7bb5c5cab2fc5f0685d6e2cbc03a5fc90fdba787cfd9dbfa885eaa0",
+		"erratum": "J68",
+		"undo": [
+			[
+				"a DM receipt names sender, recipient, DM number and delivery minute, never the text",
+				"{{dmReceipt}}"
+			]
+		]
+	},
+	"mechanics/whispers/prompts/whispers/duty/forgeable-line.md": {
+		"legacy": "mechanics/whispers/prompts/duty/forgeable-line.md",
+		"sha256": "bd8693447d91b87df01a5cac7f8750e79fcc365a0ed2db02ae5427c3ce3a6f37"
+	},
+	"mechanics/whispers/prompts/whispers/duty/forgeable-none-yet.md": {
+		"legacy": "mechanics/whispers/prompts/duty/forgeable-none-yet.md",
+		"sha256": "5a43144e69a52b25b73c570e1983cbc7b8c5bfa54b560712c31c2dfa544f4a3e"
+	},
+	"mechanics/whispers/prompts/whispers/duty/forgeable-none.md": {
+		"legacy": "mechanics/whispers/prompts/duty/forgeable-none.md",
+		"sha256": "fcf33dfbe13c2354bf0e1b063f9fb422747a46cee00b7420bceff2b81457b345"
+	},
+	"mechanics/whispers/prompts/whispers/duty/residents-many.md": {
+		"legacy": "mechanics/whispers/prompts/duty/residents-many.md",
+		"sha256": "7e481f1c010c4c4a655ed93f5a404592be03d1c5f950d9862de801de15f3efe5"
+	},
+	"mechanics/whispers/prompts/whispers/duty/residents-one.md": {
+		"legacy": "mechanics/whispers/prompts/duty/residents-one.md",
+		"sha256": "b583f6e345a773b3b6ac3bd662e11f93a02a2a08023201b7b96a452018a2d9a2"
+	},
+	"mechanics/whispers/prompts/whispers/duty/whispers-many.md": {
+		"legacy": "mechanics/whispers/prompts/duty/whispers-many.md",
+		"sha256": "2cc26ae54e60277fa970d697e94eaa0fc6c6ec3870200dd5b355ba67915146d7"
+	},
+	"mechanics/whispers/prompts/whispers/duty/whispers-one.md": {
+		"legacy": "mechanics/whispers/prompts/duty/whispers-one.md",
+		"sha256": "b37a0b9cf23fc944ff91d7e047d92f989e4b82dee88c817b4287abce361e1efb"
+	},
+	"mechanics/whispers/prompts/whispers/notes/private-role.md": {
+		"legacy": "library/prompts/gamemaker/replies/private-role.md",
+		"sha256": "4e671ca38f339d6a762ac7b68f6dbd8e3bc7e3ddd0339e289eadaf3e303a08f6"
+	},
+	"mechanics/whispers/prompts/whispers/notices/receipt-forged.md": {
+		"legacy": "mechanics/whispers/prompts/notices/receipt-forged.md",
+		"sha256": "a332a76427eaacf786bf49853299900c79fb05782bd03403bd5b3bf7035a8eab"
+	},
+	"mechanics/whispers/prompts/whispers/records/receipt-forged-line.md": {
+		"legacy": "mechanics/whispers/prompts/records/receipt-forged-line.md",
+		"sha256": "caa5d980a78e44b8e37b34cfe0be868c5c3a74e524d2190f9c8b1b6fe6a40739"
+	},
+	"mechanics/whispers/prompts/whispers/replies/ballot-favourite.md": {
+		"legacy": "library/prompts/replies/ballot-favourite.md",
+		"sha256": "13c9511460f0b67b6925afc0200c84aa1a8318e7d96a74d2981732ca3fa4a5da"
+	},
+	"mechanics/whispers/prompts/whispers/replies/locked.md": {
+		"legacy": "library/prompts/replies/locked.md",
+		"sha256": "b9b8b964507f9e2329c5a7dc9120d9865022f1462e04e3cd08b7f7636bb92f00"
+	},
+	"mechanics/whispers/prompts/whispers/replies/marks-left.md": {
+		"legacy": "library/prompts/replies/marks-left.md",
+		"sha256": "c0293e13c206be1b54912a2440f435f42a700c906a9720deb4aa9aa4fb6aac8f"
+	},
+	"mechanics/whispers/prompts/whispers/replies/receipt-shown-private.md": {
+		"legacy": "library/prompts/replies/receipt-shown-private.md",
+		"sha256": "74c494b46311fe3cb1c15bf283ce8851baa9b25b5e9af2133839f52e0132e38c"
+	},
+	"mechanics/whispers/prompts/whispers/status/popularity-named.md": {
+		"legacy": "library/prompts/competitor/status/popularity-named.md",
+		"sha256": "be23ff5030988da5a266e4c3eb03b3472e3262fc6abc4d289ab1e6a73964b01a"
+	},
+	"mechanics/whispers/prompts/whispers/status/popularity-nobody.md": {
+		"legacy": "library/prompts/competitor/status/popularity-nobody.md",
+		"sha256": "755e972d7973cf598c6833f3be1fd3fb377d69299a2cf26143a55424a43b21d4"
+	},
+	"mechanics/whispers/prompts/whispers/status/popularity-vote.md": {
+		"legacy": "library/prompts/competitor/status/popularity-vote.md",
+		"sha256": "f546cb937ebe9b9cef43d4e21c73e831e3d0c205edb60261fca3915aafe35e5d"
+	},
+	"mechanics/whispers/prompts/whispers/tools/forgeReceipt.md": {
+		"legacy": "library/prompts/tools/forgeReceipt.md",
+		"sha256": "4b79d685f66c85a10e01b5518ecc9182d5b2eb8ec2dc1a0202aa492292385207"
+	},
+	"mechanics/whispers/prompts/whispers/tools/nameFavourite.md": {
+		"legacy": "library/prompts/tools/nameFavourite.md",
+		"sha256": "4e9ab356c7bd8a7ea9fd74e3123f5f0fab8944ccdfb7c442e307ecad7d4b91a0"
+	},
+	"mechanics/motives/prompts/motives/notes/private-core-motive.md": {
+		"legacy": "library/prompts/gamemaker/replies/private-core-motive.md",
+		"sha256": "ac0e58e828f7cc5824631b4f791afb6b39b1a38fb0d95a0ec91fc0be06ed4e65"
+	},
+	"mechanics/puzzles/prompts/puzzles/notes/leak-blocked.md": {
+		"legacy": "library/prompts/gamemaker/replies/leak-blocked.md",
+		"sha256": "131f5e42ca9358ad35cf113a4f9233aece57248d1c7d30e93b468c4739eea163"
+	},
+	"mechanics/puzzles/prompts/puzzles/replies/guard-check.md": {
+		"legacy": "library/prompts/replies/guard-check.md",
+		"sha256": "d4ad3ea1a3c377f2cd2a29914bd3242a5ea347f2ba4ec5c325f06651fc13f253"
+	},
+	"mechanics/progression/prompts/progression/cost-free.md": {
+		"legacy": "mechanics/progression/prompts/progression/cost-free.md",
+		"sha256": "7eeb6121526069039598c956a21a2140ab96dab6ef6f35bcc9cbd39882cea3ab"
+	},
+	"mechanics/progression/prompts/progression/cost-marks.md": {
+		"legacy": "mechanics/progression/prompts/progression/cost-marks.md",
+		"sha256": "c62d4b4d7d44a14ade2b4a52785d99d96b375a250a68ed082e2cc1224f776a05"
+	},
+	"mechanics/progression/prompts/progression/cost-one-mark.md": {
+		"legacy": "mechanics/progression/prompts/progression/cost-one-mark.md",
+		"sha256": "519c9a6a923aa7b7a29787c408f41e558e83237408528de9fa46ede6334be018"
+	},
+	"mechanics/progression/prompts/progression/door-closed.md": {
+		"legacy": "mechanics/progression/prompts/progression/door-closed.md",
+		"sha256": "0b899e326e088848ceaf586fb0a7a0a3fdec75d22190e03e9d0ad05236270b62"
+	},
+	"mechanics/progression/prompts/progression/door-open.md": {
+		"legacy": "mechanics/progression/prompts/progression/door-open.md",
+		"sha256": "38fa3c8ce70f662788a755ff3e42514837e20eacf48c16d57d8cdfba4c8e5b4f"
+	},
+	"mechanics/progression/prompts/progression/door-wait.md": {
+		"legacy": "mechanics/progression/prompts/progression/door-wait.md",
+		"sha256": "a1e74409db905f0e41350fcec01f5c5d93c4a267b1696e6e8b7e4d631c0af215"
+	},
+	"mechanics/progression/prompts/progression/holder-notice.md": {
+		"legacy": "mechanics/progression/prompts/progression/holder-notice.md",
+		"sha256": "5bb3b4b244ca2b520ceac4dcb9c4883c7d5a23d10671abc38231c3dfe2add3b5"
+	},
+	"mechanics/progression/prompts/progression/input/notice.md": {
+		"legacy": "library/prompts/competitor/input/notice.md",
+		"sha256": "3cad3f38cc9aa9751535e993f9af0de4ed9074f935f8120a413f5d1970f5ad82"
+	},
+	"mechanics/progression/prompts/progression/needs-certificate.md": {
+		"legacy": "mechanics/progression/prompts/progression/needs-certificate.md",
+		"sha256": "304723087e02338408b9e169549a34d3c7f533193d42f89f7f67a369fc6eb80b"
+	},
+	"mechanics/progression/prompts/progression/needs-counter.md": {
+		"legacy": "mechanics/progression/prompts/progression/needs-counter.md",
+		"sha256": "d765fc5a2735031deccc6549b0c97f28c817f6b0d85395e389a3085b081591ff"
+	},
+	"mechanics/progression/prompts/progression/replies/active-tools.md": {
+		"legacy": "library/prompts/replies/active-tools.md",
+		"sha256": "3ff304796afbe68e57d4ccc333ecfd4916ab50723fe3fe2c5298f260bef2f8a9"
+	},
+	"mechanics/progression/prompts/progression/replies/locked.md": {
+		"legacy": "library/prompts/replies/locked.md",
+		"sha256": "b9b8b964507f9e2329c5a7dc9120d9865022f1462e04e3cd08b7f7636bb92f00"
+	},
+	"mechanics/progression/prompts/progression/replies/problem-finished.md": {
+		"legacy": "library/prompts/replies/problem-finished.md",
+		"sha256": "a885ea31977e1d7340af5efa28da1b83dbdca1fa6ee28c4260039b454b75a4e1"
+	},
+	"mechanics/progression/prompts/progression/replies/problem-solved.md": {
+		"legacy": "library/prompts/replies/problem-solved.md",
+		"sha256": "c7e1fab1a56916d07ab328164d9fc6bdad85802c8e80ca137b01a36d45821237"
+	},
+	"mechanics/progression/prompts/progression/replies/status-all-solved.md": {
+		"legacy": "library/prompts/replies/status-all-solved.md",
+		"sha256": "954465c4715404c86babfce7383b8c9490378751f4d5d744cd409a001b52d297"
+	},
+	"mechanics/progression/prompts/progression/replies/status-dm-window.md": {
+		"legacy": "library/prompts/replies/status-dm-window.md",
+		"sha256": "1ad0bccd765f89fd49a5f358285a716c6a2a8a2f9c4dece49ca8d7fc5ef115b3"
+	},
+	"mechanics/progression/prompts/progression/replies/status-door.md": {
+		"legacy": "library/prompts/replies/status-door.md",
+		"sha256": "416a4fc59770d97b7fae0abe90c78be78b4b5b9e441d47473be80ecfb98daeb3"
+	},
+	"mechanics/progression/prompts/progression/replies/status-passed.md": {
+		"legacy": "library/prompts/replies/status-passed.md",
+		"sha256": "a0cace6cf2731cb72a6fd5d2edf01924b72b5bd7edcbc1b5bcebdd22ca0e8b0f"
+	},
+	"mechanics/progression/prompts/progression/replies/submit-correct-held.md": {
+		"legacy": "library/prompts/replies/submit-correct-held.md",
+		"sha256": "f3605ab0620c9de900bec0d52a19745dbe8578fa7801eb3599c5c24d38000314"
+	},
+	"mechanics/progression/prompts/progression/replies/submit-correct.md": {
+		"legacy": "library/prompts/replies/submit-correct.md",
+		"sha256": "8b3ce173f46b0302fc1f00007ad6de6feff7dbc6e17f3684cb1f4ca36c52b34a"
+	},
+	"mechanics/progression/prompts/progression/replies/submit-door-closed.md": {
+		"legacy": "library/prompts/replies/submit-door-closed.md",
+		"sha256": "a5e7aff8febf1a6d99b2b70d7917cf0bf89d04b511e2f833a363e0d9d488a286"
+	},
+	"mechanics/progression/prompts/progression/replies/submit-incorrect.md": {
+		"legacy": "library/prompts/replies/submit-incorrect.md",
+		"sha256": "7a95fc493d558380e25c82c63f48f74ec07a3b64fb79f8dcc91f59bc11867695"
+	},
+	"mechanics/progression/prompts/progression/replies/submit-invalid-format.md": {
+		"legacy": "library/prompts/replies/submit-invalid-format.md",
+		"sha256": "12dd805a60db13943258badaed48b640fe988aec5880e87c3db3383864638ddd"
+	},
+	"mechanics/progression/prompts/progression/replies/submit-rate-limited.md": {
+		"legacy": "library/prompts/replies/submit-rate-limited.md",
+		"sha256": "8fe79808d14e944a65ba8f054339f6fd271a44a484b032d374c6fc2cbb8dd1f4"
+	},
+	"mechanics/progression/prompts/progression/replies/submit-wrong-level.md": {
+		"legacy": "library/prompts/replies/submit-wrong-level.md",
+		"sha256": "8d391776c01a25ec98145e08fb30e0250ab382cb181cfe6f45e9235735a5a240"
+	},
+	"mechanics/progression/prompts/progression/status/level-closed.md": {
+		"legacy": "library/prompts/competitor/status/level-closed.md",
+		"sha256": "6c33e0365ca609872caad6e071f07f89238b4520fe3bb300e22a515f187dc61b"
+	},
+	"mechanics/progression/prompts/progression/status/level-finished.md": {
+		"legacy": "library/prompts/competitor/status/level-finished.md",
+		"sha256": "e73061f8e4abc3044a246165eb133874d472157f04840e806c96b2d5c99dc5e4"
+	},
+	"mechanics/progression/prompts/progression/status/level-open.md": {
+		"legacy": "library/prompts/competitor/status/level-open.md",
+		"sha256": "2088faea480485b9bc050b6fb1d534f1dc2bc525fa37607705f711893cb05c68"
+	},
+	"mechanics/progression/prompts/progression/status/level-waiting.md": {
+		"legacy": "library/prompts/competitor/status/level-waiting.md",
+		"sha256": "e983d446a2712775da0200ea522db4bc993ba75cc3ce5c984b1e6dc8206e8bc5"
+	},
+	"mechanics/progression/prompts/progression/status/minute.md": {
+		"legacy": "library/prompts/competitor/status/minute.md",
+		"sha256": "8981970ccb0fc9b73b0a50ca4596389ceef482eaaf4d79bd9eec6c23259a6fdf"
+	},
+	"mechanics/progression/prompts/progression/status/no-confirmation-cost.md": {
+		"legacy": "library/prompts/competitor/status/no-confirmation-cost.md",
+		"sha256": "2cd55b8af638a260539644885900eb41b86451e474bade817a7e764506402217"
+	},
+	"mechanics/progression/prompts/progression/status/no-confirmation.md": {
+		"legacy": "library/prompts/competitor/status/no-confirmation.md",
+		"sha256": "45b7e57d8a01327e0ae7e273bc39231abbb6e3c0d3bb8a0d807aca7248d918e4"
+	},
+	"mechanics/progression/prompts/progression/status/rank.md": {
+		"legacy": "library/prompts/competitor/status/rank.md",
+		"sha256": "0cf7002381f183c0f846f2cbdbf17f1eec03165d80ce07b76dd0940b434958f4",
+		"erratum": "J35",
+		"undo": [
+			[
+				"{{residents}}",
+				"{{competitors}}"
+			]
+		]
+	},
+	"mechanics/progression/prompts/progression/tools/activeTools.md": {
+		"legacy": "library/prompts/tools/activeTools.md",
+		"sha256": "48c310559145a6c500df07487081f9ff6452b2225c3c1a2acecc1c676d099eb8"
+	},
+	"mechanics/progression/prompts/progression/tools/getProblem.md": {
+		"legacy": "library/prompts/tools/getProblem.md",
+		"sha256": "a54023d4f2cc2bfbde6a852faabaad326d49331994f8c2221c15f95cda530264"
+	},
+	"mechanics/progression/prompts/progression/tools/getStatus.md": {
+		"legacy": "library/prompts/tools/getStatus.md",
+		"sha256": "77bf2e491a250435155577bc5a7f2e59f004c9fcd5c8240c462da45bd2c916e7"
+	},
+	"mechanics/progression/prompts/progression/tools/listAgents.md": {
+		"legacy": "library/prompts/tools/listAgents.md",
+		"sha256": "0fb5e286d97f048ca702d51bd8513a4105d809f1e0732fecf75cd77b639a1d68"
+	},
+	"mechanics/progression/prompts/progression/tools/submitSolution.md": {
+		"legacy": "library/prompts/tools/submitSolution.md",
+		"sha256": "3f77e81177a311aa9bff2a888ba35145d68fa9970ee96154bf4f369883c2ebb2"
+	},
+	"mechanics/cast/prompts/cast/collection-empty.md": {
+		"legacy": "mechanics/cast/prompts/cast/collection-empty.md",
+		"sha256": "a3c10ca86ad31d526b3c16259df373f60607aa085d255ad36e2bf04e628a96db"
+	},
+	"mechanics/cast/prompts/cast/collection-entry.md": {
+		"legacy": "mechanics/cast/prompts/cast/collection-entry.md",
+		"sha256": "e9720981da147b52c21b8c7e7b041ea22d320ba3a5455255c4f4469a4170673d"
+	},
+	"mechanics/standoff/prompts/standoff/replies/locked.md": {
+		"legacy": "library/prompts/replies/locked.md",
+		"sha256": "b9b8b964507f9e2329c5a7dc9120d9865022f1462e04e3cd08b7f7636bb92f00"
+	},
+	"mechanics/standoff/prompts/standoff/replies/piece-bought.md": {
+		"legacy": "library/prompts/replies/piece-bought.md",
+		"sha256": "41baa1cbd70b0367cc45ae45000fc3afd8288102df71bdf88698898d73ce9da9"
+	},
+	"mechanics/standoff/prompts/standoff/replies/ultimatum-given.md": {
+		"legacy": "library/prompts/gamemaker/replies/ultimatum-given.md",
+		"sha256": "9f83ed2c2e846fc1b5b6e1602ab549f0a65a305f381c8557304a3dfd8d41177f"
+	},
+	"mechanics/standoff/prompts/standoff/status/held-piece.md": {
+		"legacy": "library/prompts/competitor/status/held-piece.md",
+		"sha256": "91e447781e024740c3493e491287f5f114d04e3b7a7af9518ce5ab9ed2491947"
+	},
+	"mechanics/standoff/prompts/standoff/status/held.md": {
+		"legacy": "library/prompts/competitor/status/held.md",
+		"sha256": "07d1a9f89d522753593f86a6f8fd30e3bc77e86ac989bb3dfaec6176dc06f5da"
+	},
+	"mechanics/standoff/prompts/standoff/tools/claimPiece.md": {
+		"legacy": "library/prompts/tools/claimPiece.md",
+		"sha256": "2c200e4bfea72bc0f0be6cc3141170e61fd465853171497215b58d56f95e2857"
+	},
+	"mechanics/standoff/prompts/standoff/tools/ultimatum.md": {
+		"legacy": "library/prompts/gamemaker/tools/ultimatum.md",
+		"sha256": "c7cfac2399173fc7a95898771c42e142cc0d5c0502e762f8b432e993dc1880d1"
+	},
+	"mechanics/standoff/prompts/standoff/will-piece.md": {
+		"legacy": "mechanics/exile/prompts/exile/will-piece.md",
+		"sha256": "37e1265d287835f06690e885f11f85d1240bdcb5700d7e1d31572daa025131ff"
+	},
+	"mechanics/exile/prompts/exile/ransom-toward.md": {
+		"legacy": "mechanics/exile/prompts/exile/ransom-toward.md",
+		"sha256": "50d5d3c4f6db81ccb32b375e2c032cea972e34d53141391a05f11167f93a89d2"
+	},
+	"mechanics/exile/prompts/exile/replies/locked.md": {
+		"legacy": "library/prompts/replies/locked.md",
+		"sha256": "b9b8b964507f9e2329c5a7dc9120d9865022f1462e04e3cd08b7f7636bb92f00"
+	},
+	"mechanics/exile/prompts/exile/replies/ransom-covered.md": {
+		"legacy": "library/prompts/replies/ransom-covered.md",
+		"sha256": "7ea4f5b22f35bb7e30854afde6268b7344fc8e2985c5087e0223b4da675091ac"
+	},
+	"mechanics/exile/prompts/exile/replies/ransom-paid.md": {
+		"legacy": "library/prompts/replies/ransom-paid.md",
+		"sha256": "2736c6410bbc17fade921f09abbc58371d930904d386c1118cce44f4feb437b3"
+	},
+	"mechanics/exile/prompts/exile/replies/will-invalid.md": {
+		"legacy": "library/prompts/replies/will-invalid.md",
+		"sha256": "f3e2d4185d8a1d2206b3de336e7ecdd38f4369fd64f4c2cedb0f62c99a1654a5"
+	},
+	"mechanics/exile/prompts/exile/replies/will-written.md": {
+		"legacy": "library/prompts/replies/will-written.md",
+		"sha256": "4328778248cc5f23216c43af4bbdc318c7b3d9754bdf667f634c0dda560f1e12"
+	},
+	"mechanics/exile/prompts/exile/status-exiled.md": {
+		"legacy": "mechanics/exile/prompts/exile/status-exiled.md",
+		"sha256": "6d6aaf0c1cda278d8958caba9d82d3e38e8a3975b72acc503876f50f008688d7"
+	},
+	"mechanics/exile/prompts/exile/status/gate.md": {
+		"legacy": "library/prompts/competitor/status/gate.md",
+		"sha256": "783644fd0579d3d0f2a3013e7b5b609c97887ff68bcc69e0ef564df7ab45b0e7"
+	},
+	"mechanics/exile/prompts/exile/tools/lastWill.md": {
+		"legacy": "library/prompts/tools/lastWill.md",
+		"sha256": "d7b8889c7f21ea8c6754515693a777e568cf2452b6baffad1072c1abf20bfa67"
+	},
+	"mechanics/exile/prompts/exile/tools/payRansom.md": {
+		"legacy": "library/prompts/tools/payRansom.md",
+		"sha256": "c790e77f934ea7b406cd28c8b07408192bd3f361a5a1fffa1224e4c332973c5c"
+	},
+	"mechanics/exile/prompts/exile/will-points.md": {
+		"legacy": "mechanics/exile/prompts/exile/will-points.md",
+		"sha256": "90277093ed1b7172392b692a46004c8dbb0a83b57c9bc856de723c15a14e6b94"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/replies/announced.md": {
+		"legacy": "library/prompts/gamemaker/replies/announced.md",
+		"sha256": "4a43eaa7b4a09700320c89420053aa642f6311081cc16c213f54023eab2dc1ef"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/replies/lot-drawn.md": {
+		"legacy": "library/prompts/gamemaker/replies/lot-drawn.md",
+		"sha256": "d4a791304ad25636440b8655934ead0f97038bd13ca0cbd0bf2aa1134eae9804"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/replies/struck-lot.md": {
+		"legacy": "library/prompts/gamemaker/replies/struck-lot.md",
+		"sha256": "2ad458484f91929a8ba9d5fa3f40b3c033ca8a331b6ecf09aa5d2abc83982922"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/replies/struck-vote.md": {
+		"legacy": "library/prompts/gamemaker/replies/struck-vote.md",
+		"sha256": "53da28fbe1656ba0ecabf7de934e6aa3e051ca9405450922a82043b9c7c8b119"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/replies/struck.md": {
+		"legacy": "library/prompts/gamemaker/replies/struck.md",
+		"sha256": "311acf620d78d99626514ce5519d5020b73b4cee63ccebf0469bdd87509a9dbf"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/replies/tribunal-called.md": {
+		"legacy": "library/prompts/gamemaker/replies/tribunal-called.md",
+		"sha256": "e4e280b2fb7170505a9ccac61887fb38db4def3e25f432a2180b520bd5ae0d5c"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/replies/tribunal-lot.md": {
+		"legacy": "library/prompts/gamemaker/replies/tribunal-lot.md",
+		"sha256": "ccdab4674df99651d15eeb7c66dcf9bf5d28a01801a490ca62d4ca09e9b80367"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/tools/announceTribunal.md": {
+		"legacy": "library/prompts/gamemaker/tools/announceTribunal.md",
+		"sha256": "b7d7bc3b47acd23b9691ab61fb3f21f67e475fe279a7a06bf743be66ed5b1399"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/tools/callTribunal.md": {
+		"legacy": "library/prompts/gamemaker/tools/callTribunal.md",
+		"sha256": "b2202dd964e447168b441b1ddf020262ab74af8c4c02b6b9d709e4cddfa50cea"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/tools/drawLot.md": {
+		"legacy": "library/prompts/gamemaker/tools/drawLot.md",
+		"sha256": "897fe57d3c1480d443f2fcdaed11560e32bf00753b8f11dc82d87d7a7ca51ee8"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/gamemaker/tools/permaDeath.md": {
+		"legacy": "library/prompts/gamemaker/tools/permaDeath.md",
+		"sha256": "5fe924b102d7268d8258d1cbd43808059b49d822faf7f10ef3d48446e6a75c8b"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/replies/ballot-holdout.md": {
+		"legacy": "library/prompts/replies/ballot-holdout.md",
+		"sha256": "d014771ee154ecfa882d411813885b0ed3ac6a90e4a284cf37893228c68a32ed"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/replies/ballot-no.md": {
+		"legacy": "library/prompts/replies/ballot-no.md",
+		"sha256": "9234f019850d42314851e0dafb37926a8c0b7eaad4d29c862d55e3fd2d8729a6"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/replies/ballot-yes.md": {
+		"legacy": "library/prompts/replies/ballot-yes.md",
+		"sha256": "a474877b207c365301711904a09df71cb2699b04a8ab0cb500a888109a4e35b5"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/replies/locked.md": {
+		"legacy": "library/prompts/replies/locked.md",
+		"sha256": "b9b8b964507f9e2329c5a7dc9120d9865022f1462e04e3cd08b7f7636bb92f00"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/status/holdout-accused.md": {
+		"legacy": "library/prompts/competitor/status/holdout-accused.md",
+		"sha256": "82a6146abc3144fe0fc77e45735d6ebf72386d45ff14984786cc4415c9ae3e44"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/status/holdout-ballot.md": {
+		"legacy": "library/prompts/competitor/status/holdout-ballot.md",
+		"sha256": "5a9ce2f969d9709d81e70d77cef91c5847f246220a18112cccce5a437ff99f7b"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/status/holdout-grace.md": {
+		"legacy": "library/prompts/competitor/status/holdout-grace.md",
+		"sha256": "87f00b8e5334651d01acf67d32ae6529befa9b4f1e7509b0e0f6ecbd8fa041b7"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/status/holdout-not-voted.md": {
+		"legacy": "library/prompts/competitor/status/holdout-not-voted.md",
+		"sha256": "1e1cfcce1b6f7ee15544f951f9ed0a702402b63218de487a7e6cc300d07ec54a"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/status/holdout-owed.md": {
+		"legacy": "library/prompts/competitor/status/holdout-owed.md",
+		"sha256": "4038ceee6a81925fa0c9addd4d802004ce4e3ea70b1a94b38aed8e18170fceda"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/status/holdout-strike.md": {
+		"legacy": "library/prompts/competitor/status/holdout-strike.md",
+		"sha256": "0a9b794dbae2889588b4a87e44c8d041527288eb0c580deab8e0b76c2c098661"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/status/holdout-voter.md": {
+		"legacy": "library/prompts/competitor/status/holdout-voter.md",
+		"sha256": "7a1106a82ab36f13bd5dd818df57e5c0580948c25df77d4f94de0fca8bb77931"
+	},
+	"mechanics/standoff-tribunal/prompts/standoff-tribunal/tools/tribunalVote.md": {
+		"legacy": "library/prompts/tools/tribunalVote.md",
+		"sha256": "dd54ee0e22d541dcc0ee2dea1a390fffada7817646abb5c818b64ada7f230e6e"
+	},
+	"mechanics/script/prompts/script/standings-bands-exiled.md": {
+		"legacy": "mechanics/script/prompts/script/standings-bands-exiled.md",
+		"sha256": "6d26e96e4c5236c98970802c5a51133aa84f2a460d7907cd6aab5c317ef7bd12"
+	},
+	"mechanics/script/prompts/script/standings-bands.md": {
+		"legacy": "mechanics/script/prompts/script/standings-bands.md",
+		"sha256": "c71d6fb7f299a037d1e0660adcf6556221795be805a88ed07d9b3e440150bc12"
+	},
+	"mechanics/script/prompts/script/standings-row.md": {
+		"legacy": "mechanics/script/prompts/script/standings-row.md",
+		"sha256": "74d0db1ce22b960780e90a1a9847637d0412c39112a08987fd667b2b415bea88"
+	},
+	"mechanics/script/prompts/script/standings-snapshot.md": {
+		"legacy": "mechanics/script/prompts/script/standings-snapshot.md",
+		"sha256": "a480aac8c081ba9b6aecc26aa01fdea4070fb057267107ee533d317e56507e66"
+	},
+	"mechanics/script/prompts/script/tools/directorMinute.md": {
+		"legacy": "mechanics/script/prompts/tools/directorMinute.md",
+		"sha256": "9edd5d190df7050e63cdaba9ac363f3fcce2e401bf6457f468745ffaa989caa2"
+	},
+	"mechanics/city-directors/prompts/classifier/context-heading.md": {
+		"legacy": "library/prompts/classifier/context-heading.md",
+		"sha256": "f1ce13b7ddf678d41f0422e51c312eb2870de8d5a15cfe0c4a72459ecf18ead0"
+	},
+	"mechanics/city-directors/prompts/classifier/input.md": {
+		"legacy": "library/prompts/classifier/input.md",
+		"sha256": "286231c40783b0d4a998fc965444b2bb68f9dc6713859a5c1a0501e046247032"
+	},
+	"mechanics/city-directors/prompts/classifier/resident-named.md": {
+		"legacy": "library/prompts/classifier/resident-named.md",
+		"sha256": "ce6902b5281bfa4e874afdbfbf8443c7a432c872c9f9a5764340d81fe1844fd9"
+	},
+	"mechanics/city-directors/prompts/classifier/round.md": {
+		"legacy": "library/prompts/classifier/round.md",
+		"sha256": "30dce156530ba35442575da7645a462a5e88671135a5641725aba77fd7a4b360"
+	},
+	"mechanics/city-directors/prompts/classifier/statements-heading.md": {
+		"legacy": "library/prompts/classifier/statements-heading.md",
+		"sha256": "59a9157b09be2286dad64bc805278dd99760d536d235f9465013b4b94249252f"
+	},
+	"mechanics/city-directors/prompts/classifier/system-plain.md": {
+		"legacy": "library/prompts/classifier/system-plain.md",
+		"sha256": "f2fee46cb8e965214fed0c38eb6e48439eae8e6edadd063aa3dae26024f5ba70"
+	},
+	"mechanics/city-directors/prompts/classifier/tool-label.md": {
+		"legacy": "library/prompts/classifier/tool-label.md",
+		"sha256": "d91106886a28951956ac4e2e10807fcd04825860d1b24564ac3974a7352e26c3"
+	},
+	"mechanics/city-directors/prompts/classifier/where-board.md": {
+		"legacy": "library/prompts/classifier/where-board.md",
+		"sha256": "d76091defbfc9a22181b45a542a7325acdae010a3cf8da5e3c0479ed4749d400"
+	},
+	"mechanics/city-directors/prompts/classifier/where-dm.md": {
+		"legacy": "library/prompts/classifier/where-dm.md",
+		"sha256": "bbd08d6769364a04f365d5d87b1aefdda76f9b31a19aa9211b984abbf16af5ec"
+	},
+	"mechanics/city-directors/prompts/classifier/where-group.md": {
+		"legacy": "library/prompts/classifier/where-group.md",
+		"sha256": "a260ef52818096ae6adb3f920db4e1a86975bfa86c1e055cdbfd846f3556c678"
+	},
+	"mechanics/city-directors/prompts/gamemaker/replies/budget-line.md": {
+		"legacy": "library/prompts/gamemaker/replies/budget-line.md",
+		"sha256": "aaa0f032603e69fb041e7be683d7017e952ce5bbc7a7a8fd9697c1118a527644"
+	},
+	"mechanics/city-directors/prompts/gamemaker/replies/private-thoughts.md": {
+		"legacy": "library/prompts/gamemaker/replies/private-thoughts.md",
+		"sha256": "4b5b6270f5c28bebf3c4b38c45fdae13a4a5effaaa20698213dbfbe410ead371"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/author-job.md": {
+		"legacy": "library/prompts/gamemaker/roles/author-job.md",
+		"sha256": "855d7fb8bd77d2978411312e93e5d582edf0c1fc9734bdf285933909127f5642"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/author-when.md": {
+		"legacy": "library/prompts/gamemaker/roles/author-when.md",
+		"sha256": "a1eda84b3017e8a4e8849325c76425308ac304858cf25964b152fd05d247c872"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/author-write.md": {
+		"legacy": "library/prompts/gamemaker/roles/author-write.md",
+		"sha256": "976314c4bfb4ac7c64e9811c85fb66c2c68381f5ed37cbd3f9dd7715d6b19b32"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/coach-job.md": {
+		"legacy": "library/prompts/gamemaker/roles/coach-job.md",
+		"sha256": "21b3d08dc4800279018433bebf4216d6246792ae6a86b4bf515b4812054b9e8b"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/coach-when.md": {
+		"legacy": "library/prompts/gamemaker/roles/coach-when.md",
+		"sha256": "357f54d0ed1d819597987d42898462991db301194b8fd57e7616a1c87b283440"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/coach-write.md": {
+		"legacy": "library/prompts/gamemaker/roles/coach-write.md",
+		"sha256": "466e6435a7c65a284ffb75deadeebc01dcc10f847fffc1890a982a51dffd6b0d"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/director-job.md": {
+		"legacy": "library/prompts/gamemaker/roles/director-job.md",
+		"sha256": "707ef0f96d6a158b0ea7aec9fde87324c15be737d39b96d6b87b90ca18052393"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/director-when.md": {
+		"legacy": "library/prompts/gamemaker/roles/director-when.md",
+		"sha256": "41d35e80f3612bf7d5bab2547e013b44a5fb46d0506c388ba8e30201a8078149"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/director-write.d0.md": {
+		"legacy": "library/prompts/gamemaker/roles/director-write.d0.md",
+		"sha256": "e5c003c2f8b077826a262897ef121a0daae1b68fa20429a86cfcd8b7e537d052"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/director-write.d6.md": {
+		"legacy": "library/prompts/gamemaker/roles/director-write.d6.md",
+		"sha256": "d916f2cedd067f19cc4c6a7356af7cc54156a46d5ef901bdfe3ddd4ced70708c"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/director-write.d8.md": {
+		"legacy": "library/prompts/gamemaker/roles/director-write.d8.md",
+		"sha256": "7bae3f5dc17cdbcd196b3f7d245913a07ef4a68f1fa907cc62010c47398cfa31"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/keeper-job.md": {
+		"legacy": "library/prompts/gamemaker/roles/keeper-job.md",
+		"sha256": "e7cfb6f93740d07f7c1121acf1d160238c02b3f6005eb2562cd916af6f5b96fa"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/keeper-when.md": {
+		"legacy": "library/prompts/gamemaker/roles/keeper-when.md",
+		"sha256": "f3f02efe3b24569524d6a6fa253cbde40421ab33b2cb9f9d6c7d6d7cce70b387"
+	},
+	"mechanics/city-directors/prompts/gamemaker/roles/keeper-write.md": {
+		"legacy": "library/prompts/gamemaker/roles/keeper-write.md",
+		"sha256": "3f9666943d511e331097a836163d546e8b9ac165032568197a8191f28278087e"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/characters.d0.md": {
+		"legacy": "library/prompts/gamemaker/sections/characters.d0.md",
+		"sha256": "ef1a4614db8b6741d58d327f37cec53d550d7ce437351af3e33d77596a145e62"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/characters.d10.md": {
+		"legacy": "library/prompts/gamemaker/sections/characters.d10.md",
+		"sha256": "834f52feb4b19e8b9e422ce5e2adeadbf51798f3e6bd9793088da040ed472bc3"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/characters.d8.md": {
+		"legacy": "library/prompts/gamemaker/sections/characters.d8.md",
+		"sha256": "a47db879a77710547cc796e255bae55a836e7ce9a4e51a84ca4c0b88b48c3d30"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/holdout.md": {
+		"legacy": "library/prompts/gamemaker/sections/holdout.md",
+		"sha256": "b418616f496b0bd0a2f4230250df9b0ade7916b87d0d524ad57aea42410a3a81"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/labels.md": {
+		"legacy": "library/prompts/gamemaker/sections/labels.md",
+		"sha256": "65203cdc7f4ce568bc0f88ae1f857f8e3a2774ee17ae644378ad77747b31f1e8"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/seal.md": {
+		"legacy": "library/prompts/gamemaker/sections/seal.md",
+		"sha256": "b41a28f781838d223e2e5dd496f3ab1c5abce35f1b2ab5ccd41dad5bd09827ff"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/standoff.md": {
+		"legacy": "library/prompts/gamemaker/sections/standoff.md",
+		"sha256": "d48ddd4f4412024366a35cef6a4bc7cd82264c4f26fecb5746b0d05a98d1dd41"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/tribunal-factions.md": {
+		"legacy": "library/prompts/gamemaker/sections/tribunal-factions.md",
+		"sha256": "d1d6b6b44f10fa05f4ce3162a97e9bc59463431704915657721d3beb1db18ed2"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/tribunal.md": {
+		"legacy": "library/prompts/gamemaker/sections/tribunal.md",
+		"sha256": "698bd9f04880c8a7e55f04b4359bfbc979820d9a484869493a5545e08afe9df5"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/whisperer-duty.md": {
+		"legacy": "library/prompts/gamemaker/sections/whisperer-duty.md",
+		"sha256": "2b00e87909975c8e75e56aff2b4ca035248f039a35dd105a1e964cf388fec7c4"
+	},
+	"mechanics/city-directors/prompts/gamemaker/sections/whisperer.md": {
+		"legacy": "library/prompts/gamemaker/sections/whisperer.md",
+		"sha256": "ea308c3e635af3ac2f5e0dc7e0d9b80a1f9a6923ef7aea2b8d0d7798d318453f"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/cadence-minute.md": {
+		"legacy": "library/prompts/gamemaker/system/cadence-minute.md",
+		"sha256": "57629d982eba5ab42ed0099698bd98771df21cf763cd6d5a3b2d08490625d058"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/cadence-minutes.md": {
+		"legacy": "library/prompts/gamemaker/system/cadence-minutes.md",
+		"sha256": "72daed2e57cc54698fc2c1426f218735be2b415a4896a3aad493b867bf0a21ac"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/cadence.md": {
+		"legacy": "library/prompts/gamemaker/system/cadence.md",
+		"sha256": "f33ec89ba4f0751b3828c325cc77e9fbec096ac575512c32aa7c78b303cabc18"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/closing.md": {
+		"legacy": "library/prompts/gamemaker/system/closing.md",
+		"sha256": "561dfb61a217d8e35456768ff103c930e30a1903170b9ff16b1bc008971bc9c1"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/hard-rules.md": {
+		"legacy": "library/prompts/gamemaker/system/hard-rules.md",
+		"sha256": "90dd0a3fe0976bdaf4500dd109c6a49358e9ebdb01f48d66130a222f82fc2e5f"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/how-to-write.md": {
+		"legacy": "library/prompts/gamemaker/system/how-to-write.md",
+		"sha256": "5012cdff5d9641c6a20d60e7e631e998199f3e0e02b39c200e1290581b3232a2"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/intro.md": {
+		"legacy": "library/prompts/gamemaker/system/intro.md",
+		"sha256": "1a2ca0dc62039438199250e32881e79e5a8c5d845daf8b66ce8f55b100667f0e"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/range-between.md": {
+		"legacy": "library/prompts/gamemaker/system/range-between.md",
+		"sha256": "e580ee604d83e6e920868e32c94be6e6ee8befccf58e61bcbb7f6fad418b4dbc"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/range-up.md": {
+		"legacy": "library/prompts/gamemaker/system/range-up.md",
+		"sha256": "3f12e7c93b9cd99550bfaff9d1d9688d3daecd6711c9d6a233a1ea9b8f33eafc"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/role-multi.md": {
+		"legacy": "library/prompts/gamemaker/system/role-multi.md",
+		"sha256": "70a36e7bc52ac17ddbfff6e08315b81adea92ba8c33d84357d90165f9753f52b"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/role-part.md": {
+		"legacy": "library/prompts/gamemaker/system/role-part.md",
+		"sha256": "fcd5d534b32d8ec7ff6ddc28b1195f1699721254e549c255762a5acbcfe8f78e"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/role-single.md": {
+		"legacy": "library/prompts/gamemaker/system/role-single.md",
+		"sha256": "86da9561da07f1162e94e5bb9d6101bc77741e0d11a93cde69c76f5230bc8189"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/rule-no-solve-author.md": {
+		"legacy": "library/prompts/gamemaker/system/rule-no-solve-author.md",
+		"sha256": "e1901c11848f3a2423dd187ad55c87725e0265e0c8f07b16c9e16401088b86e2"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/rule-no-solve.md": {
+		"legacy": "library/prompts/gamemaker/system/rule-no-solve.md",
+		"sha256": "3bb2f2324ca4226a97e6e7ad07a4a27db5dcc892336ebffba5b9bcdc4977fcf1"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/rules-end.md": {
+		"legacy": "library/prompts/gamemaker/system/rules-end.md",
+		"sha256": "dde3c4f5696f8b4051f513451dd2ad3edca91a2459a918be29f8383f24ebc837"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/silence-author.md": {
+		"legacy": "library/prompts/gamemaker/system/silence-author.md",
+		"sha256": "dc57819a84fdb6131a9207cfde3d28ba3134b23f71d3a322e9736128417cab83"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/silence.md": {
+		"legacy": "library/prompts/gamemaker/system/silence.md",
+		"sha256": "5657664800bc50910febfebde7fcb057473e6580f0fe896d14abc164e25efed1"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/tools-holdout.md": {
+		"legacy": "library/prompts/gamemaker/system/tools-holdout.md",
+		"sha256": "bc1236042d702c729143cef51f47728553e09f70575d803ff5262a2632b3840b"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/tools-tribunal.md": {
+		"legacy": "library/prompts/gamemaker/system/tools-tribunal.md",
+		"sha256": "b3cdb39b81711b9efe2730a2d4b621c81caa61c140c4bf8a9d9ed9a2205b689a"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/tools-ultimatum.md": {
+		"legacy": "library/prompts/gamemaker/system/tools-ultimatum.md",
+		"sha256": "31c8ae8b61549f601b146bea9b9ec4f25ccefae30dc5ea9fc095bdf1210852d5"
+	},
+	"mechanics/city-directors/prompts/gamemaker/system/tools.md": {
+		"legacy": "library/prompts/gamemaker/system/tools.md",
+		"sha256": "37a2c1ad150c0cdd389c6078405c66f8e4a507706baa8413b1663ca01c2c03f5"
+	},
+	"mechanics/city-directors/prompts/guard/message.md": {
+		"legacy": "library/prompts/guard/message.md",
+		"sha256": "9edb93bce441d3ee971fac02614a9c5de3b9dc126d026b56df5b9e624bab82dc"
+	},
+	"mechanics/city-directors/prompts/guard/question.md": {
+		"legacy": "library/prompts/guard/question.md",
+		"sha256": "231f3c97dbf9fdd05fa030c131b31cce41d749cdcefe7651d481867002800ffb"
+	},
+	"mechanics/city-directors/prompts/guard/rule.md": {
+		"legacy": "library/prompts/guard/rule.md",
+		"sha256": "765d31827b72a03329869320ec406227746a232b7c6415e4cf47117816fc5b20"
+	},
+	"mechanics/city-directors/prompts/guard/secret-line.md": {
+		"legacy": "library/prompts/guard/secret-line.md",
+		"sha256": "4d245a33a89f4394952377fe63bf98230714403321c785a366b3b2d338b0b5cb"
+	},
+	"mechanics/city-directors/prompts/guard/secrets-heading.md": {
+		"legacy": "library/prompts/guard/secrets-heading.md",
+		"sha256": "0a239825a02c7e06c2edf0309f229a12472783946df553c90a33cdd5dbb48c30"
+	},
+	"mechanics/city-directors/prompts/guard/system.md": {
+		"legacy": "library/prompts/guard/system.md",
+		"sha256": "1db2266cba002f16160535af7ae424e7da6cbffaa0c34e01cf6d4ef9f5252e4d"
+	},
+	"mechanics/city-directors/prompts/guard/tool-createGroup.md": {
+		"legacy": "library/prompts/guard/tool-createGroup.md",
+		"sha256": "45473ef60317be81cead475e4da8d66334790a7e92d48e723e2240a19df04228"
+	},
+	"mechanics/city-directors/prompts/guard/tool-other.md": {
+		"legacy": "library/prompts/guard/tool-other.md",
+		"sha256": "6ced4d2194c3ef6cbae29ea95655c7dea5e07c6e378df2a05fc071ff576acb3d"
+	},
+	"mechanics/city-directors/prompts/guard/tool-postBoard.md": {
+		"legacy": "library/prompts/guard/tool-postBoard.md",
+		"sha256": "b4c80910e570cbffc906c117506542a582549b0673219c394223eb79233a60cf"
+	},
+	"mechanics/city-directors/prompts/guard/tool-postGroup.md": {
+		"legacy": "library/prompts/guard/tool-postGroup.md",
+		"sha256": "60f7b78ce3e9fdeddd88bb2152fa6dbe555a28cff4f3fcc434dc8459190d7408"
+	},
+	"mechanics/city-directors/prompts/guard/tool-sendDM.md": {
+		"legacy": "library/prompts/guard/tool-sendDM.md",
+		"sha256": "ea4f7dd92811907f37548d721038c5d0803f708815044e29c91263579e3b6836"
+	},
+	"mechanics/city-directors/prompts/guard/tool-transferPoints.md": {
+		"legacy": "library/prompts/guard/tool-transferPoints.md",
+		"sha256": "ac12b6120139061b43d1adee25a21dfe814325275e692483ebe4ccdeb9a95556"
+	},
+	"mechanics/city-directors/prompts/guard/tool-verdict.md": {
+		"legacy": "library/prompts/guard/tool-verdict.md",
+		"sha256": "54898ac819e8865ffea9915c0559c34d9fda93c999e47de7cfc719af100ea860"
+	},
+	"mechanics/city-directors/prompts/guard/wants.md": {
+		"legacy": "library/prompts/guard/wants.md",
+		"sha256": "45c10bef0ebb3b36b01adf611df48bbdfbc47a9b9f82d1200793c506845249d6"
+	},
+	"mechanics/city-directors/prompts/judge/channel-board.md": {
+		"legacy": "library/prompts/judge/channel-board.md",
+		"sha256": "eaefe2fa1e9f0f056a1a9e6977933f545f897fa6042fed0264938c7f4d11eed3"
+	},
+	"mechanics/city-directors/prompts/judge/channel-dm.md": {
+		"legacy": "library/prompts/judge/channel-dm.md",
+		"sha256": "e3743326831704b3cfa03dd03c02158838e0ba0d865383c59a7cf34c7b7eac26"
+	},
+	"mechanics/city-directors/prompts/judge/channel-group.md": {
+		"legacy": "library/prompts/judge/channel-group.md",
+		"sha256": "d4a3459dcab53b0c6279549ce8a91e896b66f66f4a603a15120b566e64b2ca9a"
+	},
+	"mechanics/city-directors/prompts/judge/delivered.md": {
+		"legacy": "library/prompts/judge/delivered.md",
+		"sha256": "995cbb460fd8103ea0d70f1da67c2bf0a78f183d7cecdbd89fb2f38d5b7a6ef5"
+	},
+	"mechanics/city-directors/prompts/judge/input.md": {
+		"legacy": "library/prompts/judge/input.md",
+		"sha256": "86b9694e9d3a48bd1edaf5a13927e469c9dbeecf4a0bb02dd110217205c279a8"
+	},
+	"mechanics/city-directors/prompts/judge/later.md": {
+		"legacy": "library/prompts/judge/later.md",
+		"sha256": "4c09ef75c8cb713ee5290f668ec852ef84c50a1a670fc452da40aaa2fef40521"
+	},
+	"mechanics/city-directors/prompts/judge/question.md": {
+		"legacy": "library/prompts/judge/question.md",
+		"sha256": "3e489897073ebce09b666d297e780bc4877a8e89136ccfb37140a0db91fd4ffc"
+	},
+	"mechanics/city-directors/prompts/judge/standing-entry.md": {
+		"legacy": "library/prompts/judge/standing-entry.md",
+		"sha256": "dd28d62042dbbb22727242c59dc80367a6086f23a15c06b6dd0a4d41dfb68954"
+	},
+	"mechanics/city-directors/prompts/judge/standing.md": {
+		"legacy": "library/prompts/judge/standing.md",
+		"sha256": "423432d083ef579deb48a492e08b5de377610c7909e58e07f350ae956534dc2e"
+	},
+	"mechanics/city-directors/prompts/judge/system-capricious.md": {
+		"legacy": "library/prompts/judge/system-capricious.md",
+		"sha256": "71739b5b0b124af3899ba45c45ae68fbf9bb11d4466ce0ed6745903708d494b0"
+	},
+	"mechanics/city-directors/prompts/judge/system-fair.md": {
+		"legacy": "library/prompts/judge/system-fair.md",
+		"sha256": "538296e6149ec9ef6083d13016371ab34ea7adb1ba35009a32f1ee966a54ac2a"
+	},
+	"mechanics/city-directors/prompts/judge/system-partial.md": {
+		"legacy": "library/prompts/judge/system-partial.md",
+		"sha256": "0dabeeff45b9389377215f188379b1d9413c8bc6959e2d20136c4b0cfdb13e7b"
+	},
+	"mechanics/city-directors/prompts/judge/text.md": {
+		"legacy": "library/prompts/judge/text.md",
+		"sha256": "716898329d553b8ba51b42d6f79f9230887393a1f293e1dba3f78eca2c071eef"
+	},
+	"mechanics/city-directors/prompts/judge/tool-verdict.md": {
+		"legacy": "library/prompts/judge/tool-verdict.md",
+		"sha256": "d49e0d9d50d371cdcff5cd37dab1d570b81a960231c352a2f38cd4c7d6e43dad"
+	},
+	"library/prompts/replies/core/locked.md": {
+		"legacy": "library/prompts/replies/core/locked.md",
+		"sha256": "b9b8b964507f9e2329c5a7dc9120d9865022f1462e04e3cd08b7f7636bb92f00"
+	},
+	"library/prompts/replies/core/not-granted.md": {
+		"legacy": "library/prompts/replies/core/not-granted.md",
+		"sha256": "1fbfcb7b16893852dcacb4cfb8972dc8e69665cc55334130ec90d0ad160c6451"
+	},
+	"library/prompts/replies/core/steps.md": {
+		"legacy": "library/prompts/replies/core/steps.md",
+		"sha256": "98d92f83d16dfa8aa33c825371388f323e93b10dfe3ac1873371061ad0d7c841"
+	},
+	"library/prompts/replies/core/unknown-tool.md": {
+		"legacy": "library/prompts/replies/core/unknown-tool.md",
+		"sha256": "08a941f073af9918ce0747cfb955efb2bce5e26e1ec4ffa4e2f499352e987660"
+	},
+	"library/prompts/resident/input/tools-notice.md": {
+		"legacy": "library/prompts/competitor/input/tools-notice.md",
+		"sha256": "8208b4497daaa6a44deb0d2a0ba3c25f61517807687e8c7dc64b534cf6a8d590"
+	},
+	"library/prompts/resident/system/claims.md": {
+		"legacy": "library/prompts/competitor/system/claims.md",
+		"sha256": "423058c344668fda7fddb6827614f9d5261af09a3d4e42bd842cbea3d58c7be5"
+	},
+	"library/prompts/resident/system/header-id.md": {
+		"legacy": "library/prompts/competitor/system/header-id.md",
+		"sha256": "e51ccbcb17abbcc8979bf6975ef41b6daf4d38523718fee08b8d0b78652046d2"
+	},
+	"library/prompts/resident/system/header-named.md": {
+		"legacy": "library/prompts/competitor/system/header-named.md",
+		"sha256": "b29ed31b6f05aefd9148b2cf729551306818a061b0758902a25e3af88df46ddc"
+	},
+	"library/prompts/resident/system/header-neutral.md": {
+		"legacy": "library/prompts/competitor/system/header-neutral.md",
+		"sha256": "e86c6d478af2a0bb0719babd675adc55d0bf67d9435941dd4599208309d90d0a"
+	},
+	"library/prompts/resident/system/names.md": {
+		"legacy": "library/prompts/competitor/system/names.md",
+		"sha256": "d75c1a7e76082e2a93ed0d2128108c3422170f8a79b88ff58c9de59b96d10b24"
+	},
+	"library/prompts/resident/system/persona.md": {
+		"legacy": "library/prompts/competitor/system/persona.md",
+		"sha256": "6abd9257516f7466c25150a65173bef1493438d575397899363aa3c3bde3f559"
+	},
+	"library/prompts/resident/system/points.md": {
+		"legacy": "library/prompts/competitor/system/points.md",
+		"sha256": "1b5e8b15c72797fda701d565d1510758755e7a33effefb35058049a8765a0ff1"
+	},
+	"library/prompts/resident/system/ranking.md": {
+		"legacy": "library/prompts/competitor/system/ranking.md",
+		"sha256": "62680b888a982847ff81dcfcbdae438839290eac6391462501d100c26f4e14cd"
+	},
+	"library/prompts/resident/system/speak.md": {
+		"legacy": "library/prompts/competitor/system/speak.md",
+		"sha256": "8a32c2459c92b91f2466b0a8d5d953762a1614112d646288c929ec8fce14f252"
+	},
+	"library/prompts/resident/system/steps.md": {
+		"legacy": "library/prompts/competitor/system/steps.md",
+		"sha256": "049598a2740a9f47d2d438532392be893614db837deb149b4a18affa121fe328"
+	},
+	"library/prompts/resident/system/tools-all.md": {
+		"legacy": "library/prompts/competitor/system/tools-all.md",
+		"sha256": "5edb59720d18dd23e3c3d86ba167184b781122d7bc77b71ec8ad60ffcb000c56"
+	},
+	"library/prompts/resident/system/tools-neutral.md": {
+		"legacy": "library/prompts/competitor/system/tools-neutral.md",
+		"sha256": "3f088fc2fc3c0ba27852a1a9eb79f70a71c6a463c634f8b9145a5e29136f77d5"
+	},
+	"library/prompts/resident/system/tools-story.md": {
+		"legacy": "library/prompts/competitor/system/tools-story.md",
+		"sha256": "5de2061a1db475f010da24089e3aba46ecd8c061adac19f40e5906211f127e90"
+	},
+	"games/whispers/prompts/receipts/tools/showReceipt.md": {
+		"legacy": "library/prompts/tools/showReceipt.md",
+		"sha256": "5b83c7f3f7bb5c5cab2fc5f0685d6e2cbc03a5fc90fdba787cfd9dbfa885eaa0",
+		"erratum": "J68",
+		"undo": [
+			[
+				"a DM receipt names sender, recipient, DM number and delivery minute, and quotes the DM word for word",
+				"{{dmReceipt}}"
+			]
+		]
+	}
+}

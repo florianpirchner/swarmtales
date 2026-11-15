@@ -111,8 +111,9 @@ export function whispersGame(params: WhispersParams) {
 		mechanics: [...mechanicsOf(story, params), ...confessed],
 		directors: directorsOf(story, params),
 		grants: {
-			// The old `storyToolNames`: forgery only where the story has it, in the old order; the gamemaker has no ultimatum below direction 10.
-			resident: RESIDENT_TOOLS.filter((tool) => params.receipts || tool !== "forgeReceipt"),
+			// The old `storyToolNames`: forgery only where the story has it, the holdout vote only with the gamemaker (old
+			// `grants: "auto"`), in the old order; the gamemaker has no ultimatum below direction 10.
+			resident: RESIDENT_TOOLS.filter((tool) => (params.receipts || tool !== "forgeReceipt") && (params.gamemaker || tool !== "tribunalVote")),
 			gamemaker: { drop: ["ultimatum"] as const },
 			...(params.classifier ? { confessor: ["interpret"] } : {}),
 		},

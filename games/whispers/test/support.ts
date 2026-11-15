@@ -84,6 +84,8 @@ const MOVES: readonly Move[] = [
 	// A solved level: `progression` writes its events in one go, its listeners follow (the script, then the receipt).
 	{ in: isReceipt("levelUp"), move: isEvent("progression", "submission"), after: isEvent("progression", "level_entered") },
 	{ in: isReceipt("levelUp"), move: isReceipt("levelUp") },
+	// Several messages delivered as one turn opens: `channels` delivers them all in one step, the listener of `receipts` follows it.
+	{ in: isReceipt("dm"), move: isReceipt("dm"), after: isEvent("channels", "notice", (payload) => String(field(payload, "text")).startsWith("DM #")) },
 ];
 
 // The look after round r is taken in the start slot of tick r (J126): the gamemaker's activation, its calls and

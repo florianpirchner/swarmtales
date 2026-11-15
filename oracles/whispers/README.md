@@ -49,7 +49,16 @@ The game's oracle test (`games/whispers/test/oracle.test.ts`, issue M5-38) plays
 | The run-start locks | `core.tool_locked` of the six tools of `setup.locked`, `by: "progression"` | none | the game starts them locked (`locked`); the kernel writes `tool_locked` only for a change |
 | The lines under the task | one `task` line of source `progression` | the same text, source `progression+standoff-tribunal+marks` (and `names` where it writes its line) | J31, J102, J187: each owner writes its own line of kind `task`, joined by `{ kind: "task", join: "\n" }` |
 | A receipt of a message delivered as a turn opens | the status line of that turn does not count it | it does (`1 receipt`, the source gains `receipts`) | `channels` delivers in its `turnInputs`, and `receipts` requires `channels`, so its status part runs after the delivery; the old status hook ran before it |
+| Several messages delivered as a turn opens | each `receipt_issued` (kind `dm`) after its own delivery notice | every delivery and its notice, then the receipts | `channels` delivers them all in one step, and the listener of `receipts` follows the step (`whispers-holdout-s7.json` minute 13) |
 
-The comparison of `whispers-holdout-s7.json` is issue M5-39's: its tribunal is called in the look at the start of
-tick 16, and `until` reads that tick (J137); three messages delivered in one turn issue their receipts after all
-three notices.
+### `whispers-holdout-s7.json`
+
+The game's test `games/whispers/test/holdout.test.ts` (issue M5-39) compares the file in two parts.
+
+| Part | How | Registered change | Why |
+|---|---|---|---|
+| Minutes 0 to 15, up to the look that calls the trial | `runOracle` at level 3 on the file cut before the `minute` entry of minute 16, after the changes above | none more | |
+| The trial, from `holdout_called` to the strike | the events of `standoff-tribunal` (`holdout_called`, `holdout_vote_opened`, `holdout_ballot`, `holdout_vote_result`, `holdout_announced`, `lot_drawn`, `holdout_ended`) and `exile.exiled`, whole payloads, at level 1 | every `until` is one tick later, in the field and in the text (grace until 19, the votes until 21, 23 and 25); each announcement of the city comes after the ballots of its tick, right before the next count | the look after round 16 runs in the start slot of tick 16 (J126), and the call's grace reads that tick (J137, and the erratum of M5-39 on the trial's minutes), so every stage is one tick later than in the file, in step with the gamemaker's looks: the gamemaker announces the first failed vote and draws the lot in the same looks as on `legacy`; the residents' ballots stay at the file's minutes |
+
+The end (minute 26) is compared too. What lies between the call and the end and is no event of the trial (the
+status lines, the notices of the votes, the inputs of the turns) is not compared: it reads the shifted minutes.
