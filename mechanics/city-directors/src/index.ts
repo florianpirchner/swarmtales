@@ -2,7 +2,8 @@
 /**
  * Directors: the gamemaker, the Confessor, the judge and the guard of the City and Whispers (decision A58). M5-34
  * brings the gamemaker's head, its input from the facts (the old report of the city) and its system text; M5-36 the
- * Confessor with the mechanic `interpretations`, which writes its labels and remembers its conversations.
+ * Confessor with the mechanic `interpretations`, which writes its labels and remembers its conversations; M5-37 the
+ * judge of `blame` and the guard of the review handler of `puzzles`, two answerers of the stage `review`.
  *
  * @packageDocumentation
  */
@@ -20,6 +21,8 @@ export { type ResidentTrack } from "./gamemaker/report/progression.ts";
 export { DIRECTION_LEVELS, type DirectionLevel, type GamemakerActRole, type GamemakerPromptInput, type GamemakerRole, type GamemakerRules, type GamemakerSpec, type HoldoutTiming, type PenaltyLadder } from "./gamemaker/spec.ts";
 export { gamemakerSystemPrompt, MAX_NOTE_LENGTH } from "./gamemaker/system-prompt.ts";
 export { fillTemplate, GAMEMAKER_PROMPT_OWNER, gamemakerTexts, type GamemakerTexts } from "./gamemaker/texts.ts";
+export { GUARD_VERDICT_TEXT, guard, GuardAnswer, guardOptions, GuardOptionsSchema, guardPrompt, GuardQuestion, type GuardOptions } from "./guard/director.ts";
+export { JUDGE_TEMPERS, JUDGE_VERDICT_TEXT, judge, JudgeAnswer, judgeOptions, JudgeOptionsSchema, judgePrompt, type JudgeOptions, type JudgeTemper } from "./judge/director.ts";
 
 /**
  * The mechanic `interpretations`, which a game loads beside the Confessor and whose tool `interpret` it grants to it:

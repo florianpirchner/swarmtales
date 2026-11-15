@@ -22,6 +22,24 @@
 			"path": "../contracts"
 		},
 		{
+			"path": "../channels"
+		},
+		{
+			"path": "../exile"
+		},
+		{
+			"path": "../ledger"
+		},
+		{
+			"path": "../progression"
+		},
+		{
+			"path": "../puzzles"
+		},
+		{
+			"path": "../receipts"
+		},
+		{
 			"path": "../../packages/testkit"
 		}
 	]

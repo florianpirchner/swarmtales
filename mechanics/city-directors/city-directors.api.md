@@ -6,6 +6,7 @@
 
 import { DirectorDefinition } from '@swarmtales/sdk';
 import { Firing } from '@swarmtales/sdk';
+import { JudgeQuestion } from '@swarmtales/mechanic-receipts/contract';
 import { MechanicDefinition } from '@swarmtales/sdk';
 import { MechanicHead } from '@swarmtales/sdk';
 import { NoOptions } from '@swarmtales/sdk';
@@ -220,6 +221,52 @@ export interface GamemakerTexts {
 export function gamemakerTexts(lookup: PromptLookup): GamemakerTexts;
 
 // @public
+export const guard: DirectorDefinition;
+
+// @public
+export const GUARD_VERDICT_TEXT = "Record whether the message keeps the city's rule, and why.";
+
+// @public
+export const GuardAnswer: Type.TObject<{
+    allowed: Type.TBoolean;
+    reason: Type.TString;
+}>;
+
+// @public
+export type GuardOptions = Static<typeof GuardOptionsSchema>;
+
+// @public
+export function guardOptions(prompts: PromptLookup): GuardOptions;
+
+// @public
+export const GuardOptionsSchema: Type.TObject<{
+    system: Type.TString;
+    rule: Type.TString;
+    wants: Type.TString;
+    secretsHeading: Type.TString;
+    secretLine: Type.TString;
+    message: Type.TString;
+    question: Type.TString;
+    tools: Type.TRecord<"^.*$", Type.TString>;
+    otherTool: Type.TString;
+}>;
+
+// @public
+export function guardPrompt(question: Static<typeof GuardQuestion>, options: GuardOptions): string;
+
+// @public
+export const GuardQuestion: Type.TObject<{
+    resident: Type.TString;
+    tool: Type.TString;
+    rule: Type.TString;
+    text: Type.TString;
+    secrets: Type.TArray<Type.TObject<{
+        label: Type.TString;
+        value: Type.TString;
+    }>>;
+}>;
+
+// @public
 export const HistoryFact: Type.TArray<Type.TObject<{
     conversation: Type.TString;
     statements: Type.TArray<Type.TObject<{
@@ -278,6 +325,7 @@ text: Type.TString;
 }>>;
 }>, {
 history: {
+conversation: string;
 statements: {
 group?: string;
 ref: number;
@@ -286,7 +334,6 @@ source: "dm" | "board" | "group" | "cast";
 to: string[];
 text: string;
 }[];
-conversation: string;
 }[];
 }, {
 interpretation: Type.TObject<{
@@ -352,6 +399,51 @@ targets: Type.TOptional<Type.TArray<Type.TString>>;
 error: Type.TOptional<Type.TString>;
 }>;
 }>;
+
+// @public
+export const judge: DirectorDefinition;
+
+// @public
+export const JUDGE_TEMPERS: readonly ["fair", "partial", "capricious"];
+
+// @public
+export const JUDGE_VERDICT_TEXT = "Record your ruling, your words for the board and your word for the gamemaker.";
+
+// @public
+export const JudgeAnswer: Type.TObject<{
+    deniesReceipt: Type.TBoolean;
+    board: Type.TOptional<Type.TString>;
+    gamemaker: Type.TOptional<Type.TString>;
+}>;
+
+// @public
+export type JudgeOptions = Static<typeof JudgeOptionsSchema>;
+
+// @public
+export function judgeOptions(prompts: PromptLookup, temper?: JudgeTemper): JudgeOptions;
+
+// @public
+export const JudgeOptionsSchema: Type.TObject<{
+    system: Type.TString;
+    input: Type.TString;
+    delivered: Type.TString;
+    text: Type.TString;
+    later: Type.TString;
+    standing: Type.TString;
+    standingEntry: Type.TString;
+    question: Type.TString;
+    channels: Type.TObject<{
+        dm: Type.TString;
+        board: Type.TString;
+        group: Type.TString;
+    }>;
+}>;
+
+// @public
+export function judgePrompt(question: Static<typeof JudgeQuestion>, options: JudgeOptions): string;
+
+// @public
+export type JudgeTemper = (typeof JUDGE_TEMPERS)[number];
 
 // @public
 export const LABELS: readonly ["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"];

@@ -63,6 +63,21 @@ The old classifier: a Director that answers (`acts: "answer"`) and labels what t
 
 The game loads `interpretations` and grants it `interpret` (the default grant `confessor`).
 
+### The judge and the guard
+
+Two Directors that answer the stage `review` and are woken by nothing else. Their system texts and questions are
+the carried prompt files under `prompts/judge/` and `prompts/guard/`, composed by the game with
+`judgeOptions(prompts, temper)` and `guardOptions(prompts)`.
+
+- **The judge** (`answers: "judge"`) rules on a `blame` of `receipts`: does the accused's later message deny that it
+  received the DM? Its temper (`fair`, `partial`, `capricious`) picks its system text. Its answer is the old verdict
+  (the ruling, words for the board, a word for the gamemaker, each at most 400 characters); without an answer that
+  fits, `blame` refuses with `JUDGE_FAILED` and nothing is charged.
+- **The guard** (`answers: "guard"`) is asked by the `review` handler of `puzzles` once the city's own check (with
+  the rule's `minRun`) let a guarded text through: does the text keep the city's rule, given the secrets the author
+  holds? `allowed: false` refuses the call with `GUARD_BLOCKED` and the guard's reason; without an answer that fits,
+  the call goes through (fail open).
+
 ## Tools
 
 <!-- generated:tools -->
