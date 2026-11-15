@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { SwtError, type Envelope, type EventSink, type GameData } from "@swarmtales/contracts";
+import { turns } from "@swarmtales/engine";
 import { defineGame, defineHead, defineMechanic, reply } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
@@ -132,6 +133,20 @@ describe("play with what a live run gives the kernel", () => {
 		expect(played.end).toMatchObject({ reason: "limit", limit: "outside.budget" });
 		expect(played.events.find((event) => event.type === "noted")?.payload).toEqual({ text: "sent [redacted]" });
 		expect(JSON.stringify(played.events)).not.toContain("key-123");
+	});
+});
+
+describe("play with a table of schedulers", () => {
+	const own = { ...turns, id: "@test/own" };
+	const named = { ...game, scheduler: { id: "own", options: { order: "roster" } } };
+
+	it("resolves the game's scheduler id in the given table, and in `{ turns }` without one", async () => {
+		const played = await play(named, { schedulers: { turns, own }, script: { A01: [["add", { by: 3 }]], A02: [["add", { by: 2 }]] } });
+		expect(played.end).toEqual({ reason: "limit", tick: 1, limit: "counter.full" });
+		expect(played.events.find((event) => event.type === "pass_started")?.source).toBe("@test/own");
+		expect(await codeOf(play(named))).toBe("SWT-G020");
+		expect(await codeOf(play(game, { schedulers: { own } }))).toBe("SWT-G020");
+		expect(() => testKernel(named, { schedulers: { own } })).not.toThrow();
 	});
 });
 

@@ -5,7 +5,7 @@
  * host's test helpers.
  */
 import { actorId } from "@swarmtales/contracts";
-import type { ActorDriver, DriverTable, Envelope, EventSink, GameData, Kernel, PromptLookup, RecordSource, Redact, ResumeInput, RunEnd, RunLimit, ToolOutcome } from "@swarmtales/contracts";
+import type { ActorDriver, DriverTable, Envelope, EventSink, GameData, Kernel, PromptLookup, RecordSource, Redact, ResumeInput, RunEnd, RunLimit, SchedulerDefinition, ToolOutcome } from "@swarmtales/contracts";
 import { turns } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
@@ -42,6 +42,8 @@ export interface PlayOptions {
 	readonly limits?: readonly RunLimit[];
 	/** The redaction of what the kernel writes; the pattern redaction when absent. */
 	readonly redact?: Redact;
+	/** The schedulers by id that the game's `scheduler.id` may name; `{ turns }` when absent. */
+	readonly schedulers?: Readonly<Record<string, SchedulerDefinition>>;
 }
 
 /**
@@ -100,11 +102,14 @@ export interface TestKernel {
 	playTicks(driver: ActorDriver, ticks: number): Promise<RunEnd | undefined>;
 }
 
+// The schedulers a game may name: the given table, else `turns` alone.
+const schedulersOf = (options: PlayOptions): Readonly<Record<string, SchedulerDefinition>> => options.schedulers ?? { turns };
+
 // Steps one to three: resolve the game, create the kernel, check that the win fact exists.
 function kernelOf(game: Game | GameData, options: PlayOptions): Kernel {
 	const resolved = resolveGame({
 		game,
-		schedulers: { turns },
+		schedulers: schedulersOf(options),
 		prompts: options.prompts ?? createPromptLookup(),
 		...(options.installed === undefined ? {} : { installed: options.installed }),
 		...(options.seed === undefined ? {} : { seed: options.seed }),
