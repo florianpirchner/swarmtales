@@ -8,8 +8,29 @@
 		"tsBuildInfoFile": "dist-types/.tsbuildinfo"
 	},
 	"include": [
-		"src",
-		"test"
+		"src"
 	],
-	"references": []
+	"references": [
+		{
+			"path": "../../packages/contracts"
+		},
+		{
+			"path": "../../packages/sdk"
+		},
+		{
+			"path": "../contracts"
+		},
+		{
+			"path": "../channels"
+		},
+		{
+			"path": "../exile"
+		},
+		{
+			"path": "../ledger"
+		},
+		{
+			"path": "../progression"
+		}
+	]
 }

@@ -181,6 +181,9 @@
 			"path": "mechanics/standoff"
 		},
 		{
+			"path": "mechanics/standoff/test"
+		},
+		{
 			"path": "mechanics/standoff-tribunal"
 		},
 		{
