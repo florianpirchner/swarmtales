@@ -22,3 +22,6 @@ Not covered: ties broken by the seeded draw (none occurred), more than three gam
 
 One difference from the recording: `game_scored.secondPrice.capped` in `blind-bid-s31-live.json` is what today's
 code writes; the recorded run, played on older code, had another value. The event is for the human only.
+
+Registered (M4-36): no file holds `call.endsTurn`, and the game's oracle test needs no mapping for it: the old
+`sealed-auction` mechanic never set the flag, and neither `bid` nor `viewAuction` ends a turn.

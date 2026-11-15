@@ -1,6 +1,6 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. Thirteen games run on the new platform today, each with a scripted
+The catalogue of the games that run on Swarm Tales. Fourteen games run on the new platform today, each with a scripted
 or sampled player in place of a model. The first live runs on this platform are those of the gate of milestone M2
 ([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding or a recorded moment yet:** a finding appears
 on a card only when it is reproduced on this platform, with n, standard error and a link.
@@ -26,6 +26,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Convoy](#convoy) | hidden information and bluff | 6 | `convoy`, `strategy-brain` | none; variants are options of `convoyGame` | four oracle files match at level 3 |
 | [Nine men's morris](#nine-mens-morris) | board games, all information public | 6 (two teams of three), 2, or 1 against the search | `morris`, `consensus`, `team-channel`, `strategy-brain`, `morris-referee` | none; variants are options of `morrisGame` | all five oracle files match at level 3 |
 | [Salt Market](#salt-market) | markets, bids and economics | 4 | `salt-market`, `strategy-brain` | none; variants are options of `saltMarketGame` | four oracle files match at level 3 |
+| [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `sealed-auction`, `strategy-brain` | none; variants are options of `blindBidGame` | all five oracle files match at level 3 |
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
 old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
@@ -234,10 +235,24 @@ the optimal allocation, for the report only.
   byte-identical.
 - Links: [folder](games/salt-market/), [README](games/salt-market/README.md), [oracle files](oracles/salt-market/).
 
+## Blind Bid
+
+Four solo seats (A01 to A04) bid on a series of lots with sealed bids and a purse of coins per game. Each game sells
+six lots of three kinds, two each: pay-your-bid and pay-the-runner-up lots with private values, and shared-worth lots
+with one hidden worth and a noisy estimate per seat (the winner's curse). Every game starts from a fresh context, a
+full purse and fresh lots; a seat's only memory is a short private strategy brain. The mechanic scores each game
+against closed-form single-lot references (equilibrium shading, truthful bidding, the curse-free ceiling), for the
+report only.
+
+- Variants are options of `blindBidGame`: the games, the lots, the purse, no brain (the control arm).
+- Proof: all five oracle files match at level 3, the replay of the one live run among them; the briefings are
+  byte-identical.
+- Links: [folder](games/blind-bid/), [README](games/blind-bid/README.md), [oracle files](oracles/blind-bid/).
+
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families. Eleven are ported so far, marked in bold; the Hello Game and the city slice are new and are
+five families. Twelve are ported so far, marked in bold; the Hello Game and the city slice are new and are
 not among the fifteen.
 
 | Family | Games |
@@ -246,7 +261,7 @@ not among the fifteen.
 | Board games, all information public | **chess (ported)**, **nine men's morris (ported)**, **tic-tac-toe teams (ported)** |
 | Hidden information and bluff | **Hold'em (ported)**, **Liar's Dice (ported)**, **Convoy (ported)** |
 | Cooperation under hidden information | **Harbor Lights (ported)**, **Lanterns (ported)** |
-| Markets, bids and economics | **Econ Lab (ported)**, **Salt Market (ported)**, Blind Bid, **Quarry (ported)**, Ember Tricks |
+| Markets, bids and economics | **Econ Lab (ported)**, **Salt Market (ported)**, **Blind Bid (ported)**, **Quarry (ported)**, Ember Tricks |
 
 Until a game is ported, its rules, runs and findings are readable at the tag
 [`v0-final`](https://github.com/florianpirchner/swarmtales/tree/v0-final) under `stories/<name>/`.
