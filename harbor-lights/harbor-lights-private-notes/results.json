@@ -1,0 +1,981 @@
+{
+	"format": "swarmtales-results",
+	"version": 1,
+	"spec": {
+		"id": "harbor-lights-private-notes",
+		"hash": "b215ccf393cc4fd8db697e9267c171a39e9cb0daca8cb905056154a9741de43d"
+	},
+	"code": {
+		"commit": "5b6336a6205ccb095b5a5f65e85240abb9f376eb",
+		"kernelRevision": 4
+	},
+	"runs": [
+		{
+			"run": "harbor-lights-001",
+			"arm": "nobrain",
+			"seed": 105,
+			"replicate": 0,
+			"manifestHash": "d389a04eb678282bebc1e9d87c11ae46f3ede7acca9be0007f23028f59d1648c",
+			"head": "b942b9fbfbc9e9d70dd8cbb5810c86c023d107cc642a08745794256387f89298",
+			"status": "included",
+			"costUsd": 0.055931310000000026
+		},
+		{
+			"run": "harbor-lights-002",
+			"arm": "solo",
+			"seed": 101,
+			"replicate": 0,
+			"manifestHash": "dcae977722b7d2f3c2f7becf28acb801a645b79b9495593962ad7c3185e16e2c",
+			"head": "2ede6f350a66111a1601c6efa1f594b4e5946e5fa69ef7f8f48f444de9b15848",
+			"status": "included",
+			"costUsd": 0.057283245000000024
+		},
+		{
+			"run": "harbor-lights-003",
+			"arm": "solo",
+			"seed": 105,
+			"replicate": 0,
+			"manifestHash": "3bcd93278a19389739262a7371ab66d1ac9b6eb12fbd580fa2339ea70d356d16",
+			"head": "3cbbf2178f0b2ed165aa652dd2bab65f8fc83d9a6eec44292b2ee16273322fe0",
+			"status": "included",
+			"costUsd": 0.05951355999999998
+		},
+		{
+			"run": "harbor-lights-005",
+			"arm": "nobrain",
+			"seed": 111,
+			"replicate": 0,
+			"manifestHash": "f1f948fb3d2baf49846f5533015f259ec98f33c733def338ae38b2789d1ba407",
+			"head": "226e1b468421d84889882fb499f569d0dc3c656505f221bc02cacca00b464f74",
+			"status": "included",
+			"costUsd": 0.05349971000000002
+		},
+		{
+			"run": "harbor-lights-004",
+			"arm": "solo",
+			"seed": 109,
+			"replicate": 0,
+			"manifestHash": "bc836dedf8f5168ca1e08c227f9393a34f99a99235295b616dfed3f3e702e64e",
+			"head": "5a978562a6f7843c4ad3201f2d3c5201afab758e756374d23a85b01225d3a525",
+			"status": "included",
+			"costUsd": 0.057422264999999986
+		},
+		{
+			"run": "harbor-lights-007",
+			"arm": "nobrain",
+			"seed": 101,
+			"replicate": 0,
+			"manifestHash": "9a60938299b5ad46e1d87162c4b17ef9ef4c51e54248b4dda8c2f533f618bba6",
+			"head": "ab289bc1406b0d9d933b605f4172cfbfe7f5c624d6a89d553edad039030f356c",
+			"status": "included",
+			"costUsd": 0.05695125499999999
+		},
+		{
+			"run": "harbor-lights-006",
+			"arm": "nobrain",
+			"seed": 109,
+			"replicate": 0,
+			"manifestHash": "636b3cfbeebaff3118592fbca75f95e8a9e50ce1b48bbaa468f4b03848ea9c60",
+			"head": "2eb5890fcaef334c0226e86881cbc087fe3f0cd457f9de4414dbe8ac6894e683",
+			"status": "included",
+			"costUsd": 0.06048502
+		},
+		{
+			"run": "harbor-lights-008",
+			"arm": "nobrain",
+			"seed": 107,
+			"replicate": 0,
+			"manifestHash": "7577b00641995cd5110055a1f3c368866254b1a1736654d469c9a2d0f9c037c2",
+			"head": "645c66b5eb7b35fe2c4bc04abded67b62f88b5ad6eb7b46a29ab84cb8352f28a",
+			"status": "included",
+			"costUsd": 0.05146009000000001
+		},
+		{
+			"run": "harbor-lights-009",
+			"arm": "solo",
+			"seed": 111,
+			"replicate": 0,
+			"manifestHash": "a981a49bdcc938b7681939b45e68666e65f13950a6bf5242a4dc83077cc3aae0",
+			"head": "069a9b6b3a4ddea92e168ef808a1726850341ba31c464d54f7b4909f57d4912d",
+			"status": "included",
+			"costUsd": 0.04899522500000003
+		},
+		{
+			"run": "harbor-lights-010",
+			"arm": "nobrain",
+			"seed": 103,
+			"replicate": 0,
+			"manifestHash": "2096db379934c1aa6b6d28cf8522f650a8ca0fe6ed6b77fb040be18e66ad9c10",
+			"head": "7f78a9d2417e40c67b62fa31fbd8c97b83509e8c1e0b333115c7f0bc99a0b31a",
+			"status": "included",
+			"costUsd": 0.04932544500000001
+		},
+		{
+			"run": "harbor-lights-011",
+			"arm": "solo",
+			"seed": 104,
+			"replicate": 0,
+			"manifestHash": "a81cc55d8276f9a834f406634466bbffd46fa163efa4e9b92008c0588de19ba3",
+			"head": "80fdbaae069aa6f8acc17be9a6008a531bb36e144c9ddb96f7e99d9e8d33c402",
+			"status": "included",
+			"costUsd": 0.04924811499999999
+		},
+		{
+			"run": "harbor-lights-013",
+			"arm": "solo",
+			"seed": 107,
+			"replicate": 0,
+			"manifestHash": "609ef63a531b3edf05d517529de6e70f514d2454c64c9bd4eebbfa785e0a6477",
+			"head": "63376ec715302179b370ac118ab3835fd6e2496343bfbcb7ffe68733d578bd51",
+			"status": "included",
+			"costUsd": 0.059794385000000005
+		},
+		{
+			"run": "harbor-lights-012",
+			"arm": "solo",
+			"seed": 112,
+			"replicate": 0,
+			"manifestHash": "fe6d99e0e71f90ce6ddf7734eec3c83c36b2eb7004aa7628cbe9fc94bb054fd9",
+			"head": "de8ef11a34531e7b2e70b3e67be238f93281e6d631b09fe6a8612d308316ddc4",
+			"status": "included",
+			"costUsd": 0.06446537500000005
+		},
+		{
+			"run": "harbor-lights-015",
+			"arm": "solo",
+			"seed": 102,
+			"replicate": 0,
+			"manifestHash": "c019748abdce721317989df0d7b6fa2d3c3abe1610fefe2888e4df7b5db78f1f",
+			"head": "c6706c76bfd7bcfdc5b8b68accc06a4fdf74e6074d07f53275fc0f2e4cde52fc",
+			"status": "included",
+			"costUsd": 0.05078124000000002
+		},
+		{
+			"run": "harbor-lights-014",
+			"arm": "nobrain",
+			"seed": 102,
+			"replicate": 0,
+			"manifestHash": "ae235a7db74f7127c9b998ce9feb8b746f4f89076bcc00c295380559c8a56bf7",
+			"head": "768b613d3a2ef453ed4d2f9250e1e88609420f16770739fe212e999b8492f486",
+			"status": "included",
+			"costUsd": 0.051444460000000025
+		},
+		{
+			"run": "harbor-lights-016",
+			"arm": "nobrain",
+			"seed": 110,
+			"replicate": 0,
+			"manifestHash": "b0ade41a1c7fb8a89dfd44f5e1f7778b95daac02b12960bc54e6b609258aad3d",
+			"head": "885edea33caea7b0f3af670cde9a6983f51da4d8dc8c5ff9043ffce009dc1312",
+			"status": "included",
+			"costUsd": 0.042549605
+		},
+		{
+			"run": "harbor-lights-017",
+			"arm": "nobrain",
+			"seed": 108,
+			"replicate": 0,
+			"manifestHash": "e8876347d887f781d1be5451bbb40f4c72a0017a5b77b98fba0a1518df2ad7f0",
+			"head": "1c1cbea5e68f149d842ba0a65201cfbdb6f984a415ed12548a045be410fec7e2",
+			"status": "included",
+			"costUsd": 0.05646501499999999
+		},
+		{
+			"run": "harbor-lights-018",
+			"arm": "nobrain",
+			"seed": 104,
+			"replicate": 0,
+			"manifestHash": "4eb0745d70cef477eaaed68084d31933cd7ed9224d9396d45a38b8ccc6179f74",
+			"head": "8eb823b8e9b6502314a1652fb0270e1108bba77c3a4c4d443640fb58cedde4fd",
+			"status": "included",
+			"costUsd": 0.050238195000000034
+		},
+		{
+			"run": "harbor-lights-019",
+			"arm": "solo",
+			"seed": 110,
+			"replicate": 0,
+			"manifestHash": "22bdab518ac8e44980173fddc996e8aa76a5cc4f8c39d9e1dfc179eba6f169c8",
+			"head": "f09b00f7a2de7318456a7195c256dcaac72cc1bbb5456e6059de55781fae7537",
+			"status": "included",
+			"costUsd": 0.05677182999999999
+		},
+		{
+			"run": "harbor-lights-020",
+			"arm": "nobrain",
+			"seed": 106,
+			"replicate": 0,
+			"manifestHash": "7785a5829c99d870e3ad2d16987625d2c0c5d5f5b63688a6910aa0d3aa03e8e7",
+			"head": "bbff45d29b77a305a7e30e764cbba3384870b10a87e4476a4efb3c400339b00d",
+			"status": "included",
+			"costUsd": 0.044558610000000005
+		},
+		{
+			"run": "harbor-lights-021",
+			"arm": "solo",
+			"seed": 108,
+			"replicate": 0,
+			"manifestHash": "4e1f6d351b57c6d632013d2b65eb254f483515529a7f20e109fd6c6bdfd8ac52",
+			"head": "aa027b1cd22e62ba1a12f119cd97bc84146788c1df538d53d74d6a2ff52992c7",
+			"status": "included",
+			"costUsd": 0.04553560500000001
+		},
+		{
+			"run": "harbor-lights-022",
+			"arm": "solo",
+			"seed": 103,
+			"replicate": 0,
+			"manifestHash": "01cba64ffc83c2915f98f19a4e0058693c1d1fcd66bb0109d2ef7e3372e536ac",
+			"head": "e068d0520cd243d32a405834b5c1c0b17dec68b757452f6230c34a7f641fd73a",
+			"status": "included",
+			"costUsd": 0.052793435000000034
+		},
+		{
+			"run": "harbor-lights-023",
+			"arm": "solo",
+			"seed": 106,
+			"replicate": 0,
+			"manifestHash": "579d56ffcf6fa4dbaef5c151268a8b18f839384212feee5c0dc4497bcb498586",
+			"head": "b576d6c56a94de9b00d7b2e571301788cf3a2e4fe19ad31878099ad11f880b24",
+			"status": "included",
+			"costUsd": 0.05117479500000001
+		},
+		{
+			"run": "harbor-lights-024",
+			"arm": "nobrain",
+			"seed": 112,
+			"replicate": 0,
+			"manifestHash": "2a4c7b50c0521d6cccf01fcae84d733ea881f487ca3cb98b3b997ce4e7d06796",
+			"head": "f3dcfedb8e746b9c9824954a10be7414e2ed3c21bb0734d1e58b6f6fa8b6cf97",
+			"status": "included",
+			"costUsd": 0.05473090499999999
+		}
+	],
+	"values": [
+		{
+			"run": "harbor-lights-001",
+			"metric": "hint-towers.score",
+			"value": 14
+		},
+		{
+			"run": "harbor-lights-001",
+			"metric": "hint-towers.misfires",
+			"value": 3
+		},
+		{
+			"run": "harbor-lights-001",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-001",
+			"metric": "models.requests",
+			"value": 102
+		},
+		{
+			"run": "harbor-lights-001",
+			"metric": "models.costUsd",
+			"value": 0.055931310000000026
+		},
+		{
+			"run": "harbor-lights-002",
+			"metric": "hint-towers.score",
+			"value": 16
+		},
+		{
+			"run": "harbor-lights-002",
+			"metric": "hint-towers.misfires",
+			"value": 2
+		},
+		{
+			"run": "harbor-lights-002",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-002",
+			"metric": "models.requests",
+			"value": 117
+		},
+		{
+			"run": "harbor-lights-002",
+			"metric": "models.costUsd",
+			"value": 0.057283245000000024
+		},
+		{
+			"run": "harbor-lights-003",
+			"metric": "hint-towers.score",
+			"value": 19
+		},
+		{
+			"run": "harbor-lights-003",
+			"metric": "hint-towers.misfires",
+			"value": 2
+		},
+		{
+			"run": "harbor-lights-003",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-003",
+			"metric": "models.requests",
+			"value": 122
+		},
+		{
+			"run": "harbor-lights-003",
+			"metric": "models.costUsd",
+			"value": 0.05951355999999998
+		},
+		{
+			"run": "harbor-lights-005",
+			"metric": "hint-towers.score",
+			"value": 22
+		},
+		{
+			"run": "harbor-lights-005",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-005",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-005",
+			"metric": "models.requests",
+			"value": 99
+		},
+		{
+			"run": "harbor-lights-005",
+			"metric": "models.costUsd",
+			"value": 0.05349971000000002
+		},
+		{
+			"run": "harbor-lights-004",
+			"metric": "hint-towers.score",
+			"value": 23
+		},
+		{
+			"run": "harbor-lights-004",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-004",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-004",
+			"metric": "models.requests",
+			"value": 116
+		},
+		{
+			"run": "harbor-lights-004",
+			"metric": "models.costUsd",
+			"value": 0.057422264999999986
+		},
+		{
+			"run": "harbor-lights-007",
+			"metric": "hint-towers.score",
+			"value": 17
+		},
+		{
+			"run": "harbor-lights-007",
+			"metric": "hint-towers.misfires",
+			"value": 2
+		},
+		{
+			"run": "harbor-lights-007",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-007",
+			"metric": "models.requests",
+			"value": 99
+		},
+		{
+			"run": "harbor-lights-007",
+			"metric": "models.costUsd",
+			"value": 0.05695125499999999
+		},
+		{
+			"run": "harbor-lights-006",
+			"metric": "hint-towers.score",
+			"value": 10
+		},
+		{
+			"run": "harbor-lights-006",
+			"metric": "hint-towers.misfires",
+			"value": 3
+		},
+		{
+			"run": "harbor-lights-006",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-006",
+			"metric": "models.requests",
+			"value": 98
+		},
+		{
+			"run": "harbor-lights-006",
+			"metric": "models.costUsd",
+			"value": 0.06048502
+		},
+		{
+			"run": "harbor-lights-008",
+			"metric": "hint-towers.score",
+			"value": 22
+		},
+		{
+			"run": "harbor-lights-008",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-008",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-008",
+			"metric": "models.requests",
+			"value": 100
+		},
+		{
+			"run": "harbor-lights-008",
+			"metric": "models.costUsd",
+			"value": 0.05146009000000001
+		},
+		{
+			"run": "harbor-lights-009",
+			"metric": "hint-towers.score",
+			"value": 20
+		},
+		{
+			"run": "harbor-lights-009",
+			"metric": "hint-towers.misfires",
+			"value": 2
+		},
+		{
+			"run": "harbor-lights-009",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-009",
+			"metric": "models.requests",
+			"value": 114
+		},
+		{
+			"run": "harbor-lights-009",
+			"metric": "models.costUsd",
+			"value": 0.04899522500000003
+		},
+		{
+			"run": "harbor-lights-010",
+			"metric": "hint-towers.score",
+			"value": 22
+		},
+		{
+			"run": "harbor-lights-010",
+			"metric": "hint-towers.misfires",
+			"value": 2
+		},
+		{
+			"run": "harbor-lights-010",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-010",
+			"metric": "models.requests",
+			"value": 96
+		},
+		{
+			"run": "harbor-lights-010",
+			"metric": "models.costUsd",
+			"value": 0.04932544500000001
+		},
+		{
+			"run": "harbor-lights-011",
+			"metric": "hint-towers.score",
+			"value": 20
+		},
+		{
+			"run": "harbor-lights-011",
+			"metric": "hint-towers.misfires",
+			"value": 2
+		},
+		{
+			"run": "harbor-lights-011",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-011",
+			"metric": "models.requests",
+			"value": 112
+		},
+		{
+			"run": "harbor-lights-011",
+			"metric": "models.costUsd",
+			"value": 0.04924811499999999
+		},
+		{
+			"run": "harbor-lights-013",
+			"metric": "hint-towers.score",
+			"value": 20
+		},
+		{
+			"run": "harbor-lights-013",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-013",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-013",
+			"metric": "models.requests",
+			"value": 123
+		},
+		{
+			"run": "harbor-lights-013",
+			"metric": "models.costUsd",
+			"value": 0.059794385000000005
+		},
+		{
+			"run": "harbor-lights-012",
+			"metric": "hint-towers.score",
+			"value": 18
+		},
+		{
+			"run": "harbor-lights-012",
+			"metric": "hint-towers.misfires",
+			"value": 2
+		},
+		{
+			"run": "harbor-lights-012",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-012",
+			"metric": "models.requests",
+			"value": 129
+		},
+		{
+			"run": "harbor-lights-012",
+			"metric": "models.costUsd",
+			"value": 0.06446537500000005
+		},
+		{
+			"run": "harbor-lights-015",
+			"metric": "hint-towers.score",
+			"value": 22
+		},
+		{
+			"run": "harbor-lights-015",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-015",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-015",
+			"metric": "models.requests",
+			"value": 110
+		},
+		{
+			"run": "harbor-lights-015",
+			"metric": "models.costUsd",
+			"value": 0.05078124000000002
+		},
+		{
+			"run": "harbor-lights-014",
+			"metric": "hint-towers.score",
+			"value": 19
+		},
+		{
+			"run": "harbor-lights-014",
+			"metric": "hint-towers.misfires",
+			"value": 2
+		},
+		{
+			"run": "harbor-lights-014",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-014",
+			"metric": "models.requests",
+			"value": 80
+		},
+		{
+			"run": "harbor-lights-014",
+			"metric": "models.costUsd",
+			"value": 0.051444460000000025
+		},
+		{
+			"run": "harbor-lights-016",
+			"metric": "hint-towers.score",
+			"value": 18
+		},
+		{
+			"run": "harbor-lights-016",
+			"metric": "hint-towers.misfires",
+			"value": 3
+		},
+		{
+			"run": "harbor-lights-016",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-016",
+			"metric": "models.requests",
+			"value": 88
+		},
+		{
+			"run": "harbor-lights-016",
+			"metric": "models.costUsd",
+			"value": 0.042549605
+		},
+		{
+			"run": "harbor-lights-017",
+			"metric": "hint-towers.score",
+			"value": 21
+		},
+		{
+			"run": "harbor-lights-017",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-017",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-017",
+			"metric": "models.requests",
+			"value": 99
+		},
+		{
+			"run": "harbor-lights-017",
+			"metric": "models.costUsd",
+			"value": 0.05646501499999999
+		},
+		{
+			"run": "harbor-lights-018",
+			"metric": "hint-towers.score",
+			"value": 22
+		},
+		{
+			"run": "harbor-lights-018",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-018",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-018",
+			"metric": "models.requests",
+			"value": 98
+		},
+		{
+			"run": "harbor-lights-018",
+			"metric": "models.costUsd",
+			"value": 0.050238195000000034
+		},
+		{
+			"run": "harbor-lights-019",
+			"metric": "hint-towers.score",
+			"value": 17
+		},
+		{
+			"run": "harbor-lights-019",
+			"metric": "hint-towers.misfires",
+			"value": 3
+		},
+		{
+			"run": "harbor-lights-019",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-019",
+			"metric": "models.requests",
+			"value": 113
+		},
+		{
+			"run": "harbor-lights-019",
+			"metric": "models.costUsd",
+			"value": 0.05677182999999999
+		},
+		{
+			"run": "harbor-lights-020",
+			"metric": "hint-towers.score",
+			"value": 15
+		},
+		{
+			"run": "harbor-lights-020",
+			"metric": "hint-towers.misfires",
+			"value": 3
+		},
+		{
+			"run": "harbor-lights-020",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-020",
+			"metric": "models.requests",
+			"value": 97
+		},
+		{
+			"run": "harbor-lights-020",
+			"metric": "models.costUsd",
+			"value": 0.044558610000000005
+		},
+		{
+			"run": "harbor-lights-021",
+			"metric": "hint-towers.score",
+			"value": 22
+		},
+		{
+			"run": "harbor-lights-021",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-021",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-021",
+			"metric": "models.requests",
+			"value": 105
+		},
+		{
+			"run": "harbor-lights-021",
+			"metric": "models.costUsd",
+			"value": 0.04553560500000001
+		},
+		{
+			"run": "harbor-lights-022",
+			"metric": "hint-towers.score",
+			"value": 25
+		},
+		{
+			"run": "harbor-lights-022",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-022",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-022",
+			"metric": "models.requests",
+			"value": 121
+		},
+		{
+			"run": "harbor-lights-022",
+			"metric": "models.costUsd",
+			"value": 0.052793435000000034
+		},
+		{
+			"run": "harbor-lights-023",
+			"metric": "hint-towers.score",
+			"value": 21
+		},
+		{
+			"run": "harbor-lights-023",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-023",
+			"metric": "strategy-brain.brainWrites",
+			"value": 4
+		},
+		{
+			"run": "harbor-lights-023",
+			"metric": "models.requests",
+			"value": 115
+		},
+		{
+			"run": "harbor-lights-023",
+			"metric": "models.costUsd",
+			"value": 0.05117479500000001
+		},
+		{
+			"run": "harbor-lights-024",
+			"metric": "hint-towers.score",
+			"value": 22
+		},
+		{
+			"run": "harbor-lights-024",
+			"metric": "hint-towers.misfires",
+			"value": 1
+		},
+		{
+			"run": "harbor-lights-024",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "harbor-lights-024",
+			"metric": "models.requests",
+			"value": 108
+		},
+		{
+			"run": "harbor-lights-024",
+			"metric": "models.costUsd",
+			"value": 0.05473090499999999
+		}
+	],
+	"estimates": [
+		{
+			"metric": "hint-towers.score",
+			"role": "primary",
+			"contrast": [
+				"solo",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 1.5833333333333333,
+			"se": 1.3732196922678919,
+			"interval": [
+				-1.4391232093482966,
+				4.605789876014963
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.3251953125,
+			"over": "included"
+		},
+		{
+			"metric": "hint-towers.score",
+			"role": "primary",
+			"contrast": [
+				"solo",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 1.5833333333333333,
+			"se": 1.3732196922678919,
+			"interval": [
+				-1.4391232093482966,
+				4.605789876014963
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.3251953125,
+			"over": "finished"
+		},
+		{
+			"metric": "hint-towers.misfires",
+			"role": "secondary",
+			"contrast": [
+				"solo",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": -0.3333333333333333,
+			"se": 0.30977345909486176,
+			"interval": [
+				-1.015144716801124,
+				0.3484780501344575
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.4375,
+			"over": "included"
+		},
+		{
+			"metric": "hint-towers.misfires",
+			"role": "secondary",
+			"contrast": [
+				"solo",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": -0.3333333333333333,
+			"se": 0.30977345909486176,
+			"interval": [
+				-1.015144716801124,
+				0.3484780501344575
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.4375,
+			"over": "finished"
+		}
+	],
+	"pass": {
+		"rule": "hint-towers.score, solo minus nobrain over the included runs, is greater than 0; a verdict needs 10 complete pairs",
+		"estimate": 1.5833333333333333,
+		"n": 12,
+		"verdict": "kept"
+	},
+	"guardrails": [
+		{
+			"metric": "models.requests",
+			"arm": "nobrain",
+			"value": 97,
+			"held": true
+		},
+		{
+			"metric": "models.requests",
+			"arm": "solo",
+			"value": 116.41666666666667,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "nobrain",
+			"value": 0.052303301666666684,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "solo",
+			"value": 0.05448158958333333,
+			"held": true
+		},
+		{
+			"metric": "run.refusals",
+			"arm": "nobrain",
+			"value": 0,
+			"held": true,
+			"codes": []
+		},
+		{
+			"metric": "run.refusals",
+			"arm": "solo",
+			"value": 0,
+			"held": true,
+			"codes": []
+		}
+	],
+	"deviations": []
+}

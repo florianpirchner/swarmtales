@@ -1,0 +1,1141 @@
+{
+	"format": "swarmtales-results",
+	"version": 1,
+	"spec": {
+		"id": "lanterns-team-brain",
+		"hash": "be3337f8c8cb57bfdc8c5536315a8fce6cdba19f212aeb5ac1fd4d71441e3ed2"
+	},
+	"code": {
+		"commit": "5b6336a6205ccb095b5a5f65e85240abb9f376eb",
+		"kernelRevision": 4
+	},
+	"runs": [
+		{
+			"run": "lanterns-001",
+			"arm": "brain",
+			"seed": 101,
+			"replicate": 0,
+			"manifestHash": "74b5ca8886e12e7fbd5e6f8410fe2f04df0c0f7e133d6d8bc585eadcead73603",
+			"head": "d95f1cc7566a18ba897f1d59cefcb53f6707b7c52325e324bf4a0473f32949a5",
+			"status": "included",
+			"costUsd": 0.09575225000000005
+		},
+		{
+			"run": "lanterns-003",
+			"arm": "nobrain",
+			"seed": 71,
+			"replicate": 0,
+			"manifestHash": "ec11d795e3924952f882f838ae2a8b63674143912a085cc470887adbdfe02891",
+			"head": "9cebb574d8282db901012d6ff0ceb86a5d8e86ef17bce0b16e4f485bc36cb8d9",
+			"status": "included",
+			"costUsd": 0.05524507000000005
+		},
+		{
+			"run": "lanterns-002",
+			"arm": "brain",
+			"seed": 103,
+			"replicate": 0,
+			"manifestHash": "e81502ca2b4f12dfeeafb98d5c19eb660846930b9a236eed8d05bf2a940d33a0",
+			"head": "0d74f2905428948dab363a4670f15d632b4cc012862a86a5a46ed7fc9d33d7d4",
+			"status": "included",
+			"costUsd": 0.10528289000000006
+		},
+		{
+			"run": "lanterns-005",
+			"arm": "nobrain",
+			"seed": 103,
+			"replicate": 0,
+			"manifestHash": "5735a29deac52f072ce107c1aaaaa51580e2b54fb6cca757df27db4a2e197d36",
+			"head": "0bec2d9e13a32fac8ee8a67e4365b72f129e7254dd858ac18e993c62c4df8a19",
+			"status": "included",
+			"costUsd": 0.05171430000000002
+		},
+		{
+			"run": "lanterns-004",
+			"arm": "nobrain",
+			"seed": 89,
+			"replicate": 0,
+			"manifestHash": "99f400ec431d4f0674d7251aedcefb19fe9d277af606e7de39e039f1ecdf1991",
+			"head": "9d055c34f8ccbfc82e63f42c13ec325559d0ff76bebea8ba104f6ee9b6c486bf",
+			"status": "included",
+			"costUsd": 0.054060365000000006
+		},
+		{
+			"run": "lanterns-007",
+			"arm": "brain",
+			"seed": 83,
+			"replicate": 0,
+			"manifestHash": "a35ddbe40515f3ea5ffec40aa6715b00d7058c2cfee6c396714d2ca5933ed8ce",
+			"head": "e52f396e4d115b3d0d682bf65ec38f4e0401d24b1d6a9aaa445930072ab2aad4",
+			"status": "included",
+			"costUsd": 0.0734486
+		},
+		{
+			"run": "lanterns-006",
+			"arm": "brain",
+			"seed": 79,
+			"replicate": 0,
+			"manifestHash": "21e8cdc27f2635cdefa22ecbaf6dab9eb0c6a1d3ae590748374d99cc1c36a2d4",
+			"head": "6abf7566ac29f9630b3214066988ec8980eb19f8c06dd9d56983dffe39fb2e6b",
+			"status": "included",
+			"costUsd": 0.08899661999999998
+		},
+		{
+			"run": "lanterns-009",
+			"arm": "nobrain",
+			"seed": 59,
+			"replicate": 0,
+			"manifestHash": "0f740fd243a6931deeec7715e1e5b991037e65857161cff2c8006dff83fd5c74",
+			"head": "9542a988a7cfe9d0ceefdabafc4a6a4988c489349e5c517531c322e154b8f6f9",
+			"status": "included",
+			"costUsd": 0.05400051000000002
+		},
+		{
+			"run": "lanterns-008",
+			"arm": "brain",
+			"seed": 71,
+			"replicate": 0,
+			"manifestHash": "9cc6a4bd0ab5b1a4c864aff8a8b6fda8ee8a76b7845ae572eb120a8adc047fad",
+			"head": "e32e8b6e5a7217e102f5b7f46abffd45013a7f7dc035071a6c099edb14a8a818",
+			"status": "included",
+			"costUsd": 0.08094785500000004
+		},
+		{
+			"run": "lanterns-011",
+			"arm": "nobrain",
+			"seed": 97,
+			"replicate": 0,
+			"manifestHash": "73e72b896d364f76f60ec50be225c6787718582761e311f2e350cab5528296f9",
+			"head": "13664f8eb2c070f28396438defdd82752400236e83d5b607c7135644a5710002",
+			"status": "included",
+			"costUsd": 0.057677129999999986
+		},
+		{
+			"run": "lanterns-010",
+			"arm": "brain",
+			"seed": 97,
+			"replicate": 0,
+			"manifestHash": "8edc3c96a05f1ee133b52c8b39128527340dc1bcad5c8ffa904b286d2670047c",
+			"head": "336c50464aa723b788eab8a965a968e9b5555678f0cb783062c7e664749920e4",
+			"status": "included",
+			"costUsd": 0.08565717999999997
+		},
+		{
+			"run": "lanterns-013",
+			"arm": "nobrain",
+			"seed": 101,
+			"replicate": 0,
+			"manifestHash": "142ed30b6c64dec257cca6aab9a0e2b45bc0d63a669b1932cd73987bc73b6a04",
+			"head": "e424d40623ab2e8ee6192eadd5969823bbc85b85fcaf29ab80c14a5c182f9c69",
+			"status": "included",
+			"costUsd": 0.058048840000000004
+		},
+		{
+			"run": "lanterns-012",
+			"arm": "brain",
+			"seed": 59,
+			"replicate": 0,
+			"manifestHash": "6aa281ba46382c472635816df77ef028036cf9631519dd782ad033587390f19f",
+			"head": "b279769592d48a6d045ca211b318a8fe5b0decf93a274a6fa4e8f5c4a7799df5",
+			"status": "included",
+			"costUsd": 0.07533550999999998
+		},
+		{
+			"run": "lanterns-015",
+			"arm": "nobrain",
+			"seed": 73,
+			"replicate": 0,
+			"manifestHash": "96e51c2ff0d100fceec0de22c3ce14fcedccb63cd539a8e44182f8a6c35d6740",
+			"head": "098326a3dada9ea826c579bd4df8b81966780648a4739610247f063bfb756b34",
+			"status": "included",
+			"costUsd": 0.05113833
+		},
+		{
+			"run": "lanterns-014",
+			"arm": "brain",
+			"seed": 73,
+			"replicate": 0,
+			"manifestHash": "7367d41bac2de43aca9793f961e7fbe8794d9187f40a446755b456b5e7ca423d",
+			"head": "bde24b4720f749fef76658a998b63b8b160f1202f21e9cda376cf3a91149eba8",
+			"status": "included",
+			"costUsd": 0.06524675499999996
+		},
+		{
+			"run": "lanterns-016",
+			"arm": "nobrain",
+			"seed": 61,
+			"replicate": 0,
+			"manifestHash": "527c674fffd4c768d92cf34626e41aecb2a78b3c72617a9f38454764a3c0e349",
+			"head": "8da7e806bac50a29c8052e4121a84c6b26f2400503b4aaf31a5082e7706eea85",
+			"status": "included",
+			"costUsd": 0.047483095000000024
+		},
+		{
+			"run": "lanterns-017",
+			"arm": "nobrain",
+			"seed": 107,
+			"replicate": 0,
+			"manifestHash": "5c9abafc7449d6e5e6ddbb19c7c4ef0e3d8a40c347ef031b973e9c6487a99e13",
+			"head": "aaf467ec0e178f368b511964d66ed917ed3d5579f5e535b4749b47f91b129c76",
+			"status": "included",
+			"costUsd": 0.05644095999999999
+		},
+		{
+			"run": "lanterns-018",
+			"arm": "brain",
+			"seed": 67,
+			"replicate": 0,
+			"manifestHash": "57e23e859c61fdaa44cdc03f84f56ac30ae23c7c696ef5d377d13550d05e8297",
+			"head": "df5273f28145e7bd5dedf73c29162b0b56810627f06b9dd09392cec00a391e24",
+			"status": "included",
+			"costUsd": 0.08287354500000003
+		},
+		{
+			"run": "lanterns-019",
+			"arm": "brain",
+			"seed": 107,
+			"replicate": 0,
+			"manifestHash": "bcd98172bc033d81ae7465e4b3074d56e0de7c369c38705e9cfa4a2d3f7a6f61",
+			"head": "0096f5dccaaf6d91dd4184b4b7593b01cd1be5136313d2e466b8a2a86d858d51",
+			"status": "included",
+			"costUsd": 0.07487497499999997
+		},
+		{
+			"run": "lanterns-021",
+			"arm": "nobrain",
+			"seed": 67,
+			"replicate": 0,
+			"manifestHash": "ccc715dff4be62f7bf1058fdb6beac6db95f4dda23d1d7ba12a3cb11049c3fb8",
+			"head": "09d55ae4a04ad1ec298bd1d2c23cd7c22329e809e1aeb8a18693577190d710c2",
+			"status": "included",
+			"costUsd": 0.05196128500000003
+		},
+		{
+			"run": "lanterns-020",
+			"arm": "brain",
+			"seed": 61,
+			"replicate": 0,
+			"manifestHash": "a996bdfde8b8d43daf2b8481969b152a94ba23f1213db03646f1cc53710c0e52",
+			"head": "b5ae0d52a5d96432aa170596b3837251e48809f488d900b7d4f3ae21001ef2be",
+			"status": "included",
+			"costUsd": 0.08383456500000001
+		},
+		{
+			"run": "lanterns-022",
+			"arm": "nobrain",
+			"seed": 79,
+			"replicate": 0,
+			"manifestHash": "3851fc5b9021939ac92ad906c1972ec8dd5b05cfdd69ebbca5e34979dbabd6d3",
+			"head": "43db7d62b85b446a77d97a5ebc21ee0297fd53442d2252c6ffa6ec8a207d3048",
+			"status": "included",
+			"costUsd": 0.06748359999999999
+		},
+		{
+			"run": "lanterns-023",
+			"arm": "brain",
+			"seed": 89,
+			"replicate": 0,
+			"manifestHash": "5acb3b46bb51d045f76fbc7772b4986a137e36e2e9c67eb73bbdc2e28f155de0",
+			"head": "b0d10bef0a68fb3f9e1967e43fe5e54f5a1180e7e07f010be4cb612a488e3410",
+			"status": "included",
+			"costUsd": 0.08520684500000002
+		},
+		{
+			"run": "lanterns-024",
+			"arm": "nobrain",
+			"seed": 83,
+			"replicate": 0,
+			"manifestHash": "d1244254196a2e37cac31db053c3c72f87353b130c8ed447f26f9cdd5d63ada3",
+			"head": "d2bdf55bbc26b7077ea603ec958082a6453afc33fa2a0ca137805d0959cd18ff",
+			"status": "included",
+			"costUsd": 0.06040771499999995
+		}
+	],
+	"values": [
+		{
+			"run": "lanterns-001",
+			"metric": "clue-grid.recall",
+			"value": 0.6816249999999999
+		},
+		{
+			"run": "lanterns-001",
+			"metric": "clue-grid.recallLater",
+			"value": 0.7440000000000001
+		},
+		{
+			"run": "lanterns-001",
+			"metric": "clue-grid.precision",
+			"value": 0.805625
+		},
+		{
+			"run": "lanterns-001",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-001",
+			"metric": "models.requests",
+			"value": 314
+		},
+		{
+			"run": "lanterns-001",
+			"metric": "models.costUsd",
+			"value": 0.09575225000000005
+		},
+		{
+			"run": "lanterns-003",
+			"metric": "clue-grid.recall",
+			"value": 0.70175
+		},
+		{
+			"run": "lanterns-003",
+			"metric": "clue-grid.recallLater",
+			"value": 0.7523333333333334
+		},
+		{
+			"run": "lanterns-003",
+			"metric": "clue-grid.precision",
+			"value": 0.7659999999999999
+		},
+		{
+			"run": "lanterns-003",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-003",
+			"metric": "models.requests",
+			"value": 215
+		},
+		{
+			"run": "lanterns-003",
+			"metric": "models.costUsd",
+			"value": 0.05524507000000005
+		},
+		{
+			"run": "lanterns-002",
+			"metric": "clue-grid.recall",
+			"value": 0.747
+		},
+		{
+			"run": "lanterns-002",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8578333333333332
+		},
+		{
+			"run": "lanterns-002",
+			"metric": "clue-grid.precision",
+			"value": 0.8645
+		},
+		{
+			"run": "lanterns-002",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-002",
+			"metric": "models.requests",
+			"value": 356
+		},
+		{
+			"run": "lanterns-002",
+			"metric": "models.costUsd",
+			"value": 0.10528289000000006
+		},
+		{
+			"run": "lanterns-005",
+			"metric": "clue-grid.recall",
+			"value": 0.753625
+		},
+		{
+			"run": "lanterns-005",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8055
+		},
+		{
+			"run": "lanterns-005",
+			"metric": "clue-grid.precision",
+			"value": 0.854125
+		},
+		{
+			"run": "lanterns-005",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-005",
+			"metric": "models.requests",
+			"value": 198
+		},
+		{
+			"run": "lanterns-005",
+			"metric": "models.costUsd",
+			"value": 0.05171430000000002
+		},
+		{
+			"run": "lanterns-004",
+			"metric": "clue-grid.recall",
+			"value": 0.717375
+		},
+		{
+			"run": "lanterns-004",
+			"metric": "clue-grid.recallLater",
+			"value": 0.6803333333333333
+		},
+		{
+			"run": "lanterns-004",
+			"metric": "clue-grid.precision",
+			"value": 0.780625
+		},
+		{
+			"run": "lanterns-004",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-004",
+			"metric": "models.requests",
+			"value": 212
+		},
+		{
+			"run": "lanterns-004",
+			"metric": "models.costUsd",
+			"value": 0.054060365000000006
+		},
+		{
+			"run": "lanterns-007",
+			"metric": "clue-grid.recall",
+			"value": 0.82075
+		},
+		{
+			"run": "lanterns-007",
+			"metric": "clue-grid.recallLater",
+			"value": 0.761
+		},
+		{
+			"run": "lanterns-007",
+			"metric": "clue-grid.precision",
+			"value": 0.895875
+		},
+		{
+			"run": "lanterns-007",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-007",
+			"metric": "models.requests",
+			"value": 252
+		},
+		{
+			"run": "lanterns-007",
+			"metric": "models.costUsd",
+			"value": 0.0734486
+		},
+		{
+			"run": "lanterns-006",
+			"metric": "clue-grid.recall",
+			"value": 0.777125
+		},
+		{
+			"run": "lanterns-006",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8028333333333334
+		},
+		{
+			"run": "lanterns-006",
+			"metric": "clue-grid.precision",
+			"value": 0.7896249999999999
+		},
+		{
+			"run": "lanterns-006",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-006",
+			"metric": "models.requests",
+			"value": 291
+		},
+		{
+			"run": "lanterns-006",
+			"metric": "models.costUsd",
+			"value": 0.08899661999999998
+		},
+		{
+			"run": "lanterns-009",
+			"metric": "clue-grid.recall",
+			"value": 0.843
+		},
+		{
+			"run": "lanterns-009",
+			"metric": "clue-grid.recallLater",
+			"value": 0.9073333333333333
+		},
+		{
+			"run": "lanterns-009",
+			"metric": "clue-grid.precision",
+			"value": 0.91675
+		},
+		{
+			"run": "lanterns-009",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-009",
+			"metric": "models.requests",
+			"value": 208
+		},
+		{
+			"run": "lanterns-009",
+			"metric": "models.costUsd",
+			"value": 0.05400051000000002
+		},
+		{
+			"run": "lanterns-008",
+			"metric": "clue-grid.recall",
+			"value": 0.80975
+		},
+		{
+			"run": "lanterns-008",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8296666666666667
+		},
+		{
+			"run": "lanterns-008",
+			"metric": "clue-grid.precision",
+			"value": 0.8738750000000001
+		},
+		{
+			"run": "lanterns-008",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-008",
+			"metric": "models.requests",
+			"value": 273
+		},
+		{
+			"run": "lanterns-008",
+			"metric": "models.costUsd",
+			"value": 0.08094785500000004
+		},
+		{
+			"run": "lanterns-011",
+			"metric": "clue-grid.recall",
+			"value": 0.749375
+		},
+		{
+			"run": "lanterns-011",
+			"metric": "clue-grid.recallLater",
+			"value": 0.7561666666666667
+		},
+		{
+			"run": "lanterns-011",
+			"metric": "clue-grid.precision",
+			"value": 0.8216249999999999
+		},
+		{
+			"run": "lanterns-011",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-011",
+			"metric": "models.requests",
+			"value": 227
+		},
+		{
+			"run": "lanterns-011",
+			"metric": "models.costUsd",
+			"value": 0.057677129999999986
+		},
+		{
+			"run": "lanterns-010",
+			"metric": "clue-grid.recall",
+			"value": 0.726875
+		},
+		{
+			"run": "lanterns-010",
+			"metric": "clue-grid.recallLater",
+			"value": 0.7886666666666667
+		},
+		{
+			"run": "lanterns-010",
+			"metric": "clue-grid.precision",
+			"value": 0.803
+		},
+		{
+			"run": "lanterns-010",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-010",
+			"metric": "models.requests",
+			"value": 291
+		},
+		{
+			"run": "lanterns-010",
+			"metric": "models.costUsd",
+			"value": 0.08565717999999997
+		},
+		{
+			"run": "lanterns-013",
+			"metric": "clue-grid.recall",
+			"value": 0.733125
+		},
+		{
+			"run": "lanterns-013",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8133333333333335
+		},
+		{
+			"run": "lanterns-013",
+			"metric": "clue-grid.precision",
+			"value": 0.802
+		},
+		{
+			"run": "lanterns-013",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-013",
+			"metric": "models.requests",
+			"value": 231
+		},
+		{
+			"run": "lanterns-013",
+			"metric": "models.costUsd",
+			"value": 0.058048840000000004
+		},
+		{
+			"run": "lanterns-012",
+			"metric": "clue-grid.recall",
+			"value": 0.950875
+		},
+		{
+			"run": "lanterns-012",
+			"metric": "clue-grid.recallLater",
+			"value": 0.9761666666666667
+		},
+		{
+			"run": "lanterns-012",
+			"metric": "clue-grid.precision",
+			"value": 0.950875
+		},
+		{
+			"run": "lanterns-012",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-012",
+			"metric": "models.requests",
+			"value": 260
+		},
+		{
+			"run": "lanterns-012",
+			"metric": "models.costUsd",
+			"value": 0.07533550999999998
+		},
+		{
+			"run": "lanterns-015",
+			"metric": "clue-grid.recall",
+			"value": 0.7498750000000001
+		},
+		{
+			"run": "lanterns-015",
+			"metric": "clue-grid.recallLater",
+			"value": 0.7915000000000001
+		},
+		{
+			"run": "lanterns-015",
+			"metric": "clue-grid.precision",
+			"value": 0.8466250000000001
+		},
+		{
+			"run": "lanterns-015",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-015",
+			"metric": "models.requests",
+			"value": 203
+		},
+		{
+			"run": "lanterns-015",
+			"metric": "models.costUsd",
+			"value": 0.05113833
+		},
+		{
+			"run": "lanterns-014",
+			"metric": "clue-grid.recall",
+			"value": 0.870875
+		},
+		{
+			"run": "lanterns-014",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8278333333333334
+		},
+		{
+			"run": "lanterns-014",
+			"metric": "clue-grid.precision",
+			"value": 0.870875
+		},
+		{
+			"run": "lanterns-014",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-014",
+			"metric": "models.requests",
+			"value": 234
+		},
+		{
+			"run": "lanterns-014",
+			"metric": "models.costUsd",
+			"value": 0.06524675499999996
+		},
+		{
+			"run": "lanterns-016",
+			"metric": "clue-grid.recall",
+			"value": 0.8558749999999999
+		},
+		{
+			"run": "lanterns-016",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8356666666666666
+		},
+		{
+			"run": "lanterns-016",
+			"metric": "clue-grid.precision",
+			"value": 0.8975
+		},
+		{
+			"run": "lanterns-016",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-016",
+			"metric": "models.requests",
+			"value": 190
+		},
+		{
+			"run": "lanterns-016",
+			"metric": "models.costUsd",
+			"value": 0.047483095000000024
+		},
+		{
+			"run": "lanterns-017",
+			"metric": "clue-grid.recall",
+			"value": 0.761125
+		},
+		{
+			"run": "lanterns-017",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8411666666666666
+		},
+		{
+			"run": "lanterns-017",
+			"metric": "clue-grid.precision",
+			"value": 0.8166249999999999
+		},
+		{
+			"run": "lanterns-017",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-017",
+			"metric": "models.requests",
+			"value": 213
+		},
+		{
+			"run": "lanterns-017",
+			"metric": "models.costUsd",
+			"value": 0.05644095999999999
+		},
+		{
+			"run": "lanterns-018",
+			"metric": "clue-grid.recall",
+			"value": 0.88125
+		},
+		{
+			"run": "lanterns-018",
+			"metric": "clue-grid.recallLater",
+			"value": 0.9249999999999999
+		},
+		{
+			"run": "lanterns-018",
+			"metric": "clue-grid.precision",
+			"value": 0.88125
+		},
+		{
+			"run": "lanterns-018",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-018",
+			"metric": "models.requests",
+			"value": 294
+		},
+		{
+			"run": "lanterns-018",
+			"metric": "models.costUsd",
+			"value": 0.08287354500000003
+		},
+		{
+			"run": "lanterns-019",
+			"metric": "clue-grid.recall",
+			"value": 0.7955
+		},
+		{
+			"run": "lanterns-019",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8106666666666666
+		},
+		{
+			"run": "lanterns-019",
+			"metric": "clue-grid.precision",
+			"value": 0.853
+		},
+		{
+			"run": "lanterns-019",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-019",
+			"metric": "models.requests",
+			"value": 261
+		},
+		{
+			"run": "lanterns-019",
+			"metric": "models.costUsd",
+			"value": 0.07487497499999997
+		},
+		{
+			"run": "lanterns-021",
+			"metric": "clue-grid.recall",
+			"value": 0.865625
+		},
+		{
+			"run": "lanterns-021",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8208333333333333
+		},
+		{
+			"run": "lanterns-021",
+			"metric": "clue-grid.precision",
+			"value": 0.903125
+		},
+		{
+			"run": "lanterns-021",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-021",
+			"metric": "models.requests",
+			"value": 209
+		},
+		{
+			"run": "lanterns-021",
+			"metric": "models.costUsd",
+			"value": 0.05196128500000003
+		},
+		{
+			"run": "lanterns-020",
+			"metric": "clue-grid.recall",
+			"value": 0.83475
+		},
+		{
+			"run": "lanterns-020",
+			"metric": "clue-grid.recallLater",
+			"value": 0.8213333333333334
+		},
+		{
+			"run": "lanterns-020",
+			"metric": "clue-grid.precision",
+			"value": 0.908
+		},
+		{
+			"run": "lanterns-020",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-020",
+			"metric": "models.requests",
+			"value": 279
+		},
+		{
+			"run": "lanterns-020",
+			"metric": "models.costUsd",
+			"value": 0.08383456500000001
+		},
+		{
+			"run": "lanterns-022",
+			"metric": "clue-grid.recall",
+			"value": 0.664875
+		},
+		{
+			"run": "lanterns-022",
+			"metric": "clue-grid.recallLater",
+			"value": 0.6961666666666667
+		},
+		{
+			"run": "lanterns-022",
+			"metric": "clue-grid.precision",
+			"value": 0.777625
+		},
+		{
+			"run": "lanterns-022",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-022",
+			"metric": "models.requests",
+			"value": 249
+		},
+		{
+			"run": "lanterns-022",
+			"metric": "models.costUsd",
+			"value": 0.06748359999999999
+		},
+		{
+			"run": "lanterns-023",
+			"metric": "clue-grid.recall",
+			"value": 0.90625
+		},
+		{
+			"run": "lanterns-023",
+			"metric": "clue-grid.recallLater",
+			"value": 0.875
+		},
+		{
+			"run": "lanterns-023",
+			"metric": "clue-grid.precision",
+			"value": 0.94375
+		},
+		{
+			"run": "lanterns-023",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "lanterns-023",
+			"metric": "models.requests",
+			"value": 309
+		},
+		{
+			"run": "lanterns-023",
+			"metric": "models.costUsd",
+			"value": 0.08520684500000002
+		},
+		{
+			"run": "lanterns-024",
+			"metric": "clue-grid.recall",
+			"value": 0.7158749999999999
+		},
+		{
+			"run": "lanterns-024",
+			"metric": "clue-grid.recallLater",
+			"value": 0.7403333333333334
+		},
+		{
+			"run": "lanterns-024",
+			"metric": "clue-grid.precision",
+			"value": 0.84175
+		},
+		{
+			"run": "lanterns-024",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "lanterns-024",
+			"metric": "models.requests",
+			"value": 227
+		},
+		{
+			"run": "lanterns-024",
+			"metric": "models.costUsd",
+			"value": 0.06040771499999995
+		}
+	],
+	"estimates": [
+		{
+			"metric": "clue-grid.recall",
+			"role": "primary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 0.05759374999999999,
+			"se": 0.0217570201847605,
+			"interval": [
+				0.009706548573342126,
+				0.10548095142665787
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.02392578125,
+			"over": "included"
+		},
+		{
+			"metric": "clue-grid.recall",
+			"role": "primary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 0.05759374999999999,
+			"se": 0.0217570201847605,
+			"interval": [
+				0.009706548573342126,
+				0.10548095142665787
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.02392578125,
+			"over": "finished"
+		},
+		{
+			"metric": "clue-grid.recallLater",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 0.04827777777777778,
+			"se": 0.020292965116539767,
+			"interval": [
+				0.003612961556273754,
+				0.09294259399928181
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.033203125,
+			"over": "included"
+		},
+		{
+			"metric": "clue-grid.recallLater",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 0.04827777777777778,
+			"se": 0.020292965116539767,
+			"interval": [
+				0.003612961556273754,
+				0.09294259399928181
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.033203125,
+			"over": "finished"
+		},
+		{
+			"metric": "clue-grid.precision",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 0.03465625000000002,
+			"se": 0.01533459773020957,
+			"interval": [
+				0.000904800395808758,
+				0.06840769960419128
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.0224609375,
+			"over": "included"
+		},
+		{
+			"metric": "clue-grid.precision",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 0.03465625000000002,
+			"se": 0.01533459773020957,
+			"interval": [
+				0.000904800395808758,
+				0.06840769960419128
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.0224609375,
+			"over": "finished"
+		}
+	],
+	"pass": {
+		"rule": "clue-grid.recall, brain minus nobrain over the included runs, is greater than 0; a verdict needs 10 complete pairs",
+		"estimate": 0.05759374999999999,
+		"n": 12,
+		"verdict": "kept"
+	},
+	"guardrails": [
+		{
+			"metric": "models.requests",
+			"arm": "nobrain",
+			"value": 215.16666666666666,
+			"held": true
+		},
+		{
+			"metric": "models.requests",
+			"arm": "brain",
+			"value": 284.5,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "nobrain",
+			"value": 0.05547176666666667,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "brain",
+			"value": 0.08312146583333332,
+			"held": true
+		},
+		{
+			"metric": "run.refusals",
+			"arm": "nobrain",
+			"value": 0,
+			"held": true,
+			"codes": []
+		},
+		{
+			"metric": "run.refusals",
+			"arm": "brain",
+			"value": 0.08333333333333333,
+			"held": false,
+			"codes": [
+				"BAD_CLUE"
+			]
+		}
+	],
+	"deviations": []
+}

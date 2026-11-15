@@ -1,0 +1,430 @@
+{
+	"spec": {
+		"format": "swarmtales-experiment",
+		"version": 1,
+		"id": "lanterns-team-brain",
+		"question": "Does a team brain raise recall?",
+		"purpose": "confirmatory",
+		"game": "games/lanterns/game.ts",
+		"model": {
+			"provider": "anthropic",
+			"id": "haiku",
+			"thinking": "medium"
+		},
+		"arms": [
+			{
+				"id": "nobrain",
+				"params": {
+					"brain": false
+				},
+				"control": true
+			},
+			{
+				"id": "brain",
+				"params": {}
+			}
+		],
+		"seeds": [
+			59,
+			61,
+			67,
+			71,
+			73,
+			79,
+			83,
+			89,
+			97,
+			101,
+			103,
+			107
+		],
+		"replicates": 1,
+		"design": "paired",
+		"metrics": {
+			"primary": "clue-grid.recall",
+			"secondary": [
+				"clue-grid.recallLater",
+				"clue-grid.precision",
+				"strategy-brain.brainWrites"
+			],
+			"guardrails": [
+				{
+					"metric": "models.requests",
+					"arm": "nobrain",
+					"within": {
+						"of": 214,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.requests",
+					"arm": "brain",
+					"within": {
+						"of": 286,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "nobrain",
+					"max": 0.066
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "brain",
+					"max": 0.1
+				}
+			]
+		},
+		"pass": {
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"sign": "positive",
+			"minN": 10
+		},
+		"allowedRefusals": [
+			"BRAIN_TOO_LONG",
+			"TOOL_LOCKED",
+			"KEEPER_SILENT",
+			"POST_CAP",
+			"INVALID_ARGUMENTS"
+		],
+		"exclusions": [
+			"failed-request",
+			"missed-decision",
+			"cost-cap",
+			"error-end"
+		],
+		"budget": {
+			"perRunUsd": 0.2,
+			"totalUsd": 2.35,
+			"estimateUsdPerRun": {
+				"nobrain": 0.0545,
+				"brain": 0.0827
+			}
+		},
+		"concurrency": 2
+	},
+	"specHash": "be3337f8c8cb57bfdc8c5536315a8fce6cdba19f212aeb5ac1fd4d71441e3ed2",
+	"runs": [
+		{
+			"planned": {
+				"index": 0,
+				"arm": "brain",
+				"seed": 101,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-001",
+			"costUsd": 0.09575225000000005,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 2,
+				"arm": "nobrain",
+				"seed": 71,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-003",
+			"costUsd": 0.05524507000000005,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 1,
+				"arm": "brain",
+				"seed": 103,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-002",
+			"costUsd": 0.10528289000000006,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 4,
+				"arm": "nobrain",
+				"seed": 103,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-005",
+			"costUsd": 0.05171430000000002,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 3,
+				"arm": "nobrain",
+				"seed": 89,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-004",
+			"costUsd": 0.054060365000000006,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 6,
+				"arm": "brain",
+				"seed": 83,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-007",
+			"costUsd": 0.0734486,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 5,
+				"arm": "brain",
+				"seed": 79,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-006",
+			"costUsd": 0.08899661999999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 8,
+				"arm": "nobrain",
+				"seed": 59,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-009",
+			"costUsd": 0.05400051000000002,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 7,
+				"arm": "brain",
+				"seed": 71,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-008",
+			"costUsd": 0.08094785500000004,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 10,
+				"arm": "nobrain",
+				"seed": 97,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-011",
+			"costUsd": 0.057677129999999986,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 9,
+				"arm": "brain",
+				"seed": 97,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-010",
+			"costUsd": 0.08565717999999997,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 12,
+				"arm": "nobrain",
+				"seed": 101,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-013",
+			"costUsd": 0.058048840000000004,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 11,
+				"arm": "brain",
+				"seed": 59,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-012",
+			"costUsd": 0.07533550999999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 14,
+				"arm": "nobrain",
+				"seed": 73,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-015",
+			"costUsd": 0.05113833,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 13,
+				"arm": "brain",
+				"seed": 73,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-014",
+			"costUsd": 0.06524675499999996,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 15,
+				"arm": "nobrain",
+				"seed": 61,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-016",
+			"costUsd": 0.047483095000000024,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 16,
+				"arm": "nobrain",
+				"seed": 107,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-017",
+			"costUsd": 0.05644095999999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 17,
+				"arm": "brain",
+				"seed": 67,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-018",
+			"costUsd": 0.08287354500000003,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 18,
+				"arm": "brain",
+				"seed": 107,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-019",
+			"costUsd": 0.07487497499999997,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 20,
+				"arm": "nobrain",
+				"seed": 67,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-021",
+			"costUsd": 0.05196128500000003,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 19,
+				"arm": "brain",
+				"seed": 61,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-020",
+			"costUsd": 0.08383456500000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 21,
+				"arm": "nobrain",
+				"seed": 79,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-022",
+			"costUsd": 0.06748359999999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 22,
+				"arm": "brain",
+				"seed": 89,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "lanterns-023",
+			"costUsd": 0.08520684500000002,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 23,
+				"arm": "nobrain",
+				"seed": 83,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "lanterns-024",
+			"costUsd": 0.06040771499999995,
+			"status": "included"
+		}
+	],
+	"spentUsd": 1.6631187900000002,
+	"code": {
+		"commit": "5b6336a6205ccb095b5a5f65e85240abb9f376eb",
+		"kernelRevision": 4
+	}
+}

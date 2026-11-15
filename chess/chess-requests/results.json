@@ -1,0 +1,388 @@
+{
+	"format": "swarmtales-results",
+	"version": 1,
+	"spec": {
+		"id": "chess-requests",
+		"hash": "8a59a795497817d4c9aa8f3f69bfb744879d7884f8c807f2554999f30b7a7712"
+	},
+	"code": {
+		"commit": "5b6336a6205ccb095b5a5f65e85240abb9f376eb",
+		"kernelRevision": 4
+	},
+	"runs": [
+		{
+			"run": "chess-001",
+			"arm": "fresh-compact",
+			"seed": 41,
+			"replicate": 0,
+			"manifestHash": "86828d4e0e38ca9648af9606442c759d5cba98c681110a37627169183c8460d0",
+			"head": "bea365089a98e43d242872b550af35342bae3ce73ed00f54bed65cd71b25bf4e",
+			"status": "included",
+			"costUsd": 0.304820575
+		},
+		{
+			"run": "chess-002",
+			"arm": "fresh-compact",
+			"seed": 53,
+			"replicate": 0,
+			"manifestHash": "de25f6d56832ba51220594c6e68d41980dc71847d689cec0bf4c2490bd6f4083",
+			"head": "91e97dbf949ec7400645c4297901a2f9b63bebc0cae0d6ad9312a5c1cceb2f9d",
+			"status": "included",
+			"costUsd": 0.28776641
+		},
+		{
+			"run": "chess-003",
+			"arm": "fresh-compact",
+			"seed": 43,
+			"replicate": 0,
+			"manifestHash": "126f565f78b2962416cc8ce861121e11fe496c1fbec0498061a108abf8a272e3",
+			"head": "0d904faaf08aed15f4334ac57ae8518c7984d292843a844e002a6bbce94913a8",
+			"status": "included",
+			"costUsd": 0.23482837999999995
+		},
+		{
+			"run": "chess-004",
+			"arm": "fresh-compact",
+			"seed": 47,
+			"replicate": 0,
+			"manifestHash": "7148a576e63596bdf8cf8207ae9afa60682fbadcefa83e11932e71c052e8fb96",
+			"head": "d6e37d52fd8303db5efa007ff6d2a9bab14ad650f9ff32f39f94500b8e929aaf",
+			"status": "included",
+			"costUsd": 0.31809963
+		}
+	],
+	"values": [
+		{
+			"run": "chess-001",
+			"metric": "models.requests",
+			"value": 361
+		},
+		{
+			"run": "chess-001",
+			"metric": "chess.plies",
+			"value": 299
+		},
+		{
+			"run": "chess-001",
+			"metric": "chess.refusedMoves",
+			"value": 12
+		},
+		{
+			"run": "chess-001",
+			"metric": "run.noCallActivations",
+			"value": 9
+		},
+		{
+			"run": "chess-001",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "chess-001",
+			"metric": "models.costUsd",
+			"value": 0.304820575
+		},
+		{
+			"run": "chess-002",
+			"metric": "models.requests",
+			"value": 342
+		},
+		{
+			"run": "chess-002",
+			"metric": "chess.plies",
+			"value": 286
+		},
+		{
+			"run": "chess-002",
+			"metric": "chess.refusedMoves",
+			"value": 8
+		},
+		{
+			"run": "chess-002",
+			"metric": "run.noCallActivations",
+			"value": 8
+		},
+		{
+			"run": "chess-002",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "chess-002",
+			"metric": "models.costUsd",
+			"value": 0.28776641
+		},
+		{
+			"run": "chess-003",
+			"metric": "models.requests",
+			"value": 291
+		},
+		{
+			"run": "chess-003",
+			"metric": "chess.plies",
+			"value": 235
+		},
+		{
+			"run": "chess-003",
+			"metric": "chess.refusedMoves",
+			"value": 7
+		},
+		{
+			"run": "chess-003",
+			"metric": "run.noCallActivations",
+			"value": 4
+		},
+		{
+			"run": "chess-003",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "chess-003",
+			"metric": "models.costUsd",
+			"value": 0.23482837999999995
+		},
+		{
+			"run": "chess-004",
+			"metric": "models.requests",
+			"value": 348
+		},
+		{
+			"run": "chess-004",
+			"metric": "chess.plies",
+			"value": 291
+		},
+		{
+			"run": "chess-004",
+			"metric": "chess.refusedMoves",
+			"value": 10
+		},
+		{
+			"run": "chess-004",
+			"metric": "run.noCallActivations",
+			"value": 8
+		},
+		{
+			"run": "chess-004",
+			"metric": "strategy-brain.brainWrites",
+			"value": 8
+		},
+		{
+			"run": "chess-004",
+			"metric": "models.costUsd",
+			"value": 0.31809963
+		}
+	],
+	"estimates": [
+		{
+			"metric": "models.requests",
+			"role": "primary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 335.5,
+			"se": 15.354152532784088,
+			"interval": [
+				286.643086640681,
+				384.356913359319
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "included"
+		},
+		{
+			"metric": "models.requests",
+			"role": "primary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 335.5,
+			"se": 15.354152532784088,
+			"interval": [
+				286.643086640681,
+				384.356913359319
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "finished"
+		},
+		{
+			"metric": "chess.plies",
+			"role": "secondary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 277.75,
+			"se": 14.499281591398473,
+			"interval": [
+				231.61328597617006,
+				323.88671402382994
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "included"
+		},
+		{
+			"metric": "chess.plies",
+			"role": "secondary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 277.75,
+			"se": 14.499281591398473,
+			"interval": [
+				231.61328597617006,
+				323.88671402382994
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "finished"
+		},
+		{
+			"metric": "chess.refusedMoves",
+			"role": "secondary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 9.25,
+			"se": 1.1086778913041726,
+			"interval": [
+				5.722186949870123,
+				12.777813050129877
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "included"
+		},
+		{
+			"metric": "chess.refusedMoves",
+			"role": "secondary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 9.25,
+			"se": 1.1086778913041726,
+			"interval": [
+				5.722186949870123,
+				12.777813050129877
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "finished"
+		},
+		{
+			"metric": "run.noCallActivations",
+			"role": "secondary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 7.25,
+			"se": 1.1086778913041726,
+			"interval": [
+				3.7221869498701228,
+				10.777813050129877
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "included"
+		},
+		{
+			"metric": "run.noCallActivations",
+			"role": "secondary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 7.25,
+			"se": 1.1086778913041726,
+			"interval": [
+				3.7221869498701228,
+				10.777813050129877
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "finished"
+		},
+		{
+			"metric": "strategy-brain.brainWrites",
+			"role": "secondary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 8,
+			"se": 0,
+			"interval": [
+				8,
+				8
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "included"
+		},
+		{
+			"metric": "strategy-brain.brainWrites",
+			"role": "secondary",
+			"contrast": [
+				"fresh-compact"
+			],
+			"estimator": "mean of the arm",
+			"estimate": 8,
+			"se": 0,
+			"interval": [
+				8,
+				8
+			],
+			"n": 4,
+			"test": "none",
+			"p": 1,
+			"over": "finished"
+		}
+	],
+	"guardrails": [
+		{
+			"metric": "models.requests",
+			"per": "chess.plies",
+			"arm": "fresh-compact",
+			"value": 1.209334054084047,
+			"held": true
+		},
+		{
+			"metric": "chess.refusedMoves",
+			"per": "chess.plies",
+			"arm": "fresh-compact",
+			"value": 0.03306432561179502,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "fresh-compact",
+			"value": 0.28637874874999997,
+			"held": true
+		},
+		{
+			"metric": "run.refusals",
+			"arm": "fresh-compact",
+			"value": 0,
+			"held": true,
+			"codes": []
+		}
+	],
+	"deviations": []
+}

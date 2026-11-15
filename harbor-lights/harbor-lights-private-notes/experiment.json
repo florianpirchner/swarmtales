@@ -1,0 +1,482 @@
+{
+	"spec": {
+		"format": "swarmtales-experiment",
+		"version": 1,
+		"id": "harbor-lights-private-notes",
+		"question": "Do private notes raise the crew's score?",
+		"purpose": "confirmatory",
+		"game": "games/harbor-lights/game.ts",
+		"model": {
+			"provider": "anthropic",
+			"id": "haiku",
+			"thinking": "medium"
+		},
+		"arms": [
+			{
+				"id": "nobrain",
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				},
+				"control": true
+			},
+			{
+				"id": "solo",
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			}
+		],
+		"seeds": [
+			101,
+			102,
+			103,
+			104,
+			105,
+			106,
+			107,
+			108,
+			109,
+			110,
+			111,
+			112
+		],
+		"replicates": 1,
+		"design": "paired",
+		"metrics": {
+			"primary": "hint-towers.score",
+			"secondary": [
+				"hint-towers.misfires",
+				"strategy-brain.brainWrites"
+			],
+			"guardrails": [
+				{
+					"metric": "models.requests",
+					"arm": "nobrain",
+					"within": {
+						"of": 96,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.requests",
+					"arm": "solo",
+					"within": {
+						"of": 115,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "nobrain",
+					"max": 0.06
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "solo",
+					"max": 0.062
+				}
+			]
+		},
+		"pass": {
+			"contrast": [
+				"solo",
+				"nobrain"
+			],
+			"sign": "positive",
+			"minN": 10
+		},
+		"allowedRefusals": [
+			"NOT_YOUR_TURN",
+			"NO_SIGNALS",
+			"TOUCHES_NOTHING",
+			"TOOL_LOCKED",
+			"BRAIN_TOO_LONG",
+			"INVALID_ARGUMENTS"
+		],
+		"exclusions": [
+			"failed-request",
+			"missed-decision",
+			"cost-cap",
+			"error-end"
+		],
+		"budget": {
+			"perRunUsd": 0.12,
+			"totalUsd": 1.6,
+			"estimateUsdPerRun": {
+				"nobrain": 0.05,
+				"solo": 0.0517
+			}
+		},
+		"concurrency": 2
+	},
+	"specHash": "b215ccf393cc4fd8db697e9267c171a39e9cb0daca8cb905056154a9741de43d",
+	"runs": [
+		{
+			"planned": {
+				"index": 0,
+				"arm": "nobrain",
+				"seed": 105,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-001",
+			"costUsd": 0.055931310000000026,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 1,
+				"arm": "solo",
+				"seed": 101,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-002",
+			"costUsd": 0.057283245000000024,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 2,
+				"arm": "solo",
+				"seed": 105,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-003",
+			"costUsd": 0.05951355999999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 4,
+				"arm": "nobrain",
+				"seed": 111,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-005",
+			"costUsd": 0.05349971000000002,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 3,
+				"arm": "solo",
+				"seed": 109,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-004",
+			"costUsd": 0.057422264999999986,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 6,
+				"arm": "nobrain",
+				"seed": 101,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-007",
+			"costUsd": 0.05695125499999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 5,
+				"arm": "nobrain",
+				"seed": 109,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-006",
+			"costUsd": 0.06048502,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 7,
+				"arm": "nobrain",
+				"seed": 107,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-008",
+			"costUsd": 0.05146009000000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 8,
+				"arm": "solo",
+				"seed": 111,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-009",
+			"costUsd": 0.04899522500000003,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 9,
+				"arm": "nobrain",
+				"seed": 103,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-010",
+			"costUsd": 0.04932544500000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 10,
+				"arm": "solo",
+				"seed": 104,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-011",
+			"costUsd": 0.04924811499999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 12,
+				"arm": "solo",
+				"seed": 107,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-013",
+			"costUsd": 0.059794385000000005,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 11,
+				"arm": "solo",
+				"seed": 112,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-012",
+			"costUsd": 0.06446537500000005,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 14,
+				"arm": "solo",
+				"seed": 102,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-015",
+			"costUsd": 0.05078124000000002,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 13,
+				"arm": "nobrain",
+				"seed": 102,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-014",
+			"costUsd": 0.051444460000000025,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 15,
+				"arm": "nobrain",
+				"seed": 110,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-016",
+			"costUsd": 0.042549605,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 16,
+				"arm": "nobrain",
+				"seed": 108,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-017",
+			"costUsd": 0.05646501499999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 17,
+				"arm": "nobrain",
+				"seed": 104,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-018",
+			"costUsd": 0.050238195000000034,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 18,
+				"arm": "solo",
+				"seed": 110,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-019",
+			"costUsd": 0.05677182999999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 19,
+				"arm": "nobrain",
+				"seed": 106,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-020",
+			"costUsd": 0.044558610000000005,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 20,
+				"arm": "solo",
+				"seed": 108,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-021",
+			"costUsd": 0.04553560500000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 21,
+				"arm": "solo",
+				"seed": 103,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-022",
+			"costUsd": 0.052793435000000034,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 22,
+				"arm": "solo",
+				"seed": 106,
+				"replicate": 0,
+				"params": {
+					"brain": "solo",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-023",
+			"costUsd": 0.05117479500000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 23,
+				"arm": "nobrain",
+				"seed": 112,
+				"replicate": 0,
+				"params": {
+					"brain": "nobrain",
+					"games": 1
+				}
+			},
+			"directory": "harbor-lights-024",
+			"costUsd": 0.05473090499999999,
+			"status": "included"
+		}
+	],
+	"spentUsd": 1.2814186950000006,
+	"code": {
+		"commit": "5b6336a6205ccb095b5a5f65e85240abb9f376eb",
+		"kernelRevision": 4
+	}
+}

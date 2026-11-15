@@ -1,0 +1,155 @@
+{
+	"spec": {
+		"format": "swarmtales-experiment",
+		"version": 1,
+		"id": "chess-requests",
+		"question": "How many requests does a half-move cost?",
+		"purpose": "confirmatory",
+		"game": "games/chess/game.ts",
+		"model": {
+			"provider": "anthropic",
+			"id": "haiku",
+			"thinking": "medium"
+		},
+		"arms": [
+			{
+				"id": "fresh-compact",
+				"params": {
+					"games": 4,
+					"maxPlies": 80,
+					"fresh": true,
+					"compact": true
+				},
+				"control": true
+			}
+		],
+		"seeds": [
+			41,
+			43,
+			47,
+			53
+		],
+		"replicates": 1,
+		"design": "replicates",
+		"metrics": {
+			"primary": "models.requests",
+			"secondary": [
+				"chess.plies",
+				"chess.refusedMoves",
+				"run.noCallActivations",
+				"strategy-brain.brainWrites"
+			],
+			"guardrails": [
+				{
+					"metric": "models.requests",
+					"per": "chess.plies"
+				},
+				{
+					"metric": "chess.refusedMoves",
+					"per": "chess.plies",
+					"max": 0.04
+				},
+				{
+					"metric": "models.costUsd",
+					"max": 0.4
+				}
+			]
+		},
+		"allowedRefusals": [
+			"ILLEGAL_MOVE",
+			"BRAIN_TOO_LONG",
+			"TOOL_LOCKED",
+			"INVALID_ARGUMENTS"
+		],
+		"exclusions": [
+			"failed-request",
+			"missed-decision",
+			"cost-cap",
+			"error-end"
+		],
+		"budget": {
+			"perRunUsd": 0.8,
+			"totalUsd": 2,
+			"estimateUsdPerRun": {
+				"fresh-compact": 0.321
+			}
+		},
+		"concurrency": 1
+	},
+	"specHash": "8a59a795497817d4c9aa8f3f69bfb744879d7884f8c807f2554999f30b7a7712",
+	"runs": [
+		{
+			"planned": {
+				"index": 0,
+				"arm": "fresh-compact",
+				"seed": 41,
+				"replicate": 0,
+				"params": {
+					"games": 4,
+					"maxPlies": 80,
+					"fresh": true,
+					"compact": true
+				}
+			},
+			"directory": "chess-001",
+			"costUsd": 0.304820575,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 1,
+				"arm": "fresh-compact",
+				"seed": 53,
+				"replicate": 0,
+				"params": {
+					"games": 4,
+					"maxPlies": 80,
+					"fresh": true,
+					"compact": true
+				}
+			},
+			"directory": "chess-002",
+			"costUsd": 0.28776641,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 2,
+				"arm": "fresh-compact",
+				"seed": 43,
+				"replicate": 0,
+				"params": {
+					"games": 4,
+					"maxPlies": 80,
+					"fresh": true,
+					"compact": true
+				}
+			},
+			"directory": "chess-003",
+			"costUsd": 0.23482837999999995,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 3,
+				"arm": "fresh-compact",
+				"seed": 47,
+				"replicate": 0,
+				"params": {
+					"games": 4,
+					"maxPlies": 80,
+					"fresh": true,
+					"compact": true
+				}
+			},
+			"directory": "chess-004",
+			"costUsd": 0.31809963,
+			"status": "included"
+		}
+	],
+	"spentUsd": 1.1455149949999999,
+	"code": {
+		"commit": "5b6336a6205ccb095b5a5f65e85240abb9f376eb",
+		"kernelRevision": 4
+	}
+}

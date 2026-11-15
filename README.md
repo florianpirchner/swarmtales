@@ -143,3 +143,20 @@ ended replays equal except `hello/smoke/hello-game-002` (ended at its cost cap, 
 Code commit `864ab0e8`, runtime revision 4, model `anthropic/haiku`, thinking medium. One run,
 `salt-market/check-m4-70/salt-market-001`, the default game with `--set markOwnOffers=true`, seed 41: 0.1746 USD of
 0.40; verifies, replays equal, clean under `swt scan`. Own-offer accepts 1 (the smoke had 4).
+## M4 series of D11 (2026-11-15, issue M4-59)
+
+Code commit `5b6336a6205ccb095b5a5f65e85240abb9f376eb`, runtime revision 4, model `anthropic/haiku` resolved to
+`claude-haiku-5-5`, thinking medium, output cap 4000 (Harbor Lights) and 16000 (Lanterns, chess), pricing
+`pi-ai@1.4.0`. 52 runs, 4.0901 USD by `m4-ledger.jsonl` (cap 12.00). Each series folder has its `README.md` with a
+review section (loopholes, problems, solutions).
+
+| Folder | Runs | Cost (USD) | Result |
+|---|---:|---:|---|
+| `harbor-lights/harbor-lights-private-notes/` | 24 | 1.2814 | +1.58 points per game (SE 1.37, 95 % interval -1.44 to +4.61, n 12 pairs): sign kept, size not reproduced |
+| `lanterns/lanterns-team-brain/` | 24 | 1.6631 | +0.058 recall (SE 0.022, 95 % interval +0.010 to +0.106, n 12 pairs): sign kept |
+| `chess/chess-requests/` | 4 | 1.1455 | 1.209 requests per half-move (range 1.196 to 1.238) beside the old 1.18 to 1.22; no pass rule |
+
+No run was excluded, no request failed. Every run folder verifies (`swt log verify`), replays equal (`swt replay
+--game`) and holds a `REPORT.md` written with `--game`; `swt scan` over the folders and the ledger: clean (391 files,
+keys of 2 providers held). `lanterns/lanterns-team-brain/experiment.before-repair.json` is the state file before the
+hand repair of three refused starts (P468).
