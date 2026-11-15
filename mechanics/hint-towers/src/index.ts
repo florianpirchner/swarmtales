@@ -16,13 +16,13 @@
  * told it, which cards it can still be) and shows it in the status, so a context reset loses nothing.
  * A seat that does nothing for `maxIdleMinutes` whole ticks gets the reference bot's action (flag
  * `forfeit`); every deal is also played by a crew of reference bots (event `game_scored`, audience
- * human). `quietTools` are closed for every seat while a game runs (table talk only between games).
+ * human). `quietTools` are locked for every seat while a game runs (table talk only between games).
  * A strategy brain plugs in through `BrainSourceService` and `StrategyBrainService`.
  *
  * @packageDocumentation
  */
 import { Type } from "typebox";
-import { TOOL_LOCKED, type InputLine, type ToolSuccess } from "@swarmtales/contracts";
+import type { InputLine, ToolSuccess } from "@swarmtales/contracts";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { CardTableService, deckOf, rankOf, suitOf } from "@swarmtales/mechanic-card-table/contract";
 import { act, actionKey, forfeit, signalCheck, slotProblem, startNext } from "./flow.ts";
@@ -158,10 +158,6 @@ export const hintTowers = defineMechanic(hintTowersHead, {
 			if (core !== null && core.over === null && core.actor === resident) lines.push({ kind: "status", text: tableText(ctx, resident), order: STATUS_ORDER });
 			return lines;
 		},
-	},
-	pipeline: {
-		// Table talk only between games: a quiet tool of any mechanic is closed for every seat while a game runs.
-		lock: (call, ctx) => (ctx.state.core?.over === null && call.resident !== undefined && ctx.state.seats.includes(call.resident) && ctx.options.quietTools.includes(call.tool) ? refuse(TOOL_LOCKED) : undefined),
 	},
 	jobs: {
 		nextGame: (ctx) => {

@@ -176,7 +176,9 @@ interface Checked {
 function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
 	const { data, steps, scheduler } = parts;
 	const version = versionOf(input.versions ?? {});
-	const loaded = steps.order.map((entry) => entry.definition.resolve(entry.options, input.prompts, version(entry.definition.package)));
+	// A bare name that two mechanics declare stands for the tool of the one loaded first.
+	const tools = new Map(steps.tools.toReversed().map((tool) => [tool.name, tool.canonical]));
+	const loaded = steps.order.map((entry) => entry.definition.resolve(entry.options, input.prompts, version(entry.definition.package), tools));
 	const rostered = appendRoster(loaded, version(SDK));
 	// The plugin `directors` is the last plugin, and only a game with a Director has it.
 	const plugins = parts.directors.length === 0 ? rostered : [...rostered, directorsPlugin(parts.directors, rostered, version(SDK))];

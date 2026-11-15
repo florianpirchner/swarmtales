@@ -43,6 +43,7 @@ function startGame(ctx: Ctx, game: number): void {
 	const pile = ctx.call(CardTableService, "stock", {});
 	state.baseline = botScore(state.seats, suits, rulesOf(ctx), first, pile);
 	state.core = newGame(state.seats, suits, rulesOf(ctx), first, pile.length, drawFrom(ctx));
+	for (const resident of state.seats) for (const tool of ctx.options.quietTools) ctx.access.lock(resident, tool);
 	const hands = Object.fromEntries(state.seats.map((seat) => [seat, (state.core?.hands[seat] ?? []).map((slot) => slot.card)]));
 	ctx.emit("game_started", { game, seats: [...state.seats], first, deck: deckOf(suits).length });
 	ctx.emit("deal_revealed", { game, hands, pile: ctx.call(CardTableService, "stock", {}), baseline: state.baseline });
@@ -74,6 +75,7 @@ function endGame(ctx: Ctx, core: TowerGame): void {
 	const record: GameRecord = { game: state.game, reason, score: scoreOf(core, rulesOf(ctx)), baseline: state.baseline, lost: core.lost.length, misfires: state.misfires, signals: state.signalsGiven };
 	state.results.push(record);
 	state.debrief = [...state.seats];
+	for (const resident of state.seats) for (const tool of ctx.options.quietTools) ctx.access.unlock(resident, tool);
 	ctx.emit("game_ended", { game: state.game, reason, score: record.score, deck, lost: record.lost, misfires: record.misfires, signals: record.signals });
 	ctx.emit("game_scored", { game: state.game, score: record.score, baseline: record.baseline });
 	ctx.tryCall(StrategyBrainService, "gameEnded", { game: state.game, summary: `the crew lit ${String(core.lit.length)} of ${String(deck)} cards${record.score === core.lit.length ? "" : `, score ${String(record.score)} after the strike penalty`} (${reasonText(reason)}; ${plural(record.misfires, "misfire")}, ${String(record.lost - record.misfires)} discarded)` });

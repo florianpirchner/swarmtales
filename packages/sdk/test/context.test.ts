@@ -112,6 +112,25 @@ describe("contextFor", () => {
 		]);
 	});
 
+	it("names a tool of another mechanic by its bare name through the game's tools, its own tool first", () => {
+		const { parts, calls } = stub();
+		const tools = new Map([["postTeam", "@acme/chat/chat/postTeam"], ["playMove", "@acme/other/other/playMove"]]);
+		const head = { ...parts.head, tools: [{ name: "playMove", description: "Moves.", parameters: Type.Object({}), for: ["resident"], free: false }] };
+		const { access } = contextFor({ ...parts, head, tools });
+		access.lock("A01", "postTeam");
+		access.unlock("A01", "postTeam");
+		access.lock("A01", "playMove");
+		access.lock("A01", defineTool("postTeam", Type.Object({})));
+		access.lock("A01", "nowhere");
+		expect(calls).toEqual([
+			["lock", "resident:A01", "@acme/chat/chat/postTeam"],
+			["unlock", "resident:A01", "@acme/chat/chat/postTeam"],
+			["lock", "resident:A01", "@acme/grid/grid/playMove"],
+			["lock", "resident:A01", "@acme/grid/grid/postTeam"],
+			["lock", "resident:A01", "@acme/grid/grid/nowhere"],
+		]);
+	});
+
 	it("emits a payload that matches and refuses a wrong one with SWT-M021 before the port sees it", () => {
 		const { parts, calls } = stub();
 		const ctx = contextFor(parts);

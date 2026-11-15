@@ -110,9 +110,14 @@ function actorsView(actors: ActorsView): ActorsView {
 	};
 }
 
-function accessOf<M extends MechanicShape>({ port }: InstanceParts<M>): ResidentAccess {
-	// A `ToolRef` holds no package, so both forms name a tool of this mechanic.
-	const canonical = (tool: ToolName): CanonicalTool => `${port.source}/${typeof tool === "string" ? tool : tool.name}`;
+function accessOf<M extends MechanicShape>({ port, head, tools }: InstanceParts<M>): ResidentAccess {
+	// A `ToolRef` holds no package, so it names a tool of this mechanic; so does a bare name the mechanic declares.
+	// Any other bare name is the tool of another mechanic of the game, as on the old platform.
+	const canonical = (tool: ToolName): CanonicalTool => {
+		const name = typeof tool === "string" ? tool : tool.name;
+		const other = typeof tool === "string" && !head.tools.some((declared) => declared.name === name) ? tools?.get(name) : undefined;
+		return other ?? `${port.source}/${name}`;
+	};
 	return {
 		lock(resident, tool) {
 			port.access.lock(actorOf(resident), canonical(tool));

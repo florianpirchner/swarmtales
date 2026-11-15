@@ -437,8 +437,11 @@ export interface MechanicDefinition<Id extends string = string, O extends TSchem
 	readonly toolNames?: Tools;
 	/** Fills defaults and checks the options; throws an `SwtError` (SWT-G020) on a bad value. */
 	parseOptions(raw: unknown): Static<O>;
-	/** Binds parsed options and the texts and returns the plugin the kernel loads. */
-	resolve(options: Static<O>, texts: PromptLookup, version: string): ResolvedPlugin;
+	/**
+	 * Binds parsed options and the texts and returns the plugin the kernel loads; `tools` (bare name to canonical
+	 * name, from the game) lets `ctx.access` lock a tool of another mechanic by its bare name.
+	 */
+	resolve(options: Static<O>, texts: PromptLookup, version: string, tools?: ReadonlyMap<string, CanonicalTool>): ResolvedPlugin;
 }
 
 /**

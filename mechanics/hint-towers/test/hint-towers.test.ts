@@ -91,9 +91,9 @@ describe("the move timer", () => {
 });
 
 describe("the quiet tools", () => {
-	it("are closed for every seat while a game runs, also a tool of another mechanic, and open between games", async () => {
+	it("are locked for every seat while a game runs, also a tool of another mechanic, and open between games", async () => {
 		const test = testKernel(towerGame({ games: 2, quietTools: ["viewHand"], strikes: 1 }));
-		expect(await test.call("A03", "viewHand", {})).toEqual({ ok: false, code: "TOOL_LOCKED" });
+		expect(await test.call("A03", "viewHand", {})).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
 		expect(test.kernel.log.all().filter((event) => event.type === "tool_refused").map((event) => field(event, "stage"))).toEqual(["lock"]);
 		expect(test.openTools("A03")).not.toContain("viewHand");
 		expect(await test.call("A03", "viewTowers", {})).toMatchObject({ ok: true });
@@ -105,6 +105,11 @@ describe("the quiet tools", () => {
 		await test.playTicks(idleDriver, 2);
 		expect(ofType(test.kernel.log.all(), "game_started")).toHaveLength(2);
 		expect(await test.call("A03", "viewHand", {})).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
+		// As the old platform wrote them: one lock per seat at each start, one unlock per seat at the end, by the towers.
+		const locks = test.kernel.log.all().filter((event) => event.type === "tool_locked" || event.type === "tool_unlocked");
+		const seats = ["A01", "A02", "A03", "A04"].map((seat) => `resident:${seat}`);
+		const round = (type: string) => seats.map((actor) => ({ type, payload: { actor, tool: "@swarmtales/mechanic-card-table/card-table/viewHand", by: "hint-towers" } }));
+		expect(locks.map(({ type, payload }) => ({ type, payload }))).toEqual([...round("tool_locked"), ...round("tool_unlocked"), ...round("tool_locked")]);
 	});
 });
 

@@ -57,11 +57,10 @@ rules of [Harbor Lights](../../games/harbor-lights/README.md). The score of a ga
    knows is playable, else the newest card a signal touched if it may be playable; with a signal left it points at
    a teammate's playable card as the newest card touched; below the signal cap it discards its oldest untouched
    slot; at the cap it tells the next seat the rank of its oldest card.
-8. **Quiet tools.** While a game runs, a call of a tool named in `quietTools` by a seat is refused with
-   `TOOL_LOCKED` at the stage `lock`, whichever mechanic owns the tool, and the tool is not among the seat's open
-   tools; between games it is open. The old platform locked the tools instead and wrote `tool_locked` and
-   `tool_unlocked` for each seat and tool; a mechanic of this platform can lock only its own tools, so no such
-   event is written here.
+8. **Quiet tools.** When a game starts, every tool named in `quietTools` is locked for every seat, whichever
+   mechanic owns the tool (`tool_locked`, seat by seat); when the game ends, it is unlocked again
+   (`tool_unlocked`), as on the old platform. A call of a locked tool is refused with `TOOL_LOCKED` at the stage
+   `lock`, and the tool is not among the seat's open tools.
 9. **With a strategy brain.** The mechanic provides `brain-source` (the brain holds the next game back for its retro
    window) and tells the brain when a game starts (`side`, default the first seat) and ends, with a one-line result.
 

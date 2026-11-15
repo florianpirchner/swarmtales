@@ -5,7 +5,7 @@
  * tools are data of the head.
  */
 import type { TSchema } from "typebox";
-import type { Fact, KernelTool, PluginPort, PromptLookup, ProvidedService, RunLimit, ServiceDefinition, SnapshotSlice } from "@swarmtales/contracts";
+import type { CanonicalTool, Fact, KernelTool, PluginPort, PromptLookup, ProvidedService, RunLimit, ServiceDefinition, SnapshotSlice } from "@swarmtales/contracts";
 import type { MechanicContext, MechanicShape, ServiceImplementation, Setup } from "./context-types.ts";
 import type { BodyParts, DeclaredTool, FactSpec, LimitSpec, ListenKit, PluginHead, SnapshotSpec, ToolHandlers } from "./types.ts";
 
@@ -27,6 +27,8 @@ export interface InstanceParts<M extends MechanicShape> {
 	readonly setup: Setup<M["options"]>;
 	/** The lookup that renders the mechanic's prompts. */
 	readonly texts: PromptLookup;
+	/** The tools of the game, bare name to canonical name: a lock names another mechanic's tool by it. */
+	readonly tools?: ReadonlyMap<string, CanonicalTool>;
 }
 
 /**

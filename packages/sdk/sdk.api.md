@@ -388,6 +388,7 @@ export interface InstanceParts<M extends MechanicShape> {
         value: M["state"];
     };
     readonly texts: PromptLookup;
+    readonly tools?: ReadonlyMap<string, CanonicalTool>;
 }
 
 // @public
@@ -475,7 +476,7 @@ export interface MechanicDefinition<Id extends string = string, O extends TSchem
     readonly options: O;
     readonly package: string;
     parseOptions(raw: unknown): Static<O>;
-    resolve(options: Static<O>, texts: PromptLookup, version: string): ResolvedPlugin;
+    resolve(options: Static<O>, texts: PromptLookup, version: string, tools?: ReadonlyMap<string, CanonicalTool>): ResolvedPlugin;
     readonly source: string;
     readonly toolNames?: Tools;
 }
