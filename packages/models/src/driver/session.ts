@@ -163,6 +163,21 @@ function zeroCost(message: AssistantMessage, binding: ModelBinding): "none" | "u
 	return message.stopReason !== "aborted" && (input > 0 || output > 0) ? "missing" : "none";
 }
 
+/**
+ * Closes the meter and writes the record `cost_unknown` with its reason, so a replay closes its meter at the same
+ * line (runtime revision 6).
+ *
+ * @param meter - The cost meter of the run.
+ * @param reason - What could not be counted.
+ * @param record - The writer of the driver's records.
+ *
+ * @internal
+ */
+export function closeOnLog(meter: CostMeter, reason: string, record: (type: "cost_unknown", payload: { readonly reason: string }) => void): void {
+	meter.close(reason);
+	record("cost_unknown", { reason });
+}
+
 // The records of one answer: its thinking and text blocks, then its usage, which also goes to the meter. A failed
 // request is "answered" only when the provider billed it.
 function recordAnswer(message: AgentMessage, input: SessionInput, record: Recorder): void {
@@ -174,13 +189,18 @@ function recordAnswer(message: AgentMessage, input: SessionInput, record: Record
 	const { input: tokens, output, cacheRead, cacheWrite, cost } = message.usage;
 	const zero = zeroCost(message, input.binding);
 	if (zero === "unbilled") return;
-	// A paid answer without a cost: the meter closes (fail closed). A cost that is no amount closes it in `add`.
+	// A paid answer without a cost: the meter closes (fail closed), on the log too. A cost that is no amount closes it in `add`.
 	if (zero === "missing") {
-		input.meter.close(`an answer to ${input.actor} of a model with a price came without a cost`);
+		closeOnLog(input.meter, `an answer to ${input.actor} of a model with a price came without a cost`, record);
 		return;
 	}
 	const usage = { input: tokens, output, cacheRead, cacheWrite, costUsd: cost.total };
-	input.meter.add(input.actor, usage);
+	try {
+		input.meter.add(input.actor, usage);
+	} catch (error) {
+		if (input.meter.closed !== undefined) record("cost_unknown", { reason: input.meter.closed });
+		throw error;
+	}
 	record("response", { provider: message.provider, model: message.model, stopReason: message.stopReason, ...usage });
 }
 

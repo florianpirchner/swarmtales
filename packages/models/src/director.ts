@@ -9,7 +9,7 @@ import { normalizeContext, type AssistantMessage } from "@earendil-works/pi-ai";
 import type { TSchema } from "typebox";
 import { Check } from "typebox/value";
 import { redactSecrets, type ActorId, type AskModel, type ModelAnswer, type ModelQuestion, type RecordSource } from "@swarmtales/contracts";
-import { isSafeguardRefusal } from "./driver/session.ts";
+import { closeOnLog, isSafeguardRefusal } from "./driver/session.ts";
 import type { CostMeter } from "./meter.ts";
 import { RESIDENT_RECORDS, residentRecord, type ResidentRecords } from "./records.ts";
 import { REQUEST_TIMEOUT_MS, withRequestDefaults } from "./request.ts";
@@ -61,15 +61,16 @@ function counted(message: AssistantMessage, actor: ActorId, binding: ModelBindin
 		if (message.stopReason === "error") return true;
 		const price = binding.model.cost;
 		if (message.stopReason !== "aborted" && (price.input > 0 || price.output > 0)) {
-			meter.close(`an answer to ${actor} of a model with a price came without a cost`);
+			closeOnLog(meter, `an answer to ${actor} of a model with a price came without a cost`, record);
 			return false;
 		}
 	}
 	try {
 		meter.add(actor, usage);
 	} catch (error) {
-		if (error instanceof RangeError) return false;
-		throw error;
+		if (!(error instanceof RangeError)) throw error;
+		if (meter.closed !== undefined) record("cost_unknown", { reason: meter.closed });
+		return false;
 	}
 	record("response", { provider: message.provider, model: message.model, stopReason: message.stopReason, ...usage });
 	return true;
@@ -143,7 +144,7 @@ export function createAsker(source: ModelSource, meter: CostMeter, limits: (acto
 			message = await send(binding, actor, question, activation.tick);
 		} catch (error) {
 			// A request that ended outside the protocol may have been paid for: fail closed.
-			meter.close(`a request of ${actor} ended without an answer that can be counted`);
+			closeOnLog(meter, `a request of ${actor} ended without an answer that can be counted`, record);
 			return failed(redactSecrets(error instanceof Error ? error.message : String(error)));
 		}
 		blocks(message, record);

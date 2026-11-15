@@ -24,6 +24,8 @@ const Usage = Type.Object(
 	{ description: "What the replay meter counts of a `response` record" },
 );
 
+const Closed = Type.Object({ reason: Type.String({ description: "What could not be counted" }) }, { description: "What the replay meter reads of a `cost_unknown` record" });
+
 // The cost cap of a live run as the manifest holds it: a meter that a sink feeds with the replayed answers, as the drivers fed it in the run.
 function capOf(manifest: RunManifest): Pick<KernelPorts, "limits" | "sinks"> {
 	const cap = manifest.limits.budgetUsd;
@@ -33,7 +35,10 @@ function capOf(manifest: RunManifest): Pick<KernelPorts, "limits" | "sinks"> {
 	const answers = new Set([RESIDENT_RECORDS.id, DIRECTOR_MODEL_RECORDS.id]);
 	const sink: EventSink = {
 		write(event) {
-			if (event.type === "response" && answers.has(event.source)) meter.add(event.actor, Parse(Usage, event.payload));
+			if (!answers.has(event.source)) return;
+			if (event.type === "response") meter.add(event.actor, Parse(Usage, event.payload));
+			// Runtime revision 6: the line where the run's meter closed, an answer whose cost is not known.
+			if (event.type === "cost_unknown") meter.close(Parse(Closed, event.payload).reason);
 		},
 	};
 	return { limits: [meter.limit], sinks: [sink] };
@@ -113,8 +118,8 @@ async function verified(directory: string, file: string, again: (log: readonly E
  * Replays a run folder. The folder must verify; a log that stops inside a tick (a crashed run) is `SWT-T005`. Its game file is resolved with the seed and the params of the
  * manifest and with the record sources the manifest names: those of a live run's drivers when an actor has a
  * model, the Director's, and the marker `run_resumed` for a resumed run. The cost cap of the manifest
- * (`limits.budgetUsd`) is metered again from the replayed `response` records, so a run that ended at its cap
- * replays equal. Prints `equal, <n> lines`, or with `json`
+ * (`limits.budgetUsd`) is metered again from the replayed `response` records and closed at a `cost_unknown` record,
+ * so a run that ended at its cap, or whose meter closed, replays equal. Prints `equal, <n> lines`, or with `json`
  * `{ "equal": true, "lines": n }`. A log that differs prints its line and the replay's line, then `SWT-C031`.
  *
  * @param input - The run folder, the game file and whether to print JSON.

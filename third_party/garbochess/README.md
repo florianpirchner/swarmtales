@@ -15,7 +15,7 @@ It is not a dependency, it is in no `package.json`, no mechanic imports it, and 
 | Weights, books, data | none; the evaluation is hand-written |
 
 The engine file itself carries no licence header. That the `LICENSE` file of the upstream repository covers it rests
-on this README of the branch `legacy`; it was not verified upstream again when the file was carried.
+on this README of the branch `legacy`; on 2026-11-15 (M4-72) the file and the `LICENSE` were compared with upstream at that commit: byte-equal (SHA-256 of `js/garbochess.js` b0ebcf80…938c).
 
 **Do not edit `garbochess.js`.** `apps/cli/test/chess-engine.test.ts` hashes it and fails on any difference. The
 engine is a measuring instrument: a changed file is a changed ruler, needs a new hash here and in

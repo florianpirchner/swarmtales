@@ -155,9 +155,9 @@ describe("the asker", () => {
 	});
 
 	it.each([
-		["a cost that is no number", { usd: ["none"] }, ["request", "text"]],
-		["an answer of a priced model without a cost", { price: 3 }, ["request", "text"]],
-		["a stream function that throws", { throwAt: 0 }, ["request", "request_failed"]],
+		["a cost that is no number", { usd: ["none"] }, ["request", "text", "cost_unknown"]],
+		["an answer of a priced model without a cost", { price: 3 }, ["request", "text", "cost_unknown"]],
+		["a stream function that throws", { throwAt: 0 }, ["request", "cost_unknown", "request_failed"]],
 	] as const)("closes the meter after %s, does not use the answer and never sends again", async (_name, setup, written) => {
 		const { answers, records, meter, sent } = await run([say('{"line":"One."}'), say('{"line":"Two."}')], { ...setup, capUsd: 100 }, 1);
 		expect(answers).toMatchObject([{ ok: false, reason: "error" }, { ok: false, reason: "limit" }]);
@@ -165,6 +165,8 @@ describe("the asker", () => {
 		expect(meter.total.requests).toBe(0);
 		expect(sent).toHaveLength(1);
 		expect(types(records)).toEqual(written);
+		// Runtime revision 6: the closing is on the log, with the meter's reason, so a replay closes there too.
+		expect(records.find((record) => record.type === "cost_unknown")?.payload).toEqual({ reason: meter.closed });
 		expect(JSON.stringify([answers, records])).not.toContain("p".repeat(20));
 	});
 });

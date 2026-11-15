@@ -26,6 +26,7 @@ const RECORDS: ResidentRecords = {
 	thinking: { text: "hm" },
 	text: { text: "I play." },
 	response: { provider: "anthropic", model: "m", stopReason: "stop", input: 10, output: 2, cacheRead: 0, cacheWrite: 0, costUsd: 0.0001 },
+	cost_unknown: { reason: "an answer to resident:A01 of a model with a price came without a cost" },
 	request_failed: { message: "overloaded", refusal: false },
 };
 
@@ -58,9 +59,9 @@ describe("the X catalogue", () => {
 });
 
 describe("the records of the model driver", () => {
-	it("declare the seven types of the source, every schema closed and described", () => {
+	it("declare the eight types of the source, every schema closed and described", () => {
 		expect(RESIDENT_RECORDS.id).toBe("@swarmtales/models/resident");
-		expect(Object.keys(RESIDENT_RECORDS.events)).toEqual(["prompt_fixed", "request", "context_reset", "thinking", "text", "response", "request_failed"]);
+		expect(Object.keys(RESIDENT_RECORDS.events)).toEqual(["prompt_fixed", "request", "context_reset", "thinking", "text", "response", "cost_unknown", "request_failed"]);
 		const undescribed = JSON.stringify(RESIDENT_RECORDS.events, (_key, value: unknown) => (typeof value === "object" && value !== null && "type" in value && !("description" in value) ? "UNDESCRIBED" : value));
 		expect(undescribed).not.toContain("UNDESCRIBED");
 	});

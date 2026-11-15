@@ -20,6 +20,9 @@ milestones that build what they describe.
 - [`refactoring-before-release/REWRITE.md`](refactoring-before-release/REWRITE.md): the plan, the milestones and
   the first issues.
 - [`refactoring-before-release/`](refactoring-before-release/README.md): the role papers behind both.
+- The gates and reviews of the milestones: [`M2-GATE.md`](M2-GATE.md) (the gate of M2 with the findings of its
+  review), [`M4-GATE.md`](M4-GATE.md) (the gate of M4) and [`M4-REVIEW.md`](M4-REVIEW.md) (the challenger's review of
+  M4 and how M4-72 closed it).
 
 ## Carried from the old platform
 

@@ -70,7 +70,7 @@ export interface Activation {
 	readonly closedSeq?: number;
 	/** The envelope's `basis`: the log length when the inputs of the activation were built. */
 	readonly basis?: number;
-	/** The seqs of the other activations that were open at some line of this one (a scheduler such as `parallel` opens several at once), in the order of the log; empty under `turns`. */
+	/** The seqs of the other activations that were open at some line of this one (a scheduler such as `parallel` opens several at once), in the order of the log; empty under `turns` with blocks of one actor, and under `turns` with a `blockSize` above 1 every member of a block overlaps the others, since all open before the first closes. */
 	readonly overlaps: readonly number[];
 	/** How the activation went: `acted`, `no-call` or `error`. */
 	readonly outcome?: string;

@@ -23,7 +23,7 @@ export function deriveSeed(seed: number, ...parts: readonly (string | number)[])
 export function rngFor(seed: number, ...parts: readonly (string | number)[]): RandomSource;
 
 // @public
-export const RUNTIME_REVISION = 5;
+export const RUNTIME_REVISION = 6;
 
 // @public
 export function seedFrom(text: string): number;

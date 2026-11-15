@@ -57,6 +57,10 @@ const SCHEMAS = {
 		},
 		closed("The usage of one answered request"),
 	),
+	cost_unknown: Type.Object(
+		{ reason: text("What could not be counted, as the meter's reason") },
+		closed("An answer was paid for and its cost is not known: the cost meter closes here (runtime revision 6), so a replay closes its meter at this line"),
+	),
 	request_failed: Type.Object(
 		{ message: text("The error text, redacted"), refusal: Type.Boolean({ description: "True for a refusal by the provider's safeguards" }) },
 		closed("A request that ended with an error"),

@@ -13,7 +13,8 @@ import { SwtError } from "@swarmtales/contracts";
  * declare (read from the manifest of a finished run); `SWT-E003` the plan's estimate is above the cap; `SWT-E004` the cap was reached between two runs;
  * `SWT-E005` two runs do not compare, or a run was not played with the model, the params and the cap of the spec; `SWT-E006` a run folder is unfinished, unverified or of another experiment;
  * `SWT-E007` a broken series; `SWT-E010` a metric no loaded mechanic exports; `SWT-E011` an analysis before every
- * planned run has a status. `SWT-E008` and `SWT-E009` are not used.
+ * planned run has a status. `SWT-E008` is not the lab's: the code is reserved in this range for the chess reference
+ * engine of the command line (`apps/cli/src/chess-engine.ts`), its one owner. `SWT-E009` is not used.
  *
  * @example
  * ```ts

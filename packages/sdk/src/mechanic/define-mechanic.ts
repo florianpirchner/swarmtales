@@ -98,13 +98,25 @@ function create(head: AnyHead, erased: PluginHead, body: ErasedBody, options: un
 	};
 }
 
+// The head frozen with its lists, their entries and its records (the schemas stay as given), so that a change after
+// `defineMechanic` returned throws instead of taking effect (M4-72, finding 3 of the M4 review).
+function frozenHead<T extends object>(head: T): T {
+	for (const [key, value] of Object.entries(head)) {
+		if (key === "options" || key === "state" || typeof value !== "object" || value === null) continue;
+		if (Array.isArray(value)) for (const entry of value) if (typeof entry === "object" && entry !== null) Object.freeze(entry);
+		Object.freeze(value);
+	}
+	return Object.freeze(head);
+}
+
 /**
  * Defines a mechanic from its head and its body. The body holds handlers only, keyed by the names the head
  * declared: `tools`, `services`, `listeners`, `facts`, `limits`, `jobs`, `hooks`, `pipeline`.
  *
  * @param head - The head, from `defineHead`.
  * @param body - The body.
- * @returns The definition: calling it gives the use for a game's `mechanics` list. Its `parseOptions` throws an
+ * @returns The definition, frozen with its head (a later write throws in strict code): calling it gives the use for a
+ * game's `mechanics` list. Its `parseOptions` throws an
  * `SwtError` with one `SWT-G020` per option that is unknown or does not match the schema, each with a path relative
  * to the use (`options.size`); its `resolve` takes options that were parsed and parses nothing again.
  * @throws SwtError `SWT-M012` when head and body differ in their tools or provided services, `SWT-M014` when the
@@ -132,7 +144,7 @@ export function defineMechanic(head: AnyHead, body: ErasedBody): MechanicDefinit
 		options: erased.options,
 		events: erased.events,
 		// What a reader of the definition sees of the body without running it: which tools the fake driver can call.
-		head: { ...erased, tools: erased.tools.map((tool) => ({ ...tool, sampled: body.tools?.[tool.name]?.sample !== undefined })) },
+		head: frozenHead({ ...erased, tools: erased.tools.map((tool) => ({ ...tool, sampled: body.tools?.[tool.name]?.sample !== undefined })) }),
 		parseOptions: (raw: unknown): unknown => parseOptions(erased, raw),
 		resolve(options: unknown, texts: PromptLookup, version: string, tools: ReadonlyMap<string, CanonicalTool> = new Map()): ResolvedPlugin {
 			if (!isJson(options)) throw new SwtError(optionMismatch({ owner: erased.id, package: erased.package, path: "options", message: "must be plain JSON data" }));
@@ -149,5 +161,5 @@ export function defineMechanic(head: AnyHead, body: ErasedBody): MechanicDefinit
 			};
 		},
 	});
-	return definition;
+	return Object.freeze(definition);
 }

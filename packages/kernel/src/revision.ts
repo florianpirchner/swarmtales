@@ -6,8 +6,9 @@
  * it into its manifest. Raise it in the same pull request as such a change, add a row to
  * `docs/RUNTIME-REVISIONS.md` and set the tag `runtime-rN` at the merge commit. The rewritten kernel started at 3; 4 takes
  * the log positions out of the payloads (decision A34); 5 lets the cost meter reserve the dearest answer so far
- * (decision A46, P472).
+ * (decision A46, P472); 6 writes the closing of the cost meter on the log, as the record `cost_unknown` of the
+ * model drivers (decision A47, M4-72).
  *
  * @public
  */
-export const RUNTIME_REVISION = 5;
+export const RUNTIME_REVISION = 6;

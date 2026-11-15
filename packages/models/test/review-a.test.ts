@@ -168,6 +168,8 @@ describe("review A: the cost cap", () => {
 		expect(of(records, "request")).toHaveLength(1);
 		expect(meter.limit.check()).toBeDefined();
 		expect(meter.closed).toBe(`the costUsd of an answer to ${A01} is no amount that can be counted`);
+		// Runtime revision 6 (M4-72): the closing is a line of the log, so a replay closes its meter there.
+		expect(of(records, "cost_unknown")).toEqual([{ reason: meter.closed }]);
 	});
 
 	it("M1: a failed answer whose cost is no amount closes the meter; only a cost of exactly zero is 'not billed'", async () => {
@@ -184,6 +186,7 @@ describe("review A: the cost cap", () => {
 		const { records, meter } = await run({ [A01]: [say(), say(), say()] }, { ticks: 3, capUsd: 0.03, usd: 0, price: true });
 		expect([of(records, "request").length, of(records, "response").length, meter.total.requests]).toEqual([1, 0, 0]);
 		expect(meter.closed).toBe(`an answer to ${A01} of a model with a price came without a cost`);
+		expect(of(records, "cost_unknown")).toEqual([{ reason: meter.closed }]);
 		// The same model with a cost is counted, and a failed request of it that was not billed closes nothing.
 		const paid = await run({ [A01]: [fail("overloaded"), say(), say()] }, { ticks: 3, capUsd: 1, usd: 0.01, price: true });
 		expect([of(paid.records, "request").length, paid.meter.total.requests, paid.meter.closed]).toEqual([3, 2, undefined]);

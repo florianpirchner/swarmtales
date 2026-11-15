@@ -27,7 +27,7 @@ Plays a game into a new run folder `<out>/<game id>-<NNN>`. With `--fake` the fa
 | `--hand <file>` | the Human Hand: a JSON-lines file, or `-` for standard input (see "The hand file") |
 | `--snapshot-at <ticks>` | write a snapshot after these numbers of finished ticks, a comma list: `--snapshot-at 2,6` |
 | `--provider <id>`, `--model <id>`, `--thinking <level>` | the model of a live run; `--thinking` is one of off, minimal, low, medium, high |
-| `--budget <usd>` | the cost cap of a live run in US dollars; a live run needs one |
+| `--budget <usd>` | the cost cap of a live run in US dollars; a live run needs one. The cap stops new requests and is not a ceiling. From runtime revision 5 no request is sent once the cost so far plus the dearest answer so far reaches the cap, and the run ends at `models.budget`; so a run can still pass its cap by three amounts: the first answer, which is sent before any cost is known; the answers of requests in flight together, each checked against the same total (the members of one block of `turns` with `blockSize` above 1, the activations of `parallel`); and an answer dearer than every one before it. An answer of a model with a price that comes without a cost closes the meter, and the run ends at `models.budget` too (from revision 6 the log holds that line as `cost_unknown`) |
 | `--ledger <file>` | the spend ledger the cap must fit under |
 | `--purpose <word>` | smoke (the default), pilot, exploratory or confirmatory |
 | `--replicate <n>` | the index of the repetition; 0 when left out |

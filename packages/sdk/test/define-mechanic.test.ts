@@ -226,3 +226,15 @@ describe("defineMechanic: what the types let through", () => {
 		expect(issuesOf(() => defineMechanic(defineHead({ ...plain, options: Type.Integer() }), {})).map((issue) => issue.code)).toEqual(["SWT-M013"]);
 	});
 });
+
+describe("the value defineMechanic returns (M4-72)", () => {
+	it("refuses a write after the definition, on the definition, its head and the lists of the head", () => {
+		const alias = counter;
+		expect(Reflect.set(alias, "resolve", () => undefined)).toBe(false);
+		expect(Reflect.set(counter.head, "options", Type.Object({}))).toBe(false);
+		expect(() => Object.defineProperty(counter.head, "summary", { value: "changed" })).toThrow(TypeError);
+		expect(() => Object.defineProperty(counter.head.tools[0], "name", { value: "other" })).toThrow(TypeError);
+		expect(Reflect.set(counter.head.events, "extra", Type.Object({}))).toBe(false);
+		expect([counter.head.summary, counter.head.tools[0]?.name, Object.isFrozen(counter)]).toEqual(["Counts.", "add", true]);
+	});
+});

@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Finding 1 of the M4 review (`docs/M4-REVIEW.md`), held as a failing test: a live run whose cost meter closed (an
- * answer of a model with a price came without a cost, so the meter fails closed and the run ends at
- * `models.budget`) does not replay equal. The session closes the meter without writing a record
- * (`packages/models/src/driver/session.ts`, `recordAnswer`), so the replay's meter (`apps/cli/src/replay.ts`,
- * `capOf`) never closes and the replay writes no `limit_reached` where the log has one (`SWT-C031`). When the fix
- * lands, `it.fails` becomes `it`.
+ * Finding 1 of the M4 review (`docs/M4-REVIEW.md`): a live run whose cost meter closed (an answer of a model with a
+ * price came without a cost, so the meter fails closed and the run ends at `models.budget`) replays equal. From
+ * runtime revision 6 the session writes the record `cost_unknown` where it closes the meter
+ * (`packages/models/src/driver/session.ts`, `recordAnswer`), and the replay's meter (`apps/cli/src/replay.ts`,
+ * `capOf`) closes on it, so the replay writes `limit_reached` where the log has one.
  */
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -62,7 +61,7 @@ function costless(): ModelSource {
 }
 
 describe("a live run whose cost meter closed", () => {
-	it.fails("replays equal, as a run that ended at its cap does (P471)", async () => {
+	it("replays equal, as a run that ended at its cap does (P471)", async () => {
 		const io: CliIo = { cwd, now: () => new Date("2026-11-14T12:00:00.000Z"), out: () => undefined, err: () => undefined, installed: { "guess-number": guessNumber } };
 		const input: LiveInput = { file: GAME, seed: undefined, out: "closed", json: false, provider: "anthropic", budget: 1, purpose: "smoke", replicate: 0, env: { ARENA_ANTHROPIC_API_KEY: KEY }, source: costless() };
 		const result = await runLive(input, io);
