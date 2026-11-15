@@ -3,12 +3,14 @@
  * The task of a level and the progression's parts of the status line (carried from the old
  * `mechanics/progression/src/task.ts`: `problemFor`, `taskLines`, `statusParts`, `awaitsCode`). The task is the
  * game's template filled with the puzzle's values. The old task asked three other mechanics for a line under it (the
- * names, the holdout rule, the marks terms); on this platform each of them writes its own line (erratum J31).
+ * names, the holdout rule, the marks terms); on this platform each of them writes its own line (erratum J31). The
+ * door-open notice carries the task as one text: there the other mechanics' lines come from `addTaskLine` (J211).
  */
 import type { InputLine } from "@swarmtales/contracts";
 import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { LevelPiecesService } from "./contract.ts";
 import type { ProgressionCtx } from "./head.ts";
+import { taskLineOf, type TaskLine } from "./model.ts";
 import { standingOf, definitionOf, isFinished, isOpenOnClock, isPlayable, levelOf, nextBlamePenalty, nextPenalty, opensAt, rankOf, renderTemplate } from "./levels.ts";
 
 const CITY = "CITY";
@@ -70,6 +72,29 @@ export function problemFor(ctx: ProgressionCtx, agent: string, level: number): P
 	// The door clock: nothing of the level before its door opens.
 	if (!isOpenOnClock(ctx, level)) return { ok: true, value: { level, text: ctx.prompt("progression/door-closed", { level, title: definition.title, opensAt: opensAt(ctx, level) }), solved: false } };
 	return { ok: true, value: { level, text: renderTask(ctx, agent, level, definition), solved: entry.solved.includes(level) } };
+}
+
+/**
+ * Adds a line of another mechanic under the task of the door-open notice; the same line twice counts once.
+ * @param ctx - The context of the progression.
+ * @param line - The line.
+ */
+export function addTaskLine(ctx: ProgressionCtx, line: TaskLine): void {
+	if (ctx.state.taskLines.some((known) => known.order === line.order && known.text === line.text && known.level === line.level)) return;
+	ctx.state.taskLines.push(taskLineOf(line));
+}
+
+/**
+ * The task with the lines of the other mechanics under it, each after a `trimEnd` (the old `withAddenda`, D-3): what
+ * the door-open notice carries. The lines come by `order`, then in the order added.
+ * @param ctx - The context of the progression.
+ * @param text - The task.
+ * @param level - Its level.
+ * @returns The task with the lines.
+ */
+export function withTaskLines(ctx: ProgressionCtx, text: string, level: number): string {
+	const lines = ctx.state.taskLines.filter((line) => line.level === undefined || line.level === level).sort((a, b) => a.order - b.order);
+	return lines.reduce((joined, line) => `${joined.trimEnd()}\n${line.text}`, text);
 }
 
 /**

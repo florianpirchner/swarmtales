@@ -730,6 +730,9 @@ importers:
       '@swarmtales/mechanic-standoff':
         specifier: workspace:*
         version: link:../standoff
+      '@swarmtales/mechanic-tribunal':
+        specifier: workspace:*
+        version: link:../tribunal
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit

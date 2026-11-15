@@ -10,7 +10,7 @@ import { Type } from "typebox";
 import { Value } from "typebox/value";
 import type { InputLine, Refusal, ToolOutcome } from "@swarmtales/contracts";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
-import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
+import { ProgressionService, TaskLinesService } from "@swarmtales/mechanic-progression/contract";
 import { refuse, type StageCall } from "@swarmtales/sdk";
 import { activeOn, canAfford, priceOf, runWide, spend, statusOf, termsOn, type Book, type Channel } from "./book.ts";
 import type { MarksCtx } from "./head.ts";
@@ -141,4 +141,19 @@ export function marksLines(ctx: MarksCtx, resident: string): readonly InputLine[
 	const level = book.levelOf(resident);
 	const terms = taskShown(ctx, resident, level) ? termsLine(ctx, level) : null;
 	return terms === null ? lines : [...lines, { kind: "task", order: TASK_ORDER, text: terms }];
+}
+
+/**
+ * Puts the terms of every level under the task of the progression's door-open notice (old `withAddenda`, erratum
+ * J211); without a provider of `progression` there is no task and nothing to add.
+ *
+ * @param ctx - The context.
+ */
+export function addTermsToTasks(ctx: MarksCtx): void {
+	const bounds = ctx.tryCall(ProgressionService, "bounds", {});
+	if (bounds === undefined) return;
+	for (let level = bounds.startLevel; level <= bounds.lastLevel; level++) {
+		const text = termsLine(ctx, level);
+		if (text !== null) ctx.tryCall(TaskLinesService, "add", { order: TASK_ORDER, text, level });
+	}
 }

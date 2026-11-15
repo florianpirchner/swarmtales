@@ -16,7 +16,7 @@ change, and they may come back over time. Ported from the old platform (M5-17).
 | Id | `marks` |
 | Summary | The marks a message costs and their refill. |
 | Requires | none |
-| Uses when loaded | `progression` (from [progression](../progression/README.md)), `channels` (from [channels](../channels/README.md)) |
+| Uses when loaded | `progression` (from [progression](../progression/README.md)), `channels` (from [channels](../channels/README.md)), `task-lines` (from [progression](../progression/README.md)) |
 | Provides | `allowance` |
 | State | kept, snapshot slice version 1 |
 | Games | [whispers](../../games/whispers/README.md) |
@@ -40,7 +40,9 @@ change, and they may come back over time. Ported from the old platform (M5-17).
    booked lazily whenever the balance is read, in whole intervals, so it needs no job.
 5. **What residents see.** The status line of every turn shows the marks left (`marks/status/marks`), and the terms
    of a level (`marks/task/marks-level`, `-refill` or `-run`) come as a line of kind `task` once per level, when
-   `progression` shows the level's task (not at a shut door, not after the last level). The message tools name the
+   `progression` shows the level's task (not at a shut door, not after the last level). At the run's start the terms
+   of every level where marks apply go to `task-lines` of `progression` (order 300), so the door-open notice carries
+   them under its task too (J211). The message tools name the
    marks left in their replies through `allowance`: `left` less `priceOf`, the price the `after` handler books for the
    same call.
 

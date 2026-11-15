@@ -44,6 +44,7 @@
 		"@swarmtales/mechanic-progression": "workspace:*",
 		"@swarmtales/mechanic-puzzles": "workspace:*",
 		"@swarmtales/mechanic-standoff": "workspace:*",
+		"@swarmtales/mechanic-tribunal": "workspace:*",
 		"@swarmtales/testkit": "workspace:*"
 	}
 }

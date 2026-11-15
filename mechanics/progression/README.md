@@ -18,7 +18,7 @@ the levels into acts and keeps the ranking. Ported from the old platform in two 
 | Summary | Levels, submissions, doors, acts, the tool locks per level, the ranking and the task and status lines of a turn. |
 | Requires | `ledger` (from [ledger](../ledger/README.md)), `channels` (from [channels](../channels/README.md)), `level-pieces` (from [puzzles](../puzzles/README.md)) |
 | Uses when loaded | `identity` (from [names](../names/README.md)), `receipt-source` (from [receipts](../receipts/README.md)), `allowance` (from [marks](../marks/README.md)), `exile` (from [exile](../exile/README.md)), `cast-extras` (from [cast](../cast/README.md)) |
-| Provides | `progression` |
+| Provides | `progression`, `task-lines` |
 | State | kept, snapshot slice version 1 |
 | Games | [whispers](../../games/whispers/README.md) |
 
@@ -74,7 +74,10 @@ the levels into acts and keeps the ranking. Ported from the old platform in two 
    `tribunal` and of `standoff-tribunal` (J136).
 
 **Not done here.** The lines the old task carried under it (the names line, the holdout rule, the marks terms) are
-the lines of those mechanics (erratum J31). `getStatus` reads the unread direct messages and the window line from
+the lines of those mechanics (erratum J31). The door-open notice carries the task as one text: there the lines come
+from the service `task-lines`, to which another mechanic adds its line once at the run's start (by order, on one
+level or on every level; the old `withAddenda` with its `trimEnd`), since those mechanics ask `progression` and it
+cannot ask them back (J211). `getStatus` reads the unread direct messages and the window line from
 `channels` (`pendingDms`, `dmWindow`; errata J32, J75, built with M5-22). The old `firstSolveMinute` is not
 offered: `cast` reads the first solve of a level from `submission`, because `progression` asks `cast-extras`. The
 renderers of the report stay with the gamemaker (`mechanics/city-directors`), and a resident's last call is the
@@ -266,6 +269,14 @@ The levels, the acts, the doors, the ranking and the unlocks of the residents.
 | `isOpenOnClock` | query | level: integer ≥ 1 | boolean | Whether the level's door is open on the door clock now. |
 | `opensAt` | query | level: integer ≥ 1 | integer | The tick the level's door opens; 0 when it is open from the start. |
 | `bounds` | query | - | { startLevel: integer ≥ 1, lastLevel: integer, survivors: integer } | The start level, the last playable level and the seats at the end. |
+
+### `task-lines`
+
+The lines other mechanics put under the task of a door-open notice.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `add` | command | order: integer, text: string, level?: integer ≥ 1 | null | Adds a line under the task of every door-open notice, at `order` among the others, on `level` or on every level; the same line twice counts once. |
 
 <!-- /generated:services -->
 

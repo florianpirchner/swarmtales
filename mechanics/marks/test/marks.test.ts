@@ -17,6 +17,7 @@ import { defineDirector, defineGame, defineHead, defineMechanic, reply, type Gam
 // `receipts` brings `blame`, whose review a judge answers (SWT-D004); it never fires here (M5-22).
 const judge = defineDirector({ id: "judge", summary: "Test: answers the blames.", on: [], output: JudgeVerdict, answers: "judge" }, { system: () => "You are the judge.", input: () => "", act: () => Promise.resolve() });
 import { checkOptionsDocumented, checkResumeEveryBoundary, play, scriptedDriver, testKernel } from "@swarmtales/testkit";
+import { TaskLinesService } from "@swarmtales/mechanic-progression/contract";
 import { marks, MarksOptions } from "../src/index.ts";
 
 type Rules = NonNullable<Static<typeof MarksOptions>["rules"]>;
@@ -138,6 +139,19 @@ describe("the status part and the terms under a task", () => {
 		expect(lines.filter((line) => line.includes(" task "))).toEqual(["1 A01 task Marks on this level: 5. Prices: board 0, group 1, DM 2, showing a receipt 1. Unused marks expire when you change level."]);
 		const run = await linesOf({ fromLevel: 1, perRun: 7, prices: { board: 1, group: 1, dm: 1, receipt: 2 } }, new Map([["A01", 3]]));
 		expect(run[1]).toBe("0 A01 task Marks for the whole run: 7, never more (your status line shows what you have left). Prices: board 1, group 1, DM 1, showing a receipt 2.");
+	});
+
+	it("puts the terms of every level where they apply under the door-open task at the run's start (J211)", async () => {
+		const added: string[] = [];
+		const head = defineHead({ id: "task-lines", package: "@test/task-lines", summary: "Test: records the lines.", provides: [TaskLinesService] });
+		const add = ({ order, text, level }: { readonly order: number; readonly text: string; readonly level?: number }) => {
+			added.push(`${String(level)} ${String(order)} ${text.slice(0, 22)}`);
+			return null;
+		};
+		const recorder = defineMechanic(head, { services: { "task-lines": { add } } });
+		const standIn = levelsStandIn({ levels: new Map(), queued: new Map(), start: 1, lastLevel: 4, opensAt: () => 0 });
+		await play(game(LEVELLED, [standIn, recorder()], 1), { drivers: { resident: scriptedDriver(() => []) } });
+		expect(added).toEqual(["2 300 Marks on this level: 5", "3 300 Marks on this level: 5", "4 300 Marks on this level: 5"]);
 	});
 });
 

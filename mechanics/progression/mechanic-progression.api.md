@@ -232,6 +232,11 @@ solved: Type.TArray<Type.TInteger>;
 wrongAttempts: Type.TArray<Type.TInteger>;
 wrongOnLevel: Type.TInteger;
 }>>;
+taskLines: Type.TArray<Type.TObject<{
+level: Type.TOptional<Type.TInteger>;
+order: Type.TInteger;
+text: Type.TString;
+}>>;
 }>, ProgressionState, {
 readonly act_ended: Type.TObject<{
 fromLevel: Type.TInteger;
@@ -766,6 +771,17 @@ readonly kind: "command";
 readonly output: Type.TNull;
 readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
 };
+}>, ServiceDefinition<"task-lines", {
+readonly add: {
+readonly input: Type.TObject<{
+level: Type.TOptional<Type.TInteger>;
+order: Type.TInteger;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Adds a line under the task of every door-open notice, at `order` among the others, on `level` or on every level; the same line twice counts once.";
+};
 }>], readonly [ServiceDefinition<"identity", {
 readonly display: {
 readonly input: Type.TObject<{
@@ -1242,6 +1258,8 @@ export interface ProgressionState {
     readonly solves: Solve[];
     // Warning: (ae-forgotten-export) The symbol "Standing" needs to be exported by the entry point index.d.ts
     readonly standings: Map<string, Standing>;
+    // Warning: (ae-forgotten-export) The symbol "TaskLine" needs to be exported by the entry point index.d.ts
+    readonly taskLines: TaskLine[];
 }
 
 // @public
@@ -1286,12 +1304,26 @@ export const ProgressionTracksFact: Type.TArray<Type.TObject<{
 }>>;
 
 // @public
+export const TaskLinesService: ServiceDefinition<"task-lines", {
+readonly add: {
+readonly input: Type.TObject<{
+level: Type.TOptional<Type.TInteger>;
+order: Type.TInteger;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Adds a line under the task of every door-open notice, at `order` among the others, on `level` or on every level; the same line twice counts once.";
+};
+}>;
+
+// @public
 export const TOOL_ORDER: readonly ["getStatus", "getProblem", "submitSolution", "listAgents", "readBoard", "postBoard", "sendDM", "transferPoints", "createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer", "showReceipt", "signPetition", "listPetitions", "blame", "vote", "payRansom", "lastWill", "nominate", "join", "refuse", "chooseName", "bid", "permaDeath", "defy", "claimPiece", "forgeReceipt", "nameFavourite", "tribunalVote", "activeTools"];
 
 // Warnings were encountered during analysis:
 //
-// dist/index.d.ts:981:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
-// dist/index.d.ts:997:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:1005:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:1021:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

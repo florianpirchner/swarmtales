@@ -15,12 +15,12 @@ import { defineMechanic, refuse } from "@swarmtales/sdk";
 import { endAct, noteActStarts, syncLocks } from "./acts.ts";
 import { progressionHead } from "./head.ts";
 import { computeSection, computeTracks, ProgressionSectionFact, ProgressionTracksFact } from "./section.ts";
-import { progressionService } from "./services.ts";
+import { progressionService, taskLinesService } from "./services.ts";
 import { openDoor, openOnClock } from "./submit.ts";
 import { hasNewTask, markTaskShown, statusParts, taskLines } from "./task.ts";
 import { progressionTools } from "./tools.ts";
 
-export { CastExtrasService, LevelPiecesService, ProgressionEvents, ProgressionService } from "./contract.ts";
+export { CastExtrasService, LevelPiecesService, ProgressionEvents, ProgressionService, TaskLinesService } from "./contract.ts";
 export { progressionHead, type ProgressionCtx, type ProgressionToolCtx } from "./head.ts";
 export { ProgressionOptions, type ProgressionState } from "./model.ts";
 export { ProgressionSectionFact, ProgressionTracksFact } from "./section.ts";
@@ -39,7 +39,7 @@ export { progressionTools, TOOL_ORDER } from "./tools.ts";
  */
 export const progression = defineMechanic(progressionHead, {
 	tools: progressionTools,
-	services: { progression: progressionService },
+	services: { progression: progressionService, "task-lines": taskLinesService },
 	pipeline: {
 		// The old `enabledTools`: at the gate a resident may still talk, but no longer submit.
 		lock: (call, ctx) => {

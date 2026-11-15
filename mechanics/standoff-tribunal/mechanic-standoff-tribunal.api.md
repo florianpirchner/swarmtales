@@ -1175,6 +1175,17 @@ readonly kind: "query";
 readonly output: Type.TString;
 readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 };
+}>, ServiceDefinition<"task-lines", {
+readonly add: {
+readonly input: Type.TObject<{
+level: Type.TOptional<Type.TInteger>;
+order: Type.TInteger;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Adds a line under the task of every door-open notice, at `order` among the others, on `level` or on every level; the same line twice counts once.";
+};
 }>], {
 announceTribunal: Type.TObject<{
 text: Type.TString;

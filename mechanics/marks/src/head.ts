@@ -3,7 +3,7 @@
 import { Type, type Static } from "typebox";
 import { AllowanceService } from "@swarmtales/mechanic-contracts";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
-import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
+import { ProgressionService, TaskLinesService } from "@swarmtales/mechanic-progression/contract";
 import { defineHead, inSchemaOrder, type CtxOf } from "@swarmtales/sdk";
 import type { MarksState } from "./book.ts";
 
@@ -107,8 +107,8 @@ export const marksHead = defineHead({
 		"marks/task/marks-level-refill": ["budget", "board", "group", "dm", "receipt", "regain"],
 		"marks/task/marks-run": ["budget", "board", "group", "dm", "receipt"],
 	},
-	// The level of a resident, and whether a group is the city's (a post in it is free): each when a provider is loaded.
-	uses: [ProgressionService, ChannelsService],
+	// The level of a resident, whether a group is the city's (a post in it is free) and the door-open task that takes the terms: each when a provider is loaded.
+	uses: [ProgressionService, ChannelsService, TaskLinesService],
 	provides: [AllowanceService],
 });
 

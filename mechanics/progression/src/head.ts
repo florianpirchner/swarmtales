@@ -6,7 +6,7 @@ import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { defineHead, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
-import { CastExtrasService, LevelPiecesService, ProgressionEvents, ProgressionService } from "./contract.ts";
+import { CastExtrasService, LevelPiecesService, ProgressionEvents, ProgressionService, TaskLinesService } from "./contract.ts";
 import { freshState, loadState, PROGRESSION_PROMPTS, ProgressionOptions, ProgressionSlice, saveState, type ProgressionState } from "./model.ts";
 
 const resident = ["resident"] as const;
@@ -30,7 +30,7 @@ export const progressionHead = defineHead({
 	requires: [LedgerService, ChannelsService, LevelPiecesService],
 	// Names in the texts, the receipt of a solved level and the receipts of a resident, the marks, who is banished and the figures of the cast: each when a provider is loaded.
 	uses: [IdentityService, ReceiptSourceService, AllowanceService, ExileService, CastExtrasService],
-	provides: [ProgressionService],
+	provides: [ProgressionService, TaskLinesService],
 	tools: {
 		getStatus: { description: "progression/tools/getStatus", params: Type.Object({}), for: resident },
 		activeTools: { description: "progression/tools/activeTools", params: Type.Object({}), for: resident },

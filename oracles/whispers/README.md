@@ -49,7 +49,6 @@ The game's oracle test (`games/whispers/test/oracle.test.ts`, issue M5-38) plays
 | The run-start locks | `core.tool_locked` of the six tools of `setup.locked`, `by: "progression"` | none | the game starts them locked (`locked`); the kernel writes `tool_locked` only for a change |
 | The lines under the task | one `task` line of source `progression` | the same text, source `progression+standoff-tribunal+marks` (and `names` where it writes its line) | J31, J102, J187: each owner writes its own line of kind `task`, joined by `{ kind: "task", join: "\n" }` |
 | A receipt of a message delivered as a turn opens | the status line of that turn does not count it | it does (`1 receipt`, the source gains `receipts`) | `channels` delivers in its `turnInputs`, and `receipts` requires `channels`, so its status part runs after the delivery; the old status hook ran before it |
-| The door-open notice (open erratum) | the task with the holdout rule and the marks terms under it | the task alone | `progression`'s `openOnClock` writes the template; the lines of the other owners are not asked (event and input line) |
 
 The comparison of `whispers-holdout-s7.json` is issue M5-39's: its tribunal is called in the look at the start of
 tick 16, and `until` reads that tick (J137); three messages delivered in one turn issue their receipts after all

@@ -13,7 +13,7 @@ import type { ProgressionCtx } from "./head.ts";
 import { noteActStarts, syncLocks } from "./acts.ts";
 import { aliveResidents, standingOf, definitionOf, hasPassed, isOpenOnClock, isPlayable, lastLevelOf, levelOf, nextPenalty, offencesOf, opensAt } from "./levels.ts";
 import { doorIn, type Standing } from "./model.ts";
-import { problemFor } from "./task.ts";
+import { problemFor, withTaskLines } from "./task.ts";
 
 const CITY = "CITY";
 
@@ -162,7 +162,7 @@ export function openDoor(ctx: ProgressionCtx): boolean {
 
 /**
  * The door clock: a door that opens at the start of `minute` lets in the residents who wait at it, and the city
- * tells each of them privately, with the task they could not read before.
+ * tells each of them privately, with the task they could not read before and the lines other mechanics put under it.
  * @param ctx - The context of the progression.
  * @param minute - The minute (tick) that starts.
  */
@@ -173,7 +173,7 @@ export function openOnClock(ctx: ProgressionCtx, minute: number): void {
 		for (const agent of aliveResidents(ctx)) {
 			if (levelOf(ctx, agent) !== definition.number || standingOf(ctx, agent).held) continue;
 			const problem = problemFor(ctx, agent, definition.number);
-			if (problem.ok) ctx.call(ChannelsService, "notify", { to: agent, author: CITY, text: ctx.prompt("progression/door-open", { level: definition.number, minute, task: problem.value.text }) });
+			if (problem.ok) ctx.call(ChannelsService, "notify", { to: agent, author: CITY, text: ctx.prompt("progression/door-open", { level: definition.number, minute, task: withTaskLines(ctx, problem.value.text, definition.number) }) });
 		}
 	}
 }

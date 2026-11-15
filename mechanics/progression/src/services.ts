@@ -9,7 +9,9 @@ import { LevelPiecesService } from "./contract.ts";
 import { actStart, currentAct, endAct, unlockFor } from "./acts.ts";
 import type { ProgressionCtx } from "./head.ts";
 import { hasPassed, isFinished, isOpenOnClock, lastLevelOf, levelOf, nextBlamePenalty, nextPenalty, offencesOf, opensAt, ranking, standingOf } from "./levels.ts";
+import type { TaskLine } from "./model.ts";
 import { openDoor } from "./submit.ts";
+import { addTaskLine } from "./task.ts";
 
 interface OfResident {
 	readonly resident: string;
@@ -31,6 +33,14 @@ function holdersBehind(ctx: ProgressionCtx, { resident, level }: OnLevel) {
 		.filter((entry) => levelOf(ctx, entry.holder) < level && !standingOf(ctx, entry.holder).held)
 		.map((entry) => ({ holder: entry.holder, level: levelOf(ctx, entry.holder), piece: entry.piece }));
 }
+
+/** The methods of the service `task-lines`. */
+export const taskLinesService = {
+	add: (line: TaskLine, ctx: ProgressionCtx) => {
+		addTaskLine(ctx, line);
+		return null;
+	},
+};
 
 /** The methods of the service `progression`. */
 export const progressionService = {

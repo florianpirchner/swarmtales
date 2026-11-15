@@ -486,6 +486,17 @@ readonly kind: "command";
 readonly output: Type.TNull;
 readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
 };
+}>, ServiceDefinition<"task-lines", {
+readonly add: {
+readonly input: Type.TObject<{
+level: Type.TOptional<Type.TInteger>;
+order: Type.TInteger;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Adds a line under the task of every door-open notice, at `order` among the others, on `level` or on every level; the same line twice counts once.";
+};
 }>], Readonly<Record<symbol, never>>>;
 
 // @public

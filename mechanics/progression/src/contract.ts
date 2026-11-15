@@ -23,6 +23,14 @@ const Nothing = Type.Null({ description: "Nothing" });
 const OrNull = (schema: TSchema, what: string) => Type.Union([schema, Type.Null({ description: what })], { description: `A value, or null: ${what}` });
 const Ranked = Type.Object({ agent: Id, rank: Type.Integer({ description: "From 1" }), points: Points, level: Type.Integer({ description: "Its level" }) }, { description: "One place in the ranking" });
 const Behind = Type.Object({ holder: Id, level: Type.Integer({ description: "The holder's level" }), piece: Type.String({ description: "What it holds" }) }, { description: "A holder still behind" });
+const TaskLine = Type.Object(
+	{
+		order: Type.Integer({ description: "Its place among the lines, lowest first (the old order: names 100, the holdout rule 200, the marks terms 300)" }),
+		text: Type.String({ description: "The line" }),
+		level: Type.Optional(Type.Integer({ minimum: 1, description: "The level it goes under; every level when left out" })),
+	},
+	{ additionalProperties: false, description: "A line another mechanic puts under the task of a door-open notice" },
+);
 const Bounds = Type.Object({ startLevel: Level, lastLevel: Type.Integer({ description: "The last playable level" }), survivors: Type.Integer({ description: "The seats at the end" }) }, { description: "The levels and the seats of the run" });
 
 /**
@@ -84,6 +92,28 @@ export const ProgressionService = defineService({
 		isOpenOnClock: { kind: "query", summary: "Whether the level's door is open on the door clock now.", input: OfLevel, output: Type.Boolean({ description: "True while open" }) },
 		opensAt: { kind: "query", summary: "The tick the level's door opens; 0 when it is open from the start.", input: OfLevel, output: Type.Integer({ description: "The tick" }) },
 		bounds: { kind: "query", summary: "The start level, the last playable level and the seats at the end.", input: None, output: Bounds },
+	},
+});
+
+/**
+ * Where another mechanic puts its line under the task of a door-open notice: the service `task-lines`, provided by
+ * `progression`. The old task asked three mechanics for a line under it (`withAddenda`); the door-open notice carries
+ * the task as one text, and those mechanics ask `progression` (marks its levels, the holdout tribunal its acts), so
+ * `progression` cannot ask them back. Each adds its line once, at the run's start, and the notice takes the lines in
+ * their order (erratum J211). The task line of a turn does not read them: there each owner writes its own line (J31).
+ *
+ * @public
+ */
+export const TaskLinesService = defineService({
+	name: "task-lines",
+	summary: "The lines other mechanics put under the task of a door-open notice.",
+	methods: {
+		add: {
+			kind: "command",
+			summary: "Adds a line under the task of every door-open notice, at `order` among the others, on `level` or on every level; the same line twice counts once.",
+			input: TaskLine,
+			output: Nothing,
+		},
 	},
 });
 

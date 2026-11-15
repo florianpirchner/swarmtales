@@ -3,7 +3,8 @@
  * The rules of the progression that no oracle file reaches (the old `test/mechanics/progression` cases of the first
  * half of the port): a shut door and its opening, the attempt window, the refusals of a submission, the looks with the
  * providers of `identity`, `allowance` and `receipt-source`, an additive level's holder notice and status part, the
- * service `progression`, and the samples of a fake run.
+ * service `progression`, the lines of other mechanics under the door-open notice (`task-lines`), and the samples of a
+ * fake run.
  */
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
@@ -11,8 +12,8 @@ import { AllowanceService, IdentityService, ReceiptSourceService } from "@swarmt
 import { channels } from "@swarmtales/mechanic-channels";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { defineGame, defineHead, defineMechanic, reply, type MechanicUse } from "@swarmtales/sdk";
-import { checkReplay, fakeDriver, testKernel } from "@swarmtales/testkit";
-import { LevelPiecesService, progression, ProgressionService } from "../src/index.ts";
+import { checkReplay, checkResumeEveryBoundary, fakeDriver, testKernel } from "@swarmtales/testkit";
+import { LevelPiecesService, progression, ProgressionService, TaskLinesService } from "../src/index.ts";
 import { MANAGED } from "./support.ts";
 
 const CODES: Readonly<Record<number, string>> = { 1: "ABC123", 2: "DEFG", 3: "042" };
@@ -127,6 +128,39 @@ describe("the looks and the turn inputs", () => {
 			return Promise.resolve();
 		}, 2);
 		expect(seen).toEqual(["[status] minute 0 · level 1 · 10 points · rank 1 of 3 | Level 1 for Rook: ABC", "[status] minute 1 · level 1 · 10 points · rank 1 of 3"]);
+	});
+});
+
+// Adds its lines at the run's start, as `standoff-tribunal` and `marks` do: one on every level, one per level, and one twice.
+const adder = defineMechanic(defineHead({ id: "adder", package: "@test/adder", summary: "Test: lines under the task.", uses: [TaskLinesService] }), {
+	hooks: {
+		runStarted: (ctx) => {
+			for (const line of [{ order: 300, text: "terms of 1", level: 1 }, { order: 300, text: "terms of 2", level: 2 }, { order: 200, text: "the rule" }, { order: 200, text: "the rule" }]) ctx.tryCall(TaskLinesService, "add", line);
+		},
+	},
+});
+
+describe("the lines under the door-open notice (J211)", () => {
+	const doorGame = (more: readonly MechanicUse[]) => {
+		const levels = [{ ...level(1, 1), task: "Level {level} for {partner}: {fragment}  " }, level(2)];
+		const options = { levels, penalty: [2], maxAttemptsPerWindow: 2, attemptWindowMinutes: 3, survivors: 2, finishedNotice: "done", managed: [...MANAGED] };
+		return defineGame({ id: "door-lines", seed: 7, residents: ["A01", "A02", "A03"], mechanics: [ledger({ startPoints: 10 }), channels(), pieces(), progression(options), ...more], end: { ticks: 3 } });
+	};
+	const doorNotices = async (more: readonly MechanicUse[]) => {
+		const test = testKernel(doorGame(more));
+		await test.playTicks(() => Promise.resolve(), 2);
+		return test.kernel.log.all().flatMap((event) => (event.type === "notice" && JSON.stringify(event.payload).includes("is open now") ? [String(Reflect.get(Object(event.payload), "text"))] : []));
+	};
+
+	it("puts the lines of the level by their order under the task, each after a trimEnd, the same line once", async () => {
+		const texts = await doorNotices([adder()]);
+		expect(texts).toHaveLength(3);
+		expect(texts[0]).toBe("Door 1 is open now, at minute 1. Level 1 for A02: ABC\nthe rule\nterms of 1");
+	});
+
+	it("is the task alone without a mechanic that adds a line, and the lines outlive a resume", async () => {
+		expect((await doorNotices([]))[0]).toBe("Door 1 is open now, at minute 1. Level 1 for A02: ABC  ");
+		expect(await checkResumeEveryBoundary(doorGame([adder()]), () => ({ resident: () => Promise.resolve() }))).toEqual([]);
 	});
 });
 

@@ -14,10 +14,10 @@
  * @packageDocumentation
  */
 import { Type } from "typebox";
-import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
+import { ProgressionService, TaskLinesService } from "@swarmtales/mechanic-progression/contract";
 import { defineMechanic, refuse } from "@swarmtales/sdk";
 import { standoffTribunalHead } from "./head.ts";
-import { courtFor, holdoutLines } from "./ports.ts";
+import { courtFor, holdoutLines, TASK_ORDER } from "./ports.ts";
 import { sampleAnnounce, sampleCall, sampleLot, sampleStrike, sampleVote } from "./samples.ts";
 import { BlockersFact, blockersOf, computeHoldoutSection, HoldoutSectionFact, PendingFact, pendingOf, SessionFact, sessionOf } from "./section.ts";
 import { checkLine, runAnnounce, runCallTribunal, runDrawLot, runPermaDeath, runVote } from "./tools.ts";
@@ -63,6 +63,10 @@ export const standoffTribunal = defineMechanic(standoffTribunalHead, {
 		},
 	},
 	hooks: {
+		// The rule goes under the task of every door-open notice too (old `withAddenda`, erratum J211).
+		runStarted: (ctx) => {
+			ctx.tryCall(TaskLinesService, "add", { order: TASK_ORDER, text: ctx.options.texts.rule });
+		},
 		// After the door clock of `progression`, which it requires and so loads after (old minuteStarted 800 after 700),
 		// and after the standoff (old 500; erratum J146).
 		tickStarted: {

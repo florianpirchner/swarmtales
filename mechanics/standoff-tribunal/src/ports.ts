@@ -20,7 +20,7 @@ import type { BlockerFact, HoldoutPorts, Presence } from "./types.ts";
 /** The holdout part of the status line, after every other part (old `STATUS_ORDER.holdout`). */
 const STATUS_ORDER = 1400;
 /** The rule under a new task: after the progression's task and a name line, before the terms of `marks` (300). */
-const TASK_ORDER = 200;
+export const TASK_ORDER = 200;
 
 const alive = (ctx: Ctx): readonly string[] => ctx.call(ExileService, "alive", {});
 const levelOf = (ctx: Ctx, resident: string): number => ctx.call(ProgressionService, "levelOf", { resident });

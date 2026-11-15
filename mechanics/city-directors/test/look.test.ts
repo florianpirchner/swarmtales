@@ -12,6 +12,7 @@ import { channels } from "@swarmtales/mechanic-channels";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { LevelPiecesService, progression, ProgressionSectionFact, ProgressionTracksFact } from "@swarmtales/mechanic-progression";
 import { standoff, StandoffSectionFact } from "@swarmtales/mechanic-standoff";
+import { SectionFact as TribunalSectionFact } from "@swarmtales/mechanic-tribunal";
 import { defineGame, defineHead, defineMechanic, parseTake, RESIDENT_KIND } from "@swarmtales/sdk";
 import { checkReplay, checkResumeEveryBoundary, play, scriptedDriver, type PlannedCall } from "@swarmtales/testkit";
 import { Type, type TSchema } from "typebox";
@@ -19,6 +20,7 @@ import { Parse } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { ProgressionSectionSchema } from "../src/gamemaker/report/progression.ts";
 import { StandoffSectionSchema } from "../src/gamemaker/report/standoff.ts";
+import { TribunalSectionSchema } from "../src/gamemaker/report/tribunal.ts";
 import { defineGamemaker, gamemakerOptions } from "../src/index.ts";
 import { lookup, oldSetup } from "./support.ts";
 
@@ -134,6 +136,11 @@ describe("a look of the gamemaker over the real mechanics", () => {
 			{ agent: "A02", levelSince: 0, wrongOnLevel: 1 },
 			{ agent: "A03", levelSince: 0, wrongOnLevel: 0 },
 		]);
+	});
+
+	// The tribunal's fact `section` is a copy of the report's schema (J222, A93): both stay the same shape.
+	it("pins the tribunal's fact section to the report's schema (A93)", () => {
+		expect(bare(TribunalSectionFact)).toEqual(bare(TribunalSectionSchema));
 	});
 
 	it("holds no state: replay and resume at every boundary give the straight log", async () => {

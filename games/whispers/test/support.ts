@@ -3,7 +3,7 @@
  * Shared by the oracle tests: the game of a file's dials, and the registered changes against the files
  * (`oracles/whispers/README.md`, "Registered changes against the files"), applied to the file before the
  * comparison. Each change moves entries of the file to the place the recut gives them; within one source the order
- * stays the file's, and no payload is changed except by the open erratum of the door notice.
+ * stays the file's, and no payload is changed.
  */
 import { join } from "node:path";
 import type { Oracle, OracleEntry } from "@swarmtales/testkit";
@@ -42,7 +42,6 @@ const Effective = Type.Object(
  */
 export const gameOf = (oracle: Oracle) => whispersGame(Value.Parse(WhispersParams, { ...Value.Parse(Effective, oracle.setup.definition?.effective), receipts: oracle.variant !== "whispers-rumours" }));
 
-type Event = Extract<OracleEntry, { k: "event" }>;
 type Is = (entry: OracleEntry) => boolean;
 
 const isEvent = (source: string, type: string, where: (payload: unknown) => boolean = () => true): Is => (entry) => entry.k === "event" && entry.source === source && entry.type === type && where(entry.payload);
@@ -105,20 +104,6 @@ function lookAfterTickStart(timeline: readonly OracleEntry[]): readonly OracleEn
 	return out;
 }
 
-/**
- * Open erratum: the door-open notice of `progression` holds the task without the lines other mechanics put under it
- * (the holdout rule, the marks), in its event and in the input line that shows it.
- */
-const DOOR_OPEN = /^(\[CITY\] )?Door \d+ is open now/;
-const cutAddenda = (text: string): string => text.split("\n").filter((line) => !line.startsWith("Whoever has reached a door") && !line.startsWith("Marks for the whole run")).join("\n");
-function doorNotice(entry: OracleEntry): OracleEntry {
-	if (!isEvent("channels", "notice")(entry) || entry.k !== "event") return entry;
-	const text = field(entry.payload, "text");
-	if (typeof text !== "string" || !DOOR_OPEN.test(text)) return entry;
-	const payload: Event["payload"] = { ...Object(entry.payload), text: cutAddenda(text) };
-	return { ...entry, payload };
-}
-
 type Turn = Extract<OracleEntry, { k: "turn" }>;
 type Input = Turn["inputs"][number];
 
@@ -171,7 +156,7 @@ function turnInputs(timeline: readonly OracleEntry[]): readonly OracleEntry[] {
 	return timeline.map((entry, at) => {
 		if (entry.k !== "turn") return entry;
 		const more = deliveredBefore(timeline, at, entry.resident);
-		const inputs = entry.inputs.map(taskSource).map((input) => (input.kind === "notice" && DOOR_OPEN.test(input.text) ? { ...input, text: cutAddenda(input.text) } : input)).map((input) => (input.kind === "status" && more > 0 ? withReceipts(input, more) : input));
+		const inputs = entry.inputs.map(taskSource).map((input) => (input.kind === "status" && more > 0 ? withReceipts(input, more) : input));
 		return { ...entry, inputs };
 	});
 }
@@ -193,7 +178,7 @@ function withoutStartLocks(oracle: Oracle, timeline: readonly OracleEntry[]): re
  * @returns The file as this platform writes it, up to its registered changes.
  */
 export function registered(oracle: Oracle): Oracle {
-	const timeline = [...oracle.timeline.map(doorNotice)];
+	const timeline = [...oracle.timeline];
 	// The delivery notice names the coming receipt (A64): it comes before `receipts` issues the receipt of the message.
 	for (let at = 0; at + 1 < timeline.length; at++) {
 		const [receipt, notice] = [timeline[at], timeline[at + 1]];

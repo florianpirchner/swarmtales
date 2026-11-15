@@ -136,6 +136,15 @@ export interface ProgressionState {
 	readonly offences: Map<string, { wrong: number; blames: number }>;
 	/** The task once per level: the level whose task was shown, and whether that was the finished notice. */
 	readonly delivered: Map<string, { level: number; finished: boolean }>;
+	/** The lines other mechanics put under the task of a door-open notice (`addTaskLine`), in the order added. */
+	readonly taskLines: TaskLine[];
+}
+
+/** A line another mechanic puts under the task of a door-open notice; on every level when `level` is left out. */
+export interface TaskLine {
+	readonly order: number;
+	readonly text: string;
+	readonly level?: number;
 }
 
 const StandingSlice = Type.Object(
@@ -162,6 +171,10 @@ export const ProgressionSlice = Type.Object(
 		standings: Type.Array(StandingSlice, { description: "Every resident, in roster order" }),
 		offences: Type.Array(Type.Object({ agent: Id, wrong: Int, blames: Int }, { description: "The offences of one resident" }), { description: "The wrong codes and lost blames counted for the penalty ladders" }),
 		delivered: Type.Array(Type.Object({ agent: Id, level: Int, finished: Type.Boolean({ description: "The finished notice was shown" }) }, { description: "One task shown" }), { description: "The tasks shown" }),
+		taskLines: Type.Array(
+			Type.Object({ order: Type.Integer({ description: "Its place, lowest first" }), text: Type.String({ description: "The line" }), level: Type.Optional(Int) }, { description: "One line under the task of a door-open notice" }),
+			{ description: "The lines other mechanics added, in the order added" },
+		),
 	},
 	{ description: "The saved state of the progression." },
 );
@@ -193,7 +206,7 @@ export function doorIn(options: Pick<Options, "lastLevel" | "levels" | "holdAfte
  */
 export function freshState(residents: readonly string[], options: Options): ProgressionState {
 	const standings = new Map(residents.map((id): [string, Standing] => [id, { level: options.startLevel, held: false, solved: [], wrongAttempts: [], extraTools: new Set(), wrongOnLevel: 0 }]));
-	return { standings, door: doorIn(options), doorReleased: false, actStarts: new Map(), endedActs: new Set(), solves: [], offences: new Map(), delivered: new Map() };
+	return { standings, door: doorIn(options), doorReleased: false, actStarts: new Map(), endedActs: new Set(), solves: [], offences: new Map(), delivered: new Map(), taskLines: [] };
 }
 
 /**
@@ -211,6 +224,7 @@ export function saveState(state: ProgressionState): Slice {
 		standings: [...state.standings].map(([agent, entry]) => ({ agent, level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts], extraTools: [...entry.extraTools], wrongOnLevel: entry.wrongOnLevel })),
 		offences: [...state.offences].map(([agent, count]) => ({ agent, wrong: count.wrong, blames: count.blames })),
 		delivered: [...state.delivered].map(([agent, entry]) => ({ agent, level: entry.level, finished: entry.finished })),
+		taskLines: state.taskLines.map(taskLineOf),
 	};
 }
 
@@ -229,5 +243,15 @@ export function loadState(data: Slice): ProgressionState {
 		solves: data.solves.map(({ agent, level, tick }) => ({ agent, level, tick })),
 		offences: new Map(data.offences.map((entry) => [entry.agent, { wrong: entry.wrong, blames: entry.blames }])),
 		delivered: new Map(data.delivered.map((entry) => [entry.agent, { level: entry.level, finished: entry.finished }])),
+		taskLines: data.taskLines.map(taskLineOf),
 	};
+}
+
+/**
+ * A task line built field by field (A43).
+ * @param line - The line.
+ * @returns A copy in the slice's key order.
+ */
+export function taskLineOf(line: TaskLine): TaskLine {
+	return { order: line.order, text: line.text, ...(line.level === undefined ? {} : { level: line.level }) };
 }

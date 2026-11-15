@@ -16,7 +16,7 @@ issues: part 1 (M5-29) holds the blockers, the call and the grace; part 2 (M5-30
 | Id | `standoff-tribunal` |
 | Summary | The holdout tribunal over a resident who keeps a fragment back. |
 | Requires | `holdout-pieces` (from [puzzles](../puzzles/README.md)), `progression` (from [progression](../progression/README.md)), `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)), `notes` (from [channels](../channels/README.md)) |
-| Uses when loaded | `identity` (from [names](../names/README.md)) |
+| Uses when loaded | `identity` (from [names](../names/README.md)), `task-lines` (from [progression](../progression/README.md)) |
 | Provides | `cap-exemption` |
 | State | kept, snapshot slice version 1 |
 | Games | [whispers](../../games/whispers/README.md) |
@@ -52,7 +52,8 @@ issues: part 1 (M5-29) holds the blockers, the call and the grace; part 2 (M5-30
    line after `fallbackMinutes` (`holdout_announced` with `by: "city"`).
 7. **What residents see.** Their status line carries the running tribunal (the accused whom it still owes its
    fragment, a voter its own ballot, never another's), and the rule (`texts.rule`) comes as a line of kind `task`
-   under every new task, after the progression's task and before the terms of `marks`.
+   under every new task, after the progression's task and before the terms of `marks`. At the run's start it adds the
+   rule to `task-lines` of `progression` (order 200), so the door-open notice carries it under its task too (J211).
 8. **The gamemaker's report.** The fact `section` (with `session`, `pending`, `cooldownUntil` and `struck`) is what
    the report of `mechanics/city-directors` reads; it writes the old lines from it.
 

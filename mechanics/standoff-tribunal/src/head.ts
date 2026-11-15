@@ -4,7 +4,7 @@ import { Type } from "typebox";
 import { CapExemptionService, IdentityService } from "@swarmtales/mechanic-contracts";
 import { ChannelsService, NotesService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
-import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
+import { ProgressionService, TaskLinesService } from "@swarmtales/mechanic-progression/contract";
 import { defineHead, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { HoldoutPiecesService, StandoffTribunalEvents } from "./contract.ts";
 import { HoldoutSlice, loadHoldout, saveHoldout } from "./slice.ts";
@@ -97,7 +97,7 @@ export const standoffTribunalHead = defineHead({
 		"standoff-tribunal/status/holdout-strike": ["accused"],
 	},
 	requires: [HoldoutPiecesService, ProgressionService, ExileService, ChannelsService, NotesService],
-	uses: [IdentityService],
+	uses: [IdentityService, TaskLinesService],
 	// What the DM cap of `channels` asks before it refuses (old `exemptFromCap`, decision A75).
 	provides: [CapExemptionService],
 	tools: {

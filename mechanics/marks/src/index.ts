@@ -14,7 +14,7 @@ import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/sdk";
 import { statusOf } from "./book.ts";
 import { marksHead } from "./head.ts";
-import { bookOf, chargePrice, checkPrice, marksLines, priceNow } from "./prices.ts";
+import { addTermsToTasks, bookOf, chargePrice, checkPrice, marksLines, priceNow } from "./prices.ts";
 
 export { activeOn, canAfford, DEFAULT_RECEIPT_PRICE, priceOf, runWide, spend, statusOf, termsOn } from "./book.ts";
 export type { Allowance, Book, Channel, MarksState, Prices, Range, Refill, Rules, Status, Terms } from "./book.ts";
@@ -45,6 +45,10 @@ export const marks = defineMechanic(marksHead, {
 		},
 	},
 	hooks: {
+		// The terms go under the task of a door-open notice too, which the progression writes as one text.
+		runStarted: (ctx) => {
+			addTermsToTasks(ctx);
+		},
 		turnInputs: (resident, ctx) => marksLines(ctx, resident),
 		// The terms go under a task once per level, as the task itself.
 		activationOpened: (resident, ctx) => {
