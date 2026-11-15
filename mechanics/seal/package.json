@@ -7,15 +7,23 @@
 	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
+		"kind": "mechanic",
 		"class": "game",
 		"layer": "L3",
-		"mechanics": []
+		"mechanics": [
+			"seal"
+		]
 	},
 	"exports": {
 		".": {
 			"development": "./src/index.ts",
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
+		},
+		"./contract": {
+			"development": "./src/contract.ts",
+			"types": "./dist/contract.d.ts",
+			"default": "./dist/contract.js"
 		}
 	},
 	"files": [
@@ -26,5 +34,20 @@
 		"build": "tsdown",
 		"api": "node ../../scripts/api-report.ts",
 		"api:update": "node ../../scripts/api-report.ts --update"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-contracts": "workspace:*",
+		"@swarmtales/mechanic-channels": "workspace:*",
+		"@swarmtales/mechanic-exile": "workspace:*",
+		"@swarmtales/mechanic-ledger": "workspace:*",
+		"@swarmtales/mechanic-progression": "workspace:*",
+		"@swarmtales/mechanic-tribunal": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/mechanic-goals": "workspace:*",
+		"@swarmtales/testkit": "workspace:*"
 	}
 }

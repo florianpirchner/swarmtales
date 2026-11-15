@@ -4,6 +4,676 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Standing } from '@swarmtales/mechanic-exile/contract';
+import { Static } from 'typebox';
+import { ToolCtxOf } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
+
+// @public
+export function auctionOf(data: SealData): {
+    readonly seal: number;
+    readonly until: number;
+} | undefined;
+
+// @public
+export type BidError = "INSUFFICIENT_FUNDS" | "INVALID_AMOUNT" | "NOT_A_BIDDER" | "NO_AUCTION";
+
+// @public
+export function bidOf(data: SealData, agent: string): number | undefined;
+
+// @public
+export function borne(data: SealData): number;
+
+// @public
+export function emptySeal(): SealData;
+
+// @public
+export function holds(data: SealData, agent: string): boolean;
+
+// @public
+export function pendingSeals(data: SealData): number;
+
+// @public
+export type Result<T, E extends string> = {
+    readonly ok: true;
+    readonly value: T;
+} | {
+    readonly detail: string;
+    readonly error: E;
+    readonly ok: false;
+};
+
+// @public
+export const seal: MechanicDefinition<"seal", Type.TObject<{
+act: Type.TInteger;
+announceAfter: Type.TInteger;
+bidMinutes: Type.TInteger;
+perResidents: Type.TInteger;
+spacing: Type.TInteger;
+texts: Type.TObject<{
+announcement: Type.TString;
+expired: Type.TString;
+noBids: Type.TString;
+paidNotice: Type.TString;
+used: Type.TString;
+winnerNotice: Type.TString;
+won: Type.TString;
+}>;
+}>, {
+readonly seal_auction_opened: Type.TObject<{
+seal: Type.TInteger;
+until: Type.TInteger;
+}>;
+readonly seal_bid: Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+seal: Type.TInteger;
+}>;
+readonly seal_expired: Type.TObject<{
+holder: Type.TOptional<Type.TString>;
+reason: Type.TString;
+seal: Type.TInteger;
+}>;
+readonly seal_used: Type.TObject<{
+holder: Type.TString;
+seal: Type.TInteger;
+target: Type.TString;
+}>;
+readonly seal_won: Type.TObject<{
+agent: Type.TString;
+bid: Type.TInteger;
+bids: Type.TArray<Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+}>>;
+seal: Type.TInteger;
+}>;
+}, "bid" | "permaDeath">;
+
+// @public
+export function sealCount(perResidents: number, residents: number): number;
+
+// @public
+export type SealCtx = CtxOf<typeof sealHead>;
+
+// @public
+export type SealData = Static<typeof SealSlice>;
+
+// @public
+export type SealEntry = SealData["seals"][number];
+
+// @public
+export type SealError = "ALREADY_EXILED" | "NO_SEAL" | "SELF" | "TARGET_REACHED" | "UNKNOWN_RESIDENT";
+
+// @public
+export const SealEvents: EventsDefinition<"seal", {
+readonly seal_auction_opened: Type.TObject<{
+seal: Type.TInteger;
+until: Type.TInteger;
+}>;
+readonly seal_bid: Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+seal: Type.TInteger;
+}>;
+readonly seal_expired: Type.TObject<{
+holder: Type.TOptional<Type.TString>;
+reason: Type.TString;
+seal: Type.TInteger;
+}>;
+readonly seal_used: Type.TObject<{
+holder: Type.TString;
+seal: Type.TInteger;
+target: Type.TString;
+}>;
+readonly seal_won: Type.TObject<{
+agent: Type.TString;
+bid: Type.TInteger;
+bids: Type.TArray<Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+}>>;
+seal: Type.TInteger;
+}>;
+}>;
+
+// @public
+export const sealHead: MechanicHead<"seal", Type.TObject<{
+act: Type.TInteger;
+announceAfter: Type.TInteger;
+bidMinutes: Type.TInteger;
+perResidents: Type.TInteger;
+spacing: Type.TInteger;
+texts: Type.TObject<{
+announcement: Type.TString;
+expired: Type.TString;
+noBids: Type.TString;
+paidNotice: Type.TString;
+used: Type.TString;
+winnerNotice: Type.TString;
+won: Type.TString;
+}>;
+}>, Type.TObject<{
+actStart: Type.TUnion<[Type.TInteger, Type.TNull]>;
+seals: Type.TArray<Type.TObject<{
+bids: Type.TArray<Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+}>>;
+holder: Type.TOptional<Type.TString>;
+opens: Type.TInteger;
+seal: Type.TInteger;
+state: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"open">, Type.TLiteral<"held">, Type.TLiteral<"used">, Type.TLiteral<"gone">]>;
+until: Type.TInteger;
+}>>;
+target: Type.TUnion<[Type.TInteger, Type.TNull]>;
+}>, {
+actStart: number | null;
+seals: {
+bids: {
+agent: string;
+points: number;
+}[];
+holder?: string;
+opens: number;
+seal: number;
+state: "gone" | "held" | "open" | "pending" | "used";
+until: number;
+}[];
+target: number | null;
+}, {
+readonly seal_auction_opened: Type.TObject<{
+seal: Type.TInteger;
+until: Type.TInteger;
+}>;
+readonly seal_bid: Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+seal: Type.TInteger;
+}>;
+readonly seal_expired: Type.TObject<{
+holder: Type.TOptional<Type.TString>;
+reason: Type.TString;
+seal: Type.TInteger;
+}>;
+readonly seal_used: Type.TObject<{
+holder: Type.TString;
+seal: Type.TInteger;
+target: Type.TString;
+}>;
+readonly seal_won: Type.TObject<{
+agent: Type.TString;
+bid: Type.TInteger;
+bids: Type.TArray<Type.TObject<{
+agent: Type.TString;
+points: Type.TInteger;
+}>>;
+seal: Type.TInteger;
+}>;
+}, {
+readonly "seal/replies/bid-none": readonly ["until"];
+readonly "seal/replies/bid-stands": readonly ["points", "until"];
+readonly "seal/replies/locked": readonly [];
+readonly "seal/replies/seal-broken": readonly ["target"];
+readonly "seal/status/seal-auction": readonly ["until", "bid"];
+readonly "seal/status/seal-bearer": readonly [];
+readonly "seal/status/seal-bid": readonly ["bid"];
+readonly "seal/tools/bid": readonly [];
+readonly "seal/tools/permaDeath": readonly [];
+}, readonly [ServiceDefinition<"ledger", {
+readonly balance: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TNumber;
+readonly summary: "An account's points; 0 for an account nobody opened.";
+};
+readonly balances: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+readonly summary: "Every resident's points, for rankings and standings.";
+};
+readonly burn: {
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+};
+readonly has: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the account is open.";
+};
+readonly mint: {
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
+};
+readonly move: {
+readonly input: Type.TObject<{
+amount: Type.TNumber;
+from: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+txId: Type.TString;
+}>, Type.TObject<{
+code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+ok: Type.TLiteral<false>;
+}>]>;
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+};
+readonly open: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
+};
+}>, ServiceDefinition<"channels", {
+readonly boardPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The board post with the city's message number `number`, of a resident or of the city; null when no board post has it.";
+};
+readonly couldRead: {
+readonly input: Type.TObject<{
+group: Type.TString;
+number: Type.TInteger;
+reader: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was a member of the group before the post `number`, so it could read it.";
+};
+readonly createCityGroup: {
+readonly input: Type.TObject<{
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+group: Type.TString;
+}>;
+readonly summary: "Founds a group of the city with the members and writes `group_created` and a `group_membership` per member; each member gets a notice. The city is its founder and treasurer.";
+};
+readonly deliver: {
+readonly input: Type.TObject<{
+from: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+};
+readonly dmRecords: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+answered: Type.TBoolean;
+deliveredAfter: Type.TOptional<Type.TInteger>;
+deliveredTick: Type.TOptional<Type.TInteger>;
+from: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+to: Type.TString;
+}>>;
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first, with whether it was answered (old `dmRecords`).";
+};
+readonly dmWindow: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+from: Type.TInteger;
+limit: Type.TInteger;
+sent: Type.TInteger;
+until: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The resident's window of the cap on direct messages and memos (old `dmWindow`); null when the game sets no cap.";
+};
+readonly group: {
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+founder: Type.TString;
+id: Type.TString;
+members: Type.TArray<Type.TString>;
+name: Type.TString;
+removed: Type.TBoolean;
+treasurer: Type.TString;
+}>, Type.TNull]>;
+readonly summary: "One group, removed or not: its founder (`CITY` for a group of the city), treasurer and members; null for an unknown id.";
+};
+readonly groupPost: {
+readonly input: Type.TObject<{
+number: Type.TInteger;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+author: Type.TString;
+group: Type.TString;
+number: Type.TInteger;
+text: Type.TString;
+tick: Type.TInteger;
+}>, Type.TNull]>;
+readonly summary: "The group post with the city's message number `number`, removed groups included; null when no group post has it.";
+};
+readonly notify: {
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+};
+readonly pendingDms: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "How many direct messages wait in the resident's mailbox (old `pendingDms`); 0 for an id that is no resident.";
+};
+readonly post: {
+readonly input: Type.TObject<{
+author: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+postSeq: Type.TInteger;
+}>;
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+};
+readonly postGroupAsCity: {
+readonly input: Type.TObject<{
+group: Type.TString;
+text: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Posts as the city in one of its groups and writes `group_post`; free and never cut. A post in any other group is dropped.";
+};
+readonly removeCityGroup: {
+readonly input: Type.TObject<{
+group: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Removes a group of the city: its treasury is split among its members (`treasury_settled`), then `group_removed`. Any other group is left as it is.";
+};
+}>, ServiceDefinition<"exile", {
+readonly alive: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Every resident not banished, in the game's order.";
+};
+readonly banish: {
+readonly input: Type.TObject<{
+by: Type.TOptional<Type.TString>;
+resident: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TObject<{
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+ok: Type.TBoolean;
+}>;
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+};
+readonly bequeathed: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
+};
+readonly exiled: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TString>;
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+};
+readonly exiledBy: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "Who banished the resident, or null while it is not banished.";
+};
+readonly gates: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+covered: Type.TInteger;
+paid: Type.TInteger;
+price: Type.TInteger;
+ransomable: Type.TBoolean;
+selfPrice: Type.TInteger;
+since: Type.TInteger;
+until: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+readonly summary: "Every open gate, in the order opened.";
+};
+readonly isExiled: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Says whether the resident is banished.";
+};
+readonly ransomed: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the resident was bought back from the gate once.";
+};
+readonly standing: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"alive">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"gate">;
+until: Type.TInteger;
+}>, Type.TObject<{
+kind: Type.TLiteral<"exiled">;
+}>]>;
+readonly summary: "Where the resident stands (old `standingOf`).";
+};
+readonly toGate: {
+readonly input: Type.TObject<{
+bequestPerHeir: Type.TNumber;
+by: Type.TOptional<Type.TString>;
+notice: Type.TString;
+price: Type.TInteger;
+ransomable: Type.TBoolean;
+resident: Type.TString;
+selfPrice: Type.TInteger;
+texts: Type.TObject<{
+exiled: Type.TString;
+ransomed: Type.TString;
+will: Type.TString;
+}>;
+until: Type.TInteger;
+voters: Type.TArray<Type.TString>;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
+};
+}>], [], readonly [ServiceDefinition<"identity", {
+readonly display: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TString;
+readonly summary: "The text with each resident id replaced by that resident's name, as the residents read it; the text unchanged while nobody has a name (old `presentation.display` of `names`).";
+};
+readonly nameOf: {
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+readonly summary: "The name the resident chose (or was given), or null while it has none; the caller then shows the id (old `nameOf` of `names`).";
+};
+readonly resolve: {
+readonly input: Type.TObject<{
+text: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TString;
+readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
+};
+}>], {
+bid: Type.TObject<{
+points: Type.TInteger;
+}>;
+permaDeath: Type.TObject<{
+target: Type.TString;
+}>;
+}>;
+
+// @public
+export class SealHouse {
+    constructor(rule: SealRule, ports: SealPorts, data: SealData);
+    begin(actStart: number, residents: number): void;
+    bid(agent: string, points: number): Result<{
+        readonly points: number;
+        readonly seal: number;
+        readonly until: number;
+    }, BidError>;
+    end(): void;
+    onExiled(agent: string): void;
+    tick(minute: number): void;
+    use(holder: string, target: string): Result<string, SealError>;
+}
+
+// @public
+export const SealOptions: Type.TObject<{
+    act: Type.TInteger;
+    announceAfter: Type.TInteger;
+    bidMinutes: Type.TInteger;
+    perResidents: Type.TInteger;
+    spacing: Type.TInteger;
+    texts: Type.TObject<{
+        announcement: Type.TString;
+        expired: Type.TString;
+        noBids: Type.TString;
+        paidNotice: Type.TString;
+        used: Type.TString;
+        winnerNotice: Type.TString;
+        won: Type.TString;
+    }>;
+}>;
+
+// @public
+export type SealOptions = Static<typeof SealOptions>;
+
+// @public
+export interface SealPorts {
+    readonly burn: (agent: string, points: number, reason: string) => void;
+    // Warning: (ae-forgotten-export) The symbol "Events" needs to be exported by the entry point index.d.ts
+    readonly emit: <K extends keyof Events>(type: K, payload: Static<Events[K]>) => void;
+    readonly ids: readonly string[];
+    readonly missing: () => number | undefined;
+    readonly notify: (agent: string, text: string) => void;
+    readonly points: (agent: string) => number;
+    readonly post: (text: string) => void;
+    readonly shuffle: (seal: number, agents: readonly string[]) => readonly string[];
+    readonly standing: (agent: string) => Static<typeof Standing>;
+    readonly strike: (target: string) => void;
+}
+
+// @public
+export type SealRule = Omit<SealOptions, "act">;
+
+// @public
+export const SealSlice: Type.TObject<{
+    actStart: Type.TUnion<[Type.TInteger, Type.TNull]>;
+    seals: Type.TArray<Type.TObject<{
+        bids: Type.TArray<Type.TObject<{
+            agent: Type.TString;
+            points: Type.TInteger;
+        }>>;
+        holder: Type.TOptional<Type.TString>;
+        opens: Type.TInteger;
+        seal: Type.TInteger;
+        state: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"open">, Type.TLiteral<"held">, Type.TLiteral<"used">, Type.TLiteral<"gone">]>;
+        until: Type.TInteger;
+    }>>;
+    target: Type.TUnion<[Type.TInteger, Type.TNull]>;
+}>;
+
+// @public
+export type SealStage = SealEntry["state"];
+
+// @public
+export type SealTexts = SealOptions["texts"];
+
+// @public
+export type SealToolCtx = ToolCtxOf<typeof sealHead>;
+
+// @public
+export type SealView = ViewOf<typeof sealHead>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
