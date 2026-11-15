@@ -4,6 +4,196 @@
 
 ```ts
 
+import { DirectorDefinition } from '@swarmtales/sdk';
+import { PromptLookup } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { Type } from 'typebox';
+
+// @public
+export function budgetLine(options: GamemakerOptions, residents: readonly string[], notes: readonly GamemakerNote[], tick: number): string;
+
+// @public
+export function defineGamemaker(sight?: GamemakerSight): DirectorDefinition;
+
+// @public
+export const DIRECTION_LEVELS: readonly [0, 4, 6, 8, 10];
+
+// @public
+export type DirectionLevel = (typeof DIRECTION_LEVELS)[number];
+
+// @public
+export type Figure = Static<typeof FigureSchema>;
+
+// @public
+export const FigureSchema: Type.TObject<{
+    id: Type.TString;
+    direction: Type.TOptional<Type.TObject<{
+        tendencies: Type.TArray<Type.TString>;
+        orders: Type.TArray<Type.TString>;
+        duty: Type.TOptional<Type.TString>;
+        rivals: Type.TArray<Type.TObject<{
+            figure: Type.TString;
+            text: Type.TString;
+        }>>;
+    }>>;
+}>;
+
+// @public
+export function fillTemplate(template: string, values: Readonly<Record<string, string | number>>): string;
+
+// @public
+export const gamemaker: DirectorDefinition;
+
+// @public
+export const GAMEMAKER_FACTS: readonly ["progression.section", "motives.lines", "motives.coreMotives", "goals.texts", "tribunal.section", "whispers.section", "standoff-tribunal.section", "seal.section", "puzzles.needs", "standoff.section"];
+
+// @public
+export const GAMEMAKER_PROMPT_OWNER = "city-directors";
+
+// @public
+export interface GamemakerActRole {
+    readonly fromLevel: number;
+    readonly role: GamemakerRole;
+}
+
+// @public
+export type GamemakerFact = (typeof GAMEMAKER_FACTS)[number];
+
+// @public
+export interface GamemakerNote {
+    readonly minute: number;
+    readonly text: string;
+    readonly to: string;
+}
+
+// @public
+export type GamemakerOptions = Static<typeof GamemakerOptionsSchema>;
+
+// @public
+export function gamemakerOptions(input: GamemakerPromptInput, prompts: PromptLookup, figures?: readonly Figure[]): GamemakerOptions;
+
+// @public
+export const GamemakerOptionsSchema: Type.TObject<{
+    direction: Type.TUnion<[Type.TLiteral<0>, Type.TLiteral<4>, Type.TLiteral<6>, Type.TLiteral<8>, Type.TLiteral<10>]>;
+    notesPerAgent: Type.TInteger;
+    boardPosts: Type.TInteger;
+    windowMinutes: Type.TInteger;
+    system: Type.TString;
+    budgetLine: Type.TString;
+    figures: Type.TArray<Type.TObject<{
+        id: Type.TString;
+        direction: Type.TOptional<Type.TObject<{
+            tendencies: Type.TArray<Type.TString>;
+            orders: Type.TArray<Type.TString>;
+            duty: Type.TOptional<Type.TString>;
+            rivals: Type.TArray<Type.TObject<{
+                figure: Type.TString;
+                text: Type.TString;
+            }>>;
+        }>>;
+    }>>;
+}>;
+
+// @public
+export interface GamemakerPromptInput {
+    readonly agents: number;
+    readonly characters?: boolean;
+    readonly city: string;
+    readonly direction?: DirectionLevel;
+    readonly holdout?: HoldoutTiming;
+    readonly labels?: boolean;
+    readonly rules: GamemakerRules;
+    readonly seal?: boolean;
+    readonly spec: GamemakerSpec;
+    readonly survivors: number;
+    readonly tribunal?: {
+        readonly factions: boolean;
+    };
+    readonly whisperer?: boolean;
+    readonly whispererDuty?: boolean;
+}
+
+// @public
+export type GamemakerRole = "coach" | "director" | "keeper";
+
+// @public
+export interface GamemakerRules {
+    readonly penalty: PenaltyLadder;
+    readonly ultimatum?: {
+        readonly penalty: number;
+        readonly maxMinutes: number;
+    };
+}
+
+// @public
+export interface GamemakerSight {
+    readonly every?: number;
+    readonly facts?: readonly GamemakerFact[];
+}
+
+// @public
+export function gamemakerSituation(facts: Readonly<Record<string, unknown>>, parts: LookParts): string;
+
+// @public
+export interface GamemakerSpec {
+    readonly author: string;
+    readonly boardPosts: number;
+    readonly brief: string;
+    readonly every: number;
+    readonly notesPerAgent: number;
+    readonly roles: readonly GamemakerActRole[];
+    readonly windowMinutes: number;
+}
+
+// @public
+export function gamemakerSystemPrompt(input: GamemakerPromptInput, t: GamemakerTexts): string;
+
+// @public
+export interface GamemakerTexts {
+    render(id: string, values: Readonly<Record<string, string | number>>): string;
+    text(id: string): string;
+}
+
+// @public
+export function gamemakerTexts(lookup: PromptLookup): GamemakerTexts;
+
+// @public
+export interface HoldoutTiming {
+    readonly fallbackMinutes: number;
+    readonly graceMinutes: number;
+    readonly maxVotes: number;
+    readonly stallMinutes: number;
+    readonly voteMinutes: number;
+}
+
+// @public
+export interface LookParts {
+    readonly budget: string;
+    readonly cast: readonly Figure[];
+    readonly direction: DirectionLevel;
+    readonly labels: readonly string[];
+    readonly notes: readonly GamemakerNote[];
+    readonly recent: readonly string[];
+    readonly round: number;
+    readonly tracks: ReadonlyMap<string, ResidentTrack>;
+}
+
+// @public
+export const MAX_NOTE_LENGTH = 400;
+
+// @public
+export function notesUsed(notes: readonly GamemakerNote[], to: string, tick: number, window: number): number;
+
+// @public
+export type PenaltyLadder = number | readonly number[];
+
+// @public
+export interface ResidentTrack {
+    readonly lastActive?: number;
+    readonly levelSince: number;
+    readonly wrongOnLevel: number;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```
