@@ -116,3 +116,24 @@ Recorded as rows P444 to P449 in `docs/LESSONS-LEARNED.md` on `develop`, with wh
   the last game (`quarry-020`, #1826 to #1831), the tool list shows the later games of econ-lab from the first turn
   (`econ-lab-003`, #7), the `pick` tool describes a burn in a game without burns (`quarry-001`, #11). All carried
   from the old platform. Open.
+
+## M4 live smokes (2026-11-15, issues M4-60 and M4-61, spec 11-m4 section 7.3)
+
+Code commit `7ea5ea10` (hello to hold'em) and `f0de5e95` (morris, Convoy, Salt Market; the same code, docs only),
+runtime revision 4, model `anthropic/haiku`, thinking medium. Ten folders under `<game>/smoke/` for eight smokes,
+0.8615 USD (part 1 0.2685, part 2 0.5932). Each folder has its own `README.md` (loopholes, problems, solutions) and
+a `REPORT.md`. Every folder is clean under `swt scan`; every one but `liars-dice-001` verifies; every one that
+ended replays equal except `hello/smoke/hello-game-002` (ended at its cost cap, P471).
+
+| Folder | Cost (USD) | End |
+|---|---:|---|
+| `hello/smoke/hello-game-001` | 0.0018 | tick limit: the cap of 0.002 is above the game's cost (P470) |
+| `hello/smoke/hello-game-002` | 0.0013 | `models.budget` at a cap of 0.001, passed by the last tick (P472) |
+| `liars-dice/smoke/liars-dice-001` | 0.0810 | stopped from outside after ten minutes, in game 3 (P473) |
+| `liars-dice/smoke/liars-dice-002` | 0.1088 | `liars-dice.match` |
+| `ember-tricks/smoke/ember-tricks-001` | 0.0540 | `trick-play.match` (`games: 1`) |
+| `blind-bid/smoke/blind-bid-001` | 0.0216 | `sealed-auction.match` |
+| `holdem/smoke/holdem-001` | 0.1159 | `holdem.match` |
+| `morris-teams/smoke/morris-teams-001` | 0.0969 | `morris.match` (one resident against the search at depth 3) |
+| `convoy/smoke/convoy-001` | 0.1973 | `convoy.match` |
+| `salt-market/smoke/salt-market-001` | 0.1831 | `salt-market.match` |
