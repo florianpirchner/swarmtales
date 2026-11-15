@@ -4,6 +4,620 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
+
+// @public
+export const runFrame: MechanicDefinition<"arena", Type.TObject<{
+story: Type.TString;
+meta: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+stopWhenDone: Type.TBoolean;
+stopWhenSeatsDecided: Type.TBoolean;
+rewards: Type.TArray<Type.TObject<{
+level: Type.TInteger;
+reward: Type.TNumber;
+}>>;
+acts: Type.TArray<Type.TObject<{
+title: Type.TString;
+fromLevel: Type.TInteger;
+maxMinutes: Type.TOptional<Type.TInteger>;
+}>>;
+tribunalAct: Type.TOptional<Type.TInteger>;
+}>, {
+readonly run_start: Type.TObject<{
+story: Type.TString;
+agents: Type.TArray<Type.TString>;
+minutes: Type.TInteger;
+seed: Type.TInteger;
+meta: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+}>;
+readonly round_end: Type.TObject<{
+round: Type.TInteger;
+standings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+points: Type.TNumber;
+rank: Type.TInteger;
+tools: Type.TInteger;
+activated: Type.TBoolean;
+}>>;
+}>;
+readonly act_brake: Type.TObject<{
+act: Type.TString;
+fromLevel: Type.TInteger;
+toLevel: Type.TInteger;
+startedAt: Type.TInteger;
+maxMinutes: Type.TInteger;
+behind: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+}>>;
+}>;
+readonly run_end: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
+standings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+points: Type.TNumber;
+rank: Type.TInteger;
+tools: Type.TInteger;
+activated: Type.TBoolean;
+}>>;
+}>;
+}, never>;
+
+// @public
+export type RunFrameCtx = CtxOf<typeof runFrameHead>;
+
+// @public
+export const RunFrameEvents: EventsDefinition<"arena", {
+readonly run_start: Type.TObject<{
+story: Type.TString;
+agents: Type.TArray<Type.TString>;
+minutes: Type.TInteger;
+seed: Type.TInteger;
+meta: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+}>;
+readonly round_end: Type.TObject<{
+round: Type.TInteger;
+standings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+points: Type.TNumber;
+rank: Type.TInteger;
+tools: Type.TInteger;
+activated: Type.TBoolean;
+}>>;
+}>;
+readonly act_brake: Type.TObject<{
+act: Type.TString;
+fromLevel: Type.TInteger;
+toLevel: Type.TInteger;
+startedAt: Type.TInteger;
+maxMinutes: Type.TInteger;
+behind: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+}>>;
+}>;
+readonly run_end: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
+standings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+points: Type.TNumber;
+rank: Type.TInteger;
+tools: Type.TInteger;
+activated: Type.TBoolean;
+}>>;
+}>;
+}>;
+
+// @public
+export const runFrameHead: MechanicHead<"arena", Type.TObject<{
+story: Type.TString;
+meta: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+stopWhenDone: Type.TBoolean;
+stopWhenSeatsDecided: Type.TBoolean;
+rewards: Type.TArray<Type.TObject<{
+level: Type.TInteger;
+reward: Type.TNumber;
+}>>;
+acts: Type.TArray<Type.TObject<{
+title: Type.TString;
+fromLevel: Type.TInteger;
+maxMinutes: Type.TOptional<Type.TInteger>;
+}>>;
+tribunalAct: Type.TOptional<Type.TInteger>;
+}>, Type.TObject<{
+seenPoints: Type.TArray<Type.TObject<{
+agent: Type.TString;
+points: Type.TNumber;
+}>>;
+braked: Type.TArray<Type.TInteger>;
+}>, RunFrameState, {
+readonly run_start: Type.TObject<{
+story: Type.TString;
+agents: Type.TArray<Type.TString>;
+minutes: Type.TInteger;
+seed: Type.TInteger;
+meta: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+}>;
+readonly round_end: Type.TObject<{
+round: Type.TInteger;
+standings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+points: Type.TNumber;
+rank: Type.TInteger;
+tools: Type.TInteger;
+activated: Type.TBoolean;
+}>>;
+}>;
+readonly act_brake: Type.TObject<{
+act: Type.TString;
+fromLevel: Type.TInteger;
+toLevel: Type.TInteger;
+startedAt: Type.TInteger;
+maxMinutes: Type.TInteger;
+behind: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+}>>;
+}>;
+readonly run_end: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
+standings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+points: Type.TNumber;
+rank: Type.TInteger;
+tools: Type.TInteger;
+activated: Type.TBoolean;
+}>>;
+}>;
+}, Readonly<Record<symbol, never>>, readonly [ServiceDefinition<"progression", {
+readonly levelOf: {
+readonly kind: "query";
+readonly summary: "The level the resident stands on (old `levelOf`); above the last level once it has finished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly isFinished: {
+readonly kind: "query";
+readonly summary: "Whether the resident has passed the last level (old `isFinished`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly hasPassed: {
+readonly kind: "query";
+readonly summary: "Whether the resident is beyond the level or waits at its door (old `hasPassed`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly hasSolved: {
+readonly kind: "query";
+readonly summary: "Whether the resident solved the level by a code of its own (old `hasSolved`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly passed: {
+readonly kind: "query";
+readonly summary: "Who passed the level: the solvers in the order they solved, then the others beyond it, in roster order.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly lastProgress: {
+readonly kind: "query";
+readonly summary: "The tick of the resident's last solved level, or -1 (old `lastProgress`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly currentAct: {
+readonly kind: "query";
+readonly summary: "The first level of the latest act that has begun.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly actStart: {
+readonly kind: "query";
+readonly summary: "The tick the act that starts at `fromLevel` began, or null.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly door: {
+readonly kind: "query";
+readonly summary: "The level whose door is shut, or null.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TSchema, Type.TNull]>;
+};
+readonly doorShut: {
+readonly kind: "query";
+readonly summary: "Whether a door holds residents back now.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly openDoor: {
+readonly kind: "command";
+readonly summary: "Opens the shut door once every resident in the city has passed it (old `openDoor`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly releaseDoor: {
+readonly kind: "command";
+readonly summary: "The shut door opens at the next tick whoever has passed it (an act's brake).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+readonly unlock: {
+readonly kind: "command";
+readonly summary: "Opens tools for a resident beyond its level's set; writes `tools_unlocked` with the new ones.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+tools: Type.TArray<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly ranking: {
+readonly kind: "query";
+readonly summary: "The ranking: the banished last, then by points, by level and by id.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+rank: Type.TInteger;
+points: Type.TInteger;
+level: Type.TInteger;
+}>>;
+};
+readonly holdersBehind: {
+readonly kind: "query";
+readonly summary: "Who holds what the resident needs on the level and stands on a lower one, not waiting at a door.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+level: Type.TInteger;
+}>;
+readonly output: Type.TArray<Type.TObject<{
+holder: Type.TString;
+level: Type.TInteger;
+piece: Type.TString;
+}>>;
+};
+readonly nextPenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next wrong code costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly nextBlamePenalty: {
+readonly kind: "query";
+readonly summary: "What the resident's next lost blame costs in this act.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly chargeBlame: {
+readonly kind: "command";
+readonly summary: "Counts a lost blame of the resident and answers its price; the caller books it.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TInteger;
+};
+readonly endAct: {
+readonly kind: "command";
+readonly summary: "Ends the act that starts at `fromLevel`, once; writes `act_ended`.";
+readonly input: Type.TObject<{
+fromLevel: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly isOpenOnClock: {
+readonly kind: "query";
+readonly summary: "Whether the level's door is open on the door clock now.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly opensAt: {
+readonly kind: "query";
+readonly summary: "The tick the level's door opens; 0 when it is open from the start.";
+readonly input: Type.TObject<{
+level: Type.TInteger;
+}>;
+readonly output: Type.TInteger;
+};
+readonly bounds: {
+readonly kind: "query";
+readonly summary: "The start level, the last playable level and the seats at the end.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+startLevel: Type.TInteger;
+lastLevel: Type.TInteger;
+survivors: Type.TInteger;
+}>;
+};
+}>, ServiceDefinition<"ledger", {
+readonly balance: {
+readonly kind: "query";
+readonly summary: "An account's points; 0 for an account nobody opened.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNumber;
+};
+readonly balances: {
+readonly kind: "query";
+readonly summary: "Every resident's points, for rankings and standings.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+};
+readonly open: {
+readonly kind: "command";
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly has: {
+readonly kind: "query";
+readonly summary: "Whether the account is open.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly mint: {
+readonly kind: "command";
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly burn: {
+readonly kind: "command";
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly move: {
+readonly kind: "command";
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+txId: Type.TString;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+}>]>;
+};
+}>], [], readonly [ServiceDefinition<"exile", {
+readonly banish: {
+readonly kind: "command";
+readonly summary: "Banishes a resident at once (also from the gate, whose will then stands): writes `exiled` with `by`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+ok: Type.TBoolean;
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+}>;
+};
+readonly toGate: {
+readonly kind: "command";
+readonly summary: "Sends a resident to the gate (old `toGate`): notifies it, then writes `exile_gate`; the gate closes at `until` unless a ransom is paid first.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+voters: Type.TArray<Type.TString>;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+bequestPerHeir: Type.TNumber;
+notice: Type.TString;
+texts: Type.TObject<{
+exiled: Type.TString;
+will: Type.TString;
+ransomed: Type.TString;
+}>;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly isExiled: {
+readonly kind: "query";
+readonly summary: "Says whether the resident is banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly exiled: {
+readonly kind: "query";
+readonly summary: "Every banished resident in the order they were banished, but those of a strike that keeps (old `Tribunal#exiled`).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly standing: {
+readonly kind: "query";
+readonly summary: "Where the resident stands (old `standingOf`).";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"alive">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"gate">;
+until: Type.TInteger;
+}>, Type.TObject<{
+kind: Type.TLiteral<"exiled">;
+}>]>;
+};
+readonly alive: {
+readonly kind: "query";
+readonly summary: "Every resident not banished, in the game's order.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly exiledBy: {
+readonly kind: "query";
+readonly summary: "Who banished the resident, or null while it is not banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly gates: {
+readonly kind: "query";
+readonly summary: "Every open gate, in the order opened.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+agent: Type.TString;
+since: Type.TInteger;
+until: Type.TInteger;
+ransomable: Type.TBoolean;
+price: Type.TInteger;
+selfPrice: Type.TInteger;
+paid: Type.TInteger;
+covered: Type.TInteger;
+willDone: Type.TBoolean;
+}>>;
+};
+readonly ransomed: {
+readonly kind: "query";
+readonly summary: "Whether the resident was bought back from the gate once.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly bequeathed: {
+readonly kind: "query";
+readonly summary: "The pieces the banished resident's will left to heirs: its owner keeps and burns none of them.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TArray<Type.TString>;
+};
+}>, ServiceDefinition<"tribunal-view", {
+readonly stop: {
+readonly kind: "query";
+readonly summary: "The end reason once the target is reached and the last gate closed, whether a tribunal is under way, and whether the city still pursues its target.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+endReason: Type.TUnion<[Type.TString, Type.TNull]>;
+busy: Type.TBoolean;
+pursuing: Type.TBoolean;
+}>;
+};
+}>], Readonly<Record<symbol, never>>>;
+
+// @public
+export const RunFrameOptions: Type.TObject<{
+    story: Type.TString;
+    meta: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+    stopWhenDone: Type.TBoolean;
+    stopWhenSeatsDecided: Type.TBoolean;
+    rewards: Type.TArray<Type.TObject<{
+        level: Type.TInteger;
+        reward: Type.TNumber;
+    }>>;
+    acts: Type.TArray<Type.TObject<{
+        title: Type.TString;
+        fromLevel: Type.TInteger;
+        maxMinutes: Type.TOptional<Type.TInteger>;
+    }>>;
+    tribunalAct: Type.TOptional<Type.TInteger>;
+}>;
+
+// @public
+export const RunFrameSlice: Type.TObject<{
+    seenPoints: Type.TArray<Type.TObject<{
+        agent: Type.TString;
+        points: Type.TNumber;
+    }>>;
+    braked: Type.TArray<Type.TInteger>;
+}>;
+
+// @public
+export interface RunFrameState {
+    readonly activated: Set<string>;
+    readonly braked: Set<number>;
+    reason: string | undefined;
+    readonly residents: readonly string[];
+    readonly seenPoints: Map<string, number>;
+    stopDue: boolean;
+}
+
+// @public
+export type RunFrameView = ViewOf<typeof runFrameHead>;
+
+// @public
+export const Standing: Type.TObject<{
+    agent: Type.TString;
+    level: Type.TInteger;
+    points: Type.TNumber;
+    rank: Type.TInteger;
+    tools: Type.TInteger;
+    activated: Type.TBoolean;
+}>;
+
+// @public
+export const TribunalViewService: ServiceDefinition<"tribunal-view", {
+readonly stop: {
+readonly kind: "query";
+readonly summary: "The end reason once the target is reached and the last gate closed, whether a tribunal is under way, and whether the city still pursues its target.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+endReason: Type.TUnion<[Type.TString, Type.TNull]>;
+busy: Type.TBoolean;
+pursuing: Type.TBoolean;
+}>;
+};
+}>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
