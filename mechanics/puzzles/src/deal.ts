@@ -122,15 +122,15 @@ export function dealLevel(ctx: PuzzlesCtx, level: number): boolean {
  * @param reader - The context or view.
  * @param level - The level.
  * @param agent - The resident.
+ * @param struck - Who a strike that keeps took; the ones the listener of `exile.exiled` noted when left out.
  * @returns Pairs of the excluded or struck teammate and its fragment.
  */
-export function inheritedFragments(reader: PuzzlesReader, level: number, agent: string): readonly (readonly [string, string])[] {
+export function inheritedFragments(reader: PuzzlesReader, level: number, agent: string, struck: readonly string[] = reader.state.struck): readonly (readonly [string, string])[] {
 	const state = reader.state.levels.get(level);
 	const team = state?.teams.find((candidate) => candidate.members.includes(agent));
 	if (state?.puzzle.kind !== "fragments" || team === undefined) return [];
 	const { fragments } = state.puzzle;
 	const excluded = reader.state.exclusions.get(level) ?? new Set<string>();
-	const struck = reader.state.struck;
 	const members = [...team.members].sort((a, b) => a.localeCompare(b));
 	const heir = members.find((member) => !excluded.has(member));
 	return members

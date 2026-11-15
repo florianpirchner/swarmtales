@@ -20,7 +20,7 @@ values of a level (`level-pieces`).
 | Summary | The deal of each level: fragments, factors, teams, the hand-over guard, and what is left of them after an exile. |
 | Requires | none |
 | Uses when loaded | `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)) |
-| Provides | `level-pieces`, `deal`, `held-pieces` |
+| Provides | `level-pieces`, `deal`, `held-pieces`, `holdout-pieces` |
 | State | kept, snapshot slice version 1 |
 | Games | [city-slice](../../games/city-slice/README.md) |
 
@@ -56,8 +56,8 @@ values of a level (`level-pieces`).
    banished pass on (a counter-factor along the holder chain, a certificate to the first member left). A strike that keeps (`by: "holdout"`, the
    holdout tribunal) burns and contracts nothing; the struck resident counts as gone for later exiles, and every
    teammate left holds its fragments.
-4. **Who waits on whom.** The fact `puzzles.lacking` lists, per dealt level and holder, the teammates who stand
-   before that door, have not passed it and hold no copy of the holder's fragment. A copy is an inherited fragment,
+4. **Who waits on whom.** The fact `puzzles.lacking` lists, per dealt level and holder in the city (not banished, not
+   struck), the teammates in the city who stand before that door, have not passed it and hold no copy of the holder's fragment. A copy is an inherited fragment,
    or the fragment in the direct messages the teammate was sent (letters and digits only, any case), read from the
    service `channels` when it is loaded. The facts `puzzles.dealt` and `puzzles.exclusions` give the dealt levels and
    the contracted ones; `puzzles.needs` who each resident in the city waits on at its level (the gamemaker's report),
@@ -72,6 +72,11 @@ values of a level (`level-pieces`).
    `carriesSecret` (a text with `minRun` characters in a row of a fragment of a guarded level: an open level that
    not every resident in the city has passed, for `receipts`) and `isHandover` (a text that carries three
    characters in a row of any fragment, for `whispers`).
+   The service `holdout-pieces` of [standoff-tribunal](../standoff-tribunal/README.md) answers the holdout
+   tribunal: `openFragmentDoors` (every dealt level of fragments whose door is open on the clock), `lacking` (as the
+   fact, for one door and holder; a teammate at the gate is not counted) and `inherited` (the fragments of struck or
+   excluded teammates). The court asks right after its strike, in the same call, before the listener of `exiled`
+   runs, so who is banished and who was struck is read from `exile` at once (`alive`, `exiled`).
 7. **A Director's note.** A `rule` handler on the tools of `noteTools` (`notify` and `boardNote` of
    [channels](../channels/README.md) by default) refuses a `text` that holds a piece of a dealt password, or four
    digits of a dealt value, with `LEAK_BLOCKED: the text contains a password piece; never write codes`, the old check
@@ -234,6 +239,16 @@ The pieces a resident holds for others on the levels dealt.
 | --- | --- | --- | --- | --- |
 | `held` | query | resident: string | { id: string, kind: "counter" or "certificate" or "fragment", level: integer, label: string, value: string, needers: string[] }[] | Every piece the resident holds for others on the levels it has reached, by level, the needers in team-member order (old `heldPieces`). |
 
+### `holdout-pieces`
+
+The doors of fragments open on the clock, who lacks a holder's fragment, and the fragments a resident inherited.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `openFragmentDoors` | query | - | (integer ≥ 1)[] | Every level of fragments whose door is open on the clock now, ascending (old `openFragmentDoors`). |
+| `lacking` | query | level: integer ≥ 1, holder: string | string[] | Who stands before the door in the holder's team without a copy of its fragment, sorted (old `lackingFragment`). |
+| `inherited` | query | resident: string, level: integer ≥ 1 | { from: string, fragment: string }[] | The fragments of struck or excluded teammates the resident holds on the level, in order (old `inheritedFragments`). |
+
 <!-- /generated:services -->
 
 ## Metrics
@@ -294,4 +309,6 @@ direct message. `additive.test.ts`: the `factors_dealt` of three oracle files by
 at door 8 as the task of `cityofkeys-act2-s7`, the holders, the code and the facts, `revealFactor`, the deal at the
 door of `holdAfter`, a resume at every boundary, the will's refusal of the file through `standoff` with one notice, and
 a bequeathed fragment that does not burn. `guard.test.ts`: the city's check on the guarded tools at stage `guard`, a
-direct message that counts once delivered, and the guard's verdict.
+direct message that counts once delivered, and the guard's verdict. `holdout.test.ts`: a strike through the real `standoff-tribunal`
+and `exile`, the struck holder's fragment released to each teammate and the blocker who lacked only it cleared in the
+same call, and a resume at every boundary.

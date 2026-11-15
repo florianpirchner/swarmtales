@@ -523,6 +523,34 @@ value: TString;
 needers: TArray<TString>;
 }>>;
 };
+}>, ServiceDefinition<"holdout-pieces", {
+readonly openFragmentDoors: {
+readonly kind: "query";
+readonly summary: "Every level of fragments whose door is open on the clock now, ascending (old `openFragmentDoors`).";
+readonly input: TObject<    {}>;
+readonly output: TArray<TInteger>;
+};
+readonly lacking: {
+readonly kind: "query";
+readonly summary: "Who stands before the door in the holder's team without a copy of its fragment, sorted (old `lackingFragment`).";
+readonly input: TObject<    {
+level: TInteger;
+holder: TString;
+}>;
+readonly output: TArray<TString>;
+};
+readonly inherited: {
+readonly kind: "query";
+readonly summary: "The fragments of struck or excluded teammates the resident holds on the level, in order (old `inheritedFragments`).";
+readonly input: TObject<    {
+resident: TString;
+level: TInteger;
+}>;
+readonly output: TArray<TObject<    {
+from: TString;
+fragment: TString;
+}>>;
+};
 }>], readonly [ServiceDefinition<"exile", {
 readonly banish: {
 readonly kind: "command";
@@ -654,6 +682,18 @@ author: TString;
 text: TString;
 }>;
 readonly output: TNull;
+};
+readonly deliver: {
+readonly kind: "command";
+readonly summary: "A direct message from someone who is not a resident, a figure of the game say (old `deliver`): delivered always, with no cap and no price, and kept in no record; writes `dm_sent` with the next message number. An unknown resident throws.";
+readonly input: TObject<    {
+from: TString;
+to: TString;
+text: TString;
+}>;
+readonly output: TObject<    {
+number: TInteger;
+}>;
 };
 readonly dmRecords: {
 readonly kind: "query";

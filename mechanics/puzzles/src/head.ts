@@ -5,6 +5,7 @@ import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LevelPiecesService } from "@swarmtales/mechanic-progression/contract";
 import { HeldPiecesService } from "@swarmtales/mechanic-standoff/contract";
+import { HoldoutPiecesService } from "@swarmtales/mechanic-standoff-tribunal/contract";
 import { PuzzlesService } from "./contract.ts";
 import { loadLevels, PUZZLES_PROMPTS, PuzzlesEvents, PuzzlesOptions, PuzzlesSlice, saveLevels, type PuzzlesState } from "./model.ts";
 import { TeamPlanner } from "./teams.ts";
@@ -28,7 +29,7 @@ export const puzzlesHead = defineHead({
 	snapshot: { save: saveLevels, load: (data, setup): PuzzlesState => loadLevels(data, freshPlanner(setup)) },
 	events: PuzzlesEvents.events,
 	prompts: PUZZLES_PROMPTS,
-	provides: [LevelPiecesService, PuzzlesService, HeldPiecesService],
+	provides: [LevelPiecesService, PuzzlesService, HeldPiecesService, HoldoutPiecesService],
 	// Both are optional: without `exile` nobody is banished, without `channels` no fragment was sent.
 	uses: [ExileService, ChannelsService],
 });

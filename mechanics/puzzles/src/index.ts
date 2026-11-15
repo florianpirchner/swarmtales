@@ -20,6 +20,7 @@ import { dealLevel, openingLevels } from "./deal.ts";
 import { askGuard, carriesGuardedFragment, decideGuard } from "./guard.ts";
 import { puzzlesHead } from "./head.ts";
 import { heldPieces, lackingFragment, onExiled } from "./held.ts";
+import { holdoutInherited, holdoutLacking, openFragmentDoors } from "./holdout.ts";
 import { checkNote, isHandover, isPasswordPiece, secretsOfDeal } from "./pieces.ts";
 import { NeedsFact, needsOf, SecretsFact, SolutionsFact, solutionsOf } from "./report.ts";
 import { revealFactor } from "./reveal.ts";
@@ -75,6 +76,12 @@ export const puzzles = defineMechanic(puzzlesHead, {
 		},
 		// Every piece, also of a resident banished while the listeners of `exiled` run (the standoff keeps them then).
 		"held-pieces": { held: ({ resident }, ctx) => heldPieces(ctx, resident).map((piece) => ({ ...piece, needers: [...piece.needers] })) },
+		// Asked by the holdout tribunal right after its strike, before the listeners of `exiled` run (erratum J168).
+		"holdout-pieces": {
+			openFragmentDoors: (_input, ctx) => openFragmentDoors(ctx),
+			lacking: ({ level, holder }, ctx) => holdoutLacking(ctx, level, holder),
+			inherited: ({ resident, level }, ctx) => holdoutInherited(ctx, resident, level),
+		},
 	},
 	pipeline: {
 		rule: checkNote,
@@ -117,7 +124,8 @@ export const puzzles = defineMechanic(puzzlesHead, {
 				description: "Who waits on whose fragment: per dealt level and holder, the teammates before that door who hold no copy",
 			}),
 			compute: (view) => {
-				const city = { exiled: view.tryCall(ExileService, "exiled", {}) ?? [], dms: view.tryCall(ChannelsService, "dmRecords", {}) ?? [] };
+				// The struck of a strike that keeps are gone too, though `exiled` leaves them out (old `isExiled`).
+				const city = { exiled: [...(view.tryCall(ExileService, "exiled", {}) ?? []), ...view.state.struck], dms: view.tryCall(ChannelsService, "dmRecords", {}) ?? [] };
 				const levels = [...view.state.levels.keys()].sort((a, b) => a - b);
 				return levels.flatMap((level) => view.residents.ids.map((holder) => ({ level, holder, lacking: [...lackingFragment(view, city, level, holder)] })).filter((entry) => entry.lacking.length > 0));
 			},

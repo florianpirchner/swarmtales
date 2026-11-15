@@ -1173,6 +1173,9 @@ importers:
       '@swarmtales/mechanic-standoff':
         specifier: workspace:*
         version: link:../standoff
+      '@swarmtales/mechanic-standoff-tribunal':
+        specifier: workspace:*
+        version: link:../standoff-tribunal
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk

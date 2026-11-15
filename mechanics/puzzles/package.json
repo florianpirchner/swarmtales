@@ -40,6 +40,7 @@
 		"@swarmtales/mechanic-channels": "workspace:*",
 		"@swarmtales/mechanic-progression": "workspace:*",
 		"@swarmtales/mechanic-standoff": "workspace:*",
+		"@swarmtales/mechanic-standoff-tribunal": "workspace:*",
 		"typebox": "1.3.27"
 	},
 	"devDependencies": {

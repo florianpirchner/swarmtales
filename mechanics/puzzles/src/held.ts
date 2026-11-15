@@ -30,6 +30,10 @@ export interface City {
 	readonly exiled: readonly string[];
 	/** Every direct message. */
 	readonly dms: readonly { readonly to: string; readonly text: string }[];
+	/** Who a strike that keeps took, when the caller reads it from `exile` before the listener of `exiled` ran. */
+	readonly struck?: readonly string[];
+	/** Teammates out of the city but not banished (at the gate): they lack nothing. */
+	readonly away?: readonly string[];
 }
 
 // The certificate and the counter-factors `agent` holds on an additive level, once it or a needer reached it.
@@ -78,7 +82,7 @@ export function heldPieces(reader: PuzzlesReader, agent: string): readonly HeldP
 
 // Whether `agent` holds `holder`'s fragment of `level`: inherited, or carried by the direct messages to it.
 function holdsFragment(reader: PuzzlesReader, city: City, agent: string, level: number, holder: string, fragment: string): boolean {
-	if (inheritedFragments(reader, level, agent).some(([from]) => from === holder)) return true;
+	if (inheritedFragments(reader, level, agent, city.struck).some(([from]) => from === holder)) return true;
 	const plain = (text: string): string => text.toUpperCase().replace(/[^A-Z0-9]/g, "");
 	const received = city.dms.flatMap((record) => (record.to === agent ? [plain(record.text)] : [])).join("");
 	return received.includes(plain(fragment));
@@ -99,7 +103,7 @@ export function lackingFragment(reader: PuzzlesReader, city: City, level: number
 	const team = state?.teams.find((candidate) => candidate.members.includes(holder));
 	if (fragment === undefined || team === undefined || city.exiled.includes(holder) || levelOf(reader, holder) < level) return [];
 	return team.members
-		.filter((member) => member !== holder && !city.exiled.includes(member))
+		.filter((member) => member !== holder && !city.exiled.includes(member) && city.away?.includes(member) !== true)
 		.filter((member) => levelOf(reader, member) === level && !hasPassed(reader, member, level))
 		.filter((member) => !holdsFragment(reader, city, member, level, holder, fragment))
 		.sort((a, b) => a.localeCompare(b));

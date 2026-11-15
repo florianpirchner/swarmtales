@@ -34,6 +34,9 @@
 			"path": "../standoff"
 		},
 		{
+			"path": "../standoff-tribunal"
+		},
+		{
 			"path": "../ledger"
 		},
 		{
