@@ -4,10 +4,9 @@ Exile by vote. Once the act is under way, the city holds tribunals: the lowest-r
 accused, everyone votes in secret against one of them, and the one with the most votes goes to the gate (see
 [exile](../exile/README.md)). The city plans the tribunals itself within bounds, until a share of the act's residents
 has left. Before a tribunal the residents may draft factions, and a faction that votes as one earns a bonus. A port
-of the old `mechanics/tribunal`, in three parts (12-m5-spec.md, section 10, rows 41 to 43): the first two hold the
-schedule of the city, the call, the accused, the secret vote, the result, the gate, and the faction draft (`nominate`,
-`join`, `refuse`, the leaders, the bloc bonus). The gamemaker's `scheduleTribunal`, the act's end and the views as
-facts (M5-43) follow.
+of the old `mechanics/tribunal`, in three parts (12-m5-spec.md, section 10, rows 41 to 43): the schedule of the city,
+the call, the accused, the secret vote, the result, the gate; the faction draft (`nominate`, `join`, `refuse`, the
+leaders, the bloc bonus); the gamemaker's `scheduleTribunal`, the act's end and the views as facts and services.
 
 ## At a glance
 
@@ -21,7 +20,7 @@ facts (M5-43) follow.
 | Summary | Tribunal sessions, votes and faction drafts. |
 | Requires | `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)), `ledger` (from [ledger](../ledger/README.md)), `progression` (from [progression](../progression/README.md)) |
 | Uses when loaded | `decisions` (from [decisions](../decisions/README.md)), `identity` (from [names](../names/README.md)), `goals` (from [goals](../goals/README.md)) |
-| Provides | `ransom-price`, `trial-risk` |
+| Provides | `ransom-price`, `trial-risk`, `tribunal-view`, `tribunal` |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
 
@@ -59,11 +58,19 @@ facts (M5-43) follow.
    present gets a group of its faction (`factions_formed`). With the result, a faction whose voting members (at least
    two) all voted against the same accused earns each of them `blocBonus` points; every member of such a faction
    learns whether it voted as one, never who broke ranks (`bloc_result`). Then every group of the draft is removed.
-5. **The end.** Once the tribunals have exiled `targetShare` of the residents of the act's start and the last gate
-   closed, the board says `texts.targetReached`.
+5. **The gamemaker's plan.** A Director granted `scheduleTribunal` plans the next tribunal (when it opens, how many it
+   exiles, how many factions form before it) while the window is open: the first tribunal was called, nothing is
+   pending, something is missing, no snapshot door is shut, and the plan fits before the act's last tick, with room
+   for one more unless it exiles everything still missing. It is offered only while a resident in the city plays a
+   level of the `director` role of `gamemakerRoles`; once it planned in a tick it stays open for that tick, and a
+   second plan is refused `NOT_NOW`. Without a plan the city calls one itself (`cityCall`).
+6. **The end.** Once the tribunals (and the seals) have exiled `targetShare` of the residents of the act's start and
+   the last gate closed, the board says `texts.targetReached` and the act ends (`endAct` of `progression`).
 
 The prices and the next trial are what the standoff asks (`ransom-price`, `trial-risk`, declared in
-`@swarmtales/mechanic-standoff/contract`). The tribunal ticks after the door of `progression`, the motives and the
+`@swarmtales/mechanic-standoff/contract`); the run's stop rule of `arena` reads `tribunal-view.stop` (the end reason,
+whether a tribunal is under way, whether the city still pursues its target); the seal asks `tribunal.missing`. The
+gamemaker's report reads the facts `section` and `draft`. The tribunal ticks after the door of `progression`, the motives and the
 names, and before the seal and the standoff (old `HOOK_ORDER.minuteStarted` 300).
 
 ## Tools
@@ -118,6 +125,21 @@ What the caller reads ([tribunal/tools/join](prompts/tribunal/tools/join.md)):
 What the caller reads ([tribunal/tools/refuse](prompts/tribunal/tools/refuse.md)):
 
 > As a faction leader, refuses a resident who applied to your faction. The city tells them; they may apply elsewhere.
+
+### `scheduleTribunal`
+
+- Granted when the game lists no grants: `gamemaker`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `minute` | integer | yes | The run minute the tribunal opens; the report shows the bounds |
+| `count` | integer ≥ 1 | yes | Residents it exiles, from 1 to those still missing |
+| `factions` | integer ≥ 2 | no | Factions formed before it, from 2 to half the residents present |
+| `reason` | string | yes | Why now and why this many; logged only, never shown to residents |
+
+What the caller reads ([tribunal/gamemaker/tools/scheduleTribunal](prompts/tribunal/gamemaker/tools/scheduleTribunal.md)):
+
+> Plans the next tribunal: the minute it opens, how many it exiles and how many factions form before it. The city calls it a few minutes ahead. The reason is logged only. Fails outside the bounds the report shows.
 
 <!-- /generated:tools -->
 
@@ -360,6 +382,22 @@ Who stands trial next, and when.
 | --- | --- | --- | --- | --- |
 | `atRisk` | query | - | { opens: integer, now: boolean, accused: string[] } or null | The next trial and its accused, or null without one or with nobody at risk (old `atRisk`). |
 
+### `tribunal-view`
+
+What the run's stop rule reads of the tribunal.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `stop` | query | - | { endReason: string or null, busy: boolean, pursuing: boolean } | The end reason once the target is reached and the last gate closed, whether a tribunal is under way, and whether the city still pursues its target. |
+
+### `tribunal`
+
+What the tribunal still has to do.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `missing` | query | - | integer ≥ 0 | Residents the tribunal still has to exile: its target less the exiled and those at the gate, at least 0 (old `missing`). |
+
 <!-- /generated:services -->
 
 ## Metrics
@@ -397,6 +435,9 @@ This mechanic exports no metrics.
 | [tribunal/status/draft-applied](prompts/tribunal/status/draft-applied.md) | `leader`, `until` |
 | [tribunal/status/draft-refused](prompts/tribunal/status/draft-refused.md) | - |
 | [tribunal/status/draft-join](prompts/tribunal/status/draft-join.md) | `leaders`, `until` |
+| [tribunal/gamemaker/tools/scheduleTribunal](prompts/tribunal/gamemaker/tools/scheduleTribunal.md) | - |
+| [tribunal/gamemaker/replies/tribunal-planned](prompts/tribunal/gamemaker/replies/tribunal-planned.md) | `tribunal`, `calledAt`, `opens`, `count` |
+| [tribunal/gamemaker/replies/tribunal-factions](prompts/tribunal/gamemaker/replies/tribunal-factions.md) | `factions` |
 
 <!-- /generated:prompts -->
 

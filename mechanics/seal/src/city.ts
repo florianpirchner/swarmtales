@@ -2,12 +2,13 @@
 /**
  * What the seal reads and does in the city, carried from the old `index.ts` (`portsFor`, `sealParts`, `enabled`) over
  * the services of the new platform: the points (`ledger`), the board and the notices (`channels`), the standings,
- * the register and the strike (`exile`), and the tribunal's target as `tribunal_announced` said it.
+ * the register and the strike (`exile`), and the residents the tribunal still has to exile (`tribunal`, when loaded).
  */
 import type { InputLine } from "@swarmtales/contracts";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
+import { TribunalService } from "@swarmtales/mechanic-tribunal/contract";
 import type { SealCtx } from "./head.ts";
 import { auctionOf, bidOf, holds, SealHouse, type SealPorts } from "./house.ts";
 
@@ -17,16 +18,14 @@ const CITY = "CITY";
 const STATUS_ORDER = 1000;
 
 /**
- * Residents the tribunal still has to exile: its target less the exiled and those at the gate (old `missing` of the
- * tribunal); undefined until the tribunal has announced its target (erratum of M5-44).
+ * Residents the tribunal still has to exile: its target less the exiled and those at the gate (old `TribunalApi.missing`,
+ * decision A91); undefined without a tribunal.
  *
  * @param ctx - The context.
  * @returns The number, at least 0, or undefined.
  */
 export function missing(ctx: SealCtx): number | undefined {
-	const { target } = ctx.state;
-	if (target === null) return undefined;
-	return Math.max(0, target - ctx.call(ExileService, "exiled", {}).length - ctx.call(ExileService, "gates", {}).length);
+	return ctx.tryCall(TribunalService, "missing", {});
 }
 
 /**

@@ -16,7 +16,7 @@ long. The budget and the snapshot checkpoint of the old arena are the platform's
 | Id | `arena` |
 | Summary | The City's run frame reduced to its game rules: start and end, the standings per tick, the stop rules and the act brakes. |
 | Requires | `progression` (from [progression](../progression/README.md)), `ledger` (from [ledger](../ledger/README.md)) |
-| Uses when loaded | `exile` (from [exile](../exile/README.md)), `tribunal-view` |
+| Uses when loaded | `exile` (from [exile](../exile/README.md)), `tribunal-view` (from [tribunal](../tribunal/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
 | Games | [whispers](../../games/whispers/README.md) |

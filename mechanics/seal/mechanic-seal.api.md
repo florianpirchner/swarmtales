@@ -172,7 +172,6 @@ seal: Type.TInteger;
 state: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"open">, Type.TLiteral<"held">, Type.TLiteral<"used">, Type.TLiteral<"gone">]>;
 until: Type.TInteger;
 }>>;
-target: Type.TUnion<[Type.TInteger, Type.TNull]>;
 }>, {
 actStart: number | null;
 seals: {
@@ -186,7 +185,6 @@ seal: number;
 state: "gone" | "held" | "open" | "pending" | "used";
 until: number;
 }[];
-target: number | null;
 }, {
 readonly seal_auction_opened: Type.TObject<{
 seal: Type.TInteger;
@@ -582,6 +580,13 @@ readonly kind: "query";
 readonly output: Type.TString;
 readonly summary: "The resident id that a name or an id stands for; any other text comes back unchanged (old `resolve` of `names`).";
 };
+}>, ServiceDefinition<"tribunal", {
+readonly missing: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "Residents the tribunal still has to exile: its target less the exiled and those at the gate, at least 0 (old `missing`).";
+};
 }>], {
 bid: Type.TObject<{
 points: Type.TInteger;
@@ -659,7 +664,6 @@ export const SealSlice: Type.TObject<{
         state: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"open">, Type.TLiteral<"held">, Type.TLiteral<"used">, Type.TLiteral<"gone">]>;
         until: Type.TInteger;
     }>>;
-    target: Type.TUnion<[Type.TInteger, Type.TNull]>;
 }>;
 
 // @public

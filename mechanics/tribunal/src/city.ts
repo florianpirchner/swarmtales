@@ -8,7 +8,7 @@ import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
-import type { TribunalCtx } from "./head.ts";
+import type { Reads, TribunalCtx } from "./head.ts";
 import { actEnd, exileTarget, tribunalHeld, tribunalRuleValues } from "./pacing.ts";
 import type { TribunalTextKey } from "./spec.ts";
 import { renderTemplate } from "./template.ts";
@@ -21,7 +21,7 @@ const CITY = "CITY";
  * @param ctx - The context.
  * @returns The residents.
  */
-export function exiledList(ctx: TribunalCtx): readonly string[] {
+export function exiledList(ctx: Reads): readonly string[] {
 	return ctx.call(ExileService, "exiled", {});
 }
 
@@ -31,7 +31,7 @@ export function exiledList(ctx: TribunalCtx): readonly string[] {
  * @param ctx - The context.
  * @returns How many stand at the gate.
  */
-export function gateCount(ctx: TribunalCtx): number {
+export function gateCount(ctx: Reads): number {
 	return ctx.call(ExileService, "gates", {}).length;
 }
 
@@ -41,7 +41,7 @@ export function gateCount(ctx: TribunalCtx): number {
  * @param ctx - The context.
  * @returns The residents in roster order.
  */
-export function register(ctx: TribunalCtx): readonly string[] {
+export function register(ctx: Reads): readonly string[] {
 	const exiled = exiledList(ctx);
 	return ctx.residents.ids.filter((agent) => !exiled.includes(agent));
 }
@@ -52,11 +52,11 @@ export function register(ctx: TribunalCtx): readonly string[] {
  * @param ctx - The context.
  * @returns The number.
  */
-export function residentsCount(ctx: TribunalCtx): number {
+export function residentsCount(ctx: Reads): number {
 	return ctx.state.residents ?? register(ctx).length;
 }
 
-function survivors(ctx: TribunalCtx): number {
+function survivors(ctx: Reads): number {
 	return ctx.call(ProgressionService, "bounds", {}).survivors;
 }
 
@@ -66,7 +66,7 @@ function survivors(ctx: TribunalCtx): number {
  * @param ctx - The context.
  * @returns The target.
  */
-export function target(ctx: TribunalCtx): number {
+export function target(ctx: Reads): number {
 	return exileTarget(ctx.options, residentsCount(ctx));
 }
 
@@ -76,7 +76,7 @@ export function target(ctx: TribunalCtx): number {
  * @param ctx - The context.
  * @returns The number, at least 0.
  */
-export function missing(ctx: TribunalCtx): number {
+export function missing(ctx: Reads): number {
 	return Math.max(0, target(ctx) - exiledList(ctx).length - gateCount(ctx));
 }
 
@@ -86,7 +86,7 @@ export function missing(ctx: TribunalCtx): number {
  * @param ctx - The context.
  * @returns True when the city holds tribunals.
  */
-export function active(ctx: TribunalCtx): boolean {
+export function active(ctx: Reads): boolean {
 	return tribunalHeld(ctx.options, residentsCount(ctx), survivors(ctx));
 }
 
@@ -96,7 +96,7 @@ export function active(ctx: TribunalCtx): boolean {
  * @param ctx - The context.
  * @returns The tick.
  */
-export function endOfAct(ctx: TribunalCtx): number {
+export function endOfAct(ctx: Reads): number {
 	return ctx.state.actStart === undefined ? ctx.ticks : actEnd(ctx.options, ctx.state.actStart, ctx.ticks);
 }
 
@@ -117,7 +117,7 @@ export function actLevel(ctx: TribunalCtx): number {
  * @param agent - The resident.
  * @returns True when alive.
  */
-export function isAlive(ctx: TribunalCtx, agent: string): boolean {
+export function isAlive(ctx: Reads, agent: string): boolean {
 	return ctx.call(ExileService, "standing", { resident: agent }).kind === "alive";
 }
 
@@ -127,7 +127,7 @@ export function isAlive(ctx: TribunalCtx, agent: string): boolean {
  * @param ctx - The context.
  * @returns The residents in roster order.
  */
-export function present(ctx: TribunalCtx): readonly string[] {
+export function present(ctx: Reads): readonly string[] {
 	return ctx.residents.ids.filter((agent) => isAlive(ctx, agent));
 }
 
@@ -138,7 +138,7 @@ export function present(ctx: TribunalCtx): readonly string[] {
  * @param agent - The resident.
  * @returns Its balance.
  */
-export function points(ctx: TribunalCtx, agent: string): number {
+export function points(ctx: Reads, agent: string): number {
 	return ctx.call(LedgerService, "balance", { account: agent });
 }
 
@@ -210,7 +210,7 @@ export function grant(ctx: TribunalCtx, agent: string, amount: number, reason: s
  * @returns The text filled in.
  * @throws SwtError `SWT-G020` when the text names a placeholder that has no value.
  */
-export function render(ctx: TribunalCtx, template: string, values: Readonly<Record<string, string>>): string {
+export function render(ctx: Reads, template: string, values: Readonly<Record<string, string>>): string {
 	return renderTemplate(template, { ...tribunalRuleValues(ctx.options, residentsCount(ctx), survivors(ctx)), ...values });
 }
 
@@ -223,6 +223,6 @@ export function render(ctx: TribunalCtx, template: string, values: Readonly<Reco
  * @returns The text filled in.
  * @throws SwtError `SWT-G020` when the text names a placeholder that has no value.
  */
-export function text(ctx: TribunalCtx, key: TribunalTextKey, values: Readonly<Record<string, string>>): string {
+export function text(ctx: Reads, key: TribunalTextKey, values: Readonly<Record<string, string>>): string {
 	return render(ctx, ctx.options.texts[key], values);
 }

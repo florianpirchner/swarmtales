@@ -2,7 +2,7 @@
 /**
  * The tribunal's work at the start of a tick, carried from the old `court.ts` (old `Tribunal.tick`, SPEC 6.4), step
  * for step: the act begins, the votes close (the exile closed the gates just before: it loads first), the city plans,
- * calls and opens tribunals with their faction drafts, and the act's target is reached. Votes are never shown; only the exiled learns who voted against it (the exile's gate notice).
+ * calls and opens tribunals with their faction drafts, and the act's target is reached, which ends the act. Votes are never shown; only the exiled learns who voted against it (the exile's gate notice).
  */
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { active, actLevel, endOfAct, exiledList, lowestFirst, missing, notify, post, present, register, render, residentsCount, target, text } from "./city.ts";
@@ -23,13 +23,17 @@ export function tick(ctx: TribunalCtx): void {
 	const { state } = ctx;
 	const minute = ctx.tick;
 	state.lastTick = minute;
+	state.ticks = ctx.ticks;
 	if (state.ended || !begun(ctx) || !active(ctx)) return;
 	for (const session of state.sessions) if (!session.closed && minute >= session.until) closeSession(ctx, session, minute);
 	pace(ctx, minute);
 	callDue(ctx, minute);
 	if (state.draft !== undefined) tickDraft(ctx, state.draft, minute, present(ctx));
 	openDue(ctx, minute);
-	if (reached(ctx)) end(ctx);
+	if (!reached(ctx)) return;
+	end(ctx);
+	// The tribunal's act is over once its target is reached (old `minuteStarted.tribunalActEnd`, here at once: erratum of M5-43).
+	ctx.call(ProgressionService, "endAct", { fromLevel: actLevel(ctx) });
 }
 
 // The called tribunal whose opening is due opens.

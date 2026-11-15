@@ -5,6 +5,7 @@ import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
+import { TribunalService } from "@swarmtales/mechanic-tribunal/contract";
 import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { SealEvents } from "./contract.ts";
 import { emptySeal, SealOptions, SealSlice, type SealData } from "./state.ts";
@@ -24,11 +25,12 @@ export const sealHead = defineHead({
 	// A snapshot file sorts the keys: the state comes back in the order of its schema (A43).
 	snapshot: { save: (state: SealData): SealData => structuredClone(state), load: (data): SealData => inSchemaOrder(SealSlice, data) },
 	events: SealEvents.events,
-	// The bids (`ledger`), the board and the notices (`channels`), the standings and the strike (`exile`). The act and
-	// the tribunal's target come by their events (old `requires` of `progression` and `tribunal`, 12-m5-spec.md 2.3).
+	// The bids (`ledger`), the board and the notices (`channels`), the standings and the strike (`exile`). The act comes
+	// by its events (old `requires` of `progression`, 12-m5-spec.md 2.3).
 	requires: [LedgerService, ChannelsService, ExileService],
-	// A name where an id goes, and the names in a reply: when `names` is loaded.
-	uses: [IdentityService],
+	// A name where an id goes, and the names in a reply: when `names` is loaded; the residents the tribunal still has to
+	// exile, when it is loaded (old `TribunalApi.missing`, A91).
+	uses: [IdentityService, TribunalService],
 	prompts: {
 		"seal/tools/bid": [],
 		"seal/tools/permaDeath": [],

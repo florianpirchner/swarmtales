@@ -2,8 +2,8 @@
 /**
  * The seal among the City's real mechanics (12-m5-spec.md, section 10, row 44): the auction opened by the act's start
  * after the goals are dealt, the secret bids of `cityofkeys-act2-seal-s7.json` (A02 5, A06 12) paid at the close, the
- * strike through `exile` with `by: "seal"` before the tribunal has announced its target, the target the seal learns
- * from `tribunal_announced` and the second seal that crumbles at it, the end of the act before the goals are
+ * strike through `exile` with `by: "seal"` before the tribunal's first call, the target the seal asks of the tribunal
+ * (`missing`) and the seal that crumbles at it, the end of the act before the goals are
  * resolved, the status parts and locks, the gamemaker's fact, and a fake run replayed and resumed at every tick.
  */
 import { readFileSync } from "node:fs";
@@ -24,7 +24,7 @@ const story = Parse(
 	Type.Object({ seal: SealOptions, tribunal: TribunalOptions, goals: Type.Record(Type.String(), Type.Unknown()) }),
 	JSON.parse(readFileSync(new URL("../../../oracles/cityofkeys/setup/cityofkeys.story.json", import.meta.url), "utf8")),
 );
-// The act begins at the run's start; the tribunal states its target (a fifth of six: one) with its first call at tick 9.
+// The act begins at the run's start; the tribunal's target is a fifth of six (one), its first call at tick 9.
 const court = (latestAfter: number): TribunalSpec => {
 	const spec: TribunalSpec = { ...story.tribunal, first: { level: 8, latestAfter }, targetShare: 0.2 };
 	delete spec.factions;
@@ -105,7 +105,7 @@ describe("the black seal in the city", () => {
 		expect(of(events, "goal_resolved").find(([, , payload]) => JSON.stringify(payload).includes('"A04"'))).toBeDefined();
 	});
 
-	it("learns the tribunal's target from its first call and crumbles once it is reached", async () => {
+	it("asks the tribunal's target and crumbles once it is reached", async () => {
 		const test = testKernel(game(story.seal.perResidents, 16, 2));
 		await won(test);
 		await test.playTicks(idle, 1);
@@ -117,20 +117,18 @@ describe("the black seal in the city", () => {
 		expect(of(test.kernel.log.all(), "seal_expired").at(-1)).toEqual([9, "seal_expired", { seal: 1, holder: "A06", reason: "the target was reached" }]);
 	});
 
-	it("has no target before the tribunal's first call: a strike that reaches it there leaves the next seal unbounded (registered change)", async () => {
+	it("knows the target before the tribunal's first call: a strike that reaches it ends the act and the next seal with it (A91)", async () => {
 		const test = testKernel(game(3));
 		await won(test);
 		expect(await test.call("A06", "permaDeath", { target: "A04" })).toMatchObject({ ok: true });
 		await test.playTicks(idle, 3);
-		expect(await test.call("A01", "bid", { points: 4 })).toMatchObject({ ok: true });
-		await test.playTicks(idle, 3);
-		// The seal reached the target at tick 8, so the tribunal never calls and never announces it.
-		expect(of(test.kernel.log.all(), "tribunal_announced", "seal_won")).toEqual([
+		// The seal reached the target (the tribunal's `missing` is 0), so the tribunal never calls one and its act is over.
+		expect(of(test.kernel.log.all(), "tribunal_announced", "seal_won", "seal_expired", "act_ended")).toEqual([
 			[7, "seal_won", expect.objectContaining({ seal: 1, agent: "A06" })],
-			[13, "seal_won", { seal: 2, agent: "A01", bid: 4, bids: [{ agent: "A01", points: 4 }] }],
+			[8, "act_ended", { fromLevel: 8 }],
+			[8, "seal_expired", { seal: 2, reason: "the act ended before the bidding closed" }],
 		]);
-		// The old seal asked the tribunal's `missing` (0 here) and answered TARGET_REACHED.
-		expect(await test.call("A01", "permaDeath", { target: "A02" })).toMatchObject({ ok: true });
+		expect(await test.call("A01", "bid", { points: 4 })).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
 	});
 
 	it("shows the auction and the bearer on the status line and ends before the goals are resolved", async () => {
@@ -159,10 +157,11 @@ describe("the black seal in the city", () => {
 });
 
 describe("replay and resume", () => {
-	it("plays two auctions with the fake driver's bids and strikes, replays them and resumes them at every tick boundary", async () => {
+	it("plays an auction with the fake driver's bids and a strike that ends the act, replays it and resumes it at every tick boundary", async () => {
 		const drivers = (kernel: Parameters<typeof fakeDriver>[0]) => ({ resident: fakeDriver(kernel, 7) });
 		const { events } = await play(game(3), { drivers });
-		expect(of(events, "seal_won", "seal_used").map(([, type]) => type)).toEqual(["seal_won", "seal_used", "seal_won", "seal_used"]);
+		expect(of(events, "seal_won", "seal_used").map(([, type]) => type)).toEqual(["seal_won", "seal_used"]);
+		expect(of(events, "act_ended")).toHaveLength(1);
 		expect(await checkReplay(game(3), drivers, { seed: 7 })).toEqual([]);
 		expect(await checkResumeEveryBoundary(game(3), drivers)).toEqual([]);
 	});

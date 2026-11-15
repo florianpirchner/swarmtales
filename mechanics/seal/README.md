@@ -16,7 +16,7 @@ resident from the city at once, without gate, will or ransom, until the act ends
 | Id | `seal` |
 | Summary | The black seal auction. |
 | Requires | `ledger` (from [ledger](../ledger/README.md)), `channels` (from [channels](../channels/README.md)), `exile` (from [exile](../exile/README.md)) |
-| Uses when loaded | `identity` (from [names](../names/README.md)) |
+| Uses when loaded | `identity` (from [names](../names/README.md)), `tribunal` (from [tribunal](../tribunal/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
@@ -39,11 +39,10 @@ resident from the city at once, without gate, will or ransom, until the act ends
    reached (the target less the exiled and those at the gate), the seal answers `TARGET_REACHED` and crumbles, except
    on a resident at the gate, who counts toward the target already.
 
-**The target comes by an event.** The old seal asked the tribunal how many residents were still missing; the recut
-seal asks no game mechanic (12-m5-spec.md 2.3) and learns the target from `tribunal.tribunal_announced`, which the
-tribunal writes with its first call. Before that call no target is known and a strike is never refused for it: a
-registered change for a city whose seals alone reach the target before the first tribunal is called (the tribunal
-then never calls one). No recorded run has that case.
+**The target comes from the tribunal.** As the old seal, it asks the tribunal how many residents are still missing
+(the query `missing` of the service `tribunal`, decision A91), also before the tribunal's first call: a seal whose
+strike reaches the target there ends the tribunal's act, and the next seal with it. Without a tribunal the seal knows
+no target and never refuses a strike for it.
 
 **Two tools named `permaDeath`.** The gamemaker's strike of `standoff-tribunal` has the same bare name. Grants derived
 from `for` keep them apart (the seal's goes to `resident`, the other to `gamemaker`); a game that writes a grant

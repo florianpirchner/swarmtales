@@ -78,6 +78,8 @@ export const TribunalSlice = Type.Object(
 		halted: Type.Boolean({ description: "Whether the city stopped holding tribunals" }),
 		draft: Type.Optional(DraftSchema),
 		lastTick: Int("The last tick the city acted in (old `#lastTick`)"),
+		ticks: Type.Optional(Int("The run's ticks, set by the first tick (old `minutes`); the facts read it")),
+		gamemakerPlanned: Type.Optional(Int("The tick the gamemaker last planned a tribunal (old `tribunal_scheduled` of the actor `gamemaker`)")),
 	},
 	{ description: "The state of `tribunal`" },
 );

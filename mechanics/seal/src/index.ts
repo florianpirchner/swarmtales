@@ -6,7 +6,7 @@
  * (`bid`), burns every bid at the close and tells the winner privately. The bearer breaks the seal once with
  * `permaDeath`, which banishes the target through `exile` with `by: "seal"`. A seal is gone with its bearer (it
  * listens to `exile.exiled`) and at the act's end (`progression.act_ended`, before the goals are resolved), and it
- * crumbles once the tribunal's target, which it learns from `tribunal.tribunal_announced`, is reached.
+ * crumbles once the tribunal's target, which it asks of `tribunal.missing`, is reached.
  *
  * @packageDocumentation
  */
@@ -16,7 +16,6 @@ import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { ExileEvents, ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { ProgressionEvents } from "@swarmtales/mechanic-progression/contract";
-import { TribunalEvents } from "@swarmtales/mechanic-tribunal/contract";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { enabled, houseFor, statusLines } from "./city.ts";
 import { sealHead, type SealToolCtx, type SealView } from "./head.ts";
@@ -125,10 +124,6 @@ export const seal = defineMechanic(sealHead, {
 		// Old `SealApi.onExiled`, which the exile called for every exile.
 		kit.listen(ExileEvents, "exiled", ({ agent }, ctx) => {
 			houseFor(ctx).onExiled(agent);
-		}),
-		// Old `TribunalApi.missing` read the target; the tribunal states it with its first call.
-		kit.listen(TribunalEvents, "tribunal_announced", ({ target }, ctx) => {
-			if (target !== undefined) ctx.state.target = target;
 		}),
 	],
 });

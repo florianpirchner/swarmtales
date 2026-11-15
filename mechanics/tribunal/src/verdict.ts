@@ -10,7 +10,7 @@ import { DecisionsService } from "@swarmtales/mechanic-decisions/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { burn, exiledList, gateCount, lowestFirst, missing, notify, points, post, register, render, text } from "./city.ts";
 import { settleDraft } from "./factions.ts";
-import type { TribunalCtx } from "./head.ts";
+import type { Reads, TribunalCtx } from "./head.ts";
 import { ransomPrices, type RansomPrices } from "./pacing.ts";
 import { currentSession, type Session } from "./state.ts";
 import { namesOf } from "./template.ts";
@@ -51,7 +51,7 @@ export function prices(ctx: TribunalCtx): RansomPrices {
  * @param ctx - The context.
  * @returns True while one waits; false without `decisions`.
  */
-export function verdictOpen(ctx: TribunalCtx): boolean {
+export function verdictOpen(ctx: Reads): boolean {
 	return (ctx.tryCall(DecisionsService, "open", {}) ?? []).some((open) => open.kind === VERDICT && open.owner === ctx.mechanic);
 }
 
@@ -61,7 +61,7 @@ export function verdictOpen(ctx: TribunalCtx): boolean {
  * @param ctx - The context.
  * @returns True while one is.
  */
-export function busy(ctx: TribunalCtx): boolean {
+export function busy(ctx: Reads): boolean {
 	return ctx.state.plan?.called === true || currentSession(ctx.state) !== undefined || gateCount(ctx) > 0 || verdictOpen(ctx);
 }
 

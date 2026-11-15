@@ -108,6 +108,8 @@ describe("the faction draft", () => {
 		]);
 		expect(of(events, "faction_nominated")).toHaveLength(7);
 		expect(noted).toEqual([["A06", "A05"]]);
+		// The gamemaker's report reads the running draft (M5-43).
+		expect(test.fact("tribunal.draft")).toEqual({ group: "G1", leaders: ["A06", "A05"] });
 		const posts = of(events, "group_post").map(([, , payload]) => Parse(Text, payload).text);
 		expect(posts[0]).toMatch(/^Tribunal 1 sits at minute 6\. Before it, the city forms 2 factions in group G1, .* Until minute 4 nominate a leader .* at most 3 residents, .* gets 5 points;/);
 		expect(posts[1]).toBe("The nominations are closed. Leaders: A06 and A05. Until minute 6 join one of them with join(leader).");

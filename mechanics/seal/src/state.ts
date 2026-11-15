@@ -2,7 +2,7 @@
 /**
  * The options of `seal` (carried from the old `index.ts` field for field) and its state, which is its snapshot slice:
  * the old `SealSnapshot` (old `slice.ts`), with the bids as a list in the order of each bidder's first bid (the old
- * `Map`) and the tribunal's target, which the seal now learns from `tribunal_announced` (erratum of M5-44).
+ * `Map`).
  */
 import { Type, type Static } from "typebox";
 
@@ -74,7 +74,6 @@ const Entry = Type.Object(
 export const SealSlice = Type.Object(
 	{
 		actStart: Type.Union([Int("The tick the act began"), Type.Null({ description: "The act has not begun" })], { description: "The act's start" }),
-		target: Type.Union([Int("Residents the tribunals exile in all"), Type.Null({ description: "No tribunal has announced it yet" })], { description: "The tribunal's target" }),
 		seals: Type.Array(Entry, { description: "The act's seals" }),
 	},
 	{ description: "The black seal's state" },
@@ -109,5 +108,5 @@ export type SealStage = SealEntry["state"];
  * @public
  */
 export function emptySeal(): SealData {
-	return { actStart: null, target: null, seals: [] };
+	return { actStart: null, seals: [] };
 }

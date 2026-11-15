@@ -6,8 +6,9 @@
  * non-voters' points, and sends the residents with the most votes to the gate of `exile` with the ransom prices and
  * the texts of the tribunal. Before a tribunal of a city with factions the residents draft factions (`nominate`,
  * `join`, `refuse`), and a faction that votes as one earns the bloc bonus. It provides the two services the standoff
- * asks (`ransom-price`, `trial-risk`). The gamemaker's `scheduleTribunal`, the act's end and the views as facts
- * (M5-43) follow.
+ * asks (`ransom-price`, `trial-risk`), what the run's stop rule reads (`tribunal-view`) and what the seal asks
+ * (`tribunal.missing`). The gamemaker plans a tribunal with `scheduleTribunal`; the act ends once the target is
+ * reached; the gamemaker's report reads the facts `section` and `draft`.
  *
  * @packageDocumentation
  */
@@ -16,16 +17,23 @@ import type { RandomSource } from "@swarmtales/contracts";
 import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { DecisionsEvents } from "@swarmtales/mechanic-decisions/contract";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
+import { missing } from "./city.ts";
 import { tick } from "./court.ts";
 import { runJoin, runNominate, runRefuse, sampleStep, stepOpen } from "./draft.ts";
 import { tribunalHead, type TribunalToolCtx } from "./head.ts";
+import { mayScheduleTribunal, runSchedule } from "./schedule.ts";
+import { DraftFact, SectionFact } from "./section.ts";
 import { statusLines } from "./status.ts";
 import { commitVerdict, prices, VERDICT, Verdict } from "./verdict.ts";
 import { atRisk, canVote, vote } from "./vote.ts";
+import { draftOf, readsOf, sectionOf, stopOf } from "./view.ts";
 
-export { TribunalEvents } from "./contract.ts";
+export { TribunalEvents, TribunalService } from "./contract.ts";
 export { phaseOf, type DraftError, type DraftPhase } from "./factions.ts";
-export { tribunalHead, type TribunalCtx, type TribunalToolCtx } from "./head.ts";
+export { tribunalHead, type Reads, type TribunalCtx, type TribunalToolCtx, type TribunalView } from "./head.ts";
+export { cityCall, schedulingWindow, type ScheduleParams, type SchedulingWindow } from "./schedule.ts";
+export { DraftFact, SectionFact, type TribunalSection } from "./section.ts";
+export type { TribunalStop } from "./view.ts";
 export { accusedCount, earliestOpening, exileTarget, factionCap, leadFor, noDraftReason, ransomPrices, tribunalHeld, type RansomPrices } from "./pacing.ts";
 export { TribunalOptions, type TribunalSpec, type TribunalTextKey } from "./spec.ts";
 export { TribunalSlice, type Draft, type Faction, type Plan, type Planner, type Session, type TribunalState, type Vote } from "./state.ts";
@@ -76,19 +84,27 @@ export const tribunal = defineMechanic(tribunalHead, {
 			},
 		},
 		refuse: { run: ({ agent }, ctx) => runRefuse(ctx, agent), sample: (ctx, random) => withAgent(sampleStep(ctx, "refuse", random)) },
+		scheduleTribunal: { run: (params, ctx) => runSchedule(ctx, params) },
 	},
 	services: {
 		// What others pay for a ransom of a gate that opened now (old `ransomPrices().price`); the standoff halves it (J121).
 		"ransom-price": { price: (_input, ctx) => prices(ctx).price },
 		// Who stands trial next (old `TribunalViewApi.atRisk`, J142).
 		"trial-risk": { atRisk: (_input, ctx) => atRisk(ctx) ?? null },
+		// What the run's stop rule of `arena` reads (old `TribunalViewApi.stop`).
+		"tribunal-view": { stop: (_input, ctx) => stopOf(ctx) },
+		// Old `TribunalApi.missing`, which the seal asks (A91).
+		tribunal: { missing: (_input, ctx) => missing(ctx) },
 	},
 	pipeline: {
-		// The old `enabledTools`: the vote while one is due, the draft's steps by phase.
+		// The old `enabledTools`: the vote while one is due, the draft's steps by phase; the gamemaker's plan while offered.
 		lock: (call, ctx) => {
-			if (call.owner !== ctx.mechanic || call.resident === undefined) return undefined;
+			if (call.owner !== ctx.mechanic) return undefined;
+			const locked = refuse("TOOL_LOCKED", ctx.prompt("tribunal/replies/locked", {}));
+			if (call.tool === "scheduleTribunal") return mayScheduleTribunal(ctx) ? undefined : locked;
+			if (call.resident === undefined) return undefined;
 			const open = call.tool === "vote" ? canVote(ctx, call.resident) : stepOpen(ctx, call.tool, call.resident);
-			return open ? undefined : refuse("TOOL_LOCKED", ctx.prompt("tribunal/replies/locked", {}));
+			return open ? undefined : locked;
 		},
 	},
 	hooks: {
@@ -96,6 +112,18 @@ export const tribunal = defineMechanic(tribunalHead, {
 		// motives and the names; before the seal and the standoff, which name it in their `after`.
 		tickStarted: { after: ["motives", "names"], run: tick },
 		turnInputs: (resident, ctx) => statusLines(ctx, resident),
+	},
+	facts: {
+		/** The data of the gamemaker's tribunal section (old `tribunalLines`); null without a tribunal or before the first tick. */
+		section: {
+			output: SectionFact,
+			compute: (view) => {
+				const reads = readsOf(view);
+				return reads === undefined ? null : sectionOf(reads);
+			},
+		},
+		/** The running faction draft: its group and leaders. */
+		draft: { output: DraftFact, compute: draftOf },
 	},
 	listeners: (kit) => [
 		// A verdict that waited at the decision gate is committed as it stands.

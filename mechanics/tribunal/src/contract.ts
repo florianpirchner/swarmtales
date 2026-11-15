@@ -3,12 +3,12 @@
  * The contract of the mechanic `tribunal`: its events, field for field as the old platform wrote them (old `head.ts`
  * `tribunalEvents`), so a listener (the seal, a report) needs no value import of the mechanic itself. The services it
  * provides to the standoff (`ransom-price`, `trial-risk`) are declared in `@swarmtales/mechanic-standoff/contract`,
- * the one that asks. The only file another mechanic imports.
+ * the one that asks; the service `tribunal` (what the seal asks) is declared here. The only file another mechanic imports.
  *
  * @packageDocumentation
  */
 import { Type } from "typebox";
-import { defineEvents } from "@swarmtales/sdk";
+import { defineEvents, defineService } from "@swarmtales/sdk";
 
 const Id = Type.String({ description: "A resident id, for example `A04`" });
 const Ids = Type.Array(Id, { description: "Resident ids" });
@@ -85,4 +85,23 @@ export const TribunalEvents = defineEvents("tribunal", {
 		{ counts: Type.Array(Type.Object({ agent: Id, votes: Int("Votes against it") }, { description: "One accused" }), { description: "The accused standing, most votes first" }), exiled: Ids, nonVoters: Ids },
 		{ description: "A tribunal's vote was counted" },
 	),
+});
+
+/**
+ * What the seal asks of the tribunal (the old `TribunalApi.missing`, decision A91): how many residents it still has to
+ * exile to reach its target. Provided by `tribunal`; the tribunal asks the seal nothing.
+ *
+ * @public
+ */
+export const TribunalService = defineService({
+	name: "tribunal",
+	summary: "What the tribunal still has to do.",
+	methods: {
+		missing: {
+			kind: "query",
+			summary: "Residents the tribunal still has to exile: its target less the exiled and those at the gate, at least 0 (old `missing`).",
+			input: Type.Object({}, { additionalProperties: false, description: "No input" }),
+			output: Type.Integer({ minimum: 0, description: "Residents still to exile" }),
+		},
+	},
 });

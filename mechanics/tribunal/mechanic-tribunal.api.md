@@ -22,9 +22,16 @@ import { TOptional } from 'typebox';
 import { TString } from 'typebox';
 import { TUnion } from 'typebox';
 import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
 
 // @public
 export function accusedCount(count: number, present: number): number;
+
+// @public
+export function cityCall(ctx: Reads): {
+    readonly calledAt: number;
+    readonly opens: number;
+} | null;
 
 // Warning: (ae-forgotten-export) The symbol "DraftSchema" needs to be exported by the entry point index.d.ts
 //
@@ -33,6 +40,12 @@ export type Draft = Static<typeof DraftSchema>;
 
 // @public
 export type DraftError = "FACTION_FULL" | "IS_LEADER" | "NOT_APPLYING" | "NOT_A_LEADER" | "NOT_IN_DRAFT" | "NO_DRAFT" | "REFUSED" | "UNKNOWN_NOMINEE";
+
+// @public
+export const DraftFact: Type.TUnion<[Type.TNull, Type.TObject<{
+    group: Type.TString;
+    leaders: Type.TArray<Type.TString>;
+}>]>;
 
 // @public
 export type DraftPhase = {
@@ -89,11 +102,107 @@ export interface RansomPrices {
 export function ransomPrices(spec: TribunalSpec["ransom"], points: readonly number[]): RansomPrices;
 
 // @public
+export interface Reads extends Pick<TribunalView, "call" | "options" | "residents" | "state" | "tryCall"> {
+    readonly mechanic: string;
+    readonly ticks: number;
+}
+
+// @public
 export interface Risk {
     readonly accused: string[];
     readonly now: boolean;
     readonly opens: number;
 }
+
+// @public
+export interface ScheduleParams {
+    readonly count: number;
+    readonly factions?: number | undefined;
+    readonly minute: number;
+    readonly reason: string;
+}
+
+// @public
+export type SchedulingWindow = {
+    readonly open: false;
+    readonly why: string;
+} | {
+    readonly earliest: number;
+    readonly latestFinal: number;
+    readonly latestWithRoom?: number;
+    readonly maxFactions: number;
+    readonly missing: number;
+    readonly open: true;
+};
+
+// @public
+export function schedulingWindow(ctx: Reads): SchedulingWindow;
+
+// @public
+export const SectionFact: Type.TUnion<[Type.TNull, Type.TObject<{
+    actEnd: Type.TInteger;
+    cityCall: Type.TUnion<[Type.TObject<{
+        calledAt: Type.TInteger;
+        opens: Type.TInteger;
+    }>, Type.TNull]>;
+    draft: Type.TUnion<[Type.TNull, Type.TObject<{
+        group: Type.TString;
+        leaders: Type.TArray<Type.TString>;
+    }>]>;
+    exiled: Type.TArray<Type.TString>;
+    gates: Type.TArray<Type.TObject<{
+        agent: Type.TString;
+        covered: Type.TInteger;
+        paid: Type.TNumber;
+        price: Type.TNumber;
+        ransomable: Type.TBoolean;
+        selfPrice: Type.TNumber;
+        since: Type.TInteger;
+        until: Type.TInteger;
+        willDone: Type.TBoolean;
+    }>>;
+    missing: Type.TInteger;
+    plan: Type.TUnion<[Type.TNull, Type.TObject<{
+        by: Type.TString;
+        called: Type.TBoolean;
+        calledAt: Type.TInteger;
+        count: Type.TInteger;
+        factions: Type.TInteger;
+        opens: Type.TInteger;
+        tribunal: Type.TInteger;
+    }>]>;
+    residents: Type.TInteger;
+    rules: Type.TObject<{
+        bequestPerHeir: Type.TNumber;
+        blocBonus: Type.TUnion<[Type.TInteger, Type.TNull]>;
+        fallbackGap: Type.TInteger;
+        gateMinutes: Type.TInteger;
+        ransom: Type.TObject<{
+            minimum: Type.TNumber;
+            selfShare: Type.TNumber;
+            share: Type.TNumber;
+        }>;
+        voteMinutes: Type.TInteger;
+    }>;
+    session: Type.TUnion<[Type.TNull, Type.TObject<{
+        accused: Type.TArray<Type.TString>;
+        count: Type.TInteger;
+        tribunal: Type.TInteger;
+        until: Type.TInteger;
+    }>]>;
+    target: Type.TInteger;
+    window: Type.TUnion<[Type.TObject<{
+        open: Type.TLiteral<false>;
+        why: Type.TString;
+    }>, Type.TObject<{
+        earliest: Type.TInteger;
+        latestFinal: Type.TInteger;
+        latestWithRoom: Type.TOptional<Type.TInteger>;
+        maxFactions: Type.TInteger;
+        missing: Type.TInteger;
+        open: Type.TLiteral<true>;
+    }>]>;
+}>]>;
 
 // Warning: (ae-forgotten-export) The symbol "SessionSchema" needs to be exported by the entry point index.d.ts
 //
@@ -252,7 +361,7 @@ readonly tribunal_vote: TObject<    {
 target: TString;
 voter: TString;
 }>;
-}, "join" | "nominate" | "refuse" | "vote">;
+}, "join" | "nominate" | "refuse" | "scheduleTribunal" | "vote">;
 
 // @public
 export type TribunalCtx = CtxOf<typeof tribunalHead>;
@@ -444,6 +553,7 @@ leader: Type.TString;
 tribunal: Type.TInteger;
 }>>;
 ended: Type.TBoolean;
+gamemakerPlanned: Type.TOptional<Type.TInteger>;
 halted: Type.TBoolean;
 lastResult: Type.TOptional<Type.TInteger>;
 lastTick: Type.TInteger;
@@ -471,6 +581,7 @@ target: Type.TString;
 voter: Type.TString;
 }>>;
 }>>;
+ticks: Type.TOptional<Type.TInteger>;
 }>, {
 actStart?: number;
 announced: boolean;
@@ -503,6 +614,7 @@ leader: string;
 tribunal: number;
 };
 ended: boolean;
+gamemakerPlanned?: number;
 halted: boolean;
 lastResult?: number;
 lastTick: number;
@@ -530,6 +642,7 @@ target: string;
 voter: string;
 }[];
 }[];
+ticks?: number;
 }, {
 readonly bloc_result: Type.TObject<{
 bonus: Type.TInteger;
@@ -620,6 +733,9 @@ target: Type.TString;
 voter: Type.TString;
 }>;
 }, {
+readonly "tribunal/gamemaker/replies/tribunal-factions": readonly ["factions"];
+readonly "tribunal/gamemaker/replies/tribunal-planned": readonly ["tribunal", "calledAt", "opens", "count"];
+readonly "tribunal/gamemaker/tools/scheduleTribunal": readonly [];
 readonly "tribunal/replies/join-applied": readonly ["leader"];
 readonly "tribunal/replies/join-until": readonly ["until"];
 readonly "tribunal/replies/locked": readonly [];
@@ -1168,6 +1284,24 @@ opens: Type.TInteger;
 }>, Type.TNull]>;
 readonly summary: "The next trial and its accused, or null without one or with nobody at risk (old `atRisk`).";
 };
+}>, ServiceDefinition<"tribunal-view", {
+readonly stop: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TObject<{
+busy: Type.TBoolean;
+endReason: Type.TUnion<[Type.TString, Type.TNull]>;
+pursuing: Type.TBoolean;
+}>;
+readonly summary: "The end reason once the target is reached and the last gate closed, whether a tribunal is under way, and whether the city still pursues its target.";
+};
+}>, ServiceDefinition<"tribunal", {
+readonly missing: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "Residents the tribunal still has to exile: its target less the exiled and those at the gate, at least 0 (old `missing`).";
+};
 }>], readonly [ServiceDefinition<"decisions", {
 readonly open: {
 readonly input: Type.TObject<{}>;
@@ -1253,6 +1387,12 @@ agent: Type.TString;
 refuse: Type.TObject<{
 agent: Type.TString;
 }>;
+scheduleTribunal: Type.TObject<{
+count: Type.TInteger;
+factions: Type.TOptional<Type.TInteger>;
+minute: Type.TInteger;
+reason: Type.TString;
+}>;
 vote: Type.TObject<{
 target: Type.TString;
 }>;
@@ -1327,6 +1467,19 @@ export const TribunalOptions: Type.TObject<{
 }>;
 
 // @public
+export type TribunalSection = Static<typeof SectionFact>;
+
+// @public
+export const TribunalService: ServiceDefinition<"tribunal", {
+readonly missing: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TInteger;
+readonly summary: "Residents the tribunal still has to exile: its target less the exiled and those at the gate, at least 0 (old `missing`).";
+};
+}>;
+
+// @public
 export const TribunalSlice: Type.TObject<{
     actStart: Type.TOptional<Type.TInteger>;
     announced: Type.TBoolean;
@@ -1359,6 +1512,7 @@ export const TribunalSlice: Type.TObject<{
         tribunal: Type.TInteger;
     }>>;
     ended: Type.TBoolean;
+    gamemakerPlanned: Type.TOptional<Type.TInteger>;
     halted: Type.TBoolean;
     lastResult: Type.TOptional<Type.TInteger>;
     lastTick: Type.TInteger;
@@ -1386,6 +1540,7 @@ export const TribunalSlice: Type.TObject<{
             voter: Type.TString;
         }>>;
     }>>;
+    ticks: Type.TOptional<Type.TInteger>;
 }>;
 
 // @public
@@ -1395,10 +1550,20 @@ export type TribunalSpec = Static<typeof TribunalOptions>;
 export type TribunalState = Static<typeof TribunalSlice>;
 
 // @public
+export interface TribunalStop {
+    readonly busy: boolean;
+    readonly endReason: string | null;
+    readonly pursuing: boolean;
+}
+
+// @public
 export type TribunalTextKey = Exclude<keyof TribunalSpec["texts"], "calledNoDraft">;
 
 // @public
 export type TribunalToolCtx = ToolCtxOf<typeof tribunalHead>;
+
+// @public
+export type TribunalView = ViewOf<typeof tribunalHead>;
 
 // @public
 export const VERDICT = "tribunal.verdict";
