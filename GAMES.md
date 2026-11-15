@@ -18,6 +18,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with nine params | six oracle files match at level 3 |
 | [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with five params | five oracle files match at level 3 |
 | [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | a game family with five params | the oracle files of the arms `solo` and `nobrain` match at level 3; the silent file of the crew arm at level 3 |
+| [Lanterns](#lanterns) | cooperation under hidden information | 6 (two teams of three) | `clue-grid`, `team-channel`, `strategy-brain` | none; variants are options of `lanternsGame` | four oracle files match at level 3 |
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 | [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
 
@@ -96,10 +97,25 @@ games, private notes, or nothing. A crew of reference bots plays every deal too,
   second on costs 3 points; `hard`: the third strike ends the game), `aid` (each own slot shows the chance that a
   play lights it now), `maxWords`. The defaults give the game of the old platform.
 - Proof: the three oracle files of the arms `solo` and `nobrain` match at level 3, one of them up to its cut; the
-  silent file of the crew arm matches at level 2 (level 3 waits for the lock events of M4-64); the briefings are
+  silent file of the crew arm matches at level 3 (its chat locks come through M4-64); the briefings are
   byte-identical.
 - Links: [folder](games/harbor-lights/), [README](games/harbor-lights/README.md),
   [oracle files](oracles/harbor-lights/).
+## Lanterns
+
+Two teams of three residents (amber: A01 to A03, teal: A04 to A06) play a match of four games of an original
+word-clue game on a grid of 20 words. In each game one member of each team is its keeper (the role rotates) and sees
+which hidden word belongs to whom; the two others are seekers. The keeper gives one clue word and a number and names,
+sealed for the report, the words it means; the seekers take turns calling the guesses while the other advises in
+the team chat, where the keeper may not post. Every game starts from a fresh context; a team's only memory is a
+short strategy brain, written as the team's conventions between keeper and seekers. The mechanic scores how much of
+what the keeper meant the seekers found, for the report only.
+
+- Variants are options of `lanternsGame`: the number of games, the clues per team and game, no brain (the control
+  arm), the size of a brain. The defaults give the game of the old platform, with its output cap of 16000 tokens.
+- Proof: the four oracle files match at level 3, three of them replays of a live run of the old platform up to their
+  cut; the briefings are byte-identical.
+- Links: [folder](games/lanterns/), [README](games/lanterns/README.md), [oracle files](oracles/lanterns/).
 
 ## The city slice
 
@@ -146,7 +162,7 @@ not among the fifteen.
 | Societies | City of Keys, Whispers |
 | Board games, all information public | chess, nine men's morris, **tic-tac-toe teams (ported)** |
 | Hidden information and bluff | Hold'em, **Liar's Dice (ported)**, Convoy |
-| Cooperation under hidden information | **Harbor Lights (ported)**, Lanterns |
+| Cooperation under hidden information | **Harbor Lights (ported)**, **Lanterns (ported)** |
 | Markets, bids and economics | **Econ Lab (ported)**, Salt Market, Blind Bid, **Quarry (ported)**, Ember Tricks |
 
 Until a game is ported, its rules, runs and findings are readable at the tag
