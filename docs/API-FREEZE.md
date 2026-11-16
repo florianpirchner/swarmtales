@@ -14,8 +14,46 @@ checks the kind against the diff from the file's `base` (section 5.2 of the spec
 |---|---|---|---|---|---|
 | F1 | 2026-11-16 | every file of the frozen list | freeze | A60 | the surface as M5-50 left it, with the merges up to M5-57; recorded and dated by M5-57 on `565efaeb` |
 
-A row names its paths in backticks; only a freeze row may say "every file of the frozen list". Its decision is one row
-`A<n>` of section 9 of `DECISIONS.md`; a break's decision row says "the owner's go".
+A row names its paths in backticks; only a freeze row may say "every file of the frozen list", and once a freeze row
+is dated no other freeze row may stand in the table. Its decision is one row `A<n>` of section 9 of `DECISIONS.md`; a
+break's decision row has a cell of its own that says exactly "the owner's go" (its evidence cell, for example
+`| A<n> | <date> | <the break> | the owner's go |`); a sentence that merely contains the words does not count
+(decision A116).
+
+## The frozen files
+
+The set of the frozen files (decision A116). `scripts/api-freeze/surface.ts` names them in code, and the gate
+(`frozenSetProblems`, part of `pnpm api:freeze` and of `scripts/gates/api-freeze.test.ts`) fails unless the code and
+this list name the same files; a file that leaves `frozen.json` after it was listed there needs a `break` row that
+names it, by the owner's go.
+
+- `mechanics/channels/mechanic-channels.api.md`
+- `mechanics/consensus/mechanic-consensus.api.md`
+- `mechanics/contracts/mechanic-contracts.api.md`
+- `mechanics/decisions/mechanic-decisions.api.md`
+- `mechanics/exile/mechanic-exile.api.md`
+- `mechanics/human-hand/mechanic-human-hand.api.md`
+- `mechanics/ledger/mechanic-ledger.api.md`
+- `mechanics/team-channel/mechanic-team-channel.api.md`
+- `packages/chain/chain.api.md`
+- `packages/contracts/contracts.api.md`
+- `packages/engine/engine.api.md`
+- `packages/kernel/kernel.api.md`
+- `packages/models/models.api.md`
+- `packages/prompts/prompts.api.md`
+- `packages/runlog/runlog.api.md`
+- `packages/sdk/sdk.api.md`
+- `packages/swarmtales/swarmtales.api.md`
+- `packages/testkit/testkit.api.md`
+- `scripts/api-freeze/surface/cli.json`
+- `scripts/api-freeze/surface/envelope.json`
+- `scripts/api-freeze/surface/error-codes.json`
+- `scripts/api-freeze/surface/hand-line.json`
+- `scripts/api-freeze/surface/kernel-snapshot.json`
+- `scripts/api-freeze/surface/oracle.json`
+- `scripts/api-freeze/surface/run-manifest.json`
+- `scripts/api-freeze/surface/saved-sessions.json`
+- `scripts/api-freeze/surface/snapshot-file.json`
 
 ## The frozen list and its gate (issue M5-51)
 
@@ -36,8 +74,21 @@ the help texts); and the list of the error codes (`error-codes.json`, without wh
   empty list, a text that is not the recorded one, a row that is missing, does not name the path or names no decision
   row of section 9, an addition that removes or changes a line against the text at `base` (only added lines are an
   addition; "docs only" may change comment and `description` lines only), and a break whose decision row does not
-  say "the owner's go". The base must be a commit that `HEAD` reaches, so it is a commit of `develop`, never one of a
+  give "the owner's go". The base must be a commit that `HEAD` reaches, so it is a commit of `develop`, never one of a
   branch that a squash merge leaves behind.
+- Since M5-104 (decision A116, findings 1, 2, 3 and 8 of [`M5-REVIEW.md`](M5-REVIEW.md)) it also fails on a second
+  freeze row once one is dated; on a base of an `addition`, `addition: docs only` or `break` row that does not hold
+  the text `frozen.json` recorded before that row (the gate reads it from the committed history of `frozen.json`: the
+  newest earlier version whose entry for the path names another row), so a base cannot be moved to the commit of the
+  change; on a JSON text form called an addition that, read as a schema, adds a name to a `required` array, removes a
+  property of an object, or adds a constraint keyword (`additionalProperties`, `const`, `enum`, `format`, `pattern`,
+  a minimum or maximum) to a schema that was there, whatever lines it adds; on a file that left `frozen.json` without a
+  `break` row naming it last; and on a frozen set of `surface.ts` that is not the list "The frozen files" above.
+- **The limit of the reports.** An API report is still compared line by line. A line rule cannot tell an optional
+  member from a required one, so a new required member of an interface that an author implements or passes (the
+  options of a game or a mechanic), or a new required parameter written on a line of its own, keeps every old line and
+  passes as an addition. The builder of such a change and its challenger read the added lines of an `addition` row of
+  a report for this; it is a break, and its row says `break`.
 
 The freeze row F1 admits the text it finds. While its date cell holds no date, `pnpm api:freeze --write` records
 every merge again under F1 (its base is then the newest commit that holds the text, else `HEAD`): after a merge that

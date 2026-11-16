@@ -56,9 +56,55 @@ export interface ChangeRow {
  */
 export function readList(root: string): readonly FrozenEntry[] | undefined {
 	const path = join(root, FROZEN_LIST);
+	return existsSync(path) ? parseList(readFileSync(path, "utf8")) : undefined;
+}
+
+/** The rows of a text of the frozen list, or `undefined` when it is no JSON or does not match the schema. */
+function parseList(text: string | undefined): readonly FrozenEntry[] | undefined {
+	if (text === undefined) return undefined;
+	try {
+		const value: unknown = JSON.parse(text);
+		return Value.Check(ListSchema, value) ? value.files : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+/**
+ * Every committed version of the frozen list that `HEAD` reaches, newest first; a version that does not match the
+ * schema is left out.
+ *
+ * @param root - The repository root (a git checkout with its whole history).
+ * @returns The rows of each version.
+ */
+export function listHistory(root: string): readonly (readonly FrozenEntry[])[] {
+	const commits = git(root, "log", "--format=%H", "--", FROZEN_LIST)?.split("\n").filter((line) => line !== "") ?? [];
+	return commits.flatMap((commit) => {
+		const files = parseList(textAt(root, commit, FROZEN_LIST));
+		return files === undefined ? [] : [files];
+	});
+}
+
+/** The heading of the section of `docs/API-FREEZE.md` that lists the frozen files. */
+export const FROZEN_FILES_HEADING = "## The frozen files";
+
+/**
+ * Reads the list of the frozen files of `docs/API-FREEZE.md`: the paths in backticks of the items (`- `) of its
+ * section "The frozen files".
+ *
+ * @param root - The repository root.
+ * @returns The paths in the order of the list, or `undefined` when the document or the section is missing.
+ */
+export function readFrozenFiles(root: string): readonly string[] | undefined {
+	const path = join(root, FREEZE_DOC);
 	if (!existsSync(path)) return undefined;
-	const value: unknown = JSON.parse(readFileSync(path, "utf8"));
-	return Value.Check(ListSchema, value) ? value.files : undefined;
+	const section = readFileSync(path, "utf8")
+		.split(/^(?=## )/m)
+		.find((text) => text.startsWith(`${FROZEN_FILES_HEADING}\n`));
+	return section?.split("\n").flatMap((line) => {
+		const item = /^- `([^`]+)`\s*$/.exec(line)?.[1];
+		return item === undefined ? [] : [item];
+	});
 }
 
 /**

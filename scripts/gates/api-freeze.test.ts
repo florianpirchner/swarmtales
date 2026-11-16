@@ -9,14 +9,14 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { freezeProblems, recordFrozen } from "../api-freeze/gate.ts";
+import { freezeProblems, frozenSetProblems, recordFrozen } from "../api-freeze/gate.ts";
 import { DECISIONS_DOC, FREEZE_DOC, FROZEN_LIST, listText, readList, sha256 } from "../api-freeze/records.ts";
 import { frozenPaths, surfaceTexts } from "../api-freeze/surface.ts";
 import { REPO_ROOT } from "../lib/files.ts";
 
 const REPORT = "packages/demo/demo.api.md";
 const OTHER = "packages/other/other.api.md";
-const DECISIONS = "# Decisions\n\n## 9. Addendum\n\n| Row | Date | Decision | Evidence |\n|---|---|---|---|\n| A60 | 2026-11-15 | The freeze | x |\n| A70 | 2026-11-16 | A break, by the owner's go | y |\n";
+const DECISIONS = "# Decisions\n\n## 9. Addendum\n\n| Row | Date | Decision | Evidence |\n|---|---|---|---|\n| A60 | 2026-11-15 | The freeze | x |\n| A70 | 2026-11-16 | A break | the owner's go |\n";
 const HEAD_ROW = "| Row | Date | Paths | Kind | Decision | What |\n|---|---|---|---|---|---|\n";
 
 let roots: string[] = [];
@@ -78,6 +78,7 @@ describe("the API freeze of this repository", () => {
 	it("holds every frozen file as recorded, the text forms as the code says", () => {
 		expect(readList(REPO_ROOT)?.map((entry) => entry.path)).toEqual(frozenPaths());
 		expect(freezeProblems(REPO_ROOT, frozenPaths())).toEqual([]);
+		expect(frozenSetProblems(REPO_ROOT, frozenPaths())).toEqual([]);
 		for (const [path, text] of surfaceTexts()) expect(readFileSync(join(REPO_ROOT, path), "utf8"), path).toBe(text);
 	});
 });
@@ -143,11 +144,11 @@ describe("the API freeze gate", () => {
 		expect(freezeProblems(root)).toEqual([]);
 	});
 
-	it("5: fails on a break whose decision row does not say the owner's go", () => {
+	it(`5: fails on a break whose decision row has no cell "the owner's go"`, () => {
 		const root = frozenRepository();
 		change(root, "export function a(): void;\n", "`packages/demo/demo.api.md` | break | A60");
 		record(root);
-		expect(freezeProblems(root)).toEqual([expect.stringContaining(`row F2 is a break, and its decision row A60 does not say "the owner's go"`)]);
+		expect(freezeProblems(root)).toEqual([expect.stringContaining(`row F2 is a break, and its decision row A60 has no cell "the owner's go"`)]);
 	});
 
 	it("refuses a change passed off as the freeze once the freeze is in force", () => {

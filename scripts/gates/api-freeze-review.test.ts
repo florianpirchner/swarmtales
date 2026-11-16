@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * Findings 1 to 3 of the challenger's review of M5 (`docs/M5-REVIEW.md`): three ways a frozen file changes in a way
- * that breaks its users while `freezeProblems` passes. Each test asserts what the gate should say; it fails today and
- * is marked `it.fails` so that the check stays green. When a finding is fixed, its test turns into `it`.
+ * Findings 1 to 3 and 8 of the challenger's review of M5 (`docs/M5-REVIEW.md`): ways a frozen file changes in a way
+ * that breaks its users, or leaves the freeze, while the gate passed. The tests of findings 1 to 3 were committed as
+ * `it.fails`; issue M5-104 (decision A116) closed the holes and turned them into `it`.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { freezeProblems, recordFrozen } from "../api-freeze/gate.ts";
+import { freezeProblems, frozenSetProblems, recordFrozen } from "../api-freeze/gate.ts";
 import { DECISIONS_DOC, FREEZE_DOC, FROZEN_LIST, listText, readList, sha256 } from "../api-freeze/records.ts";
 
 const REPORT = "packages/demo/demo.api.md";
@@ -64,7 +64,7 @@ function inForce(): string {
 
 describe("the API freeze gate, attacked by the review of M5", () => {
 	// Finding 1: a second freeze row without a date admits any text, and needs neither the owner's go nor a kind of change.
-	it.fails("refuses a break admitted by a new freeze row without a date once the freeze is in force", () => {
+	it("refuses a break admitted by a new freeze row without a date once the freeze is in force", () => {
 		const root = inForce();
 		put(root, { [REPORT]: "export function a(): string;\n" });
 		appendRow(root, "| F2 | (later) | every file of the frozen list | freeze | A60 | a second freeze |");
@@ -76,7 +76,7 @@ describe("the API freeze gate, attacked by the review of M5", () => {
 	});
 
 	// Finding 2: the gate compares with the text at `base` and never asks whether `base` holds the text recorded before.
-	it.fails("refuses a break called an addition whose base is moved to the commit of the break", () => {
+	it("refuses a break called an addition whose base is moved to the commit of the break", () => {
 		const root = inForce();
 		put(root, { [REPORT]: "export function a(): string;\n" });
 		appendRow(root, `| F2 | 2026-11-20 | \`${REPORT}\` | addition | A60 | an addition |`);
@@ -90,7 +90,7 @@ describe("the API freeze gate, attacked by the review of M5", () => {
 	});
 
 	// Finding 3: a new required field of a frozen format (old files no longer parse) adds lines only, so it passes as an addition.
-	it.fails("refuses a new required field of a frozen format called an addition", () => {
+	it("refuses a new required field of a frozen format called an addition", () => {
 		const root = inForce();
 		const required = MANIFEST.replace('\t\t"id": {', '\t\t"budget": {\n\t\t\t"type": "number"\n\t\t},\n\t\t"id": {').replace('\t\t"id",\n', '\t\t"budget",\n\t\t"id",\n');
 		put(root, { [FORM]: required });
@@ -100,6 +100,53 @@ describe("the API freeze gate, attacked by the review of M5", () => {
 		put(root, { [FROZEN_LIST]: listText(recorded.files) });
 		commit(root, "a required field", "2026-11-20T12:00:00Z");
 		expect(freezeProblems(root, [REPORT, FORM])).not.toEqual([]);
+	});
+
+	// The other side of finding 3: an optional field stays an addition, a constraint on a field that was there is a break.
+	it("passes a new optional field of a frozen format as an addition, and refuses a constraint added to an old field", () => {
+		const root = inForce();
+		const optional = MANIFEST.replace('\t\t"id": {', '\t\t"budget": {\n\t\t\t"type": "number"\n\t\t},\n\t\t"id": {');
+		put(root, { [FORM]: optional });
+		appendRow(root, `| F2 | 2026-11-20 | \`${FORM}\` | addition | A60 | a new optional field |`);
+		put(root, { [FROZEN_LIST]: listText(recordFrozen(root, [REPORT, FORM]).files) });
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([]);
+		put(root, { [FORM]: optional.replace('\t\t"id": {\n\t\t\t"type": "string"', '\t\t"id": {\n\t\t\t"minLength": 1,\n\t\t\t"type": "string"') });
+		put(root, { [FROZEN_LIST]: listText(recordFrozen(root, [REPORT, FORM]).files) });
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining("as a schema it is a break against the text at")]);
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining('#/properties/id: "minLength" is added')]);
+	});
+});
+
+describe("the frozen set and the owner's go, attacked by the review of M5 (finding 8)", () => {
+	it("refuses a frozen set of surface.ts that is not the list of docs/API-FREEZE.md", () => {
+		const root = inForce();
+		expect(frozenSetProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining('holds no section "The frozen files"')]);
+		put(root, { [FREEZE_DOC]: `${readFileSync(join(root, FREEZE_DOC), "utf8")}\n## The frozen files\n\n- \`${REPORT}\`\n` });
+		expect(frozenSetProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining(`${FORM}: frozen by surface.ts, and not in the list`)]);
+		expect(frozenSetProblems(root, [])).toEqual([expect.stringContaining(`${REPORT}: in the list of ${FREEZE_DOC}, and not frozen by surface.ts`)]);
+		expect(frozenSetProblems(root, [REPORT])).toEqual([]);
+	});
+
+	it("refuses a file that leaves the frozen list without a break row by the owner's go", () => {
+		const root = inForce();
+		put(root, { [FROZEN_LIST]: listText((readList(root) ?? []).filter((entry) => entry.path !== FORM)) });
+		commit(root, "the form unfrozen", "2026-11-20T12:00:00Z");
+		expect(freezeProblems(root, [REPORT])).toEqual([expect.stringContaining(`${FORM}: it left ${FROZEN_LIST}`)]);
+		put(root, { [DECISIONS_DOC]: `${DECISIONS}| A61 | 2026-11-20 | The form leaves the freeze | the owner's go |\n` });
+		appendRow(root, `| F2 | 2026-11-20 | \`${FORM}\` | break | A61 | the form leaves |`);
+		expect(freezeProblems(root, [REPORT])).toEqual([]);
+	});
+
+	it("takes the owner's go only from a cell of its own of the decision row", () => {
+		const root = inForce();
+		put(root, { [REPORT]: "export function a(): string;\n", [DECISIONS_DOC]: `${DECISIONS}| A61 | 2026-11-20 | A break without the owner's go | x |\n` });
+		appendRow(root, `| F2 | 2026-11-20 | \`${REPORT}\` | break | A61 | a break |`);
+		const recorded = recordFrozen(root, [REPORT, FORM]);
+		expect(recorded.problems).toEqual([]);
+		put(root, { [FROZEN_LIST]: listText(recorded.files) });
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining(`row F2 is a break, and its decision row A61 has no cell "the owner's go"`)]);
+		put(root, { [DECISIONS_DOC]: `${DECISIONS}| A61 | 2026-11-20 | A break | the owner's go |\n` });
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([]);
 	});
 });
 

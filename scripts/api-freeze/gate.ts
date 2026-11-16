@@ -7,20 +7,32 @@
  *
  * A freeze row admits the text it found. Before its date cell holds a date, it is refreshed by `--write` with every
  * merge up to the freeze (the base then is only a commit of the history); from its date on, its base must hold the
- * text and be committed on or before that date, so a later change cannot pass as the freeze.
+ * text and be committed on or before that date, so a later change cannot pass as the freeze, and no other freeze row
+ * may stand beside it.
+ *
+ * Decision A116 (issue M5-104) closed four holes the review of M5 found: the base of a change must hold the text the
+ * list recorded before it (read from the history of the list, not trusted); a JSON text form is also compared as a
+ * schema (`forms.ts`); a file that leaves the list needs a break row; and the owner's go is a cell of its own of the
+ * decision row. The set of frozen files is checked against the list of `docs/API-FREEZE.md` by `frozenSetProblems`.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { type ChangeRow, commitHolding, EVERY_FILE, FREEZE_DOC, FROZEN_LIST, type FrozenEntry, git, KINDS, readChanges, readDecisions, readList, sha256, textAt } from "./records.ts";
+import { schemaBreaks } from "./forms.ts";
+import { type ChangeRow, commitHolding, EVERY_FILE, FREEZE_DOC, FROZEN_FILES_HEADING, FROZEN_LIST, type FrozenEntry, git, KINDS, listHistory, readChanges, readDecisions, readFrozenFiles, readList, sha256, textAt } from "./records.ts";
 
 /** What the gate reads beside the frozen list. */
 interface Records {
 	readonly root: string;
 	readonly changes: ReadonlyMap<string, ChangeRow>;
 	readonly decisions: ReadonlyMap<string, string>;
+	/** The committed versions of the frozen list, newest first. */
+	readonly history: readonly (readonly FrozenEntry[])[];
 }
 
 const OWNERS_GO = "the owner's go";
+
+/** Says whether a decision row (`| A<n> | date | decision | evidence |`) has a cell, after its id and date, that is exactly the owner's go. */
+const givesOwnersGo = (decision: string): boolean => decision.split("|").slice(3).some((cell) => cell.trim() === OWNERS_GO);
 
 /** A line of a report or a text form that is documentation only: a comment, or a schema's description. */
 const isDocsLine = (line: string): boolean => /^\s*(\/\/|"description":)/.test(line);
@@ -36,13 +48,13 @@ const lines = (text: string): readonly string[] => text.split("\n");
 const apiLines = (text: string): string => lines(text).filter((line) => !isDocsLine(line)).join("\n");
 
 /** Why the row of an entry cannot admit its path, or `undefined`. */
-function rowProblem(entry: FrozenEntry, row: ChangeRow | undefined, records: Records): string | undefined {
+function rowProblem(entry: Pick<FrozenEntry, "path" | "row">, row: ChangeRow | undefined, records: Records): string | undefined {
 	if (row === undefined) return `its row ${entry.row} is not in the table "Changes" of ${FREEZE_DOC}`;
 	if (!KINDS.some((kind) => kind === row.kind)) return `row ${row.id} has the kind "${row.kind}"; it is one of ${KINDS.join(", ")}`;
 	if (row.paths === undefined ? row.kind !== "freeze" : !row.paths.includes(entry.path)) return `row ${row.id} does not name it (only a freeze row may say "${EVERY_FILE}")`;
 	const decision = records.decisions.get(row.decision);
 	if (decision === undefined) return `row ${row.id} names the decision row "${row.decision}", which section 9 of DECISIONS.md does not hold`;
-	if (row.kind === "break" && !decision.includes(OWNERS_GO)) return `row ${row.id} is a break, and its decision row ${row.decision} does not say "${OWNERS_GO}"`;
+	if (row.kind === "break" && !givesOwnersGo(decision)) return `row ${row.id} is a break, and its decision row ${row.decision} has no cell "${OWNERS_GO}"`;
 	return undefined;
 }
 
@@ -54,12 +66,36 @@ function freezeProblem(entry: FrozenEntry, row: ChangeRow, before: string | unde
 	return holds ? undefined : `row ${row.id} froze the text on ${row.date}, and its base ${entry.base} does not hold this text from that day or before`;
 }
 
+/** The entry of the newest earlier version of the list that another row admitted; `undefined` when the path was not listed before. */
+function recordedBefore(entry: FrozenEntry, history: Records["history"]): FrozenEntry | undefined {
+	for (const version of history) {
+		const earlier = version.find((other) => other.path === entry.path);
+		if (earlier?.row !== entry.row) return earlier;
+	}
+	return undefined;
+}
+
+/** Why the base of a change does not hold the text the list recorded before the change, or `undefined`. */
+function baseProblem(entry: FrozenEntry, before: string | undefined, history: Records["history"]): string | undefined {
+	const earlier = recordedBefore(entry, history);
+	if (earlier === undefined || (before !== undefined && sha256(before) === earlier.sha256)) return undefined;
+	return `its base ${entry.base} does not hold the text that ${FROZEN_LIST} recorded under row ${earlier.row} before row ${entry.row}; the base is the last commit that holds it`;
+}
+
 /** Why the text now is not of the kind its row says, against the text at the base, or `undefined`. */
-function kindProblem(entry: FrozenEntry, row: ChangeRow, now: string, root: string): string | undefined {
+function kindProblem(entry: FrozenEntry, row: ChangeRow, now: string, records: Records): string | undefined {
+	const root = records.root;
 	const before = textAt(root, entry.base, entry.path);
 	if (row.kind === "freeze") return freezeProblem(entry, row, before, root);
-	if (row.kind === "addition" && !onlyAdds(lines(before ?? ""), lines(now))) return `row ${row.id} calls it an addition, but it removes or changes a line of the text at ${entry.base}: that is a break`;
-	if (row.kind === "addition: docs only" && apiLines(before ?? "") !== apiLines(now)) return `row ${row.id} calls it docs only, but it changes more than comment and description lines against ${entry.base}`;
+	return baseProblem(entry, before, records.history) ?? changeProblem(entry, row, before ?? "", now);
+}
+
+/** Why a change by an addition row is not of its kind against the text at the base, or `undefined`. */
+function changeProblem(entry: FrozenEntry, row: ChangeRow, before: string, now: string): string | undefined {
+	if (row.kind === "addition" && !onlyAdds(lines(before), lines(now))) return `row ${row.id} calls it an addition, but it removes or changes a line of the text at ${entry.base}: that is a break`;
+	const breaks = row.kind === "addition" && entry.path.endsWith(".json") ? schemaBreaks(before, now) : [];
+	if (breaks.length > 0) return `row ${row.id} calls it an addition, but as a schema it is a break against the text at ${entry.base}: ${breaks.join("; ")}`;
+	if (row.kind === "addition: docs only" && apiLines(before) !== apiLines(now)) return `row ${row.id} calls it docs only, but it changes more than comment and description lines against ${entry.base}`;
 	return undefined;
 }
 
@@ -73,7 +109,7 @@ function entryProblems(entry: FrozenEntry, records: Records): readonly string[] 
 	const problem = rowProblem(entry, row, records);
 	if (problem !== undefined || row === undefined) return [`${entry.path}: ${problem ?? ""}`];
 	if (git(records.root, "merge-base", "--is-ancestor", entry.base, "HEAD") === undefined) return [`${entry.path}: its base ${entry.base} is not a commit that HEAD reaches`];
-	const kind = kindProblem(entry, row, now, records.root);
+	const kind = kindProblem(entry, row, now, records);
 	return kind === undefined ? [] : [`${entry.path}: ${kind}`];
 }
 
@@ -88,10 +124,46 @@ export function freezeProblems(root: string, expected: readonly string[] = []): 
 	const list = readList(root);
 	if (list === undefined) return [`${FROZEN_LIST} is missing or does not match its schema`];
 	if (list.length === 0) return [`${FROZEN_LIST} lists no file: a gate never passes on nothing`];
-	const records: Records = { root, changes: readChanges(root), decisions: readDecisions(root) };
+	const records: Records = { root, changes: readChanges(root), decisions: readDecisions(root), history: listHistory(root) };
 	const listed = new Set(list.map((entry) => entry.path));
 	const unlisted = expected.filter((path) => !listed.has(path)).map((path) => `${path}: a frozen surface without a row in ${FROZEN_LIST}; run \`pnpm api:freeze --write\``);
-	return [...unlisted, ...list.flatMap((entry) => entryProblems(entry, records))];
+	return [...secondFreezeProblems(records.changes), ...unlisted, ...leftProblems(listed, records), ...list.flatMap((entry) => entryProblems(entry, records))];
+}
+
+/** Once a freeze row is dated, every other freeze row of the table: a later change is an addition or a break, never a freeze. */
+function secondFreezeProblems(changes: ReadonlyMap<string, ChangeRow>): readonly string[] {
+	const freezes = [...changes.values()].filter((row) => row.kind === "freeze");
+	const inForce = freezes.find((row) => row.date !== undefined);
+	if (inForce === undefined) return [];
+	const others = freezes.filter((row) => row.id !== inForce.id);
+	return others.map((row) => `${FREEZE_DOC}: row ${row.id} is a second freeze row, and the freeze of row ${inForce.id} is in force since ${inForce.date ?? ""}: a later change is a row of kind addition, "addition: docs only" or break`);
+}
+
+/** Every file that an earlier version of the list held and the list now does not, unless the newest row naming it is a break by the owner's go. */
+function leftProblems(listed: ReadonlySet<string>, records: Records): readonly string[] {
+	const left = new Set(records.history.flat().map((entry) => entry.path).filter((path) => !listed.has(path)));
+	return [...left].flatMap((path) => {
+		const row = [...records.changes.values()].filter((change) => change.paths?.includes(path) === true).at(-1);
+		const why = row?.kind !== "break" ? `no row of kind break names it last` : rowProblem({ path, row: row.id }, row, records);
+		return why === undefined ? [] : [`${path}: it left ${FROZEN_LIST}, and ${why}`];
+	});
+}
+
+/**
+ * Checks the set of the frozen files that `surface.ts` names against the list of the section "The frozen files" of
+ * `docs/API-FREEZE.md`, so that a file cannot leave or enter the freeze by a change of the code alone.
+ *
+ * @param root - The repository root.
+ * @param paths - The frozen files the code names (`frozenPaths()`).
+ * @returns The problems; empty when both name the same files.
+ */
+export function frozenSetProblems(root: string, paths: readonly string[]): readonly string[] {
+	const listed = readFrozenFiles(root);
+	if (listed === undefined) return [`${FREEZE_DOC} holds no section "${FROZEN_FILES_HEADING.slice(3)}"`];
+	if (listed.length === 0) return [`${FREEZE_DOC}: the section "${FROZEN_FILES_HEADING.slice(3)}" lists no file: a gate never passes on nothing`];
+	const missing = paths.filter((path) => !listed.includes(path)).map((path) => `${path}: frozen by surface.ts, and not in the list of ${FREEZE_DOC}`);
+	const extra = listed.filter((path) => !paths.includes(path)).map((path) => `${path}: in the list of ${FREEZE_DOC}, and not frozen by surface.ts`);
+	return [...missing, ...extra];
 }
 
 /** The newest row of the table that names a path (a freeze row over every file names each). */
