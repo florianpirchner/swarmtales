@@ -36,6 +36,11 @@ The specification of a milestone is written and challenged before its issues sta
   the kernel's `runEnded`, staged calls and stage `review`, the City's Directors, the live resume, the Act I base,
   the API freeze, and the issue list with its waves. Not yet challenged; its section 14 indexes the decisions A48
   to A61.
+- [`13-m6-spec.md`](13-m6-spec.md): milestone M6, the release: samples 2 to 4 and the game tutorial, a mechanic and
+  a Director from a packed install with the run-time check of service calls, the rename of original games,
+  `swt doctor --online`, names and publishing, the data repository, the legacy removal and the main switch (each
+  prepared for the owner's hand), the carries of M5, and the issue list with its waves. Challenged in its section
+  "Challenge"; its section 17 indexes the decisions A118 to A134.
 
 What the builders found against a specification is in its errata file:
 [`08-m1-spec-errata.md`](08-m1-spec-errata.md), [`09-m2-spec-errata.md`](09-m2-spec-errata.md),
