@@ -64,6 +64,8 @@ export interface Dials {
 	readonly personas: boolean;
 	/** How strongly the gamemaker steers, 0 to 10. */
 	readonly gmDirection: number;
+	/** The cast figures to play (old `--cast`); none: a seeded pick. */
+	readonly cast: readonly string[];
 }
 
 /** From this direction residents may refuse the gamemaker's orders (old `FULL_DIRECTION`). */
@@ -92,7 +94,7 @@ function channelsUse(story: CityData, dials: Dials) {
 }
 
 function motivesUse(story: CityData, dials: Dials) {
-	return dials.coreMotives ? [motives(Value.Parse(MotivesOptions, { ...story.coreMotives, ...(dials.personas ? { personas: story.personas } : {}), noteTools: NOTE_TOOLS }))] : [];
+	return dials.coreMotives ? [motives(Value.Parse(MotivesOptions, { ...story.coreMotives, ...(dials.personas ? { personas: story.personas } : {}), ...(dials.cast.length === 0 ? {} : { cast: [...dials.cast] }), noteTools: NOTE_TOOLS }))] : [];
 }
 
 function levelsUses(story: CityData, dials: Dials) {

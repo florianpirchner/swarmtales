@@ -38,7 +38,7 @@ function climb(kernel: Kernel, activation: Activation, wrote: Set<string>): read
 	return activation.inputs.some((input) => input.text.includes("City factor of level 10: ")) ? [{ tool: "submitSolution", params: { level, code } }] : [];
 }
 
-const PARAMS = Value.Parse(CityParams, { agents: 6, minutes: 30, startLevel: 1, lastLevel: 10, passesPerMinute: 1, activation: "always", stopWhenDone: true, stopWhenSeatsDecided: false, personas: true, gamemaker: false, classifier: false, names: true, coreMotives: true, gmDirection: 4 });
+const PARAMS = Value.Parse(CityParams, { agents: 6, minutes: 30, startLevel: 1, lastLevel: 10, passesPerMinute: 1, activation: "always", stopWhenDone: true, stopWhenSeatsDecided: false, personas: true, gamemaker: false, classifier: false, names: true, coreMotives: true, cast: [], figureDirection: 4, gmDirection: 4 });
 
 const field = (value: unknown, name: string): unknown => (typeof value === "object" && value !== null ? Reflect.get(value, name) : undefined);
 const of = (events: readonly Envelope[], source: string, type: string): readonly Envelope[] => events.filter((event) => event.source.endsWith(`/${source}`) && event.type === type);

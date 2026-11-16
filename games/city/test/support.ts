@@ -33,6 +33,7 @@ const Effective = Type.Object(
 		classifier: Type.Boolean(),
 		names: Type.Boolean(),
 		coreMotives: Type.Boolean(),
+		figureDirection: Type.Integer(),
 		gmDirection: Type.Integer(),
 	},
 	{ description: "The dials of an oracle file that are params of the family" },
@@ -45,7 +46,7 @@ const Effective = Type.Object(
  * @param story - The story data of its setup: the shipped City, or the reduced City of the burn file.
  * @returns The game.
  */
-export const gameOf = (oracle: Oracle, story: CityData = CITY) => cityGameOf(story, Value.Parse(CityParams, Value.Parse(Effective, oracle.setup.definition?.effective)));
+export const gameOf = (oracle: Oracle, story: CityData = CITY) => cityGameOf(story, Value.Parse(CityParams, Value.Default(CityParams, Value.Parse(Effective, oracle.setup.definition?.effective))));
 
 type Is = (entry: OracleEntry | undefined) => boolean;
 

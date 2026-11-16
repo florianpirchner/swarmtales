@@ -31,6 +31,12 @@ const LOCKED = ["readBoard", "postBoard", "sendDM", "transferPoints", "createGro
 /** The residents a run of M5 may have: six (no larger run before Act II works with six, `12-m5-spec.md` 3.1). */
 const RESIDENTS = 6;
 
+/** The default of both direction dials (old `DEFAULT_DIRECTION`). */
+const DIRECTION = 4;
+
+/** From this figure direction a figure speaks for itself, with no persona beside it (old `led`). */
+const LED = 6;
+
 const flag = (value: boolean, description: string) => Type.Boolean({ default: value, description });
 
 /**
@@ -53,7 +59,9 @@ export const CityParams = Type.Object(
 		classifier: flag(true, "The Confessor labels what residents say."),
 		names: flag(true, "Residents choose names."),
 		coreMotives: flag(true, "Residents have core motives."),
-		gmDirection: Type.Integer({ minimum: 0, maximum: 10, default: 4, description: "How strongly the gamemaker steers." }),
+		cast: Type.Array(Type.String({ description: "A figure id of the cast, e.g. auditor." }), { default: [], description: "The cast figures to play, at most one per resident (old `--cast`); none: a seeded pick." }),
+		figureDirection: Type.Integer({ minimum: 0, maximum: 10, default: DIRECTION, description: "How strongly a cast figure's prompt steers it; from 6 a figure plays no persona (old `led`)." }),
+		gmDirection: Type.Integer({ minimum: 0, maximum: 10, default: DIRECTION, description: "How strongly the gamemaker steers." }),
 	},
 	{ description: "The run dials of the City." },
 );
@@ -99,7 +107,9 @@ function directorsOf(story: CityData, params: CityParams) {
  *
  * @param params - The dials; the defaults of {@link CityParams} for the rest.
  * @returns The game in its builder form.
- * @throws SwtError `SWT-G041` when `agents` is not six.
+ * @throws SwtError `SWT-G041` when `agents` is not six; when `cast` or a `figureDirection` other than 4 is set without
+ * core motives (the old command line's refusals); when `cast` names a figure twice or one the story lacks, or more
+ * figures than residents; or when `figureDirection` is 6 or more with a cast of fewer figures than residents.
  *
  * @public
  */
@@ -115,12 +125,13 @@ export function cityGame(params: CityParams) {
  * @param story - The story data.
  * @param params - The dials.
  * @returns The game in its builder form.
- * @throws SwtError `SWT-G041` when `agents` is not six.
+ * @throws SwtError `SWT-G041` when `agents` is not six, or a dial or the cast is refused (see {@link cityGame}).
  *
  * @public
  */
 export function cityGameOf(story: CityData, params: CityParams) {
-	if (params.agents !== RESIDENTS) throw new SwtError(paramOverride({ name: "agents", problem: "mismatch", message: `must be ${String(RESIDENTS)} at M5, got ${String(params.agents)}` }));
+	const refused = dialIssue(params) ?? castIssue(story, params);
+	if (refused !== undefined) throw new SwtError(paramOverride({ name: refused.name, problem: "mismatch", message: refused.message }));
 	const confessed = params.classifier ? [interpretations({ noteTools: NOTE_TOOLS, every: story.gamemaker.every })] : [];
 	return defineGame({
 		id: "city",
@@ -154,12 +165,41 @@ export function cityGameOf(story: CityData, params: CityParams) {
 	});
 }
 
+interface Refusal {
+	readonly name: string;
+	readonly message: string;
+}
+
+// The old command line's refusals of the dials (`apps/cli/src/args.ts`): the dials that steer core motives need them.
+function dialIssue(params: CityParams): Refusal | undefined {
+	if (params.agents !== RESIDENTS) return { name: "agents", message: `must be ${String(RESIDENTS)} at M5, got ${String(params.agents)}` };
+	if (params.coreMotives) return undefined;
+	if (params.cast.length > 0) return { name: "cast", message: "needs core motives: leave it out, or set coreMotives to true" };
+	return params.figureDirection === DIRECTION ? undefined : { name: "figureDirection", message: "steers cast figures by their core motives: leave it at 4, or set coreMotives to true" };
+}
+
+// The cast the run names, with the old words (`castList` of the command line, `namedCast` of the motives). From
+// figure direction 6 a figure plays no persona while a resident beyond the cast keeps its seeded one; the persona is
+// one fact for all seats, so only a full cast is played there (erratum of M5-48).
+function castIssue(story: CityData, params: CityParams): Refusal | undefined {
+	const { cast } = params;
+	if (cast.length === 0) return undefined;
+	const known: readonly string[] = story.coreMotives.figures.map((figure) => figure.id);
+	const unknown = cast.find((id) => !known.includes(id));
+	if (cast.length > RESIDENTS) return { name: "cast", message: `names ${String(cast.length)} figures for ${String(RESIDENTS)} residents` };
+	if (new Set(cast).size !== cast.length) return { name: "cast", message: "names a figure twice" };
+	if (unknown !== undefined) return { name: "cast", message: `names the unknown figure "${unknown}"; the cast has ${known.join(", ")}` };
+	return params.figureDirection >= LED && cast.length < RESIDENTS ? { name: "figureDirection", message: `of 6 or more needs a figure for every resident, and cast names ${String(cast.length)} of ${String(RESIDENTS)}` } : undefined;
+}
+
 // The City order of the system text (A89, M5-81): the city with its names deadline and every tool, the character and
-// the seeded persona `motives` deals (A95). Without core motives `motives` is not loaded: no character, no persona.
+// the persona `motives` deals (A95, A98). Without core motives `motives` is not loaded: no character, no persona. From
+// figure direction 6 every seat plays a figure (`castIssue`) and speaks for itself: no persona (old `led`; the rest
+// of the old prompt at 6 and above is not carried, A89).
 function promptOf(story: CityData, params: CityParams) {
 	const city = { name: story.city, survivors: story.run.survivors, tools: "all" as const, ...(params.names ? { namesUntil: story.names.untilMinute } : {}) };
 	if (!params.coreMotives) return { city };
-	return { frame: story.coreMotives.frame, character: "motives.prose", city, ...(params.personas ? { persona: "motives.personas" } : {}) };
+	return { frame: story.coreMotives.frame, character: "motives.prose", city, ...(params.personas && params.figureDirection < LED ? { persona: "motives.personas" } : {}) };
 }
 
 /**
