@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The two runs every standing part starts from, played once per test session (decision A99): the fake run, and the
- * straight run with a snapshot at each of its boundaries. The first part that needs a game's runs takes a lock file,
- * plays them into a staging folder and renames it into the cache; a part that finds the lock waits for the folder
- * (or takes over the lock of a worker that died). Each part copies the folders into its own working directory, so
- * its resumes write beside them as before.
+ * The run every standing part starts from, played once per test session (decision A99): the fake run with a snapshot
+ * at every boundary up to `CAP` ticks (`--snapshot-at`), of which those the part resumes from are kept. The tick
+ * count of a run is known only once it is played, so it is played once, not first plainly and then with the snapshots
+ * of its boundaries (decision A108; a snapshot writes no event, so the log is the fake run's). The first part that
+ * needs a game's run takes a lock file, plays it into a staging folder and renames it into the cache; a part that
+ * finds the lock waits for the folder (or takes over the lock of a worker that died). Each part copies the folder into
+ * its own working directory, so its resumes write beside it as before.
  *
  * The cache of a session is `<tmp>/swt-standing-cache/session-<pid>`, with the pid of the Vitest process that started
  * the workers (their parent), and one folder per run, keyed by the game file, the seed and a hash of every file the
- * fake run reads (the sources of the games, the mechanics, the packages and the command line, tests left out). A
+ * fake run reads (the sources of the games, the mechanics, the packages and the command line, tests and build output left out). A
  * session folder whose process is gone, or that is older than a day, is removed; nothing outside the cache's own
  * folder is touched. The session folder goes when every part has said it is done.
  */
@@ -27,18 +29,26 @@ const SESSION = join(ROOT, `session-${String(process.ppid)}`);
 const REPOSITORY = fileURLToPath(new URL("../../../", import.meta.url));
 /** The folders whose files the fake run of a game file reads. */
 const INPUTS = ["games", "mechanics", "packages", "apps/cli/src"];
-const SKIPPED = new Set(["node_modules", "dist", "test"]);
+/**
+ * Left out of the hash: dependencies, tests and build output. The typecheck and the API reports of `pnpm check` write
+ * `dist-types`, `temp` and `*.tsbuildinfo` while the tests run, so a part that started later missed the cache and
+ * played every run again (M5-98: 268 s against 1.7 s).
+ */
+const SKIPPED = new Set(["node_modules", "dist", "dist-types", "temp", "test"]);
+const skipped = (name: string): boolean => SKIPPED.has(name) || name.endsWith(".tsbuildinfo");
 const DAY = 24 * 60 * 60 * 1000;
 const WAIT = 500_000;
 
+/** A run's snapshots are asked for after each of the first `CAP` numbers of finished ticks; a longer run fails its check. */
+export const CAP = 1000;
+
 const Shared = Type.Object(
 	{
-		plain: Type.Object({ code: Type.Number(), err: Type.String(), folder: Type.String() }, { description: "The fake run: its exit code, its error output and its folder" }),
-		straight: Type.Union([Type.Null(), Type.Object({ code: Type.Number(), err: Type.String(), folder: Type.String() })], { description: "The run with the snapshots; null for a run without a boundary" }),
+		straight: Type.Object({ code: Type.Number(), err: Type.String(), folder: Type.String() }, { description: "The fake run with the snapshots: its exit code, its error output and its folder" }),
 	},
 	{ description: "What the writer of a cached run recorded (result.json)" },
 );
-/** The two runs of a cache entry, with their folders relative to the working directory of the part that read them, and the entry. */
+/** The run of a cache entry, with its folder relative to the working directory of the part that read it, and the entry. */
 export type SharedRuns = Static<typeof Shared> & { readonly entry: string };
 
 /** Whether the process of a pid still runs (a process of another user counts as running). */
@@ -72,7 +82,7 @@ function inputFiles(folder: string): readonly string[] {
 	const path = join(REPOSITORY, folder);
 	if (!existsSync(path)) return [];
 	return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
-		if (SKIPPED.has(entry.name)) return [];
+		if (skipped(entry.name)) return [];
 		const inner = relative(REPOSITORY, join(path, entry.name));
 		return entry.isDirectory() ? inputFiles(inner) : [inner];
 	});
@@ -91,16 +101,21 @@ function inputHash(): string {
 /** The run folder a command printed (`run: <folder>`), relative to the working directory. */
 export const folderOf = (printed: Printed): string => (printed.out.at(-1) ?? "").replace(/^run: /, "");
 
-/** Plays the two runs into `staging` and records them in its `result.json`. */
+/**
+ * Plays the run into `staging` with a snapshot at every boundary below `CAP`, removes the snapshots of the boundaries
+ * that `boundariesOf` does not name, and records the run in its `result.json`.
+ */
 async function write(staging: string, file: string, seed: number, boundariesOf: (ticks: number) => readonly number[]): Promise<void> {
 	mkdirSync(staging, { recursive: true });
-	const swt = cli(staging);
-	const plain = await swt("run", file, "--fake", "--seed", String(seed), "--out", "plain");
-	const folder = folderOf(plain);
-	const ticks = plain.code === 0 ? eventsOf(join(staging, folder)).filter((event) => event.type === "tick_ended").length : 0;
-	const all = boundariesOf(ticks);
-	const straight = all.length === 0 ? null : await swt("run", file, "--fake", "--seed", String(seed), "--out", "straight", "--snapshot-at", all.join(","));
-	const shared: Static<typeof Shared> = { plain: { code: plain.code, err: plain.err, folder }, straight: straight === null ? null : { code: straight.code, err: straight.err, folder: folderOf(straight) } };
+	const every = Array.from({ length: CAP }, (_, tick) => tick).join(",");
+	const straight = await cli(staging)("run", file, "--fake", "--seed", String(seed), "--out", "straight", "--snapshot-at", every);
+	const folder = folderOf(straight);
+	const snapshots = join(staging, folder, "snapshots");
+	if (straight.code === 0 && existsSync(snapshots)) {
+		const kept = new Set(boundariesOf(eventsOf(join(staging, folder)).filter((event) => event.type === "tick_ended").length).map((tick) => `t${String(tick)}.json`));
+		for (const name of readdirSync(snapshots)) if (!kept.has(name)) rmSync(join(snapshots, name));
+	}
+	const shared: Static<typeof Shared> = { straight: { code: straight.code, err: straight.err, folder } };
 	writeFileSync(join(staging, "result.json"), JSON.stringify(shared));
 }
 
@@ -127,16 +142,16 @@ function lock(path: string): boolean {
 }
 
 /**
- * The fake run and the straight run with snapshots of one game file and seed, copied into `cwd` under `out`: played
- * by the first part that asks, read from the cache by the others.
+ * The fake run with snapshots of one game file and seed, copied into `cwd` under `out`: played by the first part that
+ * asks, read from the cache by the others.
  *
- * @param input - The game file, the seed, the boundaries of a run by its tick count, and where to copy the runs.
+ * @param input - The game file, the seed, the boundaries of a run by its tick count, and where to copy the run.
  * @param input.file - The game file, absolute.
  * @param input.seed - The fake seed.
- * @param input.boundariesOf - The boundaries of the straight run's snapshots, by the plain run's tick count.
+ * @param input.boundariesOf - The boundaries whose snapshots are kept, by the run's tick count.
  * @param input.cwd - The working directory of the part.
- * @param input.out - The folder under `cwd` the runs are copied into.
- * @returns The runs, with their folders relative to `cwd`, and the cache entry (for `claim`).
+ * @param input.out - The folder under `cwd` the run is copied into.
+ * @returns The run, with its folder relative to `cwd`, and the cache entry (for `claim`).
  * @throws Error When no run is in the cache after `WAIT` milliseconds.
  */
 export async function sharedRuns(input: { file: string; seed: number; boundariesOf: (ticks: number) => readonly number[]; cwd: string; out: string }): Promise<SharedRuns> {
@@ -163,8 +178,7 @@ export async function sharedRuns(input: { file: string; seed: number; boundaries
 	}
 	const shared = Parse(Shared, JSON.parse(readFileSync(join(entry, "result.json"), "utf8")));
 	cpSync(entry, join(input.cwd, input.out), { recursive: true });
-	const moved = (folder: string): string => join(input.out, folder);
-	return { entry, plain: { ...shared.plain, folder: moved(shared.plain.folder) }, straight: shared.straight === null ? null : { ...shared.straight, folder: moved(shared.straight.folder) } };
+	return { entry, straight: { ...shared.straight, folder: join(input.out, shared.straight.folder) } };
 }
 
 /**

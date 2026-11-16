@@ -3,12 +3,14 @@
  * The standing checks of every game of the games list (`games/index.ts`), through the command line (M4
  * specification 4.3), for each fake seed of the game:
  *
- * - the fake run: `swt run --fake` ends without the reason `error`, prints no warning and holds an accepted call;
- * - resume: the same run with `--snapshot-at` for its boundaries (of a run of at most 12 ticks, as the city slice is,
- *   the first, the middle and the last; of a longer run the middle one only, decisions A97, A102 and A107: a resume
+ * - the fake run: `swt run --fake` with `--snapshot-at` for every boundary up to `CAP` ticks (decision A108: the run is
+ *   played once, not first plainly and then with snapshots; a snapshot writes no event) ends without the reason
+ *   `error`, prints no warning but those of the boundaries after its end, and holds an accepted call;
+ * - resume: of the run's boundaries the command line resumes from some (of a run of at most 12 ticks, as the city slice
+ *   is, the first, the middle and the last; of a longer run the middle one only, decisions A97, A102 and A107: a resume
  *   through the command line verifies two hash chains and replays, and the Whispers run of 45 ticks took 116 s from
- *   three) writes the same log; `swt resume` from each snapshot writes a log that is the straight log once the marker
- *   `run_resumed` is taken out and the envelope fields behind it are moved back (decision A34: no payload is touched).
+ *   three); `swt resume` from each snapshot writes a log that is the straight log once the marker `run_resumed` is
+ *   taken out and the envelope fields behind it are moved back (decision A34: no payload is touched).
  *   The other boundaries are the job of the in-process `checkResumeEveryBoundary` of `@swarmtales/testkit`, run by each game's
  *   `games/<name>/test/standing.test.ts` (every boundary of a run of at most 12 ticks, the eight of `sampleBoundaries`
  *   of a longer one); nine men's morris runs it on its scripted runs, a fake match of one game and, at eight sampled
@@ -19,11 +21,10 @@
  *   in-process `checkReplay` of each game's standing test (decision A102).
  *
  * The checks run in `PARTS` test files (`standing.test.ts`, `standing-b.test.ts`, `standing-c.test.ts`), so the runs
- * of the list are checked in several workers (M4-71: nine men's morris alone took 150 s in one file). The fake run and
- * the straight run with the snapshots of its boundaries are played once per test session and shared by the parts
- * (decision A99, `standing-cache.ts`); each part checks the fake run's end and the straight log as its own, and starts
- * with the runs whose index modulo `PARTS` is its own (the last of the list, the longest, first), so the parts play
- * different games at once. The rest of a run's checks is one unit, and the first part that comes to it takes it
+ * of the list are checked in several workers (M4-71: nine men's morris alone took 150 s in one file). The fake run with
+ * the snapshots is played once per test session and shared by the parts (decision A99, `standing-cache.ts`); each part
+ * checks the run's end and its snapshots as its own, and starts with the runs whose index modulo `PARTS` is its own
+ * (the last of the list, the longest, first), so the parts play different games at once. The rest of a run's checks is one unit, and the first part that comes to it takes it
  * (`claim`), so a part that starts late (Vitest runs fewer workers than parts) finds less to do. Together the parts
  * check every run once.
  *
@@ -34,7 +35,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { claim, folderOf, partDone, releaseClaims, sharedRuns, type SharedRuns } from "./standing-cache.ts";
+import { CAP, claim, folderOf, partDone, releaseClaims, sharedRuns, type SharedRuns } from "./standing-cache.ts";
 import { cli, eventsOf, withoutMarker, type Printed, type StoredEnvelope } from "./support.ts";
 
 /** The number of test files the checks are dealt over. */
@@ -56,22 +57,29 @@ export const RUNS = [...LIST.matchAll(LINE)].flatMap(([, name = "", file = "", s
  */
 const boundariesOf = (ticks: number): readonly number[] => (ticks <= 0 ? [] : ticks <= EVERY ? [...new Set([0, Math.floor(ticks / 2), ticks - 1])] : [Math.floor(ticks / 2)]);
 
-/** The log of the fake run, checked: the run ended without an error or a warning, and holds an accepted call. */
-function fakeLog(cwd: string, plain: SharedRuns["plain"]): readonly StoredEnvelope[] {
-	expect([plain.code, plain.err]).toEqual([0, ""]);
-	const log = eventsOf(join(cwd, plain.folder));
+/** The warnings of `--snapshot-at` for the boundaries below `CAP` that a run of `ticks` ticks does not have. */
+const afterTheEnd = (ticks: number): ReadonlySet<string> =>
+	new Set(Array.from({ length: Math.max(CAP - ticks, 0) }, (_, index) => `warning: \`--snapshot-at ${String(ticks + index)}\` wrote no snapshot: the run ended after ${String(ticks)} ticks and had no tick boundary after ${String(ticks + index)}`));
+
+/**
+ * The log of the fake run, checked: the run ended without an error, shorter than `CAP` ticks, with no warning but
+ * those of the boundaries after its end, holds an accepted call, and has the snapshots of the boundaries to resume from.
+ */
+function fakeLog(cwd: string, straight: SharedRuns["straight"]): { readonly log: readonly StoredEnvelope[]; readonly ticks: number } {
+	expect(straight.code).toBe(0);
+	const log = eventsOf(join(cwd, straight.folder));
+	const ticks = log.filter((event) => event.type === "tick_ended").length;
 	expect(log.at(-1)?.type).toBe("run_ended");
 	expect(Reflect.get(Object(log.at(-1)?.payload), "reason")).not.toBe("error");
 	expect(log.filter((event) => event.type === "tool_result").length).toBeGreaterThan(0);
-	return log;
-}
-
-/** The folder of the run with the snapshots, checked: it ended as the fake run did, with `count` snapshots and the fake run's log. */
-function straightFolder(cwd: string, straight: SharedRuns["straight"], count: number, log: readonly StoredEnvelope[]): string {
-	const folder = straight?.folder ?? "";
-	expect([straight?.code, straight?.err, readdirSync(join(cwd, folder, "snapshots")).length]).toEqual([0, "", count]);
-	expect(eventsOf(join(cwd, folder))).toEqual(log);
-	return folder;
+	expect(ticks, `a run of at least ${String(CAP)} ticks: raise CAP`).toBeLessThan(CAP);
+	const expected = afterTheEnd(ticks);
+	const lines = straight.err.split("\n").filter((line) => line !== "");
+	expect([lines.filter((line) => !expected.has(line)), lines.length]).toEqual([[], expected.size]);
+	const snapshots = join(cwd, straight.folder, "snapshots");
+	const all = boundariesOf(ticks);
+	expect(all.length === 0 ? [] : readdirSync(snapshots).sort()).toEqual(all.map((tick) => `t${String(tick)}.json`).sort());
+	return { log, ticks };
 }
 
 type Swt = (...args: readonly string[]) => Promise<Printed>;
@@ -132,12 +140,11 @@ export function describeStandingPart(part: number): void {
 	describe(`the standing checks through the command line, part ${String(part + 1)} of ${String(PARTS)}`, () => {
 		it.each(first)("$name, fake seed $seed: the fake run holds, and resumed from its boundaries it is the straight run, verifies and replays", async ({ name, seed, file }) => {
 			const out = `${name}-${String(seed)}`;
-			const { plain, straight, entry } = await sharedRuns({ file, seed, boundariesOf, cwd, out });
-			const log = fakeLog(cwd, plain);
-			const ticks = log.filter((event) => event.type === "tick_ended").length;
+			const { straight, entry } = await sharedRuns({ file, seed, boundariesOf, cwd, out });
+			const { log, ticks } = fakeLog(cwd, straight);
 			const all = boundariesOf(ticks);
 			if (all.length === 0) return;
-			const folder = straightFolder(cwd, straight, all.length, log);
+			const folder = straight.folder;
 			for (const unit of unitsOf(ticks, all)) {
 				if (!claim(entry, unit.name, part)) continue;
 				if (unit.replay) expect((await swt("replay", folder, "--game", file)).code).toBe(0);
