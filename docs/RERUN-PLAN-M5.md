@@ -31,7 +31,7 @@ and `$L` for `--ledger games/m5-ledger.jsonl`:
 | 2 | Whispers `whispers-rumours`, seed 11 | as 1, with `--set receipts=false` | 1.00 | 0.21 | 53 | `whispers/smoke/<run>/` |
 | 3 | City Act I, seed 7: **the base** | `swt run games/city/game.ts --seed 7 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --pause-on progression.act_ended --budget 0.50 $L --purpose exploratory --out $RUNS/city/base` | 0.50 | 0.38 | 54 | `city/base/<run>/` |
 | 3b | a second base, only if 3 does not pause on `act_ended` | as 3 | 0.50 | | 54 | `city/base/<run>/` |
-| 4 | City Act II, the check resume: 6 ticks from the base | `swt resume $RUNS/city/base/<base> --game games/city/game.ts --ticks 6 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --budget 0.40 $L --out $RUNS/city/act2` | 0.40 | 0.29 | 55 | `city/act2/<run>/` |
+| 4 | City Act II, the check resume: 6 ticks from the base | `swt resume $RUNS/city/base/<base> --game games/city/game.ts --ticks 14 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --budget 0.40 $L --out $RUNS/city/act2/check` (`--ticks` counts the base's 8 ticks; `--ticks 6` until A111) | 0.40 | 0.29 | 55 | `city/act2/check/` (the first play with `--ticks 6`: `city/act2/check-0/`) |
 | 5a | City Act II from the base to its end (done-when 6) | as 4 without `--ticks`, with `--budget 2.00 --purpose exploratory` | 2.00 | 1.90 | 55 | `city/act2/<run>/` |
 | 5b, 5c | the same twice more (cut 1 and cut 2 of 10.2: 5c goes first) | as 5a | 2.00 each | 1.90 each | 55 | `city/act2/<run>/` |
 
@@ -71,6 +71,15 @@ included, so `--ticks 6` was reached at the resume: the run wrote `run_resumed` 
 verify with `--previous`, replay, scan), but no live tick was played, so run 5a waits for the integrator: the row's
 "6 ticks from the base" is `--ticks 14`, a change of the command that needs a decision row. Spent so far 1.2348, as
 before.
+
+**Run 4 played again, and run 5a** (issue M5-55, A111, runtime r7). Run 4 with `--ticks 14`
+(`city/act2/check/city-002`; on `data/runs` `city/act2/check/`, the first play `city/act2/check-0/`): 0.0741 USD of
+the cap 0.40, ticks 8 to 13 played, 118 activations, 155 calls, none refused, one `blame` upheld by the judge live;
+it stopped open at 14 (exit 3). Run 5a (`city/act2/5a/city-001`, on `data/runs` `city/act2/5a/`): 0.3724 USD of the
+cap 2.00 against 1.90 expected, ticks 8 to 54, ended by its own rule (exit 0) after three tribunals and three
+exiles, each carried out by its listeners, so the must-show of run 5a holds; no request reached the second price
+tier (at most 80,703 input tokens). Spent so far 1.6813 (runs 1 to 3 1.2348, run 4 0 and 0.0741, run 5a 0.3724).
+Runs 5b and 5c wait for the integrator.
 
 The seeds are the games' own (Whispers 11, the City 7) and are written out so that no environment can move them.
 `--purpose`: the specification names none; runs 1, 2 and 4 are smokes (the default, read as smokes before the next

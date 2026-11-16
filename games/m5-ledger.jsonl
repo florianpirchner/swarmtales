@@ -7,3 +7,7 @@
 {"run":"exploratory/city-001","id":"78c06f71-743d-473b-beb8-6e607e44dd32","costUsd":0.06857565999999995,"at":"2026-11-16T09:15:10.337Z"}
 {"run":"smoke/city-001","id":"4617f85e-f435-474a-91e1-d5bbfff2cfdf","reservedUsd":0.4,"base":"city-001","at":"2026-11-16T09:23:21.125Z"}
 {"run":"smoke/city-001","id":"4617f85e-f435-474a-91e1-d5bbfff2cfdf","costUsd":0,"at":"2026-11-16T09:23:21.558Z"}
+{"run":"smoke/city-002","id":"1042f026-de4a-4366-bd40-5ea90f92e884","reservedUsd":0.4,"base":"city-001","at":"2026-11-16T09:26:51.794Z"}
+{"run":"smoke/city-002","id":"1042f026-de4a-4366-bd40-5ea90f92e884","costUsd":0.07413800500000005,"at":"2026-11-16T09:31:33.340Z"}
+{"run":"exploratory/city-001","id":"e8a0b100-d587-48da-84e3-f29c911f2d90","reservedUsd":2,"base":"city-001","at":"2026-11-16T09:35:00.977Z"}
+{"run":"exploratory/city-001","id":"e8a0b100-d587-48da-84e3-f29c911f2d90","costUsd":0.37242944999999983,"at":"2026-11-16T09:56:30.679Z"}
