@@ -207,8 +207,8 @@ Analyses the runs of an experiment against its pass rule. It has no flag of its 
 
 ### `swt doctor`
 
-Checks the setup offline and prints one line per check: `ok`, `warn` or `fail`, what was checked, what was found.
-It reads files and the environment, writes nothing, and names a key only by its variable, never by its value.
+Checks the setup offline (and with `--online` one request per provider, below) and prints one line per check: `ok`, `warn` or `fail`, what was checked, what was found.
+It reads files and the environment, writes nothing but the lines of `--ledger`, and names a key only by its variable, never by its value.
 `--json` prints one JSON line `{ "checks": [{ "check", "status", "detail" }] }`.
 
 | Check | `ok` | `warn` | `fail` |
@@ -221,14 +221,39 @@ It reads files and the environment, writes nothing, and names a key only by its 
 | `key <provider>`, for `anthropic` and `openrouter` | a key is set, in the first of `SWT_ANTHROPIC_API_KEY`, `ARENA_ANTHROPIC_API_KEY` (or `SWT_OPENROUTER_API_KEY`, `OPENROUTER_API_KEY`) that is not empty; a second one that is set is named as not read | no key is set (a fake run needs none) | the value is too short to be a key (`SWT-X006`) |
 | `env` | which of `SWT_PROVIDER` and `SWT_MODEL` are set | an `SWT_` name that `swt` does not read, one line each | |
 
+`swt doctor --online` goes on after these checks, with every provider that has a key that can be used, or only the
+one of `--provider`. Per provider it binds the alias of the provider that the price table makes cheapest, with an
+output cap of one token, and prints the estimated cost of one minimal request (64 input tokens and 1 output token at
+the table's prices) **before** it sends that request: the one input line `Answer with the one word: ready`, no system
+prompt, no tool. Then it prints the answer time and the cost of the usage. The cost meter holds the cap of
+`--budget` (0.01 USD when left out) over all requests: a provider whose estimate does not fit under what is left is
+skipped. With `--ledger <file>` the cap is reserved in the spend ledger under the name `doctor/online` before the
+first request, and the cost line follows the last, as for a run (`SWT-C025` when it has no room). The key's value is
+never printed: every line passes the key broker's redaction.
+
+| Check | `ok` | `warn` | `fail` |
+|---|---|---|---|
+| `online <provider>`, the estimate | the model and the estimated cost; the request is sent | the estimate is above what is left of the budget: no request | |
+| `online <provider>`, the answer | the model answered: the answer time, the tokens, the cost | | a refused key or an unreachable provider: the answer time, the provider's error text (redacted) |
+| `online <provider>`, no request | | | `--provider` names a provider without a key that can be used, or no alias of the provider has a price |
+| `online` | | no provider has a key: nothing was asked | |
+
+Most online checks print two lines, the estimate and the answer; `--json` holds both in order.
+
 | Flag | What |
 |---|---|
 | `--json` | print the checks as one JSON line |
+| `--online` | also send one minimal request per provider, its estimated cost printed first |
+| `--provider <id>` | with `--online`: ask only this provider (`anthropic`, `openrouter`); `SWT-X002` for an unknown one |
+| `--budget <usd>` | with `--online`: the cap of all requests, held by the cost meter; 0.01 when left out |
+| `--ledger <file>` | with `--online`: the spend ledger the cap is reserved in |
+
+`--provider`, `--budget` and `--ledger` without `--online` are refused (`SWT-C003`).
 
 | Exit code | Meaning |
 |---|---|
 | 0 | no check failed (a `warn` is worth a look) |
-| 1 | a check failed; or an error before the work: the issues are printed |
+| 1 | a check failed (with `--online` also a refused key or an unreachable provider); or an error before the work: the issues are printed |
 
 Every command takes `--help`.
 

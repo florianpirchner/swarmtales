@@ -74,9 +74,9 @@
 		},
 		{
 			"path": "packages/models/models.api.md",
-			"sha256": "0d808b77aff28dda73b81844fda52da2d8d31078c9311287e5cb60bc1f224fd8",
-			"base": "565efaeb967692d962f43e53235a9b78e798737d",
-			"row": "F1"
+			"sha256": "bf01f55b458c8e3e4d8747faebbc0bc64390bd2bcba68deef9fce8c617b4b91d",
+			"base": "b75c6e643948ee333ebd6c96b66635ef15b6cbe6",
+			"row": "F7"
 		},
 		{
 			"path": "packages/prompts/prompts.api.md",
@@ -110,9 +110,9 @@
 		},
 		{
 			"path": "scripts/api-freeze/surface/cli.json",
-			"sha256": "b41646d525438fb8b549576dcc3050b492466c8799eab9ce06921c92f5bcb4ca",
-			"base": "35c46861f4fd333af548fce6cceb055675f4d891",
-			"row": "F3"
+			"sha256": "8927a160ff67f3a57185c82292b99c96bb90226acf5b0ccae4b17c641fafbdb6",
+			"base": "b75c6e643948ee333ebd6c96b66635ef15b6cbe6",
+			"row": "F7"
 		},
 		{
 			"path": "scripts/api-freeze/surface/envelope.json",

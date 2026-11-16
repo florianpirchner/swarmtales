@@ -18,6 +18,7 @@ export { RUN_RECORDS } from "./records.ts";
 export { resumeRefused, resumeRun, type ResumeRunInput } from "./resume.ts";
 export { ENV_NAMES, readEnv, setNames } from "./env.ts";
 export { doctor, PLATFORM_LINE, runDoctor, type DoctorCheck, type DoctorInput } from "./doctor.ts";
+export { online, ONLINE_BUDGET_USD, onlineFlags, type OnlineFlags } from "./doctor-online.ts";
 export { badSet, liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, unknownWord, COMMANDS, FLAGS, helpOf, isCommand, usageOf, type CommandName, type Flags, type LiveFlags } from "./flags.ts";
 export { confirmatoryAlone, runLive, type LiveInput, type LiveResult } from "./live.ts";
 export { confirmatoryDirty, readSourceTree, type SourceTree } from "./tree.ts";

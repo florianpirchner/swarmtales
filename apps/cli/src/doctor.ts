@@ -12,6 +12,7 @@ import { SwtError } from "@swarmtales/contracts";
 import { createKeyBroker, KEY_VARIABLES } from "@swarmtales/models";
 import { Type, type Static } from "typebox";
 import { Value } from "typebox/value";
+import { online, type OnlineFlags } from "./doctor-online.ts";
 import { ENV_NAMES, readEnv, setNames } from "./env.ts";
 import type { CliIo } from "./main.ts";
 
@@ -207,17 +208,27 @@ export function doctor(input: DoctorInput): readonly DoctorCheck[] {
 
 /**
  * `swt doctor`: prints one line per check (`ok`, `warn` or `fail`, what was checked, what was found), or with
- * `--json` one line `{ "checks": [...] }`.
+ * `--json` one line `{ "checks": [...] }`. With `--online` the checks of `online` follow; a line is printed as soon
+ * as its check is known, so the estimate of a request stands before the request is sent.
  *
  * @param json - True for `--json`.
- * @param io - The current directory, the output, and the environment and the Node version when a test passes its own.
+ * @param flags - The flags of `--online` (`onlineFlags`); offline when undefined.
+ * @param io - The current directory, the output, and the environment, the Node version and the model source when a
+ * test passes its own.
  * @returns 0 when no check failed, 1 when one did.
+ * @throws SwtError What `online` throws.
  *
  * @public
  */
-export function runDoctor(json: boolean, io: CliIo): number {
-	const checks = doctor({ cwd: io.cwd, node: io.node ?? process.version, env: io.env ?? readEnv([...ENV_NAMES, ...setNames("SWT_")]), own: PACKAGE_FILE });
+export async function runDoctor(json: boolean, flags: OnlineFlags | undefined, io: CliIo): Promise<number> {
+	const env = io.env ?? readEnv([...ENV_NAMES, ...setNames("SWT_")]);
+	const checks: DoctorCheck[] = [];
+	const emit = (check: DoctorCheck): void => {
+		checks.push(check);
+		if (!json) io.out(`${check.status.padEnd(6)}${check.check.padEnd(15)} ${check.detail}`);
+	};
+	for (const check of doctor({ cwd: io.cwd, node: io.node ?? process.version, env, own: PACKAGE_FILE })) emit(check);
+	if (flags !== undefined) await online(flags, { ...io, env }, emit);
 	if (json) io.out(JSON.stringify({ checks }));
-	else for (const { status, check, detail } of checks) io.out(`${status.padEnd(6)}${check.padEnd(16)}${detail}`);
 	return checks.some((check) => check.status === "fail") ? 1 : 0;
 }

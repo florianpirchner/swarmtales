@@ -20,3 +20,4 @@ export { systemPrompt, type CityPromptFacts, type PromptFacts, type PromptPerson
 export { createAsker, DIRECTOR_MODEL_RECORDS, EMPTY_QUESTION, scriptedAsker } from "./director.ts";
 export { createToolDirector, LOOK_REQUESTS, type Look, type LookInput } from "./driver/look.ts";
 export { createModelDrivers, RESIDENT_DRIVER, type ModelDrivers, type ModelDriversInput } from "./driver/create.ts";
+export { PROBE_LINE, PROBE_TOKENS, probeEstimateUsd, sendProbe, type ProbeAnswer } from "./probe.ts";

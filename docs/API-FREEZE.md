@@ -17,6 +17,7 @@ checks the kind against the diff from the file's `base` (section 5.2 of the spec
 | F3 | 2026-11-16 | `scripts/api-freeze/surface/cli.json` | addition | A135 | M6-03: the command `doctor` of `swt` (no argument), its flags `--json` and `--help`, its exit codes 0 and 1 |
 | F5 | 2026-11-16 | `packages/testkit/testkit.api.md` | addition: docs only | A126 | the TSDoc of `checkResumeEveryBoundary` says that it samples (`sampleBoundaries`: every boundary of a run of up to 12 ticks, at most eight of a longer one) and keeps its frozen name (erratum J318 of M5, issue M6-13). The report holds no TSDoc text, so its text and its entry in `frozen.json` (row F1, base `565efaeb`) do not change; the row records the change of the frozen export's documentation |
 | F6 | 2026-11-16 | `packages/testkit/testkit.api.md` | addition | A122 | the option `renamed` of `OracleOptions`: `runOracle` and `playOracle` map the ids an oracle file holds to the ids of the rename of original games (`13-m6-spec.md` 4.3); issue M6-05 |
+| F7 | 2026-11-16 | `scripts/api-freeze/surface/cli.json`, `packages/models/models.api.md` | addition | A135 | M6-04: the flags `--online`, `--provider`, `--budget` and `--ledger` of `swt doctor` (exit codes unchanged, no new error code); the minimal request of the model port that `--online` sends (`sendProbe`, `probeEstimateUsd`, `PROBE_LINE`, `PROBE_TOKENS`, `ProbeAnswer`), new exports of `@swarmtales/models`, which A135 does not name (erratum of issue M6-04) |
 
 A row names its paths in backticks; only a freeze row may say "every file of the frozen list", and once a freeze row
 is dated no other freeze row may stand in the table. Its decision is one row `A<n>` of section 9 of `DECISIONS.md`; a
@@ -77,7 +78,8 @@ the help texts); and the list of the error codes (`error-codes.json`, without wh
 - The gate is `scripts/gates/api-freeze.test.ts`, part of the tests of `pnpm check`. It fails on a missing file or an
   empty list, a text that is not the recorded one, a row that is missing, does not name the path or names no decision
   row of section 9, an addition that removes or changes a line against the text at `base` (only added lines are an
-  addition; "docs only" may change comment and `description` lines only), and a break whose decision row does not
+  addition, and in a JSON text form a line is compared without its trailing comma, so a member added after the last
+  one stays an addition, issue M6-04; "docs only" may change comment and `description` lines only), and a break whose decision row does not
   give "the owner's go". The base must be a commit that `HEAD` reaches, so it is a commit of `develop`, never one of a
   branch that a squash merge leaves behind.
 - Since M5-104 (decision A116, findings 1, 2, 3 and 8 of [`M5-REVIEW.md`](M5-REVIEW.md)) it also fails on a second

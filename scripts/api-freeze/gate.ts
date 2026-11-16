@@ -45,6 +45,9 @@ function onlyAdds(before: readonly string[], now: readonly string[]): boolean {
 }
 
 const lines = (text: string): readonly string[] => text.split("\n");
+// In a JSON text form a member added after the last one puts a comma behind the line before it (issue M6-04): the
+// lines are compared without a trailing comma, and what the comma cannot show is the schema comparison's (`forms.ts`).
+const formLines = (path: string, text: string): readonly string[] => (path.endsWith(".json") ? lines(text).map((line) => line.replace(/,$/, "")) : lines(text));
 const apiLines = (text: string): string => lines(text).filter((line) => !isDocsLine(line)).join("\n");
 
 /** Why the row of an entry cannot admit its path, or `undefined`. */
@@ -92,7 +95,7 @@ function kindProblem(entry: FrozenEntry, row: ChangeRow, now: string, records: R
 
 /** Why a change by an addition row is not of its kind against the text at the base, or `undefined`. */
 function changeProblem(entry: FrozenEntry, row: ChangeRow, before: string, now: string): string | undefined {
-	if (row.kind === "addition" && !onlyAdds(lines(before), lines(now))) return `row ${row.id} calls it an addition, but it removes or changes a line of the text at ${entry.base}: that is a break`;
+	if (row.kind === "addition" && !onlyAdds(formLines(entry.path, before), formLines(entry.path, now))) return `row ${row.id} calls it an addition, but it removes or changes a line of the text at ${entry.base}: that is a break`;
 	const breaks = row.kind === "addition" && entry.path.endsWith(".json") ? schemaBreaks(before, now) : [];
 	if (breaks.length > 0) return `row ${row.id} calls it an addition, but as a schema it is a break against the text at ${entry.base}: ${breaks.join("; ")}`;
 	if (row.kind === "addition: docs only" && apiLines(before) !== apiLines(now)) return `row ${row.id} calls it docs only, but it changes more than comment and description lines against ${entry.base}`;

@@ -195,6 +195,28 @@ export interface OpenRouterRouting {
 export function parseSavedSessions(value: unknown, redact: Redact): SavedSessions;
 
 // @public
+export const PROBE_LINE = "Answer with the one word: ready";
+
+// @public
+export const PROBE_TOKENS: Readonly<{
+    readonly input: 64;
+    readonly output: 1;
+}>;
+
+// @public
+export type ProbeAnswer = {
+    readonly ok: true;
+    readonly usage: Omit<Spend, "requests">;
+} | {
+    readonly detail: string;
+    readonly ok: false;
+    readonly usage: Omit<Spend, "requests">;
+};
+
+// @public
+export function probeEstimateUsd(binding: ModelBinding): number;
+
+// @public
 export interface PromptFacts {
     readonly brief?: string;
     readonly briefing: string;
@@ -289,6 +311,9 @@ export function scriptedSource(script: Script): ModelSource;
 
 // @public
 export type ScriptStep = FauxResponseStep;
+
+// @public
+export function sendProbe(binding: ModelBinding, actor: ActorId): Promise<ProbeAnswer>;
 
 // @public
 export interface Spend {

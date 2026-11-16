@@ -18,8 +18,12 @@
 			1
 		],
 		"flags": {
+			"budget": "string",
 			"help": "boolean",
-			"json": "boolean"
+			"json": "boolean",
+			"ledger": "string",
+			"online": "boolean",
+			"provider": "string"
 		}
 	},
 	"experiment analyse": {

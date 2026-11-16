@@ -29,7 +29,7 @@ export const FLAGS = {
 	provider: text("<id>", "the provider of a live run"),
 	model: text("<id>", "a model id or an alias of the provider"),
 	thinking: text("<level>", "how much the model thinks: off, minimal, low, medium, high"),
-	budget: text("<usd>", "the cost cap of a live run in US dollars; a live run needs one"),
+	budget: text("<usd>", "the cost cap of a live run in US dollars; a live run needs one (`swt doctor --online`: 0.01 when left out)"),
 	"director-model": { ...text("<name>=<provider>/<model>[:<thinking>[:<output cap>]]", "replace the model of one Director for this run; may be repeated"), multiple: true as const },
 	ledger: text("<file>", "the spend ledger the cap must fit under"),
 	plan: on("print the plan of an experiment and its caps, and play nothing"),
@@ -42,6 +42,7 @@ export const FLAGS = {
 	snapshot: text("<file>", "the snapshot to resume from; the latest of the run folder when left out"),
 	ticks: text("<n>", "stop after this many finished ticks of the whole run, more than the snapshot's"),
 	previous: text("<run dir>", "the run folder this one was resumed from: the continuity is checked too"),
+	online: on("swt doctor: also send one minimal request per provider with a key, its estimated cost printed first"),
 	depth: text("<plies>", "the search depth of the chess reference engine, 1 to 64; 10 when left out"),
 };
 
@@ -74,7 +75,7 @@ export const COMMANDS = {
 	scan: { argument: "<folder>", what: "look through every file of a folder for the key values of the environment", flags: ["json"], exits: { 0: "no file holds a held key value", 1: "a file does (`SWT-X030`), or the folder is none", 3: "nothing was scanned: no key variable is set" } },
 	"experiment run": { argument: "<spec file>", what: "play the runs of an experiment that are still missing", flags: ["out", "ledger", "plan"], exits: { 0: "the plan is complete; with `--plan`, the plan is printed", 1: ERROR, 4: "a run wrote a key value into its folder", 6: "stopped at the experiment's cap, or after three failed runs" } },
 	"analyse chess": { argument: "<run dir>", what: "score every half-move of a chess run with the reference engine", flags: ["depth"], exits: { 0: "`analysis.json` and `ANALYSIS.md` are written", 1: ERROR, 4: "a file of the folder holds a key value (`SWT-X030`)" } },
-	doctor: { argument: "", what: "check Node, the installed versions, the keys by name and the `SWT_` names, offline", flags: ["json"], exits: { 0: "no check failed (a `warn` is worth a look)", 1: `a check failed; or ${ERROR}` } },
+	doctor: { argument: "", what: "check Node, the installed versions, the keys by name and the `SWT_` names; `--online` sends one minimal request per provider", flags: ["json", "online", "provider", "budget", "ledger"], exits: { 0: "no check failed (a `warn` is worth a look)", 1: `a check failed (with \`--online\` also a refused key or an unreachable provider); or ${ERROR}` } },
 	"experiment analyse": { argument: "<experiment dir>", what: "analyse the runs of an experiment against its pass rule", flags: [], exits: { 0: "the pass rule is kept, or the spec has none", 1: ERROR, 3: "the pass rule is not kept", 4: "a file holds a key value", 7: "no verdict: too few runs" } },
 } as const satisfies Readonly<Record<string, CommandRow>>;
 

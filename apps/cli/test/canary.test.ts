@@ -155,4 +155,13 @@ describe("the canary: no key value in any artefact of a live run", () => {
 		expect([holds(printed), printed.match(/a key is set in (SWT_ANTHROPIC_API_KEY|OPENROUTER_API_KEY)/g)?.length]).toEqual([false, 4]);
 		expect(printed).toContain("SWT_SECRET is set, and swt reads no variable of that name");
 	});
+
+	it("swt doctor --online holds neither value when both providers echo every secret in their error", async () => {
+		const terminal: string[] = [];
+		const models = (): ReturnType<typeof scriptedSource> => scriptedSource({ "doctor:anthropic": [fail(`401 ${SECRETS}`)], "doctor:openrouter": [fail(`401 ${SECRETS}`)] });
+		const io = { cwd, now: () => new Date(0), out: (line: string) => void terminal.push(line), err: (line: string) => void terminal.push(line), env, models };
+		expect([await main(["doctor", "--online"], io), await main(["doctor", "--online", "--json"], io)]).toEqual([1, 1]);
+		const printed = terminal.join("\n");
+		expect([holds(printed), printed.match(/did not answer/g)?.length, printed.includes(CLEAN)]).toEqual([false, 4, true]);
+	});
 });

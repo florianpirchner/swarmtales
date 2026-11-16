@@ -115,6 +115,19 @@ describe("the API freeze gate, attacked by the review of M5", () => {
 		expect(freezeProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining("as a schema it is a break against the text at")]);
 		expect(freezeProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining('#/properties/id: "minLength" is added')]);
 	});
+
+	// Issue M6-04: a member added after the last one puts a comma behind the line before; that alone is no break, a removed member still is.
+	it("passes a field added after the last one of a frozen format as an addition, and still refuses a removed one", () => {
+		const root = inForce();
+		const last = MANIFEST.replace('\t\t\t"type": "number"\n\t\t}\n\t},', '\t\t\t"type": "number"\n\t\t},\n\t\t"tag": {\n\t\t\t"type": "string"\n\t\t}\n\t},');
+		put(root, { [FORM]: last });
+		appendRow(root, `| F2 | 2026-11-20 | \`${FORM}\` | addition | A60 | a new last field |`);
+		put(root, { [FROZEN_LIST]: listText(recordFrozen(root, [REPORT, FORM]).files) });
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([]);
+		put(root, { [FORM]: last.replace('\t\t"seed": {\n\t\t\t"type": "number"\n\t\t},\n', "") });
+		put(root, { [FROZEN_LIST]: listText(recordFrozen(root, [REPORT, FORM]).files) });
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining("removes or changes a line")]);
+	});
 });
 
 describe("the frozen set and the owner's go, attacked by the review of M5 (finding 8)", () => {
