@@ -8,7 +8,7 @@
 import { Type, type TSchema } from "typebox";
 import { Check, Errors } from "typebox/value";
 import { actorId, kindOf, nameOf, SwtError, type ActorId, type ActorsView, type CanonicalTool, type JsonValue, type ServiceDefinition, type StagedOutcome } from "@swarmtales/contracts";
-import { commandInView, payloadMismatch, serviceMismatch } from "../errors.ts";
+import { commandInView, payloadMismatch, serviceMismatch, undeclaredService } from "../errors.ts";
 import type { FactView, MechanicContext, MechanicShape, ResidentAccess, ResidentsPort, ResidentsView, ServiceMethodName, ServiceOutput, ToolContext, ToolName } from "./context-types.ts";
 import type { InstanceParts } from "./parts.ts";
 
@@ -61,6 +61,13 @@ function callChecked<M extends MechanicShape, A extends ServiceDefinition, K ext
 	if (Check(schema, output)) return output;
 	// The port does not say who provides a service, so the issue names no provider.
 	throw new SwtError(serviceMismatch({ service: service.name, method, side: "output", caller: parts.port.id, ...mismatch(schema, output) }));
+}
+
+// Refuses a service the head does not declare (SWT-M026, A37) before the port is asked: `call` needs one of
+// `requires`, `tryCall` and `has` one of `requires` or `uses`. The types hold code of this repository; this holds a plugin.
+function declared<M extends MechanicShape>({ port, head }: InstanceParts<M>, service: ServiceDefinition, optional: boolean): void {
+	const allowed = optional ? [...head.requires, ...head.uses] : head.requires;
+	if (!allowed.some(({ name }) => name === service.name)) throw new SwtError(undeclaredService({ mechanic: port.id, package: head.package, service: service.name, optional }));
 }
 
 // Refuses a method that is declared and is no query (SWT-M025), before the port is asked: a view only reads.
@@ -139,7 +146,8 @@ function accessOf<M extends MechanicShape>(parts: InstanceParts<M>): ResidentAcc
  * @param actor - Who calls; `kernel` when left out, and the context then has no resident.
  * @returns The context. `state` and `tick` are live; `emit`, `call` and `tryCall` throw an `SwtError` with
  * `SWT-M021` (a payload that does not match the head's schema) or `SWT-M022` (a service output that does not
- * match the method's schema).
+ * match the method's schema); `call`, `tryCall` and `has` throw one with `SWT-M026` for a service the head does
+ * not declare (`call`: not in `requires`; `tryCall`, `has`: in neither `requires` nor `uses`), before the port is asked.
  *
  * @internal
  */
@@ -168,9 +176,9 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 			if (schema !== undefined && !Check(schema, payload)) throw new SwtError(payloadMismatch({ mechanic: port.id, type, package: head.package, ...mismatch(schema, payload) }));
 			port.emit(type, payload);
 		},
-		call: (service, method, input) => callChecked(parts, service, method, input),
-		has: (service) => port.has(service.name),
-		tryCall: (service, method, input) => (port.has(service.name) ? callChecked(parts, service, method, input) : undefined),
+		call: (service, method, input) => (declared(parts, service, false), callChecked(parts, service, method, input)),
+		has: (service) => (declared(parts, service, true), port.has(service.name)),
+		tryCall: (service, method, input) => (declared(parts, service, true), port.has(service.name) ? callChecked(parts, service, method, input) : undefined),
 		// The kernel finds a staged tool by the name the grant of `script` shows it by.
 		stage: (tool, params, options) => { port.stage(parts.names?.[canonicalOf(parts, tool)] ?? (typeof tool === "string" ? tool : tool.name), params, options); },
 		prompt: (id, variables) => parts.texts.render(port.id, id, variables, head.prompts[id] ?? []),
@@ -184,7 +192,8 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
  * @param parts - The parts of the instance.
  * @returns The view. `state` and `tick` are live; `call` and `tryCall` throw an `SwtError` with `SWT-M022` for a
  * service output that does not match the method's schema, and with `SWT-M025` for a method that is a command
- * (the type of the view refuses it too); the command is not called.
+ * (the type of the view refuses it too), and with `SWT-M026` for a service the head does not declare (as
+ * {@link contextFor}); the command or service is not called.
  *
  * @internal
  */
@@ -199,8 +208,8 @@ export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactV
 			return port.tick();
 		},
 		residents: residentsView(parts),
-		call: (service, method, input) => (queryOnly(parts, service, method), callChecked(parts, service, method, input)),
-		tryCall: (service, method, input) => (queryOnly(parts, service, method), port.has(service.name) ? callChecked(parts, service, method, input) : undefined),
+		call: (service, method, input) => (declared(parts, service, false), queryOnly(parts, service, method), callChecked(parts, service, method, input)),
+		tryCall: (service, method, input) => (declared(parts, service, true), queryOnly(parts, service, method), port.has(service.name) ? callChecked(parts, service, method, input) : undefined),
 	};
 }
 

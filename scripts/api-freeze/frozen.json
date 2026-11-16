@@ -122,9 +122,9 @@
 		},
 		{
 			"path": "scripts/api-freeze/surface/error-codes.json",
-			"sha256": "942aa9841497aaba9140f92555951e24673ec17e4d9a887d165c00b48c9078a6",
-			"base": "565efaeb967692d962f43e53235a9b78e798737d",
-			"row": "F1"
+			"sha256": "1021e3311fd5d3b0f353a59e03ab146e594c0d133fa84f763810ced4f4090316",
+			"base": "0c12a32ac9b94c14abc4dc57bd74d4bddf0ff8ce",
+			"row": "F2"
 		},
 		{
 			"path": "scripts/api-freeze/surface/hand-line.json",

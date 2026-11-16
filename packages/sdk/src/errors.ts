@@ -42,6 +42,7 @@ export const SDK_ERRORS = {
 	"SWT-M023": "the value of a fact does not match its schema",
 	"SWT-M024": "a snapshot slice cannot be saved or loaded",
 	"SWT-M025": "a fact or a run limit calls a command of a service",
+	"SWT-M026": "the mechanic calls a service its head does not declare",
 	"SWT-P003": "a declared prompt has no text",
 } as const;
 
@@ -586,6 +587,25 @@ export function sliceMismatch(input: { readonly mechanic: string; readonly packa
  */
 export function commandInView(input: { readonly mechanic: string; readonly package?: string; readonly service: string; readonly method: string }): SwtIssue {
 	return issue("SWT-M025", `a fact or a run limit of mechanic "${input.mechanic}" called "${input.service}.${input.method}", which is a command`, "A fact and a run limit only read: they are computed at any moment and any number of times, so they call the `query` methods of a service and never a command.", `Call a query of "${input.service}" in the fact or the run limit of "${input.mechanic}", or move the call of "${input.method}" into a tool, a hook or a listener.`, { package: input.package });
+}
+
+/**
+ * `SWT-M026`: the mechanic calls a service its head does not declare (A37). The types of the context refuse it; a
+ * JavaScript plugin, or one type-checked against another version, gets past them, so the context checks it again
+ * and the service is not called. The check guards against mistakes, not against a hostile plugin.
+ *
+ * @param input - The mechanic and the service it called.
+ * @param input.mechanic - The id of the mechanic that called.
+ * @param input.package - The package of the mechanic.
+ * @param input.service - The service name.
+ * @param input.optional - True for `tryCall` and `has`, which a service of `uses` allows too; false for `call`.
+ * @returns The issue.
+ *
+ * @internal
+ */
+export function undeclaredService(input: { readonly mechanic: string; readonly package?: string; readonly service: string; readonly optional: boolean }): SwtIssue {
+	const list = input.optional ? "`requires` or `uses`" : "`requires`";
+	return issue("SWT-M026", `mechanic "${input.mechanic}" called the service "${input.service}", which its head does not declare in ${list}`, "A mechanic calls only the services its head declares, so a game loads it after their providers and a reader of the head knows what it depends on.", `Add the service "${input.service}" to ${list} in the head of "${input.mechanic}", or remove the call.`, { package: input.package }, { service: input.service });
 }
 
 /**

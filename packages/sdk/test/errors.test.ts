@@ -4,8 +4,8 @@ import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import * as errors from "../src/errors.ts";
 
-/** The G, M and P codes of section 2.11, of the errata E24 and E25 and of M5-03 (G015), written out so that a code dropped from the catalogue fails here. */
-const CODES_OF_M1 = ["G001", "G002", "G003", "G010", "G011", "G012", "G013", "G014", "G015", "G020", "G021", "G022", "G030", "G031", "G032", "G041", "D001", "D002", "D003", "D004", "M010", "M011", "M012", "M013", "M014", "M021", "M022", "M023", "M024", "M025", "P003"].map((code) => `SWT-${code}`);
+/** The G, M and P codes of section 2.11, of the errata E24 and E25, of M5-03 (G015) and of M6-01 (M026), written out so that a code dropped from the catalogue fails here. */
+const CODES_OF_M1 = ["G001", "G002", "G003", "G010", "G011", "G012", "G013", "G014", "G015", "G020", "G021", "G022", "G030", "G031", "G032", "G041", "D001", "D002", "D003", "D004", "M010", "M011", "M012", "M013", "M014", "M021", "M022", "M023", "M024", "M025", "M026", "P003"].map((code) => `SWT-${code}`);
 
 const mismatch = { path: "mechanics[0].options.size", message: 'must be an integer from 2 to 10, got "3x3"' };
 const samples: readonly SwtIssue[] = [
@@ -46,6 +46,7 @@ const samples: readonly SwtIssue[] = [
 	errors.factMismatch({ mechanic: "marks", fact: "balance", path: "/A01", message: 'must be an integer, got "3"' }),
 	errors.sliceMismatch({ mechanic: "marks", problem: "loaded", path: "/A01", message: "must be an integer" }),
 	errors.commandInView({ mechanic: "marks", service: "ledger", method: "pay" }),
+	errors.undeclaredService({ mechanic: "marks", package: "@acme/marks", service: "ledger", optional: false }),
 	errors.promptWithoutText({ owner: "marks", prompt: "marks/tools/pay", lookedIn: ["games/g/prompts/marks/tools/pay.md", "mechanics/marks/prompts/tools/pay.md"] }),
 ];
 

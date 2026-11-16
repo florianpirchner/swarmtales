@@ -216,6 +216,14 @@ A fact or a run limit calls a command of a service. The type of the view refuses
 - **Fix:** Call a query of "{service}" in the fact or the run limit of "{mechanic}", or move the call of "{method}" into a tool, a hook or a listener.
 - **Named in:** `packages/sdk`
 
+### SWT-M026
+
+The mechanic calls a service its head does not declare (A37). The types of the context refuse it; a JavaScript plugin, or one type-checked against another version, gets past them, so the context checks it again and the service is not called. The check guards against mistakes, not against a hostile plugin.
+
+- **Why:** A mechanic calls only the services its head declares, so a game loads it after their providers and a reader of the head knows what it depends on.
+- **Fix:** Add the service "{service}" to `requires` in the head of "{mechanic}", or remove the call.
+- **Named in:** `packages/sdk`
+
 ## D: Director
 
 ### SWT-D001

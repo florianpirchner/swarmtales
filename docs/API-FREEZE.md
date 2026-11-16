@@ -13,6 +13,7 @@ checks the kind against the diff from the file's `base` (section 5.2 of the spec
 | Row | Date | Paths | Kind | Decision | What |
 |---|---|---|---|---|---|
 | F1 | 2026-11-16 | every file of the frozen list | freeze | A60 | the surface as M5-50 left it, with the merges up to M5-57; recorded and dated by M5-57 on `565efaeb` |
+| F2 | 2026-11-16 | `scripts/api-freeze/surface/error-codes.json` | addition | A119 | the code `SWT-M026` of the sdk: a mechanic calls a service its head does not declare (the run-time check of A37, issue M6-01) |
 
 A row names its paths in backticks; only a freeze row may say "every file of the frozen list", and once a freeze row
 is dated no other freeze row may stand in the table. Its decision is one row `A<n>` of section 9 of `DECISIONS.md`; a
