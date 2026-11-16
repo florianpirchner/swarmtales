@@ -113,7 +113,7 @@ A projection leaves these out or maps them; nothing else may differ.
 | Change | In the file | On the rewritten platform | Why |
 |---|---|---|---|
 | Additive levels are not dealt | `factors_dealt` for levels 8 to 10; `level_contracted` for levels 5 to 10 after the first exile | no `factors_dealt`; `level_contracted` for levels 5 to 7 | `puzzles` is cut to fragment levels at M3 (specification of M3, section 1.3) |
-| `exiled` has a new field | `{ agent }` | `{ agent, by }` | whoever banishes is named; the projection compares `agent` |
+| `exiled` has a new field | `{ agent }` | `{ agent, by }` when the service `banish` exiles (the slice's court, projection 3); a gate that closes writes `{ agent }` as the file (J29) | whoever banishes is named; the projection compares `agent` |
 | Order after an exile | `exiled`, `resident_suspended`, `factor_burned`, the ledger entry that burns the points, `level_contracted` | `exiled`, `actor_suspended`, the ledger entry, `factor_burned`, `level_contracted` | the ledger is a base mechanic and cannot name `puzzles`, so `puzzles` listens after the ledger (specification of M3, section 2.3, decision 4). Within one source the order is the file's |
 | Numbers are renumbered | `postSeq` of a board post, `number` of a direct message, `txId` of a ledger entry | the same fields, counted without the posts, notices and entries of mechanics that are not in the slice | compared after a mapping in order of first appearance |
 | The second exile of the burn file is not projected | `A02`, exiled by the second tribunal | not compared | it follows events of `standoff`, which is not ported |
@@ -122,12 +122,31 @@ A projection leaves these out or maps them; nothing else may differ.
 | No marks | `posted · #16 · marks 8/8 left` | `posted · #6` | `marks` is not ported. The test cuts ` · marks <n>/<m> left` from the end of an answer |
 | The standing of a resident is an option | `progression` events | the option `standings` of `puzzles` | `progression` is not ported at M3; the test computes the option from the file |
 
+These rows hold for the projections of M3 only, which still play stand-in slices of a few mechanics
+(`mechanics/{puzzles,ledger,channels}/test/oracle.test.ts`). The game of M5 loads every mechanic of the files and
+plays them whole (below), so it needs none of them but the order after an exile: the additive levels are dealt
+(`factors_dealt`, `level_contracted` for levels 5 to 10), a closing gate writes `exiled` as `{ agent }`, no number
+is renumbered for a missing mechanic, the second exile of the burn file is compared, the answers name the receipt,
+the chosen name and the marks left, and `puzzles` reads the standing from `progression` (issue M5-46).
+
 
 ## The game against the files (M5)
 
-The game's oracle test (`games/city/test/oracle.test.ts`, issue M5-45) plays `cityofkeys-act1-s7.json` from its
-inputs under the game's own scheduler, with the params of its dials (`setup.definition.effective`), and compares it
-by `runOracle` at level 3 after these mappings of the file (`games/city/test/support.ts`). The changes that Whispers
+The game's oracle test (`games/city/test/oracle.test.ts`, issues M5-45 and M5-46) plays `cityofkeys-act1-s7.json`,
+`cityofkeys-act1-s11.json` and `cityofkeys-burn-s7.json` from their inputs under the game's own scheduler, with the
+params of their dials (`setup.definition.effective`), and compares them by `runOracle` at level 3 after these
+mappings of the files (`games/city/test/support.ts`). The burn file is played by the reduced City of its setup:
+`games/city/test/burn.ts` builds it from the game's story data as the old `fragmentCity` did and is pinned to
+`setup/cityofkeys-burn.story.json`; `cityGameOf` composes it without `goals` and `seal` and grants no `bid` or
+`permaDeath`, as the file's `setup` holds.
+
+`cityofkeys-act1-s7-resumed.json` is not played by `runOracle`, which plays no `resume` entry. By A34 a resumed log
+equals the straight log once its marker is taken out, and the file is `cityofkeys-act1-s7.json` with one `resume`
+entry after the gamemaker's look of minute 6 (`games/city/test/resumed.test.ts`). The test drives the game by the
+file's calls, each actor's activation counted from the kernel's log, checks that this straight run is the one
+`runOracle` compares, and resumes it from every tick boundary to the straight log. The old save came after the
+look of minute 6; here that look is taken in the start slot of tick 7 (J126), so the boundary after tick 6 comes
+before it. The changes that Whispers
 registered for the same mechanics hold here too (`../whispers/README.md`, "Registered changes against the files"):
 the solved level and its `levelUp` receipt, the delivery notice before its receipt, the gamemaker's look after the
 tick start, the run-start locks, the lines under the task (here `progression+names` and `progression+marks`), the
@@ -139,4 +158,5 @@ within one source; no payload is changed but the numbers below.
 | The deal of the core motives | `motive_dealt` before the puzzles' deal | after the last `ledger_entry` of the start | `motives` writes `motive_dealt` in its `runStarted` (A86); on `legacy` the deal ran in the world's constructor |
 | The numbers of a moved look | `postSeq` of the city's board posts and `number` of the gamemaker's notes in the file's order | the same numbers given out again in the order of the moved span | the look runs after the tick start (J126), so its posts take their numbers after the posts of the tick start |
 | The goals of the act change | `goal_dealt` and each goal's notice right after `act_started`, before the solved level's events | after `level_up`, `level_entered` and `submission` of the solved level; a resident's next turn shows its notices in that log order too (J255) | `goals` listens to `act_started`, and `progression` writes the solved level in one go |
-
+| The order after an exile (burn file, M5-46) | `factor_burned` before the ledger entry that burns the exiled resident's points | after it | the M3 row above: the ledger listens to `exiled` as a base mechanic, `puzzles` after it |
+| The look after the last round (burn file, M5-46) | the gamemaker's look after round 31, before minute 31 | none | the look runs in the start slot of the next tick (J126), and `arena` ends the run in the start of minute 31, before that slot |

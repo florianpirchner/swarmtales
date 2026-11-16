@@ -11,7 +11,9 @@ import { join } from "node:path";
 import type { Oracle, OracleEntry } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Value } from "typebox/value";
-import { cityGame, CityParams } from "../game.ts";
+import { cityGameOf, CityParams } from "../game.ts";
+import type { CityData } from "../src/compose.ts";
+import { CITY } from "../src/story.ts";
 
 /** The folder of the oracle files of the game. */
 export const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "cityofkeys");
@@ -40,9 +42,10 @@ const Effective = Type.Object(
  * The game of a file: the params of its dials (`setup.definition.effective`).
  *
  * @param oracle - The file.
+ * @param story - The story data of its setup: the shipped City, or the reduced City of the burn file.
  * @returns The game.
  */
-export const gameOf = (oracle: Oracle) => cityGame(Value.Parse(CityParams, Value.Parse(Effective, oracle.setup.definition?.effective)));
+export const gameOf = (oracle: Oracle, story: CityData = CITY) => cityGameOf(story, Value.Parse(CityParams, Value.Parse(Effective, oracle.setup.definition?.effective)));
 
 type Is = (entry: OracleEntry | undefined) => boolean;
 
@@ -91,6 +94,9 @@ const MOVES: readonly Move[] = [
 	{ in: isEvent("goals", "goal_dealt"), move: isGoalDeal, after: isEvent("progression", "submission") },
 	// Several messages delivered as one turn opens: `channels` delivers them all in one step, the listener of `receipts` follows it.
 	{ in: isReceipt("dm"), move: isReceipt("dm"), after: isEvent("channels", "notice", (payload) => String(field(payload, "text")).startsWith("DM #")) },
+	// An exile (M3, "Order after an exile"): the ledger is a base mechanic and burns the points as `exile.exiled` is
+	// written; `puzzles` listens after it and burns the piece.
+	{ in: isEvent("puzzles", "factor_burned"), move: isEvent("puzzles", "factor_burned"), after: isEvent("ledger", "ledger_entry", (payload) => String(field(payload, "reason")).startsWith("exiled ")) },
 ];
 
 const ofGamemaker: Is = (entry) => (entry?.k === "event" || entry?.k === "call") && entry.actor === "gamemaker";
@@ -249,5 +255,14 @@ export function registered(oracle: Oracle): Oracle {
 		for (const rule of MOVES) if (burst.some(rule.in)) burst = moved(burst, rule);
 		timeline.splice(start, end - start, ...burst);
 	}
-	return { ...oracle, timeline: [...turnInputs(lookAfterTickStart(withoutStartLocks(oracle, timeline)))] };
+	return { ...oracle, timeline: [...withoutLookAfterEnd(turnInputs(lookAfterTickStart(withoutStartLocks(oracle, timeline))))] };
+}
+
+/**
+ * The look after the last round of a run that `arena` stops as a tick starts (the burn file, minute 31): moved into the
+ * start slot of that tick (J126), it comes after the end, and the ended run takes no look.
+ */
+function withoutLookAfterEnd(timeline: readonly OracleEntry[]): readonly OracleEntry[] {
+	const end = timeline.findIndex(isEvent("arena", "run_end"));
+	return end === -1 ? timeline : timeline.filter((entry, at) => at <= end || !ofGamemaker(entry));
 }

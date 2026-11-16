@@ -26,8 +26,21 @@ import { Type } from "typebox";
 import { Value } from "typebox/value";
 import type { CITY } from "./story.ts";
 
-/** The story data of the City. */
-export type CityData = typeof CITY;
+type Story = typeof CITY;
+
+/**
+ * The story data of the City: the shipped story (`CITY`), or a reduced City without acts, goals and seal whose
+ * tribunal is set otherwise (the burn file's, `oracles/cityofkeys/setup/cityofkeys-burn.story.json`). As the old
+ * host, the compose step loads `goals` and `seal` only when the story has them.
+ *
+ * @public
+ */
+export type CityData = Omit<Story, "acts" | "goals" | "seal" | "tribunal"> & {
+	readonly acts?: Story["acts"];
+	readonly goals?: Story["goals"];
+	readonly seal?: Story["seal"];
+	readonly tribunal: Readonly<Record<string, unknown>> & { readonly act?: number; readonly factions?: unknown };
+};
 
 /**
  * The run's dials the compose step reads (old `HostRun`, the effective dials of an oracle file).
@@ -89,7 +102,7 @@ function levelsUses(story: CityData, dials: Dials) {
 		puzzles({ levels: story.levels.map(({ number, team, puzzle }) => ({ number, team: { ...team }, puzzle: puzzle.kind === "fragments" ? { ...puzzle, length: [...puzzle.length] } : { ...puzzle } })), startLevel, lastLevel, noteTools: NOTE_TOOLS }),
 		progression({
 			levels: story.levels.map(({ number, title, reward, tools, task }) => ({ number, title, reward, tools: [...tools], task })),
-			acts: story.acts.map((act) => act.fromLevel).filter((fromLevel) => fromLevel > 1),
+			acts: (story.acts ?? []).map((act) => act.fromLevel).filter((fromLevel) => fromLevel > 1),
 			penalty: rules.penalty,
 			blamePenalty: rules.blame.penalty,
 			maxAttemptsPerWindow: story.rules.maxAttemptsPerWindow,
@@ -105,12 +118,13 @@ function levelsUses(story: CityData, dials: Dials) {
 
 function conflictUses(story: CityData) {
 	const { ultimatum } = Value.Parse(Rules, story.rules);
+	// The old `goalsUse` and `tribunalUses`: goals and the seal only where the story has them.
 	return [
-		goals(Value.Parse(GoalsOptions, { ...story.goals, factions: true, noteTools: NOTE_TOOLS })),
+		...(story.goals === undefined ? [] : [goals(Value.Parse(GoalsOptions, { ...story.goals, factions: story.tribunal.factions !== undefined, noteTools: NOTE_TOOLS }))]),
 		standoff({ ultimatum, author: story.gamemaker.author }),
 		exile(),
 		tribunal(Value.Parse(TribunalOptions, { ...story.tribunal, gamemakerRoles: story.gamemaker.roles })),
-		seal(Value.Parse(SealOptions, story.seal)),
+		...(story.seal === undefined ? [] : [seal(Value.Parse(SealOptions, story.seal))]),
 	];
 }
 
@@ -144,8 +158,8 @@ export function mechanicsOf(story: CityData, dials: Dials) {
 			stopWhenDone: dials.stopWhenDone,
 			stopWhenSeatsDecided: dials.stopWhenSeatsDecided,
 			rewards: story.levels.map(({ number, reward }) => ({ level: number, reward })),
-			acts: story.acts.map((act) => ({ ...act })),
-			tribunalAct: story.tribunal.act,
+			acts: (story.acts ?? []).map((act) => ({ ...act })),
+			...(story.tribunal.act === undefined ? {} : { tribunalAct: story.tribunal.act }),
 		}),
 	];
 }

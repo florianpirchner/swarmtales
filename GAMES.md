@@ -43,7 +43,7 @@ mechanics, Directors and params of each game's default build. Family and proof c
 | [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `sealed-auction`, `strategy-brain` | none | a game family: `games`, `lots`, `purse`, `brain`, `maxWords`, `quietEnds` | five oracle files match at level 3 |
 | [Ember Tricks](#ember-tricks) | markets, bids and economics | 4 | `card-table`, `trick-play`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `lever`, `maxWords`, `quietEnds` | four oracle files match at level 3 |
 | [Whispers](#whispers) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `receipts`, `whispers`, `motives`, `puzzles`, `progression`, `cast`, `standoff`, `exile`, `standoff-tribunal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `guard`, `judge` | a game family: `receipts`, `agents`, `minutes`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `gamemaker`, `classifier`, `names`, `coreMotives`, `whisperer`, `guards`, `figureDirection`, `gmDirection` | three of the four oracle files match at level 3, the holdout file up to its trial and the trial by projection; a fake run reaches every reachable tool; replay and resume give the same log |
-| [City of Keys](#city-of-keys) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `motives`, `receipts`, `puzzles`, `progression`, `cast`, `goals`, `standoff`, `exile`, `tribunal`, `seal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `judge` | a game family: `agents`, `minutes`, `startLevel`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `personas`, `gamemaker`, `classifier`, `names`, `coreMotives`, `gmDirection` | one of the seven oracle files, Act I at seed 7, matches at level 3 but for one pinned defect (the goal status names an id); the fake runs end without error; replay and resume give the same log |
+| [City of Keys](#city-of-keys) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `motives`, `receipts`, `puzzles`, `progression`, `cast`, `goals`, `standoff`, `exile`, `tribunal`, `seal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `judge` | a game family: `agents`, `minutes`, `startLevel`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `personas`, `gamemaker`, `classifier`, `names`, `coreMotives`, `gmDirection` | four of the seven oracle files (Act I at seeds 7 and 11, the resumed Act I, the burn file) match at level 3; the fake runs end without error; replay and resume give the same log |
 
 <!-- /generated:overview -->
 
@@ -317,8 +317,9 @@ statements.
 - Params of the game family: `minutes`, `startLevel`, `lastLevel`, the pacing (`passesPerMinute`, `activation`),
   the early ends (`stopWhenDone`, `stopWhenSeatsDecided`) and the dials of the old story (`personas`, `gamemaker`,
   `classifier`, `names`, `coreMotives`, `gmDirection`).
-- Proof: the Act I file of seed 7 matches at level 3 after the registered changes of its README, but for one
-  pinned defect (the goal status shows the target's id, not its name); the other City files are not compared yet.
+- Proof: the Act I files of seeds 7 and 11 match at level 3 after the registered changes of their README; the resumed Act I file is the seed-7 file
+  with its marker, and the game driven by its calls resumes from every boundary to the straight log; the burn file,
+  a reduced City with two tribunals and two burned fragments, matches at level 3. The Act II files are not compared yet.
   The story data is byte-identical to the old story file, and every prompt body to its old file. Fake runs replay
   equal and resume equal from every boundary.
 - Links: [folder](games/city/), [README](games/city/README.md), [oracle files](oracles/cityofkeys/).

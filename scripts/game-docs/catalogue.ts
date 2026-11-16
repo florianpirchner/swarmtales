@@ -42,7 +42,7 @@ export const CARDS: Readonly<Record<string, CardFacts>> = {
 	"blind-bid": { title: "Blind Bid", oracles: "blind-bid" },
 	"ember-tricks": { title: "Ember Tricks", oracles: "ember-tricks" },
 	whispers: { title: "Whispers", proof: "three of the four oracle files match at level 3, the holdout file up to its trial and the trial by projection; a fake run reaches every reachable tool; replay and resume give the same log" },
-	city: { title: "City of Keys", proof: "one of the seven oracle files, Act I at seed 7, matches at level 3 but for one pinned defect (the goal status names an id); the fake runs end without error; replay and resume give the same log" },
+	city: { title: "City of Keys", proof: "four of the seven oracle files (Act I at seeds 7 and 11, the resumed Act I, the burn file) match at level 3; the fake runs end without error; replay and resume give the same log" },
 };
 
 /** One game of the old platform: its name there and the folder of its port. */

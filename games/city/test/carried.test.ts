@@ -16,6 +16,7 @@ import { Type } from "typebox";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { CITY } from "../src/story.ts";
+import { BURN } from "./burn.ts";
 
 const ROOT = join(import.meta.dirname, "..", "..", "..");
 
@@ -50,6 +51,11 @@ function withoutModels(value: unknown): unknown {
 describe("city: carried byte for byte", () => {
 	it("serialises the story data to its old setup file", () => {
 		expect(`${JSON.stringify(withoutModels(CITY), null, "\t")}\n`).toBe(readFileSync(join(ROOT, "oracles", "cityofkeys", "setup", "cityofkeys.story.json"), "utf8"));
+	});
+
+	// M5-46: the reduced City of the burn file, as the old `fragmentCity` built it.
+	it("serialises the burn file's reduced City to its old setup file", () => {
+		expect(`${JSON.stringify(withoutModels(BURN), null, "\t")}\n`).toBe(readFileSync(join(ROOT, "oracles", "cityofkeys", "setup", "cityofkeys-burn.story.json"), "utf8"));
 	});
 
 	it("carries the model blocks of the old story", () => {

@@ -22,6 +22,9 @@ import { CITY } from "./src/story.ts";
  */
 const RESIDENT_TOOLS = ["transferPoints", "chooseName", "readBoard", "postBoard", "sendDM", "createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer", "defy", "signPetition", "listPetitions", "showReceipt", "blame", "getStatus", "activeTools", "getProblem", "submitSolution", "listAgents", "claimPiece", "payRansom", "lastWill", "vote", "nominate", "join", "refuse", "bid", "permaDeath"] as const;
 
+/** The tools of the black seal, granted only where the story has one. */
+const SEAL_TOOLS: readonly string[] = ["bid", "permaDeath"];
+
 /** The tools every resident starts with locked: the level-managed tools the first door does not list (`setup.locked`). */
 const LOCKED = ["readBoard", "postBoard", "sendDM", "transferPoints", "createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer", "showReceipt", "blame", "signPetition", "listPetitions"] as const;
 
@@ -70,10 +73,12 @@ const FACTS: readonly GamemakerFact[] = ["progression.section", "motives.lines",
 
 function gamemakerUse(story: CityData, params: CityParams) {
 	const { gamemaker, city, run, tribunal } = story;
-	const input = { city, agents: params.agents, survivors: run.survivors, rules: story.rules, spec: gamemaker, labels: params.classifier, tribunal: { factions: "factions" in tribunal }, characters: true, seal: true, direction: levelOf(params.gmDirection) };
+	const input = { city, agents: params.agents, survivors: run.survivors, rules: story.rules, spec: gamemaker, labels: params.classifier, tribunal: { factions: "factions" in tribunal }, characters: true, seal: story.seal !== undefined, direction: levelOf(params.gmDirection) };
 	const options = gamemakerOptions(input, createPromptLookup(), story.coreMotives.figures.map((figure) => Value.Parse(FigureSchema, figure)));
 	const events = GAMEMAKER_EVENTS.filter((event) => params.classifier || event !== "interpretations.interpretation");
-	const director = defineGamemaker({ facts: FACTS.filter((fact) => params.coreMotives || !fact.startsWith("motives.")), events, every: gamemaker.every });
+	// The facts of the mechanics the story loads: no motives without core motives, no goals or seal in a reduced City.
+	const loaded = (fact: GamemakerFact): boolean => (params.coreMotives || !fact.startsWith("motives.")) && (story.goals !== undefined || !fact.startsWith("goals.")) && (story.seal !== undefined || !fact.startsWith("seal."));
+	const director = defineGamemaker({ facts: FACTS.filter(loaded), events, every: gamemaker.every });
 	const { provider, id, thinking, maxOutputTokens } = gamemaker.model;
 	return { use: director, options, model: { id: `${provider}/${id}`, thinking, ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) } } as const;
 }
@@ -99,8 +104,23 @@ function directorsOf(story: CityData, params: CityParams) {
  * @public
  */
 export function cityGame(params: CityParams) {
+	return cityGameOf(CITY, params);
+}
+
+/**
+ * The game of one run of a given story data: the shipped City, or a reduced City such as the burn file's
+ * (`oracles/cityofkeys/setup/cityofkeys-burn.story.json`, set up by the oracle test). A story without a seal grants
+ * no seal tool.
+ *
+ * @param story - The story data.
+ * @param params - The dials.
+ * @returns The game in its builder form.
+ * @throws SwtError `SWT-G041` when `agents` is not six.
+ *
+ * @public
+ */
+export function cityGameOf(story: CityData, params: CityParams) {
 	if (params.agents !== RESIDENTS) throw new SwtError(paramOverride({ name: "agents", problem: "mismatch", message: `must be ${String(RESIDENTS)} at M5, got ${String(params.agents)}` }));
-	const story = CITY;
 	const confessed = params.classifier ? [interpretations({ noteTools: NOTE_TOOLS, every: story.gamemaker.every })] : [];
 	return defineGame({
 		id: "city",
@@ -112,7 +132,7 @@ export function cityGame(params: CityParams) {
 		grants: {
 			// The resident's tools in the old order (the kernel's load order puts `exile` and `standoff` elsewhere); the
 			// gamemaker has no ultimatum below direction 10 (old `grantsUltimatum`).
-			resident: RESIDENT_TOOLS,
+			resident: story.seal === undefined ? RESIDENT_TOOLS.filter((tool) => !SEAL_TOOLS.includes(tool)) : RESIDENT_TOOLS,
 			...(params.gmDirection >= FULL_DIRECTION ? {} : { gamemaker: { drop: ["ultimatum"] as const } }),
 			...(params.classifier ? { confessor: ["interpret"] } : {}),
 		},
@@ -130,14 +150,13 @@ export function cityGame(params: CityParams) {
 		},
 		end: { ticks: params.minutes },
 		model: { id: `${story.model.provider}/${story.model.id}`, thinking: story.model.thinking },
-		prompt: promptOf(params),
+		prompt: promptOf(story, params),
 	});
 }
 
 // The City order of the system text (A89, M5-81): the city with its names deadline and every tool, the character and
 // the seeded persona `motives` deals (A95). Without core motives `motives` is not loaded: no character, no persona.
-function promptOf(params: CityParams) {
-	const story = CITY;
+function promptOf(story: CityData, params: CityParams) {
 	const city = { name: story.city, survivors: story.run.survivors, tools: "all" as const, ...(params.names ? { namesUntil: story.names.untilMinute } : {}) };
 	if (!params.coreMotives) return { city };
 	return { frame: story.coreMotives.frame, character: "motives.prose", city, ...(params.personas ? { persona: "motives.personas" } : {}) };
