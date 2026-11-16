@@ -41,14 +41,14 @@ const ExileSlice = Type.Object(
 /**
  * One open gate in the state of `exile`.
  *
- * @public
+ * @internal
  */
 export type GateState = Static<typeof Gate>;
 
 /**
  * The state of `exile`.
  *
- * @public
+ * @internal
  */
 export type ExileState = Static<typeof ExileSlice>;
 
@@ -71,7 +71,7 @@ const LastWillParams = Type.Object({
 /**
  * The head of `exile`: everything that can be read without running a handler.
  *
- * @public
+ * @internal
  */
 export const exileHead = defineHead({
 	id: "exile",
@@ -111,13 +111,13 @@ export const exileHead = defineHead({
 /**
  * The context of the hooks and services of `exile`.
  *
- * @public
+ * @internal
  */
 export type ExileCtx = CtxOf<typeof exileHead>;
 
 /**
  * The context of the tools of `exile`.
  *
- * @public
+ * @internal
  */
 export type ExileToolCtx = ToolCtxOf<typeof exileHead>;

@@ -23,6 +23,9 @@ importers:
       '@swarmtales/models':
         specifier: workspace:*
         version: link:packages/models
+      '@swarmtales/runlog':
+        specifier: workspace:*
+        version: link:packages/runlog
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:packages/testkit

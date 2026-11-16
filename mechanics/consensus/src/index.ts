@@ -31,7 +31,7 @@ import { defineMechanic, refuse, reply, type CtxOf, type ToolCtxOf } from "@swar
 import { ConsensusAgreedService, ConsensusService } from "./contract.ts";
 import { freshTeam, head, type TeamState, type Vote } from "./head.ts";
 
-export { ConsensusAgreedService, ConsensusService, ConsensusSourceService };
+export { ConsensusAgreedService, ConsensusService };
 
 type Ctx = CtxOf<typeof head>;
 type ToolCtx = ToolCtxOf<typeof head>;

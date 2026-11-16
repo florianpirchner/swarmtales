@@ -14,7 +14,13 @@ import type { HandLine, HandSource } from "./loop.ts";
 import type { CliIo } from "./main.ts";
 
 const HUMAN = "human";
-const HandLineSchema = Type.Object(
+/**
+ * The schema of one line of the Human Hand (`--hand <file>` or `--hand -`): at a boundary, either a call of a tool of
+ * the grant `human` or the command `snapshot`. Frozen as a text form of the API freeze.
+ *
+ * @public
+ */
+export const HandLineSchema = Type.Object(
 	{
 		at: Type.Integer({ minimum: 0, description: "The boundary of the line: the number of finished ticks" }),
 		tool: Type.Optional(Type.String({ description: "The shown name of a tool of the grant `human`" })),

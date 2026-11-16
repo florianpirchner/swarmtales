@@ -6,8 +6,10 @@
  * --write`. A text form leaves out what is not frozen: the help texts of the command line, the why and fix of a code.
  */
 import { COMMANDS, FLAGS } from "@swarmtales/cli/src/flags.ts";
+import { HandLineSchema } from "@swarmtales/cli/src/hand.ts";
 import { EnvelopeSchema, KernelSnapshotSchema, RunManifestSchema } from "@swarmtales/contracts";
 import { SavedSessionsSchema } from "@swarmtales/models";
+import { SnapshotFileSchema } from "@swarmtales/runlog";
 import { OracleSchema } from "@swarmtales/testkit";
 import { errorPage } from "../error-docs/page.ts";
 
@@ -18,7 +20,7 @@ const PACKAGES = ["contracts", "kernel", "sdk", "engine", "chain", "prompts", "r
 const MECHANICS = ["channels", "consensus", "decisions", "exile", "human-hand", "ledger", "team-channel", "contracts"];
 
 /** The text forms, by their file names under the folder. */
-const FORMS = ["envelope.json", "run-manifest.json", "kernel-snapshot.json", "saved-sessions.json", "oracle.json", "cli.json", "error-codes.json"] as const;
+const FORMS = ["envelope.json", "run-manifest.json", "kernel-snapshot.json", "saved-sessions.json", "snapshot-file.json", "hand-line.json", "oracle.json", "cli.json", "error-codes.json"] as const;
 
 /** The folder of the text forms. */
 export const SURFACE_FOLDER = "scripts/api-freeze/surface";
@@ -52,6 +54,8 @@ export function surfaceTexts(): ReadonlyMap<string, string> {
 		"run-manifest.json": RunManifestSchema,
 		"kernel-snapshot.json": KernelSnapshotSchema,
 		"saved-sessions.json": SavedSessionsSchema,
+		"snapshot-file.json": SnapshotFileSchema,
+		"hand-line.json": HandLineSchema,
 		"oracle.json": OracleSchema,
 		"cli.json": commandLine(),
 		"error-codes.json": errorPage().entries.map((entry) => entry.code).sort(),

@@ -31,7 +31,7 @@ const Slice = Type.Object(
 /**
  * The head of the ledger: everything that can be read without running a handler.
  *
- * @public
+ * @internal
  */
 export const ledgerHead = defineHead({
 	id: "ledger",
@@ -71,13 +71,13 @@ export const ledgerHead = defineHead({
 /**
  * The context of the ledger's hooks and services.
  *
- * @public
+ * @internal
  */
 export type LedgerCtx = CtxOf<typeof ledgerHead>;
 
 /**
  * The context of the ledger's tool.
  *
- * @public
+ * @internal
  */
 export type LedgerToolCtx = ToolCtxOf<typeof ledgerHead>;

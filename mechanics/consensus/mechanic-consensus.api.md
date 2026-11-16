@@ -4,7 +4,6 @@
 
 ```ts
 
-import { ConsensusSourceService } from '@swarmtales/mechanic-contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { Type } from 'typebox';
@@ -75,8 +74,6 @@ readonly output: Type.TNull;
 readonly summary: "Forgets every proposal, vote, agreement and timer (a new game begins); the forfeit counters stay.";
 };
 }>;
-
-export { ConsensusSourceService }
 
 // (No @packageDocumentation comment for this package)
 

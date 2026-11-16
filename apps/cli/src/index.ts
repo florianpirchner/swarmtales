@@ -11,7 +11,7 @@ export { badUsage, experimentNotFound, liveRunTooEarly, toolWithoutSample } from
 export { logVerify } from "./log-verify.ts";
 export { main, type CliIo } from "./main.ts";
 export { HAND_DRIVER, loopOf, runManifest, type LoopOptions } from "./assembly.ts";
-export { handEnded, handOf, handRefused } from "./hand.ts";
+export { HandLineSchema, handEnded, handOf, handRefused } from "./hand.ts";
 export { runLoop, type HandCall, type HandLine, type HandSource, type LoopInput, type LoopStop } from "./loop.ts";
 export { folderTexts, played, playFake, resolveFile, runFacts, runFake, whyOf, type FakePlay, type ResolvedFile, type Resumed, type RunInput } from "./run.ts";
 export { RUN_RECORDS } from "./records.ts";

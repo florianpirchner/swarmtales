@@ -16,7 +16,13 @@ import { type RunFolder, secretAt } from "./folder.ts";
 /** The folder of a run folder that holds its snapshot files. @public */
 export const SNAPSHOTS_FOLDER = "snapshots";
 
-const SnapshotFileSchema = Type.Object(
+/**
+ * The schema of a snapshot file (`snapshots/t<tick>.json`): the kernel's state with the run it belongs to, the
+ * section `sessions` of a live run and the chain checkpoint that signs both. Frozen as a text form of the API freeze.
+ *
+ * @public
+ */
+export const SnapshotFileSchema = Type.Object(
 	{
 		format: Type.Literal(SNAPSHOT_FILE_FORMAT, { description: "The version of the file format" }),
 		runId: Type.String({ description: "The id of the run the snapshot was taken from" }),

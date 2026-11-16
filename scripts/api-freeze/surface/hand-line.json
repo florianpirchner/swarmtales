@@ -1,0 +1,27 @@
+{
+	"additionalProperties": false,
+	"description": "One line of the Human Hand",
+	"properties": {
+		"at": {
+			"description": "The boundary of the line: the number of finished ticks",
+			"minimum": 0,
+			"type": "integer"
+		},
+		"command": {
+			"const": "snapshot",
+			"description": "Write a snapshot",
+			"type": "string"
+		},
+		"params": {
+			"description": "The params of the call"
+		},
+		"tool": {
+			"description": "The shown name of a tool of the grant `human`",
+			"type": "string"
+		}
+	},
+	"required": [
+		"at"
+	],
+	"type": "object"
+}

@@ -1,0 +1,326 @@
+{
+	"additionalProperties": false,
+	"description": "A snapshot file: what a run resumes from",
+	"properties": {
+		"checkpoint": {
+			"additionalProperties": false,
+			"description": "A signed head, as a snapshot carries it.",
+			"properties": {
+				"genesis": {
+					"description": "The genesis hash of the chain it belongs to.",
+					"pattern": "^[0-9a-f]{64}$",
+					"type": "string"
+				},
+				"hash": {
+					"description": "The hash of the last line it covers.",
+					"pattern": "^[0-9a-f]{64}$",
+					"type": "string"
+				},
+				"lines": {
+					"description": "How many lines of `events.jsonl` it covers.",
+					"minimum": 0,
+					"type": "integer"
+				},
+				"publicKey": {
+					"description": "The chain's public key (base64 SPKI DER).",
+					"type": "string"
+				},
+				"signature": {
+					"description": "Ed25519 over the canonical head message (base64).",
+					"type": "string"
+				},
+				"state": {
+					"description": "sha256 of the canonical JSON of the snapshot the checkpoint was taken for, without its `chain` (`snapshotStateHash`): what a resumed run plays on from. Signed with the head; absent for a checkpoint written before it was.",
+					"pattern": "^[0-9a-f]{64}$",
+					"type": "string"
+				}
+			},
+			"required": [
+				"genesis",
+				"lines",
+				"hash",
+				"publicKey",
+				"signature"
+			],
+			"type": "object"
+		},
+		"format": {
+			"const": 1,
+			"description": "The version of the file format",
+			"type": "number"
+		},
+		"gameHash": {
+			"description": "The game hash of the manifest the snapshot belongs to",
+			"type": "string"
+		},
+		"runId": {
+			"description": "The id of the run the snapshot was taken from",
+			"type": "string"
+		},
+		"sessions": {
+			"description": "The conversation of every model actor, as its session saved it; signed with the state. Left out: a run without model actors",
+			"patternProperties": {
+				"^.*$": {
+					"description": "Its saved session, read by the models package"
+				}
+			},
+			"type": "object"
+		},
+		"snapshot": {
+			"additionalProperties": false,
+			"description": "The state of the kernel between two ticks",
+			"properties": {
+				"ended": {
+					"additionalProperties": false,
+					"description": "How a run ended",
+					"properties": {
+						"limit": {
+							"description": "The id of the run limit that was reached, `<plugin id>.<limit id>`; set when `reason` is `limit`",
+							"type": "string"
+						},
+						"reason": {
+							"anyOf": [
+								{
+									"const": "ticks",
+									"type": "string"
+								},
+								{
+									"const": "limit",
+									"type": "string"
+								},
+								{
+									"const": "error",
+									"type": "string"
+								}
+							],
+							"description": "Why the run ended: the tick limit, a run limit of a plugin, or a failure"
+						},
+						"tick": {
+							"description": "The tick the run ended in",
+							"minimum": 0,
+							"type": "integer"
+						}
+					},
+					"required": [
+						"reason",
+						"tick"
+					],
+					"type": "object"
+				},
+				"format": {
+					"const": "swarmtales.kernel",
+					"description": "The format name",
+					"type": "string"
+				},
+				"game": {
+					"description": "The id of the game",
+					"type": "string"
+				},
+				"gameHash": {
+					"description": "The hash of the game",
+					"type": "string"
+				},
+				"jobs": {
+					"description": "The jobs that wait",
+					"items": {
+						"additionalProperties": false,
+						"description": "A scheduled job of a plugin",
+						"properties": {
+							"data": {
+								"$defs": {
+									"Json": {
+										"$id": "Json",
+										"anyOf": [
+											{
+												"description": "A string",
+												"type": "string"
+											},
+											{
+												"description": "A number",
+												"type": "number"
+											},
+											{
+												"description": "A boolean",
+												"type": "boolean"
+											},
+											{
+												"description": "Null",
+												"type": "null"
+											},
+											{
+												"description": "A list of JSON values",
+												"items": {
+													"$ref": "Json",
+													"description": "One entry of the list"
+												},
+												"type": "array"
+											},
+											{
+												"description": "An object of JSON values",
+												"patternProperties": {
+													"^.*$": {
+														"$ref": "Json",
+														"description": "The value of one key"
+													}
+												},
+												"type": "object"
+											}
+										],
+										"description": "A JSON value"
+									}
+								},
+								"$ref": "Json",
+								"description": "The data the job was scheduled with: a JSON value"
+							},
+							"id": {
+								"description": "The number of the job, in the order of scheduling",
+								"minimum": 0,
+								"type": "integer"
+							},
+							"job": {
+								"description": "The name of the job in its plugin",
+								"type": "string"
+							},
+							"next": {
+								"description": "The tick it runs at",
+								"minimum": 0,
+								"type": "integer"
+							},
+							"owner": {
+								"description": "The id of the plugin that owns it",
+								"type": "string"
+							}
+						},
+						"required": [
+							"id",
+							"owner",
+							"job",
+							"next"
+						],
+						"type": "object"
+					},
+					"type": "array"
+				},
+				"locks": {
+					"description": "The locked canonical tools of an actor, sorted, by actor id",
+					"patternProperties": {
+						"^.*$": {
+							"description": "The locked canonical tools of an actor, sorted",
+							"items": {
+								"description": "A canonical tool name",
+								"type": "string"
+							},
+							"type": "array"
+						}
+					},
+					"type": "object"
+				},
+				"plugins": {
+					"description": "The saved state of the plugins, by plugin id",
+					"patternProperties": {
+						"^.*$": {
+							"additionalProperties": false,
+							"description": "The saved state of one plugin",
+							"properties": {
+								"data": {
+									"description": "The state, as its owner saved it; the owner checks it when it loads"
+								},
+								"version": {
+									"description": "The version of the saved form",
+									"type": "integer"
+								}
+							},
+							"required": [
+								"version",
+								"data"
+							],
+							"type": "object"
+						}
+					},
+					"type": "object"
+				},
+				"scheduler": {
+					"additionalProperties": false,
+					"description": "The saved state of the scheduler, when it keeps some",
+					"properties": {
+						"data": {
+							"description": "The state, as its owner saved it; the owner checks it when it loads"
+						},
+						"version": {
+							"description": "The version of the saved form",
+							"type": "integer"
+						}
+					},
+					"required": [
+						"version",
+						"data"
+					],
+					"type": "object"
+				},
+				"seed": {
+					"description": "The seed of the run",
+					"maximum": 4294967295,
+					"minimum": 0,
+					"type": "integer"
+				},
+				"seq": {
+					"description": "The length of the log at the snapshot",
+					"minimum": 0,
+					"type": "integer"
+				},
+				"suspensions": {
+					"description": "The ids of the plugins that suspend an actor, by actor id",
+					"patternProperties": {
+						"^.*$": {
+							"description": "The ids of the plugins that suspend an actor",
+							"items": {
+								"description": "A plugin id",
+								"type": "string"
+							},
+							"type": "array"
+						}
+					},
+					"type": "object"
+				},
+				"tick": {
+					"description": "The tick the run continues with",
+					"minimum": 0,
+					"type": "integer"
+				},
+				"version": {
+					"const": 1,
+					"description": "The format version",
+					"type": "number"
+				}
+			},
+			"required": [
+				"format",
+				"version",
+				"game",
+				"gameHash",
+				"seed",
+				"tick",
+				"seq",
+				"suspensions",
+				"locks",
+				"jobs",
+				"plugins"
+			],
+			"type": "object"
+		},
+		"tick": {
+			"description": "The last finished tick",
+			"minimum": 0,
+			"type": "integer"
+		}
+	},
+	"required": [
+		"format",
+		"runId",
+		"gameHash",
+		"tick",
+		"snapshot",
+		"checkpoint"
+	],
+	"type": "object"
+}

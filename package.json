@@ -32,6 +32,7 @@
 		"@swarmtales/cli": "workspace:*",
 		"@swarmtales/contracts": "workspace:*",
 		"@swarmtales/models": "workspace:*",
+		"@swarmtales/runlog": "workspace:*",
 		"@swarmtales/testkit": "workspace:*",
 		"@types/node": "26.6.6",
 		"eslint": "9.39.5",

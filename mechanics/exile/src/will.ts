@@ -24,7 +24,7 @@ type Bequest = { readonly to: string; readonly points: number } | { readonly to:
 /**
  * One entry of the tool's `bequests`: points, a piece, or both.
  *
- * @public
+ * @internal
  */
 export interface BequestEntry {
 	/** The heir, resolved to its id. */

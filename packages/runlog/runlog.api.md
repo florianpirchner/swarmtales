@@ -8,6 +8,7 @@ import { ChainCheckpoint } from '@swarmtales/chain';
 import { ChainGenesisV2Input } from '@swarmtales/chain';
 import { Envelope } from '@swarmtales/contracts';
 import { EventSink } from '@swarmtales/contracts';
+import { JsonValue } from '@swarmtales/contracts';
 import { KernelSnapshot } from '@swarmtales/contracts';
 import { KeyObject } from 'node:crypto';
 import { Redact } from '@swarmtales/contracts';
@@ -15,6 +16,7 @@ import { RunManifest } from '@swarmtales/contracts';
 import { SnapshotCheckpoint } from '@swarmtales/contracts';
 import { SnapshotFile } from '@swarmtales/contracts';
 import { SwtIssue } from '@swarmtales/contracts';
+import { Type } from 'typebox';
 
 // @public
 export function briefingKey(actor: string): string;
@@ -100,6 +102,54 @@ export interface SnapshotExtras {
     readonly redact?: Redact;
     readonly sessions?: SnapshotSessions;
 }
+
+// @public
+export const SnapshotFileSchema: Type.TObject<{
+    checkpoint: Type.TObject<{
+        genesis: Type.TString;
+        hash: Type.TString;
+        lines: Type.TInteger;
+        publicKey: Type.TString;
+        signature: Type.TString;
+        state: Type.TOptional<Type.TString>;
+    }>;
+    format: Type.TLiteral<1>;
+    gameHash: Type.TString;
+    runId: Type.TString;
+    sessions: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+    snapshot: Type.TObject<{
+        ended: Type.TOptional<Type.TObject<{
+            limit: Type.TOptional<Type.TString>;
+            reason: Type.TUnion<[Type.TLiteral<"ticks">, Type.TLiteral<"limit">, Type.TLiteral<"error">]>;
+            tick: Type.TInteger;
+        }>>;
+        format: Type.TLiteral<"swarmtales.kernel">;
+        game: Type.TString;
+        gameHash: Type.TString;
+        jobs: Type.TArray<Type.TObject<{
+            data: Type.TOptional<Type.TUnsafe<JsonValue>>;
+            id: Type.TInteger;
+            job: Type.TString;
+            next: Type.TInteger;
+            owner: Type.TString;
+        }>>;
+        locks: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+        plugins: Type.TRecord<"^.*$", Type.TObject<{
+            data: Type.TUnknown;
+            version: Type.TInteger;
+        }>>;
+        scheduler: Type.TOptional<Type.TObject<{
+            data: Type.TUnknown;
+            version: Type.TInteger;
+        }>>;
+        seed: Type.TInteger;
+        seq: Type.TInteger;
+        suspensions: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+        tick: Type.TInteger;
+        version: Type.TLiteral<1>;
+    }>;
+    tick: Type.TInteger;
+}>;
 
 // @public
 export const SNAPSHOTS_FOLDER = "snapshots";

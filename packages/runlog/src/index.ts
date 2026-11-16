@@ -10,5 +10,5 @@ export { findFirings, type FoundFiring, TAKE_TOOL } from "./firings.ts";
 export { briefingKey, GAME_FILE, MANIFEST_FILE, nextRunFolder, openRunFolder, TEXTS_FILE, type RunFolder, type RunFolderOptions } from "./folder.ts";
 export { findLeaks } from "./leaks.ts";
 export { createSink } from "./sink.ts";
-export { readSnapshotFile, type SessionSnapshotFile, snapshotFileState, SNAPSHOTS_FOLDER, type SnapshotExpectation, type SnapshotExtras, type SnapshotSessions, writeSnapshotFile } from "./snapshot.ts";
+export { readSnapshotFile, type SessionSnapshotFile, snapshotFileState, SnapshotFileSchema, SNAPSHOTS_FOLDER, type SnapshotExpectation, type SnapshotExtras, type SnapshotSessions, writeSnapshotFile } from "./snapshot.ts";
 export { type RunVerdict, type VerifyRunOptions, verifyRun } from "./verify.ts";

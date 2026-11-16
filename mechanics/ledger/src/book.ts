@@ -16,7 +16,7 @@ export const SYSTEM_ACCOUNT = "SYSTEM_MINT_BURN";
 /**
  * One booking of the ledger: `debit` pays `credit`.
  *
- * @public
+ * @internal
  */
 export interface LedgerEntry {
 	/** The id of the booking: `TX1`, `TX2`, in the order booked. */
@@ -38,7 +38,7 @@ export interface LedgerEntry {
 /**
  * The state of the ledger in a run.
  *
- * @public
+ * @internal
  */
 export interface LedgerState {
 	/** The points of every open account, in the order the accounts were opened. */
@@ -54,14 +54,14 @@ export interface LedgerState {
 /**
  * Why a booking was refused as a bug of its caller.
  *
- * @public
+ * @internal
  */
 export type LedgerErrorCode = "INVALID_AMOUNT" | "SAME_ACCOUNT" | "INSUFFICIENT_FUNDS" | "UNKNOWN_ACCOUNT";
 
 /**
  * What the book throws: a bug of the calling mechanic, never a refusal to a resident.
  *
- * @public
+ * @internal
  */
 export class LedgerError extends Error {
 	/** The name of the error class. */
@@ -84,7 +84,7 @@ export class LedgerError extends Error {
 /**
  * How one booking is made.
  *
- * @public
+ * @internal
  */
 export interface BookOptions {
 	/** Allows the debited account to go negative (penalties, the system account). */
@@ -107,7 +107,7 @@ const MEMO_DIGIT_RUN = /\d(?:[\s\-.,_/]*\d){3}/;
  * @param memo - The memo of a transfer.
  * @returns True when the memo holds such a run of digits.
  *
- * @public
+ * @internal
  */
 export function memoCarriesDigits(memo: string): boolean {
 	return MEMO_DIGIT_RUN.test(memo);
@@ -150,7 +150,7 @@ function checkAccounts(state: LedgerState, debit: string, credit: string, amount
  * @returns The entry, or the first entry of a repeated key.
  * @throws LedgerError `INVALID_AMOUNT`, `SAME_ACCOUNT`, `UNKNOWN_ACCOUNT` or `INSUFFICIENT_FUNDS`, checked in this order.
  *
- * @public
+ * @internal
  */
 export function book(state: LedgerState, debit: string, credit: string, amount: number, reason: string, tick: number, options: BookOptions, written: (entry: LedgerEntry) => void): LedgerEntry {
 	checkAccounts(state, debit, credit, amount, options.strict);
@@ -181,7 +181,7 @@ export function book(state: LedgerState, debit: string, credit: string, amount: 
  * @returns The state, with the idempotency keys rebuilt from the entries.
  * @throws LedgerError `INVALID_AMOUNT` when the balances do not add up to 0.
  *
- * @public
+ * @internal
  */
 export function restored(data: { readonly balances: readonly { readonly account: string; readonly balance: number }[]; readonly entries: readonly LedgerEntry[]; readonly txSeq: number }): LedgerState {
 	const sum = data.balances.reduce((total, entry) => total + entry.balance, 0);

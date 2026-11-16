@@ -21,8 +21,9 @@ A row names its paths in backticks; only a freeze row may say "every file of the
 
 `scripts/api-freeze/frozen.json` holds one row per frozen file: its path, the sha256 of its text, `base` and `row`.
 The files are the API reports of the ten frozen packages and of the base mechanics with `mechanics/contracts`, and
-seven text forms under `scripts/api-freeze/surface/` for what has no report of its own: the JSON schemas of the log
-envelope, the run manifest, the kernel's snapshot and the saved sessions (the two parts of the snapshot file) and the
+nine text forms under `scripts/api-freeze/surface/` for what has no report of its own: the JSON schemas of the log
+envelope, the run manifest, the kernel's snapshot, the saved sessions, the snapshot file (`snapshot-file.json`, its
+section `sessions` beside the kernel's snapshot), the line of the hand file (`hand-line.json`, issue M5-95) and the
 oracle format; the command line (`cli.json`: each command's argument, flags with their kind and exit codes, without
 the help texts); and the list of the error codes (`error-codes.json`, without why and fix).
 `scripts/api-freeze/surface.ts` names them.
@@ -160,8 +161,26 @@ export of a mechanic has a user when a file outside the mechanic imports it from
 | `team-channel` | 2 | none |
 | `contracts` | 8 | none |
 
-These 25 exports are frozen as they stand: tagging them `@internal` changes the sources of four mechanics, which the
-paths of M5-51 do not hold (erratum J290).
+M5-51 left these 25 exports frozen as they stood, because tagging them changes the sources of four mechanics
+(erratum J290). Issue M5-95 (decision A105) read each of them once more: an export that a game author needs, because
+the specification names it as part of a mechanic's contract (5.1: the `/contract` sub-path, the tools and refusal
+codes a resident and a game see), stays; every other one is tagged `@internal` and leaves the report.
+
+| Mechanic | Export | Now | Why |
+|---|---|---|---|
+| `consensus` | `ConsensusSourceService` | no longer exported by `consensus` | a re-export of the contract `consensus-source` of `mechanics/contracts`, which is frozen there and has its users there; a re-export cannot carry a tag of its own, so it is taken out |
+| `decisions` | `AmendDecision` | stays | the tool `amendDecision` of the contract (`/contract`): what a game grants and a Director or the Human Hand stages |
+| `decisions` | `DECISION_REFUSALS` | stays | the refusal codes of `amendDecision`, part of the contract a game and a resident see |
+| `exile` | `EXILE_SUSPENSION` | stays | the reason of the suspension of a banished resident (`actor_suspended`), which a listener matches; `/contract` only |
+| `exile` | `BanishResult`, `GateView`, `ToGate` | stay | the schemas of the output of `banish`, of `gates` and of the input of `toGate` of the service `exile`; `/contract` only |
+| `exile` | `exileHead`, `ExileCtx`, `ExileToolCtx`, `ExileState`, `GateState`, `BequestEntry` | `@internal` | the head, its context types, its state and the will's entries: the mechanic's own machinery |
+| `ledger` | `SYSTEM_ACCOUNT` | stays | the account of every mint and burn, the `debit` or `credit` of the events `transfer` that a game reads; also in `/contract` |
+| `ledger` | `ledgerHead`, `LedgerCtx`, `LedgerToolCtx`, `LedgerState`, `LedgerEntry`, `LedgerError`, `LedgerErrorCode`, `BookOptions`, `book`, `memoCarriesDigits`, `restored` | `@internal` | the head, its context types and the book behind the service `ledger`: an author books through the service, never through `book` |
+
+So 18 of the 25 leave the reports (17 tagged, one re-export taken out) and seven stay. The `/contract` sub-path of a
+mechanic has no report of its own: the report reads the main entry, so `EXILE_SUSPENSION`, `BanishResult`, `GateView`
+and `ToGate`, like the services and events of `exile` and `ledger` that the main entry does not re-export, are in no
+frozen file (erratum J294).
 
 ## Not in the frozen surface
 
