@@ -191,7 +191,7 @@ describe("the scripted asker", () => {
 
 	// J235: the asker of `swt run --fake` is made new in a resumed process; the detail it gives holds no count of the
 	// questions asked before, so the resumed log is the straight one. The resident writes each detail as a record.
-	it("writes the same detail in a run resumed from every boundary as in the straight run", async () => {
+	it("writes the same detail in a run resumed from each of its 4 boundaries as in the straight run", async () => {
 		const drivers = (): DriverTable => {
 			const ask = scriptedAsker({});
 			return {

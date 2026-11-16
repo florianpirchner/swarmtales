@@ -142,7 +142,7 @@ describe("the timer and the table", () => {
 		expect(ofType(run.events, "convoy_match_ended")).toHaveLength(1);
 	});
 
-	it("resumed from every boundary of a fake game, writes the straight log: the cards of convoy_game_ended keep their key order (A43)", async () => {
+	it("resumed from each of the 10 boundaries of a fake game (sampleBoundaries takes all up to 12 ticks), writes the straight log: the cards of convoy_game_ended keep their key order (A43)", async () => {
 		expect(await checkResumeEveryBoundary(convoyGame({ games: 1 }, { brain: true }), (kernel) => ({ resident: fakeDriver(kernel, 3) }), { seed: 3 })).toEqual([]);
 	});
 });

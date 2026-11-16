@@ -60,7 +60,7 @@ describe("city: the resumed Act I file", () => {
 		expect(timelineOf(straight.events)).toEqual(timelineOf((await playOracle(STRAIGHT, game)).events));
 	}, 120_000);
 
-	it("resumed from every boundary, among them the save after minute 6, the log is the straight log", async () => {
+	it("resumed from each of the 12 boundaries of the run (sampleBoundaries takes all up to 12 ticks), among them the save after minute 6, the log is the straight log", async () => {
 		expect(await checkResumeEveryBoundary(gameOf(RESUMED), fileDrivers(RESUMED.timeline), { seed: RESUMED.seed })).toEqual([]);
 	}, 300_000);
 });

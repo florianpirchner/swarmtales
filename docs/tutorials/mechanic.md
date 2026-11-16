@@ -284,10 +284,12 @@ conforms ([`test/play.test.ts`](../../samples/own-mechanic/test/play.test.ts)):
 `checkPackage` compares the head's `package` with `package.json` and its `swarmtales` field (`kind`, `class`, the
 list `mechanics`); `checkOptionsDocumented` finds an option without a description; `checkDeterminism` plays twice
 with one seed and compares the logs; `checkSnapshotRoundTrip` cuts the run after a tick, resumes it from the
-snapshot and compares. The standing checks hold for every game:
+snapshot and compares. The standing checks hold for every game; `checkResumeEveryBoundary` samples despite its name:
+it resumes from every boundary of a run of up to 12 ticks, as this one of 4, and from at most eight of a longer run
+(`sampleBoundaries`), unless its option `boundaries` names them:
 
 ```ts
-	it("the log replays equal, and resumed from every boundary it is the straight log", async () => {
+	it("the log replays equal, and resumed from each of its 4 boundaries it is the straight log", async () => {
 		expect(await checkReplay(game, fake.drivers, { seed: SEED })).toEqual([]);
 		expect(await checkResumeEveryBoundary(game, fake.drivers, { seed: SEED })).toEqual([]);
 	});

@@ -63,7 +63,7 @@ describe("sample 6: the steward in process", () => {
 	it.each([
 		{ name: "answered", ask: AMEND },
 		{ name: "fallback", ask: UNFIT },
-	])("$name: the log replays equal, and resumed from every boundary it is the straight log", async ({ ask }) => {
+	])("$name: the log replays equal, and resumed from each of its 3 boundaries it is the straight log", async ({ ask }) => {
 		const options = { seed: SEED, records: RECORDS };
 		expect(await checkReplay(game, driversWith(ask), options)).toEqual([]);
 		expect(await checkResumeEveryBoundary(game, driversWith(ask), options)).toEqual([]);

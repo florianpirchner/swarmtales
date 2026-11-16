@@ -80,7 +80,7 @@ describe("sample 5: marks and tribunal in process", () => {
 		expect(await checkSnapshotRoundTrip(game, driver, 1, { seed: SEED })).toEqual([]);
 	});
 
-	it("the log replays equal, and resumed from every boundary it is the straight log", async () => {
+	it("the log replays equal, and resumed from each of its 4 boundaries it is the straight log", async () => {
 		expect(await checkReplay(game, fake.drivers, { seed: SEED })).toEqual([]);
 		expect(await checkResumeEveryBoundary(game, fake.drivers, { seed: SEED })).toEqual([]);
 	});

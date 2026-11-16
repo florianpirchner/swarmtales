@@ -14,6 +14,7 @@ checks the kind against the diff from the file's `base` (section 5.2 of the spec
 |---|---|---|---|---|---|
 | F1 | 2026-11-16 | every file of the frozen list | freeze | A60 | the surface as M5-50 left it, with the merges up to M5-57; recorded and dated by M5-57 on `565efaeb` |
 | F2 | 2026-11-16 | `scripts/api-freeze/surface/error-codes.json` | addition | A119 | the code `SWT-M026` of the sdk: a mechanic calls a service its head does not declare (the run-time check of A37, issue M6-01) |
+| F5 | 2026-11-16 | `packages/testkit/testkit.api.md` | addition: docs only | A126 | the TSDoc of `checkResumeEveryBoundary` says that it samples (`sampleBoundaries`: every boundary of a run of up to 12 ticks, at most eight of a longer one) and keeps its frozen name (erratum J318 of M5, issue M6-13). The report holds no TSDoc text, so its text and its entry in `frozen.json` (row F1, base `565efaeb`) do not change; the row records the change of the frozen export's documentation |
 
 A row names its paths in backticks; only a freeze row may say "every file of the frozen list", and once a freeze row
 is dated no other freeze row may stand in the table. Its decision is one row `A<n>` of section 9 of `DECISIONS.md`; a

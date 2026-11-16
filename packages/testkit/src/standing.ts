@@ -160,10 +160,14 @@ export async function checkReplay(game: Game | GameData, drivers: StandingDriver
 }
 
 /**
- * Resume in process: plays the game one tick at a time and takes a snapshot at every boundary; then, for every
- * boundary, a second kernel is created from the snapshot and the log up to it, and plays the rest with fresh drivers.
- * Its log and its end must be those of the straight run. The snapshot is given as a snapshot file holds it (JSON,
- * the keys of every object sorted), so a state that is saved as an object and read back in key order is found.
+ * Resume in process: plays the game one tick at a time and takes a snapshot at every boundary; then, for each
+ * boundary it resumes from, a second kernel is created from the snapshot and the log up to it, and plays the rest with
+ * fresh drivers. Its log and its end must be those of the straight run. The snapshot is given as a snapshot file holds
+ * it (JSON, the keys of every object sorted), so a state that is saved as an object and read back in key order is found.
+ *
+ * Despite its name, it samples: unless `options.boundaries` names them, it resumes from `sampleBoundaries` of the run's
+ * tick count, which is every boundary of a run of up to 12 ticks and at most eight of a longer one (decision A102); the
+ * other boundaries of a long run are not resumed from. The name is frozen (decision A126).
  *
  * @param game - The game, in its builder form or its data form (a family is built first).
  * @param drivers - Makes the drivers of each run; see `StandingDrivers` for what a driver may depend on.
