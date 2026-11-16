@@ -15,9 +15,9 @@ const sample = (): RunManifest => ({
 	game: { id: "hello", title: "Hello Game", hash: HASH_A, params: {} },
 	kernel: { revision: 3, version: "0.0.0", node: "v26.0.0" },
 	scheduler: { id: "turns", revision: 1, determinism: "seeded", options: { order: "seeded" }, optionsHash: HASH_B },
-	plugins: [{ id: "grid-game", package: "@swarmtales/grid-game", version: "0.0.0", optionsHash: HASH_A }],
+	plugins: [{ id: "grid", package: "@swarmtales/grid", version: "0.0.0", optionsHash: HASH_A }],
 	actors: [{ id: "resident:A01", kind: "resident", grant: "resident", driver: "fake/sample", textHashes: { briefing: HASH_A, tools: HASH_B } }],
-	texts: { "grid-game/rules": HASH_A },
+	texts: { "grid/rules": HASH_A },
 	seed: 7,
 	replicate: 0,
 	limits: { maxTicks: 40 },
@@ -59,7 +59,7 @@ describe("RunManifestSchema", () => {
 		const { id, title, params } = sample().game;
 		expect(check({ ...sample(), game: { id, title, params } })).toBe(false);
 		expect(check({ ...sample(), scheduler: { id: "turns", revision: 1, determinism: "seeded", options: {} } })).toBe(false);
-		expect(check({ ...sample(), plugins: [{ id: "grid-game", package: "@swarmtales/grid-game", version: "0.0.0" }] })).toBe(false);
+		expect(check({ ...sample(), plugins: [{ id: "grid", package: "@swarmtales/grid", version: "0.0.0" }] })).toBe(false);
 		expect(check({ ...full(), resumedFrom: {} })).toBe(false);
 		expect(check({ ...full(), experiment: { id: "e1", arm: "control" } })).toBe(false);
 	});
@@ -67,7 +67,7 @@ describe("RunManifestSchema", () => {
 	it("refuses a value that is no sha256 in lower-case hex", () => {
 		for (const bad of ["", "a".repeat(63), "a".repeat(65), "A".repeat(64), `sha256:${"a".repeat(57)}`, 1]) {
 			expect(check({ ...sample(), game: { ...sample().game, hash: bad } })).toBe(false);
-			expect(check({ ...sample(), texts: { "grid-game/rules": bad } })).toBe(false);
+			expect(check({ ...sample(), texts: { "grid/rules": bad } })).toBe(false);
 			expect(check({ ...sample(), actors: sample().actors.map((actor) => ({ ...actor, textHashes: { briefing: bad } })) })).toBe(false);
 		}
 	});

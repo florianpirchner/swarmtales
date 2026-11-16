@@ -160,7 +160,7 @@ export interface RunReportOptions {
  * @example
  * ```ts
  * const facts = readRun(directory, metrics);
- * writeFileSync(join(directory, "REPORT.md"), renderRunReport(facts, manifest, { "draft-rounds.tablePoints": { title: "Table points", unit: "points" } }));
+ * writeFileSync(join(directory, "REPORT.md"), renderRunReport(facts, manifest, { "quarry.tablePoints": { title: "Table points", unit: "points" } }));
  * ```
  *
  * @public

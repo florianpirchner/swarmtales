@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Quarry through the real mechanics: a scripted match, offline. Carried from `test/stories/quarry.test.ts` (its rule
- * block is in `mechanics/draft-rounds/test/model.test.ts`); the assertions on the old `turn_started` read
+ * block is in `mechanics/quarry/test/model.test.ts`); the assertions on the old `turn_started` read
  * `activation_opened`. The bot test of the burn keeps its rules and numbers; its one function is split in three for the
  * complexity limit. Not carried: the two assertions on the old name registry (`findCoreStory("quarry-noburn")`
  * and "is registered with its arms"); `carried.test.ts` holds what replaces them.
  */
-import { deckOf, gainOf, packsOf, receiverOf, scoreTable, type Card, type Rules } from "@swarmtales/mechanic-draft-rounds/rules";
+import { deckOf, gainOf, packsOf, receiverOf, scoreTable, type Card, type Rules } from "@swarmtales/mechanic-quarry/rules";
 import { checkDeterminism, checkSnapshotRoundTrip, idleDriver, play, testKernel } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { field, ofType, packOf, player, rosterGame, shown } from "./support.ts";
@@ -107,7 +107,7 @@ describe("quarry, the burn (P123)", () => {
 describe("quarry, scripted match", () => {
 	it("plays three games with sealed picks, passing, burns, a reference score and a brain per seat", async () => {
 		const run = await play(rosterGame({ burns: true }), players);
-		expect(run.end).toMatchObject({ reason: "limit", limit: "draft-rounds.match" });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "quarry.match" });
 		const ended = ofType(run.events, "draft_game_ended");
 		expect(ended).toHaveLength(3);
 		for (const type of ["draft_game_started", "draft_card_picked", "draft_game_scored"]) {
@@ -155,7 +155,7 @@ describe("quarry, scripted match", () => {
 
 	it("takes the first card of the pack for a missed pick and still ends the match", async () => {
 		const run = await play(rosterGame({ brain: false }), { drivers: { resident: idleDriver } });
-		expect(run.end).toMatchObject({ reason: "limit", limit: "draft-rounds.match" });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "quarry.match" });
 		const picks = ofType(run.events, "draft_card_picked");
 		expect(picks).toHaveLength(3 * 48);
 		expect(picks.every((event) => field(event, "missed") === true)).toBe(true);

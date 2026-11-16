@@ -25,3 +25,5 @@ code writes; the recorded run, played on older code, had another value. The even
 
 Registered (M4-36): no file holds `call.endsTurn`, and the game's oracle test needs no mapping for it: the old
 `sealed-auction` mechanic never set the flag, and neither `bid` nor `viewAuction` ends a turn.
+
+Registered change (M6-06, `13-m6-spec.md` 4.3): the mechanic is named `blind-bid` (the files say `sealed-auction`). The files stay as recorded; the game's oracle tests read them with `runOracle`'s option `renamed` (`{ "sealed-auction": "blind-bid" }`), which maps the event sources, the event types and facts `<id>.<...>`, `setup.mechanics[]` and the game id; the variant names are not mapped. The random labels keep the old id (`ctx.rng("sealed-auction", ...)`).

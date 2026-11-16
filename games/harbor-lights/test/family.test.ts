@@ -10,12 +10,12 @@ import { describe, expect, it } from "vitest";
 import harborLights, { harborLightsGame } from "../game.ts";
 import { arm } from "./support.ts";
 
-/** The hash of the plain game of issue M4-24 (`harborLightsGame()`), taken before any change of this issue. */
-const PINNED = "90d8b3249981b78a7d4fcdc155f218b8443e33778201a495b2ccbdc37879ab6f";
+/** The hash of the plain game of issue M4-24 (`harborLightsGame()`), taken before any change of this issue. Pinned again by M6-06: the rename of the mechanic and game ids moves the game hash (`13-m6-spec.md` 4.3). */
+const PINNED = "f28f0b4c7413689a9ed57b46289fd93e9fd91f42eb7d296be7c3d2bdff6055bb";
 /** The hashes of the two arms of the series, taken the same way: `-solo-g1` and `-nobrain-g1` of the old registry. */
 const ARMS: readonly (readonly [Readonly<Record<string, unknown>>, string])[] = [
-	[{ brain: "solo", games: 1 }, "d8eaa8a8627a9482cf8bfd1bd6bd9782e5a66b266eac587e1c64dfc18b6d9f56"],
-	[{ brain: "nobrain", games: 1 }, "616208b1de48d29978deb6d1329fffd7d05d11185b1332f673ec8a0af4367276"],
+	[{ brain: "solo", games: 1 }, "f9c80d780598aaf477c8fe533bd278aa4b8a89732f449c291b5de729ef8bb342"],
+	[{ brain: "nobrain", games: 1 }, "a9cf0e3df3846714fd463eb2afd7f081f4162d3c396e1fdce832ca8d00977ea4"],
 ];
 
 const hashOf = (game: Parameters<typeof testKernel>[0]): string => testKernel(game).kernel.snapshot().gameHash;

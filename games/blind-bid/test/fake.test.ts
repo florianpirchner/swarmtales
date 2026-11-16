@@ -23,7 +23,7 @@ const refused = (events: readonly Logged[]): readonly unknown[] => [...new Set(o
 describe("blind-bid, played by the fake driver", () => {
 	it.each([7, 11])("seed %i: ends by the match limit with an accepted call of every granted tool", async (seed) => {
 		const { end, events } = await play(blindBidGame(), { seed, drivers: (kernel) => ({ resident: fakeDriver(kernel, seed) }) });
-		expect(end).toMatchObject({ reason: "limit", limit: "sealed-auction.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "blind-bid.match" });
 		const counts = accepted(events);
 		for (const tool of ["viewAuction", "bid", "readBrain", "writeBrain"]) expect(counts[tool] ?? 0, tool).toBeGreaterThan(0);
 		expect(refused(events)).toEqual([]);

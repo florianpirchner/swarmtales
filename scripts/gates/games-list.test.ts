@@ -41,7 +41,7 @@ const A: GameEntry = { name: "a", file: "games/a/game.ts", seeds: [1], fakeSeeds
 describe("the games list", () => {
 	it("holds in this repository, with the five games that were played before M4", () => {
 		expect(gamesListOffences(GAMES)).toEqual([]);
-		expect(GAMES.map((entry) => entry.name)).toEqual(expect.arrayContaining(["hello", "tictactoe-teams", "quarry", "econ-lab", "city-slice"]));
+		expect(GAMES.map((entry) => entry.name)).toEqual(expect.arrayContaining(["hello", "tictactoe", "quarry", "econ-lab", "city-slice"]));
 	});
 
 	it("accepts a whole list; a folder without a game.ts needs no line", () => {

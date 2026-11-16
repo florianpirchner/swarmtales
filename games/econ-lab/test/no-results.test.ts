@@ -9,7 +9,8 @@ import { describe, expect, it } from "vitest";
 import { arm, field, ofType, player } from "./support.ts";
 
 const SEEDS = [7, 41, 43];
-const PINNED = "2ff219a08c9833e17d517409970f1818781c7575dad26f464b752c9155163dc8";
+/** The hash of the default game, as `family.test.ts` pins it (pinned again by M6-06, `13-m6-spec.md` 4.3). */
+const PINNED = "4cb7ff3e344d795a9319247b259f4e49ce4ac85a6979b3144176a75332614f4d";
 
 // The scripted seat, which also looks at the table when a game begins and in a retro: what `viewTable` would tell it.
 const looking: typeof player = async (activation) => {

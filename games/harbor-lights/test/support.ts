@@ -11,6 +11,9 @@ import { expect } from "vitest";
 import { SEATS } from "../briefing.ts";
 import { harborLightsFamily } from "../game.ts";
 
+/** The ids this platform renamed (M6-06), from the id the oracle files hold to the id here: the option `renamed` of `runOracle`. */
+export const RENAMED = { "hint-towers": "harbor-lights" } as const;
+
 type Logged = Played["events"][number];
 type Turn = Parameters<ActorDriver>[0];
 

@@ -13,19 +13,19 @@ has no tools.
 | --- | --- |
 | Package | `@swarmtales/mechanic-optimal-referee` |
 | Id | `optimal-referee` |
-| Summary | Scores every grid-game move against minimax (value before and after, class); read-only, for the human and the reporter. |
-| Requires | `grid-game` (from [grid-game](../grid-game/README.md)) |
+| Summary | Scores every grid move against minimax (value before and after, class); read-only, for the human and the reporter. |
+| Requires | `grid` (from [grid](../grid/README.md)) |
 | Uses when loaded | none |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
-| Games | [tictactoe-teams](../../games/tictactoe-teams/README.md) |
+| Games | [tictactoe](../../games/tictactoe/README.md) |
 
 <!-- /generated:glance -->
 
 ## How it plays
 
-1. **Listening.** On every `move_played` of the [grid-game](../grid-game/README.md) it reads the position before the
-   move through the `grid-game` service.
+1. **Listening.** On every `move_played` of the [grid](../grid/README.md) it reads the position before the
+   move through the `grid` service.
 2. **Scoring.** It computes the minimax value of every free cell and compares the played one with the best: optimal,
    or a missed win, a missed block, a blunder. Only positions where an error was possible are scored: where every free
    cell is worth the same (the empty board is a draw, a lost position loses anyway) nothing is written.
@@ -100,7 +100,7 @@ This mechanic has no prompt files.
 
 ## Example
 
-From [`games/tictactoe-teams/game.ts`](../../games/tictactoe-teams/game.ts):
+From [`games/tictactoe/game.ts`](../../games/tictactoe/game.ts):
 
 ```ts
 optimalReferee({ maxEmptyCells: Math.min(16, size * size) }),

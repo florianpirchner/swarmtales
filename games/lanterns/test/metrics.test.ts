@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The metrics of `clue-grid` over the new log of an oracle replay (M4 specification, issue 31): each equals the
+ * The metrics of `lanterns` over the new log of an oracle replay (M4 specification, issue 31): each equals the
  * number computed by hand from the same oracle file, and a metric without its event is absent, never 0.
  */
 import { join } from "node:path";
-import { metricsOf, playOracle, readOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
+import { metricsOf, playOracle, readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import { arm } from "./support.ts";
+import { arm, RENAMED } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "lanterns");
 
@@ -37,16 +37,16 @@ const mean = (values: readonly number[]): number | "absent" => (values.length ==
 const rounded = (metrics: Readonly<Record<string, number | "absent">>): Readonly<Record<string, number | "absent">> =>
 	Object.fromEntries(Object.entries(metrics).map(([id, value]) => [id, value === "absent" ? value : Math.round(value * 1e12) / 1e12]));
 
-describe("the metrics of clue-grid over an oracle replay", () => {
+describe("the metrics of lanterns over an oracle replay", () => {
 	it.each(HAND)("%s: every metric equals the number read by hand in the file", async (file, params, teams) => {
 		const oracle = readOracle(join(ORACLES, file));
 		const game = arm(params);
-		const { events } = await playOracle(oracle, game);
+		const { events } = await playOracle(oracle, game, { renamed: RENAMED });
 		// The replay is the run of the file: its timeline is the file's (a cut file up to its cut).
-		expect(timelineOf(events).slice(0, oracle.timeline.length)).toEqual(oracle.timeline);
+		expect(await runOracle(oracle, game, 3, { renamed: RENAMED })).toEqual([]);
 		expect(scoredIn(oracle)).toMatchObject(asScored(teams));
 		const later = teams.filter(([number]) => number >= 2);
-		expect(rounded(metricsOf(game, "clue-grid", events))).toEqual(
+		expect(rounded(metricsOf(game, "lanterns", events))).toEqual(
 			rounded({ recall: mean(teams.map((team) => team[1])), precision: mean(teams.map((team) => team[2])), recallLater: mean(later.map((team) => team[1])) }),
 		);
 	});
@@ -55,8 +55,8 @@ describe("the metrics of clue-grid over an oracle replay", () => {
 		const game = arm();
 		const oracle = readOracle(join(ORACLES, "lanterns-s73.json"));
 		// The same run stopped before its first tick: no game was scored.
-		const { events } = await playOracle({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game);
+		const { events } = await playOracle({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game, { renamed: RENAMED });
 		expect(events.length).toBeGreaterThan(0);
-		expect(metricsOf(game, "clue-grid", events)).toEqual({ recall: "absent", precision: "absent", recallLater: "absent" });
+		expect(metricsOf(game, "lanterns", events)).toEqual({ recall: "absent", precision: "absent", recallLater: "absent" });
 	});
 });

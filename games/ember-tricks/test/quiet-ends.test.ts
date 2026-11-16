@@ -41,7 +41,7 @@ describe("Ember Tricks, the answer turns after a seat's own move (P475)", () => 
 	const moves = ["placeBid", "nameTrump", "playCard", "vetoLead", "writeBrain"];
 	const wakes = async (quietEnds: boolean): Promise<string[]> => {
 		const { end, events } = await play(emberTricksGame({ games: 2, rounds: [1, 2, 3], quietEnds }), { seed: 7, drivers: (kernel) => ({ resident: oneCall(kernel) }) });
-		expect(end).toMatchObject({ reason: "limit", limit: "trick-play.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "ember-tricks.match" });
 		return answerWakes(events).filter((tool) => moves.includes(tool));
 	};
 

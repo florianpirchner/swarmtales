@@ -192,7 +192,7 @@ function metricValues(manifest: RunManifest, events: readonly Envelope[], metric
  * @returns The values by key; a generic key of the lab wins over a metric of the same key.
  * @example
  * ```ts
- * const values = factsOf(manifest, events, { "grid-game": gridGame.definition.head.metrics });
+ * const values = factsOf(manifest, events, { "grid": gridGame.definition.head.metrics });
  * values["run.ticks"]; // 12
  * values["models.costUsd"]; // "absent" for a run of the fake driver
  * ```

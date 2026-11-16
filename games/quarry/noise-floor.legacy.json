@@ -4,7 +4,7 @@
 	"game": "quarry",
 	"arm": "control",
 	"seed": 31,
-	"metric": "draft-rounds.tablePoints",
+	"metric": "quarry.tablePoints",
 	"platform": "legacy",
 	"kernelRevision": 2,
 	"values": [
@@ -30,7 +30,7 @@
 		]
 	},
 	"guardrails": {
-		"models.requests per draft-rounds.decisions": {
+		"models.requests per quarry.decisions": {
 			"n": 5,
 			"mean": 1.2972222222222223,
 			"sd": 0.033807392901772516,

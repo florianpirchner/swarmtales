@@ -19,7 +19,7 @@
 			"path": "../../packages/sdk"
 		},
 		{
-			"path": "../grid-game"
+			"path": "../grid"
 		},
 		{
 			"path": "../../packages/testkit"

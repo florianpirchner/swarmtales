@@ -12,7 +12,7 @@ import { headOf, loadHeads, type GameHead } from "./head.ts";
 
 const heads = await loadHeads(REPO_ROOT, GAMES);
 const markers = BLOCKS.map((name) => `<!-- generated:${name} -->\n<!-- /generated:${name} -->`).join("\n\n");
-const HELLO: GameHead = { folder: "hello", residents: 2, mechanics: ["grid-game"], directors: [], params: undefined };
+const HELLO: GameHead = { folder: "hello", residents: 2, mechanics: ["grid"], directors: [], params: undefined };
 
 /** A small catalogue of the Hello Game alone, with current blocks. */
 function tiny(card = "## Hello Game\n\nTwo residents.\n\n- Links: [folder](games/hello/).\n"): string {

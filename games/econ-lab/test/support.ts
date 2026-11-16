@@ -9,6 +9,9 @@ import { Value } from "typebox/value";
 import { expect } from "vitest";
 import { econLabGame, type EconLabOptions, econLabFamily } from "../game.ts";
 
+/** The ids this platform renamed (M6-06), from the id the oracle files hold to the id here: the option `renamed` of `runOracle`. */
+export const RENAMED = { "econ-games": "econ-lab" } as const;
+
 type Logged = Played["events"][number];
 type Call = readonly { readonly tool: string; readonly params: unknown }[];
 

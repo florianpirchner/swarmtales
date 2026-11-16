@@ -76,7 +76,7 @@ function strayRenames(source: ToolSource): readonly SwtIssue[] {
  * @example
  * ```ts
  * const { tools, names } = toolNames([{ mechanic: gridGame, as: { playMove: "place" }, path: "mechanics[0]" }]);
- * names["@swarmtales/mechanic-grid-game/grid-game/playMove"]; // "place"
+ * names["@swarmtales/mechanic-grid/grid/playMove"]; // "place"
  * ```
  *
  * @public

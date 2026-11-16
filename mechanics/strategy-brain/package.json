@@ -37,7 +37,7 @@
 		"@swarmtales/contracts": "workspace:*",
 		"@swarmtales/sdk": "workspace:*",
 		"@swarmtales/mechanic-contracts": "workspace:*",
-		"@swarmtales/mechanic-grid-game": "workspace:*",
+		"@swarmtales/mechanic-grid": "workspace:*",
 		"@swarmtales/mechanic-team-channel": "workspace:*",
 		"typebox": "1.3.27"
 	},

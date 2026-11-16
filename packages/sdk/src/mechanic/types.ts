@@ -84,7 +84,7 @@ export interface MechanicHead<
 	U extends readonly ServiceDefinition[],
 	TP extends ToolParams,
 > {
-	/** The id of the mechanic, unique in a game: `grid-game`. */
+	/** The id of the mechanic, unique in a game: `grid`. */
 	readonly id: Id;
 	/** The npm name of the package that holds the mechanic; conformance checks it against `package.json`. */
 	readonly package: string;

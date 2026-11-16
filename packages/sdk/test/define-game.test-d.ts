@@ -8,12 +8,12 @@ import { defineGame, gameData } from "../src/game/define-game.ts";
 import type { ToolOf } from "../src/game/types.ts";
 import type { MechanicDefinition, None } from "../src/mechanic/types.ts";
 
-declare const gridGame: MechanicDefinition<"grid-game", TObject, None, "viewBoard" | "playMove">;
+declare const gridGame: MechanicDefinition<"grid", TObject, None, "viewBoard" | "playMove">;
 declare const consensus: MechanicDefinition<"consensus", TObject, None, "proposeMove" | "castVote">;
 declare const referee: MechanicDefinition<"optimal-referee", TObject, None, never>;
 
 export const game = defineGame({
-	id: "tictactoe-teams",
+	id: "tictactoe",
 	residents: 4,
 	mechanics: [gridGame(), consensus({}), referee()],
 	grants: { resident: ["viewBoard", "proposeMove", "castVote", "playMove"], watcher: { drop: ["castVote"], add: ["viewBoard"] } },
@@ -27,7 +27,7 @@ export const noTool: ToolOf<typeof game.mechanics> = "resign";
 
 /** The data form takes any builder game and names its tools as plain strings. */
 export const data: readonly string[] | undefined = gameData(game).data.locked;
-export const used: MechanicDefinition | undefined = gameData(game).mechanics["grid-game"];
+export const used: MechanicDefinition | undefined = gameData(game).mechanics.grid;
 
 export const wrongGrant = defineGame({
 	id: "wrong-grant",

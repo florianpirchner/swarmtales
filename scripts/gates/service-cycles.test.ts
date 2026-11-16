@@ -7,7 +7,7 @@
  *
  * A contract of `mechanics/contracts` is no edge: it is the way back that the pattern allows ("nobody of them asks
  * `receipts` back except through `receipt-source`", section 2.3). Its user names no provider, and a provider may ask
- * its user (`grid-game` requires `consensus`, which asks `consensus-source` of it; a game asks `strategy-brain`,
+ * its user (`grid` requires `consensus`, which asks `consensus-source` of it; a game asks `strategy-brain`,
  * which asks `brain-source` of it). Counted as edges, the two contracts of M3 and M4 make 18 cycles of the
  * repository at the scaffold of M5 (errata J1).
  */
@@ -87,10 +87,10 @@ describe("no service cycle (M5, 4.6)", () => {
 	});
 
 	it("does not pass on nothing: it reads every head and finds the edges", () => {
-		expect(heads.map((entry) => entry.id)).toEqual(expect.arrayContaining(["channels", "ledger", "exile", "consensus", "grid-game", "strategy-brain"]));
+		expect(heads.map((entry) => entry.id)).toEqual(expect.arrayContaining(["channels", "ledger", "exile", "consensus", "grid", "strategy-brain"]));
 		const edges = edgesOf(heads).map((edge) => `${edge.from} -> ${edge.to}`);
 		expect(edges.length).toBeGreaterThan(5);
-		expect(edges).toEqual(expect.arrayContaining(["grid-game -> consensus", "holdem -> strategy-brain"]));
+		expect(edges).toEqual(expect.arrayContaining(["grid -> consensus", "holdem -> strategy-brain"]));
 		expect([...CONTRACTS]).toEqual(["allowance", "brain-source", "cap-exemption", "consensus-source", "figures", "identity", "notices", "receipt-source"]);
 	});
 

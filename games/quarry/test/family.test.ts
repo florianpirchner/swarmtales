@@ -12,13 +12,13 @@ import { describe, expect, it } from "vitest";
 import quarry, { quarryGame } from "../game.ts";
 import { arm } from "./support.ts";
 
-/** The hash of the plain game of issue M2-13 (`quarryGame()`), taken before any change of the game files. */
-const PINNED = "6490b2a8e16e7dfaf9c4180004b0a5c3acb81183a95c5685a7b773e7689041c1";
+/** The hash of the plain game of issue M2-13 (`quarryGame()`), taken before any change of the game files. Pinned again by M6-06: the rename of the mechanic and game ids moves the game hash (`13-m6-spec.md` 4.3). */
+const PINNED = "a146fca086cc39a064d749efb973ebd6e154df7e5e1e9da15f7f7066ccb567a9";
 /** The hashes of the old variants, taken the same way: `quarryGame({ openHands: true })`, `{ brain: false }`, `{ burns: true }`. */
 const ARMS: readonly (readonly [Readonly<Record<string, unknown>>, string])[] = [
-	[{ openHands: true }, "f73235af367638ebb9514bb6790cc55629e4d4b6a4dc3e45bf827a2e327b1d44"],
-	[{ brain: false }, "c478e181aa911c0a7ffbd7ed46e1e755173324418781718c4b6c3244456c177a"],
-	[{ burns: true }, "55fb7c693d70867c23a5b15fcd1228e4a17aff6a46803ba12a675b60a98b3f46"],
+	[{ openHands: true }, "f3d22de5d23cafcde94f447902c2b447bf47bef5027c7418e3b23c258c533c6e"],
+	[{ brain: false }, "0fd15a237c706b4865bc8b28dd351add6ed41a7a1191f92f4a2600f6c5d889cb"],
+	[{ burns: true }, "c3af0b74b0296fa22649a70052edef5c5d9829f3287912af40f607e64f006bf9"],
 ];
 const EXPERIMENTS = join(import.meta.dirname, "..", "experiments");
 

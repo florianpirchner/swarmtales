@@ -9,7 +9,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import { arm, VARIANTS } from "./support.ts";
+import { arm, RENAMED, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "harbor-lights");
 
@@ -27,6 +27,6 @@ describe("Harbor Lights against its oracles", () => {
 	// which writes the lock events as the old platform wrote them; the cut file (`-nobrain-s37`) is compared up to its cut.
 	it.each(FILES)("%s: runOracle at level 3 finds no mismatch", async (file) => {
 		const oracle = readOracle(join(ORACLES, file));
-		expect(await runOracle(oracle, gameOf(oracle), 3)).toEqual([]);
+		expect(await runOracle(oracle, gameOf(oracle), 3, { renamed: RENAMED })).toEqual([]);
 	});
 });

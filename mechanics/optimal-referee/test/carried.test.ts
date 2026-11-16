@@ -17,7 +17,7 @@ describe("carried byte for byte", () => {
 		expect(sha256(optimalReferee.options)).toBe("885a485efcc13838d78b8cab1d4da5ef4a136fbc17f2af871a054d245bc26e5e");
 		expect(sha256(optimalReferee.events)).toBe("ec83f62d4b433b7b95dcd3ed1e8880c52bb1b6d4c76b359a6746aaedd0838e3f");
 		expect(optimalReferee.head.audiences).toEqual({ move_scored: ["human"] });
-		expect([optimalReferee.id, optimalReferee.head.summary]).toEqual(["optimal-referee", "Scores every grid-game move against minimax (value before and after, class); read-only, for the human and the reporter."]);
+		expect([optimalReferee.id, optimalReferee.head.summary]).toEqual(["optimal-referee", "Scores every grid move against minimax (value before and after, class); read-only, for the human and the reporter."]);
 		expect([optimalReferee.head.prompts, existsSync(join(import.meta.dirname, "..", "prompts"))]).toEqual([{}, false]);
 	});
 });

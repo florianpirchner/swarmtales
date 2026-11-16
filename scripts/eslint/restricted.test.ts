@@ -40,7 +40,7 @@ describe("the environment is read in one file", () => {
 
 	it("is switched on for every package file, tests included, and off for the one file and for scripts", async () => {
 		const first = JSON.stringify(PROCESS_ENV[0].selector);
-		const planted = ["packages/models/src/keys.ts", "packages/models/test/keys.test.ts", "packages/kernel/src/a.test.ts", "mechanics/econ-games/src/index.ts",
+		const planted = ["packages/models/src/keys.ts", "packages/models/test/keys.test.ts", "packages/kernel/src/a.test.ts", "mechanics/econ-lab/src/index.ts",
 			"games/quarry/src/index.ts", "samples/one/src/index.ts", "apps/cli/src/main.ts", "apps/cli/test/env.test.ts"];
 		for (const file of planted) expect((await selectorsOf(file)).filter((entry) => entry.includes(first)), file).toHaveLength(1);
 		for (const file of [ENV_FILE, "scripts/check.ts", "scripts/gates/names.test.ts"]) {

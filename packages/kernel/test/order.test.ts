@@ -5,7 +5,7 @@ import { ordered } from "../src/order.ts";
 import type { Placed } from "../src/parts.ts";
 
 /** The load order of tic-tac-toe teams (3.4). */
-const LOAD = ["team-channel", "grid-game", "consensus", "strategy-brain", "optimal-referee"];
+const LOAD = ["team-channel", "grid", "consensus", "strategy-brain", "optimal-referee"];
 
 /** The registrations of one hook: the listed plugins in load order, with the `after` lists given. */
 function hook(plugins: readonly string[], after: Readonly<Record<string, readonly string[]>> = {}): readonly Placed[] {
@@ -25,12 +25,12 @@ const run = (entries: readonly Placed[]): readonly string[] => ordered(entries).
 
 describe("ordered: the table of 3.4", () => {
 	it.each([
-		["runStarted: grid-game after strategy-brain", hook(["strategy-brain", "grid-game"], { "grid-game": ["strategy-brain"] }), ["strategy-brain", "grid-game"]],
+		["runStarted: grid after strategy-brain", hook(["strategy-brain", "grid"], { "grid": ["strategy-brain"] }), ["strategy-brain", "grid"]],
 		["tickStarted: load order", hook(["consensus", "strategy-brain"]), ["consensus", "strategy-brain"]],
 		["tickEnded: load order", hook(["consensus", "strategy-brain"]), ["consensus", "strategy-brain"]],
-		["inputs: load order", hook(["strategy-brain", "grid-game", "team-channel", "consensus"]), ["team-channel", "grid-game", "consensus", "strategy-brain"]],
+		["inputs: load order", hook(["strategy-brain", "grid", "team-channel", "consensus"]), ["team-channel", "grid", "consensus", "strategy-brain"]],
 		["listeners of game_started: load order", hook(["strategy-brain", "optimal-referee"]), ["strategy-brain", "optimal-referee"]],
-		["an `after` id that is not loaded is ignored", hook(["grid-game", "consensus"], { "grid-game": ["absent"] }), ["grid-game", "consensus"]],
+		["an `after` id that is not loaded is ignored", hook(["grid", "consensus"], { "grid": ["absent"] }), ["grid", "consensus"]],
 	])("%s", (_name, entries, expected) => {
 		expect(run(entries)).toEqual(expected);
 	});

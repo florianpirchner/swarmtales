@@ -169,10 +169,10 @@ describe("the owed tags of this repository (7.4)", () => {
 	it("names runtime-r3 at 9d3ba515 and every revision up to the kernel's, each commit in the clone", () => {
 		const runtime = runtimeTags(REPO_ROOT);
 		expect(runtime.problems).toEqual([]);
-		expect(runtime.tags.map((tag) => `${tag.name} ${tag.commit.slice(0, 7)}`)).toEqual(["runtime-r3 9d3ba51", "runtime-r4 b158a5b", "runtime-r5 6d1a685", "runtime-r6 390448d", "runtime-r7 d022725"]);
+		expect(runtime.tags.map((tag) => `${tag.name} ${tag.commit.slice(0, 7)}`)).toEqual(["runtime-r3 9d3ba51", "runtime-r4 b158a5b", "runtime-r5 6d1a685", "runtime-r6 390448d", "runtime-r7 d022725", "runtime-r8 2e9d969"]);
 		const owed = owedTags(REPO_ROOT);
 		expect(owed.problems).toEqual([]);
-		expect(owed.tags.map((tag) => tag.name)).toEqual(["v0-final", "runtime-r3", "runtime-r4", "runtime-r5", "runtime-r6", "runtime-r7", "milestone-m1", "milestone-m2", "milestone-m3", "milestone-m4", "milestone-m5", "runs/m5-5a", "runs/m5-5c"]);
+		expect(owed.tags.map((tag) => tag.name)).toEqual(["v0-final", "runtime-r3", "runtime-r4", "runtime-r5", "runtime-r6", "runtime-r7", "runtime-r8", "milestone-m1", "milestone-m2", "milestone-m3", "milestone-m4", "milestone-m5", "runs/m5-5a", "runs/m5-5c"]);
 	});
 
 	it("prints runtime-r3 at 9d3ba515 for the owner when the remote lacks it", () => {

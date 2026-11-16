@@ -27,21 +27,21 @@ mechanics, Directors and params of each game's default build. Family and proof c
 
 | Game | Family | Residents | Mechanics | Directors | Params | How it is proven |
 |---|---|---|---|---|---|---|
-| [Hello Game](#hello-game) | none (sample 1 of the README) | 2 | `grid-game` | none | none | its test plays it with the sampled player and with `swt run --fake`, and verifies the log |
-| [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none | none | nine oracle files match at level 3 |
-| [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | none | a game family: `games`, `packs`, `packSize`, `brain`, `burns`, `openHands`, `frozenHands`, `maxWords`, `showResults` | six oracle files match at level 3 |
-| [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | none | a game family: `blocks`, `brain`, `showHorizon`, `maxWords`, `showResults` | five oracle files match at level 3 |
+| [Hello Game](#hello-game) | none (sample 1 of the README) | 2 | `grid` | none | none | its test plays it with the sampled player and with `swt run --fake`, and verifies the log |
+| [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none | none | nine oracle files match at level 3 |
+| [Quarry](#quarry) | markets, bids and economics | 4 | `quarry`, `strategy-brain` | none | a game family: `games`, `packs`, `packSize`, `brain`, `burns`, `openHands`, `frozenHands`, `maxWords`, `showResults` | six oracle files match at level 3 |
+| [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-lab`, `strategy-brain` | none | a game family: `blocks`, `brain`, `showHorizon`, `maxWords`, `showResults` | five oracle files match at level 3 |
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | `warden` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
-| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `hint-towers`, `team-channel`, `strategy-brain` | none | a game family: `games`, `brain`, `strikes`, `aid`, `maxWords` | eight oracle files match at level 3 |
+| [Harbor Lights](#harbor-lights) | cooperation under hidden information | 4 | `card-table`, `harbor-lights`, `team-channel`, `strategy-brain` | none | a game family: `games`, `brain`, `strikes`, `aid`, `maxWords` | eight oracle files match at level 3 |
 | [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none | a game family: `seats`, `games`, `dice`, `brain`, `talk`, `maxWords`, `quietEnds` | six oracle files match at level 3 |
-| [Lanterns](#lanterns) | cooperation under hidden information | 6 (two teams of three) | `clue-grid`, `team-channel`, `strategy-brain` | none | a game family: `games`, `brain`, `maxClues`, `maxWords` | four oracle files match at level 3 |
+| [Lanterns](#lanterns) | cooperation under hidden information | 6 (two teams of three) | `lanterns`, `team-channel`, `strategy-brain` | none | a game family: `games`, `brain`, `maxClues`, `maxWords` | four oracle files match at level 3 |
 | [Chess](#chess) | board games, all information public | 2 (4 with teams) | `chess`, `team-channel`, `strategy-brain` | none | a game family: `games`, `maxPlies`, `maxWords`, `fresh`, `compact`, `brain`, `showLegalMoves`, `showThreats`, `coach`, `teams`, `settleCap` | twelve oracle files match at level 3 |
 | [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none | a game family: `seats`, `games`, `hands`, `brain`, `brainSeats`, `aidSeats`, `duplicate`, `maxWords` | six oracle files match at level 3 |
 | [Convoy](#convoy) | hidden information and bluff | 6 | `convoy`, `strategy-brain` | none | a game family: `games`, `crews`, `damageToLose`, `cooldown`, `brain`, `maxWords`, `quietEnds` | four oracle files match at level 3 |
 | [Nine men's morris](#nine-mens-morris) | board games, all information public | 6 (two teams of three), 2, or 1 against the search | `morris`, `consensus`, `team-channel`, `strategy-brain`, `morris-referee` | none | a game family: `games`, `brain`, `maxTurns`, `maxQuietTurns`, `maxWords`, `maxRounds`, `teamSize`, `fixedCaptain`, `refereeDepth`, `engineDepth` | five oracle files match at level 3 |
 | [Salt Market](#salt-market) | markets, bids and economics | 4 | `salt-market`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `spoil`, `maxWords`, `markOwnOffers` | four oracle files match at level 3 |
-| [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `sealed-auction`, `strategy-brain` | none | a game family: `games`, `lots`, `purse`, `brain`, `maxWords`, `quietEnds` | five oracle files match at level 3 |
-| [Ember Tricks](#ember-tricks) | markets, bids and economics | 4 | `card-table`, `trick-play`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `lever`, `maxWords`, `quietEnds` | four oracle files match at level 3 |
+| [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `blind-bid`, `strategy-brain` | none | a game family: `games`, `lots`, `purse`, `brain`, `maxWords`, `quietEnds` | five oracle files match at level 3 |
+| [Ember Tricks](#ember-tricks) | markets, bids and economics | 4 | `card-table`, `ember-tricks`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `lever`, `maxWords`, `quietEnds` | four oracle files match at level 3 |
 | [Whispers](#whispers) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `receipts`, `whispers`, `motives`, `puzzles`, `progression`, `cast`, `standoff`, `exile`, `standoff-tribunal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `guard`, `judge` | a game family: `receipts`, `agents`, `minutes`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `gamemaker`, `classifier`, `names`, `coreMotives`, `whisperer`, `guards`, `figureDirection`, `gmDirection` | three of the four oracle files match at level 3, the holdout file up to its trial and the trial by projection; a fake run reaches every reachable tool; replay and resume give the same log |
 | [City of Keys](#city-of-keys) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `motives`, `receipts`, `puzzles`, `progression`, `cast`, `goals`, `standoff`, `exile`, `tribunal`, `seal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `judge` | a game family: `agents`, `minutes`, `startLevel`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `personas`, `gamemaker`, `classifier`, `names`, `coreMotives`, `cast`, `figureDirection`, `gmDirection` | four of the seven oracle files (Act I at seeds 7 and 11, the resumed Act I, the burn file) match at level 3, the two Act II files by projection; a fake run reaches every reachable tool; replay and resume give the same log, also after `--pause-on` |
 
@@ -73,7 +73,7 @@ report; residents never see it.
 - Variants are options of `tictactoeGame`: the number of games, the board size and line length, no brain (the
   control arm), a brain for one team only, one resident per side, one side alone against a team, a fixed captain.
 - Proof: the nine oracle files match at level 3; the briefings are byte-identical to the old platform.
-- Links: [folder](games/tictactoe-teams/), [README](games/tictactoe-teams/README.md),
+- Links: [folder](games/tictactoe/), [README](games/tictactoe/README.md),
   [oracle files](oracles/tictactoe/).
 
 ## Quarry
@@ -242,7 +242,7 @@ built-in search on side O, are variants.
   `engineDepth` (the search as the opponent, at this depth), `refereeDepth` (the Referee's depth), `maxWords`.
 - Proof: all five oracle files match at level 3, one of them up to its cut, with the Referee loaded; the briefings
   are byte-identical. A played match of two teams of three is covered only by the silent file.
-- Links: [folder](games/morris-teams/), [README](games/morris-teams/README.md), [oracle files](oracles/morris-teams/).
+- Links: [folder](games/morris/), [README](games/morris/README.md), [oracle files](oracles/morris-teams/).
 
 ## Salt Market
 

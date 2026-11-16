@@ -4,9 +4,9 @@
  * the number computed by hand from the same oracle file, and a metric without its event is absent, never 0.
  */
 import { join } from "node:path";
-import { readOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
+import { playOracle, readOracle, runOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import { arm, metricsOf, replay } from "./support.ts";
+import { arm, metricsOf, RENAMED, replay } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "quarry");
 
@@ -38,14 +38,15 @@ describe("the metrics over an oracle replay", () => {
 		const oracle = readOracle(join(ORACLES, file));
 		const game = arm(params);
 		const events = await replay(oracle, game);
-		// The replay is the run of the file: its timeline is the file's (the cut file up to its cut).
-		expect(timelineOf(events).slice(0, oracle.timeline.length)).toEqual(oracle.timeline);
+		// The replay is the run of the file: the file plays at level 3 (the cut file up to its cut), and the replay writes its timeline.
+		expect(await runOracle(oracle, game, 3, { renamed: RENAMED })).toEqual([]);
+		expect(timelineOf(events)).toEqual(timelineOf((await playOracle(oracle, game, { renamed: RENAMED })).events));
 		expect(pointsIn(oracle)).toBe(tablePoints);
 		expect(metricsOf(game, events)).toEqual({
-			"draft-rounds.tablePoints": tablePoints,
-			"draft-rounds.sharedLanes": sharedLanes,
-			"draft-rounds.decisions": decisions,
-			"draft-rounds.missedPicks": missedPicks,
+			"quarry.tablePoints": tablePoints,
+			"quarry.sharedLanes": sharedLanes,
+			"quarry.decisions": decisions,
+			"quarry.missedPicks": missedPicks,
 			"strategy-brain.brainWrites": brainWrites,
 		});
 	});

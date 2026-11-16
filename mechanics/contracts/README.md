@@ -6,7 +6,7 @@ back empty and the caller keeps the old answer (the id, no marks part, `none`).
 
 | Export | Service name | Provided by | Used by |
 |---|---|---|---|
-| `ConsensusSourceService` | `consensus-source` | the mechanic that owns the gated tool (`grid-game`) | `consensus` |
+| `ConsensusSourceService` | `consensus-source` | the mechanic that owns the gated tool (`grid`) | `consensus` |
 | `BrainSourceService` | `brain-source` | a game other than the grid game | `strategy-brain` |
 | `IdentityService` | `identity` | `names`; without it, the id itself | `channels`, `ledger`, `exile` |
 | `AllowanceService` | `allowance` | `marks`; without it, no marks part in a reply | `channels` |

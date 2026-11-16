@@ -42,13 +42,13 @@ describe("the Hello Game", () => {
 	it.each(SEEDS)("seed %i: the match ends by its run limit, with one activation per move, between 5 and 9", async (seed) => {
 		const { end, events, kernel } = await play(game, { seed, drivers: (kernel) => ({ resident: fakeDriver(kernel, seed) }) });
 		const count = (type: string): number => events.filter((event) => event.type === type).length;
-		expect(end).toMatchObject({ reason: "limit", limit: "grid-game.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "grid.match" });
 		expect(count("match_ended")).toBe(1);
 		expect(count("activation_opened")).toBeGreaterThanOrEqual(5);
 		expect(count("activation_opened")).toBeLessThanOrEqual(9);
 		expect(count("activation_opened")).toBe(count("move_played"));
 		expect(count("tool_refused")).toBe(0);
-		expect(Object.values(kernel.fact("grid-game.tally") ?? {})).toHaveLength(3);
+		expect(Object.values(kernel.fact("grid.tally") ?? {})).toHaveLength(3);
 	});
 
 	it("does not play the same match at every seed", async () => {
@@ -61,11 +61,11 @@ describe("the Hello Game", () => {
 		const head = /head ([0-9a-f]{64})$/.exec(lines[3] ?? "")?.[1] ?? "?";
 		expect(lines.slice(0, 4)).toEqual([
 			"fake models: no result",
-			"hello-game seed 1: ended after 6 ticks (limit grid-game.match: the match is over)",
-			'result grid-game.tally: {"X":1,"O":0,"draw":0}',
+			"hello-game seed 1: ended after 6 ticks (limit grid.match: the match is over)",
+			'result grid.tally: {"X":1,"O":0,"draw":0}',
 			`log verified: 90 lines, head ${head}`,
 		]);
-		// Every tool of grid-game has a `sample`, so the command warns about none (`SWT-C010`).
+		// Every tool of grid has a `sample`, so the command warns about none (`SWT-C010`).
 		expect(warned).toEqual([]);
 		expect(swt("log", "verify", join(out, "hello-game-001"))).toEqual([`ok, 90 lines, head ${head}`]);
 		const opened = readFileSync(join(out, "hello-game-001", "events.jsonl"), "utf8").split("\n").filter((line) => line.includes('"type":"activation_opened"'));
@@ -89,7 +89,7 @@ describe("sample 1 in the README", () => {
 
 	it("the README names the command and shows the lines it prints", () => {
 		expect(readme).toContain("apps/cli/src/bin.ts run games/hello/game.ts --fake");
-		expect(readme).toContain("hello-game seed 1: ended after 6 ticks (limit grid-game.match: the match is over)");
-		expect(readme).toContain('result grid-game.tally: {"X":1,"O":0,"draw":0}');
+		expect(readme).toContain("hello-game seed 1: ended after 6 ticks (limit grid.match: the match is over)");
+		expect(readme).toContain('result grid.tally: {"X":1,"O":0,"draw":0}');
 	});
 });

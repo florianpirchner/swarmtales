@@ -25,7 +25,7 @@ const refused = (events: readonly Logged[]): readonly unknown[] => [...new Set(o
 describe("the Econ Lab, played by the fake driver", () => {
 	it("ends by the match limit with an accepted call of every tool, and no decision is refused or missed", async () => {
 		const { end, events } = await play(econLabGame(), { seed: 7, drivers: (kernel) => ({ resident: fakeDriver(kernel, 7) }) });
-		expect(end).toMatchObject({ reason: "limit", limit: "econ-games.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "econ-lab.match" });
 		const counts = accepted(events);
 		for (const tool of ["viewTable", "contribute", "offer", "respond", "choose", "readBrain", "writeBrain"]) expect(counts[tool] ?? 0, tool).toBeGreaterThan(0);
 		// Every decision of the log is a call of the fake driver: no round ran to its deadline.

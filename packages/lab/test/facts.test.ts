@@ -75,7 +75,7 @@ const METRICS: Readonly<Record<string, readonly MetricDefinition[]>> = {
 		{ id: "highGuesses", title: "Guesses above the secret", reads: ["guessed"], compute: hints("high") },
 		{ id: "resets", title: "Secrets drawn again", reads: ["secret_reset"], compute: (events) => (events.length === 0 ? undefined : events.length) },
 	],
-	"grid-game": [{ id: "moves", title: "Moves played", reads: ["move_played"], compute: (events) => events.length }],
+	"grid": [{ id: "moves", title: "Moves played", reads: ["move_played"], compute: (events) => events.length }],
 };
 
 const KEYS = generateKeyPairSync("ed25519");
@@ -151,7 +151,7 @@ describe("readRun", () => {
 describe("factsOf", () => {
 	it("a metric without its event is absent, a true zero is 0, and a mechanic that is not loaded has no row", () => {
 		const values = factsOf(MANIFEST, EVENTS, METRICS);
-		expect([values["guess-number.resets"], values["guess-number.highGuesses"], "grid-game.moves" in values]).toEqual(["absent", 0, false]);
+		expect([values["guess-number.resets"], values["guess-number.highGuesses"], "grid.moves" in values]).toEqual(["absent", 0, false]);
 		const quiet = factsOf(MANIFEST, log([[0, "kernel", "run_started", "kernel", { seed: 7 }], [1, "kernel", "run_ended", "kernel", { reason: "ticks" }]]), METRICS);
 		expect(quiet).toMatchObject({ "run.ticks": 0, "run.toolRefusals": 0, "guess-number.guesses": "absent", "guess-number.highGuesses": "absent" });
 		expect(Object.keys(quiet).filter((key) => key.startsWith("run.refusals."))).toEqual([]);

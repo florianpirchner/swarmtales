@@ -18,7 +18,7 @@ change (P456).
 
 The game is a port of `stories/econ-lab` of the old platform (tag `v0-final`): the prompts, the tool names, the
 options and their defaults are the same, and the briefings are byte-identical. Its rules are the mechanic
-[`econ-games`](../../mechanics/econ-games/README.md).
+[`econ-lab`](../../mechanics/econ-lab/README.md).
 
 ```
 swt run games/econ-lab/game.ts --fake
@@ -76,12 +76,12 @@ What stays: during a game a seat sees its own rounds of that game, and the retro
 result, in the context of the game that just ended. A seat with a brain can write it down; that is the brain doing
 its job. A seat without a brain carries nothing. The default is `true`: the game of the old platform, with the same
 game hash, logs and oracle files byte for byte. The option sets `showResults` of the mechanic `strategy-brain` and
-`showEarlierPoints` of `econ-games`.
+`showEarlierPoints` of `econ-lab`.
 
 The series [`experiments/brain-no-results.json`](experiments/brain-no-results.json) plays brain against no brain,
 both with `showResults: false`: six runs per arm, the labels 41 to 46 (the first six of the gate's series), same
 model, guardrails and per-run cap as the gate, experiment cap 0.40 USD. It is `exploratory` and has no pass rule:
-with six runs per arm it reports the estimate of `econ-games.dilemmaCooperation` (brain minus no brain) with its
+with six runs per arm it reports the estimate of `econ-lab.dilemmaCooperation` (brain minus no brain) with its
 standard error and 95 % interval, to be read beside the gate's -0.771 (SE 0.084, n 12 per arm, results shown) and
 the old platform's -0.40 (SE 0.13). It gates nothing, and an interval of six runs per arm is wide: it can show
 whether the effect is still there without the results line, not how much of -0.771 the line was. Run on 2026-11-14:

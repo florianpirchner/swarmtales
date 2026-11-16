@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
-/** A grid-game match with the referee and a stateless scripted player (as the support file of the grid-game tests). */
+/** A grid match with the referee and a stateless scripted player (as the support file of the grid tests). */
 import type { ActorDriver, Envelope } from "@swarmtales/contracts";
-import { gridGame } from "@swarmtales/mechanic-grid-game";
+import { gridGame } from "@swarmtales/mechanic-grid";
 import { defineGame, type Game } from "@swarmtales/sdk";
 import { optimalReferee } from "../src/index.ts";
 

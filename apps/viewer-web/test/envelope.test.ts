@@ -29,12 +29,12 @@ const MANIFEST: RunManifest = {
 };
 const KEYS = generateKeyPairSync("ed25519");
 const A01 = actorId("resident", "A01");
-const TOOL = "@swarmtales/mechanic-grid-game/grid-game/playMove";
+const TOOL = "@swarmtales/mechanic-grid/grid/playMove";
 const EVENTS: readonly Envelope[] = [
 	{ seq: 1, tick: 0, source: "kernel", type: "run_started", actor: "kernel", payload: { seed: 7 } },
 	{ seq: 2, tick: 0, source: "kernel", type: "activation_opened", actor: A01, causedBy: 1, basis: 1, payload: {} },
 	{ seq: 3, tick: 0, source: "kernel", type: "tool_called", actor: A01, causedBy: 2, basis: 2, tool: TOOL, payload: { as: "playMove", params: { cell: 4 } } },
-	{ seq: 4, tick: 0, source: "@swarmtales/mechanic-grid-game/grid-game", type: "move_played", actor: A01, causedBy: 3, tool: TOOL, payload: { cell: 4, mark: "X" } },
+	{ seq: 4, tick: 0, source: "@swarmtales/mechanic-grid/grid", type: "move_played", actor: A01, causedBy: 3, tool: TOOL, payload: { cell: 4, mark: "X" } },
 	{ seq: 5, tick: 1, source: "kernel", type: "run_ended", actor: "kernel", payload: { reason: "ticks" } },
 ];
 
@@ -66,7 +66,7 @@ describe("a run folder written by runlog", () => {
 		expect(model.events.map((event) => [event.seq, event.minute, event.type, event.actor])).toEqual([
 			[1, 0, "run_started", "kernel"], [2, 0, "activation_opened", "A01"], [3, 0, "tool_called", "A01"], [4, 0, "move_played", "A01"], [5, 1, "run_ended", "kernel"],
 		]);
-		expect(model.events[3]).toMatchObject({ at: "2026-11-14T10:00:04.000Z", data: { cell: 4, mark: "X", source: "@swarmtales/mechanic-grid-game/grid-game", causedBy: 3, tool: TOOL } });
+		expect(model.events[3]).toMatchObject({ at: "2026-11-14T10:00:04.000Z", data: { cell: 4, mark: "X", source: "@swarmtales/mechanic-grid/grid", causedBy: 3, tool: TOOL } });
 		const index = indexRun(model.events);
 		expect(index.actors()).toEqual(["kernel", "A01"]);
 		expect(index.byActor("A01").map((event) => event.seq)).toEqual([2, 3, 4]);

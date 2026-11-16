@@ -17,7 +17,7 @@ complete record, not a benchmark.
 Tic-tac-toe between two residents. This is the whole game, [`games/hello/game.ts`](games/hello/game.ts):
 
 ```ts
-import { gridGame } from "@swarmtales/mechanic-grid-game";
+import { gridGame } from "@swarmtales/mechanic-grid";
 import { defineGame } from "@swarmtales/sdk";
 
 export default defineGame({
@@ -26,7 +26,7 @@ export default defineGame({
 	mechanics: [gridGame({ teams: { X: ["ada"], O: ["bob"] }, games: 1 })],
 	scheduler: { id: "turns", options: { activation: "toAct" } },
 	end: { ticks: 12 },
-	win: { fact: "grid-game.tally" },
+	win: { fact: "grid.tally" },
 	model: "anthropic/haiku",
 });
 ```
@@ -41,8 +41,8 @@ node --conditions development apps/cli/src/bin.ts log verify runs/hello-game-001
 `--fake` plays seeded random legal moves in place of a model: nothing leaves the machine and nothing is paid. It prints
 
 ```
-hello-game seed 1: ended after 6 ticks (limit grid-game.match: the match is over)
-result grid-game.tally: {"X":1,"O":0,"draw":0}
+hello-game seed 1: ended after 6 ticks (limit grid.match: the match is over)
+result grid.tally: {"X":1,"O":0,"draw":0}
 ```
 
 and writes the run folder with the signed, hash-chained log. A live model plays the same game with `--model` and a spending cap (`--budget`).

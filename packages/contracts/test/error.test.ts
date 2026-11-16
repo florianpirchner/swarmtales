@@ -27,7 +27,7 @@ describe("formatIssue", () => {
 	it("prints each form of a place, and no `at` line without one", () => {
 		const at = (where: NonNullable<SwtIssue["where"]>): string | undefined => formatIssue({ ...bare, where }).split("\n")[1];
 		expect(at({ file: "game.yaml" })).toBe("  at game.yaml");
-		expect(at({ path: "mechanics[1].options.size", package: "@swarmtales/mechanic-grid-game" })).toBe("  at mechanics[1].options.size, package @swarmtales/mechanic-grid-game");
+		expect(at({ path: "mechanics[1].options.size", package: "@swarmtales/mechanic-grid" })).toBe("  at mechanics[1].options.size, package @swarmtales/mechanic-grid");
 		expect(formatIssue(bare).split("\n")).toHaveLength(4);
 		expect(formatIssue({ ...bare, where: {} }).split("\n")).toHaveLength(4);
 	});

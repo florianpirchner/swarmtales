@@ -11,7 +11,7 @@
 	},
 	"dependencies": {
 		"@swarmtales/sdk": "workspace:*",
-		"@swarmtales/mechanic-grid-game": "workspace:*"
+		"@swarmtales/mechanic-grid": "workspace:*"
 	},
 	"devDependencies": {
 		"@swarmtales/testkit": "workspace:*"

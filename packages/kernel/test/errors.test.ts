@@ -8,9 +8,9 @@ import * as errors from "../src/errors.ts";
 const CATALOGUE: Readonly<Record<string, SwtIssue>> = {
 	"SWT-R001": errors.kernelFailed(),
 	"SWT-R002": errors.misfit("the snapshot was taken from the game \"other\"", "Resume it with its own game."),
-	"SWT-R003": errors.pluginThrew("grid-game", new TypeError("cell is taken")),
-	"SWT-R013": errors.twoToAct(["grid-game", "other-game"]),
-	"SWT-R015": errors.unknownFact("grid-game.winer", ["grid-game.winner"]),
+	"SWT-R003": errors.pluginThrew("grid", new TypeError("cell is taken")),
+	"SWT-R013": errors.twoToAct(["grid", "other-game"]),
+	"SWT-R015": errors.unknownFact("grid.winer", ["grid.winner"]),
 	"SWT-R016": errors.afterCycle(["a", "b"]),
 	"SWT-R017": errors.noRecord('"notes" records the event "said", which the definition does not declare'),
 	"SWT-R020": errors.sinkThrew(new Error("disk full")),
@@ -32,13 +32,13 @@ describe("the R catalogue", () => {
 	});
 
 	it("names the plugin and keeps the thrown message in SWT-R003", () => {
-		expect(errors.pluginThrew("grid-game", new Error("cell is taken")).summary).toBe("grid-game: cell is taken");
-		expect(errors.pluginThrew("grid-game", "plain text").summary).toBe("grid-game: plain text");
+		expect(errors.pluginThrew("grid", new Error("cell is taken")).summary).toBe("grid: cell is taken");
+		expect(errors.pluginThrew("grid", "plain text").summary).toBe("grid: plain text");
 	});
 
 	it("suggests the closest fact, or lists what exists", () => {
-		expect(errors.unknownFact("grid-game.winer", ["a.b", "grid-game.winner"]).fix).toBe('Did you mean "grid-game.winner"?');
-		expect(errors.unknownFact("x.y", ["grid-game.winner", "roster.size"]).fix).toBe("Use one of: grid-game.winner, roster.size.");
+		expect(errors.unknownFact("grid.winer", ["a.b", "grid.winner"]).fix).toBe('Did you mean "grid.winner"?');
+		expect(errors.unknownFact("x.y", ["grid.winner", "roster.size"]).fix).toBe("Use one of: grid.winner, roster.size.");
 		expect(errors.unknownFact("x.y", []).fix).toBe("Use one of: (the loaded plugins declare no fact).");
 	});
 });

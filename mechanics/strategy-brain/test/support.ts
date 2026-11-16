@@ -8,7 +8,7 @@
  */
 import { Type } from "typebox";
 import { nameOf, type Activation, type ActorDriver, type Envelope } from "@swarmtales/contracts";
-import { gridGame } from "@swarmtales/mechanic-grid-game";
+import { gridGame } from "@swarmtales/mechanic-grid";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { defineGame, defineHead, defineMechanic, refuse, reply, type Game } from "@swarmtales/sdk";
 import { strategyBrain } from "../src/index.ts";
@@ -80,7 +80,7 @@ export function brainGame(options: BrainGameOptions = {}): Game {
 		],
 		grants: { resident: ["viewBoard", "postTeam", "playMove", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: brain ? ["playMove", "writeBrain"] : ["playMove"],
-		scheduler: { id: "turns", options: { passes: 5, activation: "onNews", order: "roster", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "grid-game" }, { source: "team-channel" }] } },
+		scheduler: { id: "turns", options: { passes: 5, activation: "onNews", order: "roster", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "grid" }, { source: "team-channel" }] } },
 		end: { ticks: options.ticks ?? games * 12 + 8 },
 	});
 }

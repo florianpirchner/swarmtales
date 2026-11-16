@@ -4,7 +4,7 @@
  * arms, generated on the old platform (`briefing(brain)` of `stories/blind-bid/story.ts` for every seat, as the JSON
  * of the record seat to text), the tool names a seat is shown, the model block without an output cap, and the old
  * variant names against the options that give them. The prompt files are the mechanic's and are pinned by
- * `mechanics/sealed-auction/test/carried.test.ts`.
+ * `mechanics/blind-bid/test/carried.test.ts`.
  */
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
@@ -46,7 +46,7 @@ describe("carried byte for byte", () => {
 		for (const options of [{}, { brain: false }]) expect(blindBidGame(options).model).toBe("anthropic/claude-haiku-5-5");
 		expect(blindBidGame().title).toBe("Blind Bid");
 		// The old hook numbers of the turn lines: the brain before the auction, after the reset line.
-		expect(blindBidGame().scheduler?.options).toMatchObject({ passes: 4, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "sealed-auction" }] });
+		expect(blindBidGame().scheduler?.options).toMatchObject({ passes: 4, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "blind-bid" }] });
 	});
 
 	it("gives every old variant name by the options of its row, and the old default by the default options", () => {
@@ -61,7 +61,7 @@ describe("carried byte for byte", () => {
 
 	it("has the old registry defaults: three games of six mixed lots, a purse of 100, seed 31, 48 ticks", () => {
 		expect(DEFAULT_LOTS).toEqual(["first-price", "second-price", "common", "first-price", "common", "second-price"]);
-		expect(blindBidGame()).toMatchObject({ seed: 31, residents: ["A01", "A02", "A03", "A04"], end: { ticks: 48 }, limits: { maxCallsPerTick: 6 }, win: { fact: "sealed-auction.scores" } });
+		expect(blindBidGame()).toMatchObject({ seed: 31, residents: ["A01", "A02", "A03", "A04"], end: { ticks: 48 }, limits: { maxCallsPerTick: 6 }, win: { fact: "blind-bid.scores" } });
 		expect(blindBidGame({ games: 5 }).end).toEqual({ ticks: 60 + 12 + 4 });
 		expect(blindBidGame({ ticks: 9 }).end).toEqual({ ticks: 9 });
 	});

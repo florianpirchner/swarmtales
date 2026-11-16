@@ -49,14 +49,14 @@ describe("carried byte for byte", () => {
 		expect(harborLightsGame().model).toBe("anthropic/haiku");
 		expect(sha256(SIGNAL_QUESTION)).toBe("472d5080970458f4ff5c6c6529a5fd66a4d973afbfc20acbb51a3e752b0f7c83");
 		// The old hook numbers of the turn lines: the brain (300), the hint towers (350), the team chat (400).
-		expect(harborLightsGame().scheduler?.options).toMatchObject({ inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "hint-towers" }] });
+		expect(harborLightsGame().scheduler?.options).toMatchObject({ inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "harbor-lights" }] });
 	});
 
 	it("gives every old variant name by its params, and the old registry default by the default params", () => {
 		for (const [name, params] of Object.entries(VARIANTS)) expect(oldParams(name), name).toEqual(params);
 		expect(oldParams("harbor-lights-soft-strikes")).toBeUndefined();
 		for (const params of Object.values(VARIANTS)) expect(arm(params).id).toBe("harbor-lights");
-		expect(arm()).toMatchObject({ seed: 31, residents: [...SEATS], end: { ticks: 3 * 33 + 7 }, limits: { maxCallsPerTick: 12 }, win: { fact: "hint-towers.scores" } });
+		expect(arm()).toMatchObject({ seed: 31, residents: [...SEATS], end: { ticks: 3 * 33 + 7 }, limits: { maxCallsPerTick: 12 }, win: { fact: "harbor-lights.scores" } });
 		expect(arm({ games: 1 }).end).toEqual({ ticks: 40 });
 	});
 });

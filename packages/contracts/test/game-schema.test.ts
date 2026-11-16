@@ -10,7 +10,7 @@ const hello = {
 	id: "hello-game",
 	title: "Hello Game",
 	residents: ["ada", "bob"],
-	mechanics: [{ use: "grid-game", options: { sides: { X: ["ada"], O: ["bob"] }, games: 1 } }],
+	mechanics: [{ use: "grid", options: { sides: { X: ["ada"], O: ["bob"] }, games: 1 } }],
 	end: { ticks: 12 },
 	model: "anthropic/haiku",
 } as const;
@@ -18,12 +18,12 @@ const hello = {
 /** The data form of tic-tac-toe teams with a brain (section 8.2 of the M1 specification). */
 const tictactoe = {
 	schema: 1,
-	id: "tictactoe-teams",
+	id: "tictactoe",
 	title: "Tic-tac-toe teams",
 	seed: 7,
 	residents: ["A01", "A02", "A03", "A04", "A05", "A06"],
 	mechanics: [
-		{ use: "grid-game", options: { size: 3, line: 3, games: 3 } },
+		{ use: "grid", options: { size: 3, line: 3, games: 3 } },
 		{ use: "consensus", options: {} },
 		{ use: "team-channel" },
 		{ use: "strategy-brain", options: { enabled: true } },
@@ -33,11 +33,11 @@ const tictactoe = {
 	locked: ["playMove", "writeBrain"],
 	scheduler: {
 		id: "turns",
-		options: { passes: 5, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "grid-game" }, { source: "team-channel" }, { source: "consensus" }] },
+		options: { passes: 5, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "grid" }, { source: "team-channel" }, { source: "consensus" }] },
 	},
 	limits: { maxCallsPerTick: 8 },
 	end: { ticks: 35 },
-	win: { fact: "grid-game.tally" },
+	win: { fact: "grid.tally" },
 	briefing: { A01: "You play X.", A04: "You play O." },
 	model: "anthropic/haiku",
 } as const;
@@ -57,7 +57,7 @@ describe("GameDefinitionSchema", () => {
 			residents: 6,
 			teams: { red: ["A01"] },
 			roles: { captain: ["A01"] },
-			mechanics: [{ use: "grid-game", as: { playMove: "place" } }],
+			mechanics: [{ use: "grid", as: { playMove: "place" } }],
 			directors: [],
 			grants: { resident: { drop: ["viewBoard"], add: ["place"] } },
 			end: { ticks: 1 },
@@ -86,14 +86,14 @@ describe("GameDefinitionSchema", () => {
 		const base = { schema: 1, id: "g", residents: 2, mechanics: [], end: { ticks: 1 } };
 		expect(ok(base)).toBe(true);
 		expect(ok({ ...base, end: { ticks: 1, on: "x" } })).toBe(false);
-		expect(ok({ ...base, mechanics: [{ use: "grid-game", option: {} }] })).toBe(false);
+		expect(ok({ ...base, mechanics: [{ use: "grid", option: {} }] })).toBe(false);
 		expect(ok({ ...base, scheduler: { id: "turns", passes: 5 } })).toBe(false);
 		expect(ok({ ...base, limits: { maxCallsPerTic: 8 } })).toBe(false);
 		expect(ok({ ...base, win: { fact: "a.b", score: 1 } })).toBe(false);
 		expect(ok({ ...base, grants: { resident: { drop: [], remove: [] } } })).toBe(false);
 		expect(ok({ ...base, briefing: { "bob smith": "x" } })).toBe(false);
 		expect(ok({ ...base, briefing: { A01: "x" } })).toBe(true);
-		expect(ok({ ...base, mechanics: [{ use: "grid-game", options: { any: { thing: 1 } } }], scheduler: { id: "turns", options: { any: "thing" } } })).toBe(true);
+		expect(ok({ ...base, mechanics: [{ use: "grid", options: { any: { thing: 1 } } }], scheduler: { id: "turns", options: { any: "thing" } } })).toBe(true);
 	});
 
 	it("refuses a field smuggled in as `__proto__`, and a seed that is no 32-bit number", () => {
@@ -132,6 +132,6 @@ describe("GameDefinitionSchema", () => {
 describe("PromptLookup", () => {
 	it("is implemented by an object with `render(owner, id, variables, declared)`", () => {
 		const lookup: PromptLookup = { render: (owner, id, variables, declared) => `${owner}/${id}:${declared.map((name) => variables[name]).join(",")}` };
-		expect(lookup.render("grid-game", "tools/playMove", { size: 3 }, ["size"])).toBe("grid-game/tools/playMove:3");
+		expect(lookup.render("grid", "tools/playMove", { size: 3 }, ["size"])).toBe("grid/tools/playMove:3");
 	});
 });

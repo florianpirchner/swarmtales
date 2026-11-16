@@ -63,13 +63,13 @@ describe("schemas as text", () => {
 
 describe("the blocks of a head", () => {
 	it("reads tools, events, options, services, metrics and prompts from the head", () => {
-		const blocks = mechanicBlocks(ctx, mechanic("econ-games"));
+		const blocks = mechanicBlocks(ctx, mechanic("econ-lab"));
 		expect(Object.keys(blocks)).toEqual(MECHANIC_SECTIONS.flatMap((section) => (section.generated === undefined ? [] : [section.generated])));
 		expect(blocks.tools).toContain("### `contribute`");
-		expect(blocks.tools).toContain("(prompts/econ-games/tools/contribute.md)");
+		expect(blocks.tools).toContain("(prompts/econ-lab/tools/contribute.md)");
 		expect(blocks.events).toContain("### `decision_made`\n\nAudience: `human`");
 		expect(blocks.options).toContain("| `blocks[].rounds` | integer ≥ 1 ≤ 50 | required |");
-		expect(blocks.metrics).toContain("| `econ-games.tablePoints` | Points of the table | points | `match_ended` |");
+		expect(blocks.metrics).toContain("| `econ-lab.tablePoints` | Points of the table | points | `match_ended` |");
 		expect(blocks.services).toContain("### `brain-source`");
 		expect(blocks.glance).toContain("| Games | [econ-lab](../../games/econ-lab/README.md) |");
 		expect(blocks.glance).toContain("`strategy-brain` (from [strategy-brain](../strategy-brain/README.md))");

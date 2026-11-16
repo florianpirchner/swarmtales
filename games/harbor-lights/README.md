@@ -10,7 +10,7 @@ Every deal is also played by a crew of reference bots, for the report only.
 
 The game is a port of `stories/harbor-lights` of the old platform (tag `v0-final`): the prompts, the tool names, the
 options and their defaults are the same, and the briefings are byte-identical. Its rules are the mechanics
-[`hint-towers`](../../mechanics/hint-towers/README.md) and [`card-table`](../../mechanics/card-table/README.md).
+[`harbor-lights`](../../mechanics/harbor-lights/README.md) and [`card-table`](../../mechanics/card-table/README.md).
 
 ```
 swt run games/harbor-lights/game.ts --fake
@@ -51,5 +51,5 @@ tools are locked through `ctx.access` while a game runs (M4-64), with the lock e
 
 The turn lines keep the old hook numbers: the brain's lines, then the hint towers' status and record, then the team
 chat. The load order alone would put the chat first (the strategy brain uses the team channel, the hint towers use the
-brain), so the scheduler's `inputs` names `hint-towers` after `strategy-brain`; without it the crew files differ at
+brain), so the scheduler's `inputs` names `harbor-lights` after `strategy-brain`; without it the crew files differ at
 level 2 where a game begins with unread chat posts.

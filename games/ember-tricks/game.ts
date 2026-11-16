@@ -6,12 +6,12 @@
  * miss costs 5 plus the error squared. Each seat has one veto token per game to send a lead card back. Silent table:
  * no chat, the only signals are bids, the named trump and the cards. Every round starts from a fresh context; the only
  * memory across games is each seat's own notes (the strategy brain, a team of one; `brain: false` is the control
- * arm). The rules are the `trick-play` mechanic on the `card-table`. A port of the old `stories/ember-tricks/story.ts`:
+ * arm). The rules are the `ember-tricks` mechanic on the `card-table`. A port of the old `stories/ember-tricks/story.ts`:
  * the variants are params of the game family, the id is always `ember-tricks`.
  */
 import { cardTable } from "@swarmtales/mechanic-card-table";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
-import { trickPlay } from "@swarmtales/mechanic-trick-play";
+import { trickPlay } from "@swarmtales/mechanic-ember-tricks";
 import { defineGame, defineGameFamily } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { briefings, SEATS } from "./briefing.ts";
@@ -98,10 +98,10 @@ export function emberTricksGame(options: EmberTricksOptions = {}) {
 		grants: { resident: ["viewTable", "placeBid", "nameTrump", "playCard", "vetoLead", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: brain ? ["writeBrain"] : [],
 		// The seat on turn has news; several seats act in one pass when the turn moves along the roster. The reset line comes first, then the brain's lines before those of trick play, as the old hook numbers ordered them.
-		scheduler: { id: "turns", options: { passes: 8, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "trick-play" }] } },
+		scheduler: { id: "turns", options: { passes: 8, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "ember-tricks" }] } },
 		limits: { maxCallsPerTick: 8 },
 		end: { ticks: filled.ticks ?? games * (rounds.length * 6 + 6) + 6 },
-		win: { fact: "trick-play.totals" },
+		win: { fact: "ember-tricks.totals" },
 		briefing: briefings(brain, SEATS.length),
 		// The old entry set no output cap: the default of 4000 stands.
 		model: "anthropic/haiku",

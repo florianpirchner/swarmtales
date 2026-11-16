@@ -17,7 +17,7 @@
 			"path": "../../packages/sdk"
 		},
 		{
-			"path": "../../mechanics/draft-rounds"
+			"path": "../../mechanics/quarry"
 		},
 		{
 			"path": "../../mechanics/strategy-brain"

@@ -3,7 +3,7 @@
  * The byte-identity list of the game (M4 specification 2.2, rules 5, 8 and 9): the sha256 of the eight briefings
  * (four seats, with and without notes), generated on the old platform (`emberTricksEntry({ brain }).briefing(seat,
  * host)` with four residents, at `v0-final`), the tool lists a resident is shown, the model block of the old entry,
- * and the params behind every old variant name. The prompt files of the tools are the mechanic's (`trick-play`).
+ * and the params behind every old variant name. The prompt files of the tools are the mechanic's (`ember-tricks`).
  */
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
@@ -44,14 +44,14 @@ describe("carried byte for byte", () => {
 		// The old entry set no output cap: the default of 4000 stands.
 		expect(emberTricksGame().model).toBe("anthropic/haiku");
 		// The old hook numbers of the turn lines: the brain (300), trick play (350).
-		expect(emberTricksGame().scheduler?.options).toEqual({ passes: 8, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "trick-play" }] });
+		expect(emberTricksGame().scheduler?.options).toEqual({ passes: 8, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "ember-tricks" }] });
 	});
 
 	it("gives every old variant name by its params, and the old registry default by the default params", () => {
 		for (const [name, params] of Object.entries(VARIANTS)) expect(oldParams(name), name).toEqual(params);
 		for (const name of ["ember-tricks-sum-calib", "ember-tricks-r11", "ember-tricks-g0"]) expect(oldParams(name), name).toBeUndefined();
 		for (const params of Object.values(VARIANTS)) expect(arm(params).id).toBe("ember-tricks");
-		expect(arm()).toMatchObject({ seed: 23, residents: [...SEATS], end: { ticks: 2 * 54 + 6 }, limits: { maxCallsPerTick: 8 }, win: { fact: "trick-play.totals" } });
+		expect(arm()).toMatchObject({ seed: 23, residents: [...SEATS], end: { ticks: 2 * 54 + 6 }, limits: { maxCallsPerTick: 8 }, win: { fact: "ember-tricks.totals" } });
 		expect(arm({ games: 4 }).end).toEqual({ ticks: 222 });
 		expect(arm({ games: 1, rounds: 3 }).end).toEqual({ ticks: 30 });
 	});

@@ -31,7 +31,7 @@ describe("carried byte for byte", () => {
 	it("keeps one id for every variant and the defaults of the old game", () => {
 		// The old registry names (`quarry-nobrain`, `quarry-open`, `quarry-burn`, the alias `quarry-noburn`) are not carried: a variant is its options.
 		for (const options of [{}, { brain: false }, { openHands: true }, { burns: true }]) expect(quarryGame(options).id).toBe("quarry");
-		expect(quarryGame()).toMatchObject({ seed: 29, residents: ["A01", "A02", "A03", "A04"], end: { ticks: 3 * 2 * 6 * 2 + 4 * 2 + 4 }, limits: { maxCallsPerTick: 6 }, win: { fact: "draft-rounds.scores" } });
+		expect(quarryGame()).toMatchObject({ seed: 29, residents: ["A01", "A02", "A03", "A04"], end: { ticks: 3 * 2 * 6 * 2 + 4 * 2 + 4 }, limits: { maxCallsPerTick: 6 }, win: { fact: "quarry.scores" } });
 		expect(quarryGame({ ticks: 9 }).end).toEqual({ ticks: 9 });
 	});
 });

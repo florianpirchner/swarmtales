@@ -102,8 +102,8 @@ function split(manifest: RunManifest, events: readonly Envelope[], metrics: Metr
  * schema says.
  * @example
  * ```ts
- * const facts = readRun("runs/quarry-014", { "draft-rounds": draftRounds.definition.head.metrics });
- * console.log(facts.end.reason, facts.values["draft-rounds.tablePoints"]);
+ * const facts = readRun("runs/quarry-014", { "quarry": draftRounds.definition.head.metrics });
+ * console.log(facts.end.reason, facts.values["quarry.tablePoints"]);
  * const act = readRun("runs/city-002", metrics, { paused: true, fromResume: true });
  * console.log(act.base?.values["run.ticks"], act.values["run.ticks"]);
  * ```

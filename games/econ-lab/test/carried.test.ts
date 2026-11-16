@@ -33,7 +33,7 @@ describe("carried byte for byte", () => {
 		for (const options of [{}, { brain: false }, { blocks: [{ game: "dilemma", rounds: 12 }] } as const]) expect(econLabGame(options).id).toBe("econ-lab");
 		expect(DEFAULT_BLOCKS).toEqual([{ game: "ultimatum", rounds: 6 }, { game: "public-goods", rounds: 7 }, { game: "dilemma", rounds: 5 }]);
 		// Ticks: (6 x 2 + 7 + 5) rounds x 2 for the deadline, 4 retro windows x 2, plus 4.
-		expect(econLabGame()).toMatchObject({ seed: 23, residents: ["A01", "A02", "A03", "A04"], end: { ticks: 24 * 2 + 4 * 2 + 4 }, limits: { maxCallsPerTick: 6 }, win: { fact: "econ-games.scores" } });
+		expect(econLabGame()).toMatchObject({ seed: 23, residents: ["A01", "A02", "A03", "A04"], end: { ticks: 24 * 2 + 4 * 2 + 4 }, limits: { maxCallsPerTick: 6 }, win: { fact: "econ-lab.scores" } });
 		expect(econLabGame({ blocks: [{ game: "public-goods", rounds: 12 }] }).end).toEqual({ ticks: 12 * 2 + 2 * 2 + 4 });
 		expect(econLabGame({ ticks: 9 }).end).toEqual({ ticks: 9 });
 	});

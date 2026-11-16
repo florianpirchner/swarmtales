@@ -17,7 +17,7 @@
 			"path": "../../packages/sdk"
 		},
 		{
-			"path": "../../mechanics/clue-grid"
+			"path": "../../mechanics/lanterns"
 		},
 		{
 			"path": "../../mechanics/strategy-brain"

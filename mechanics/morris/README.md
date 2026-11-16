@@ -19,7 +19,7 @@ its own.
 | Uses when loaded | `consensus` (from [consensus](../consensus/README.md)), `consensus-agreed` (from [consensus](../consensus/README.md)), `team-channel` (from [team-channel](../team-channel/README.md)), `strategy-brain` (from [strategy-brain](../strategy-brain/README.md)) |
 | Provides | `consensus-source`, `brain-source` |
 | State | kept, snapshot slice version 1 |
-| Games | [morris-teams](../../games/morris-teams/README.md) |
+| Games | [morris](../../games/morris/README.md) |
 
 <!-- /generated:glance -->
 

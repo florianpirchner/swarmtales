@@ -19,7 +19,7 @@ from the game's events.
 | Uses when loaded | none |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
-| Games | [morris-teams](../../games/morris-teams/README.md) |
+| Games | [morris](../../games/morris/README.md) |
 
 <!-- /generated:glance -->
 

@@ -10,7 +10,7 @@ references (equilibrium shading, truthful bidding, the curse-free ceiling) for t
 The game is a port of `stories/blind-bid` of the old platform (tag `v0-final`): the prompts, the tool names, the
 options and their defaults are the same, the briefings are byte-identical, and the model block sets no output cap
 (the default of 4000 stands, as in the old entry). Its rules are the mechanic
-[`sealed-auction`](../../mechanics/sealed-auction/README.md).
+[`blind-bid`](../../mechanics/blind-bid/README.md).
 
 ```
 swt run games/blind-bid/game.ts --fake
@@ -47,7 +47,7 @@ The id is always `blind-bid`; a variant is a set of options of `blindBidGame`, n
 ## What the oracle files do not show
 
 - **`call.endsTurn`.** No file holds the flag, and none needs it: the old mechanic never set it (no tool of
-  `sealed-auction` ends a turn), so no mapping is applied.
+  `blind-bid` ends a turn), so no mapping is applied.
 - **Today's wording.** `blind-bid-s31-live.json` replays a live run; 12 of its 104 turns show inputs worded as the
   old code wrote them at the freeze, not as the recording had them (`source.fidelity`). Level 3 compares against the
   file, so it proves the frozen wording.

@@ -9,6 +9,9 @@ import { Value } from "typebox/value";
 import { expect } from "vitest";
 import { emberTricksFamily, emberTricksGame, type EmberTricksOptions } from "../game.ts";
 
+/** The ids this platform renamed (M6-06), from the id the oracle files hold to the id here: the option `renamed` of `runOracle`. */
+export const RENAMED = { "trick-play": "ember-tricks" } as const;
+
 type Turn = Parameters<ActorDriver>[0];
 
 /**

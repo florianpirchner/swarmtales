@@ -26,3 +26,5 @@ the human only.
 Played by the game (M4-43): all five files match at level 3 with `games/morris-teams/test/oracle.test.ts`, the
 Referee loaded, and with no mapping. No file carries `call.endsTurn`, and neither the old `morris` nor its port sets
 it (a move is ended by the scheduler, as in tic-tac-toe teams).
+
+Registered change (M6-06, `13-m6-spec.md` 4.3): the game is named `morris` (the files say `morris-teams`; this folder keeps the old name), and the mechanics `morris` and `morris-referee` keep their ids. The files stay as recorded; the game's oracle tests read them with `runOracle`'s option `renamed` (`{ "morris-teams": "morris" }`), which maps the event sources, the event types and facts `<id>.<...>`, `setup.mechanics[]` and the game id; the variant names are not mapped.

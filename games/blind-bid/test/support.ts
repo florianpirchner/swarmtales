@@ -7,6 +7,9 @@ import { nameOf, type ActorDriver } from "@swarmtales/contracts";
 import type { Played } from "@swarmtales/testkit";
 import { blindBidGame, type BlindBidOptions } from "../game.ts";
 
+/** The ids this platform renamed (M6-06), from the id the oracle files hold to the id here: the option `renamed` of `runOracle`. */
+export const RENAMED = { "sealed-auction": "blind-bid" } as const;
+
 type Logged = Played["events"][number];
 
 /**

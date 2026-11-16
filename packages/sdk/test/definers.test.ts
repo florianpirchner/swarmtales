@@ -14,9 +14,9 @@ describe("definers", () => {
 
 	it("defineEvents and defineTool pair the name with the schemas", () => {
 		const moved = Type.Object({ cell: Type.Integer() });
-		const events = defineEvents("grid-game", { moved });
-		expect(events).toEqual({ id: "grid-game", events: { moved } });
-		expectTypeOf(events.id).toEqualTypeOf<"grid-game">();
+		const events = defineEvents("grid", { moved });
+		expect(events).toEqual({ id: "grid", events: { moved } });
+		expectTypeOf(events.id).toEqualTypeOf<"grid">();
 		const tool = defineTool("playMove", moved);
 		expect(tool).toEqual({ name: "playMove", parameters: moved });
 		expect(tool.parameters).toBe(moved);

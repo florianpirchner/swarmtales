@@ -19,11 +19,11 @@ const samples: readonly SwtIssue[] = [
 	errors.shownNameClash({ shown: "post", grant: "resident", tools: ["@a/x/x/post", "@a/y/y/post"], path: "mechanics[2]" }),
 	errors.shownNameMalformed({ shown: "play move", tool: "@a/x/x/playMove", path: "mechanics[0].as.playMove" }),
 	errors.stagedNotGranted({ mechanic: "script", tool: "directorMinute", path: "mechanics[14]" }),
-	errors.optionMismatch({ owner: "grid-game", package: "@swarmtales/mechanic-grid-game", ...mismatch }),
-	errors.mechanicTwice({ mechanic: "grid-game", path: "mechanics[3]" }),
-	errors.mechanicNotInstalled({ mechanic: "grid-gam", path: "mechanics[1].use", installed: ["grid-game", "consensus"] }),
+	errors.optionMismatch({ owner: "grid", package: "@swarmtales/mechanic-grid", ...mismatch }),
+	errors.mechanicTwice({ mechanic: "grid", path: "mechanics[3]" }),
+	errors.mechanicNotInstalled({ mechanic: "gird", path: "mechanics[1].use", installed: ["grid", "consensus"] }),
 	errors.noProvider({ mechanic: "consensus", service: "consensus-source", path: "mechanics[1]" }),
-	errors.twoProviders({ service: "board", providers: ["grid-game", "morris"] }),
+	errors.twoProviders({ service: "board", providers: ["grid", "morris"] }),
 	errors.requiresCycle({ mechanics: ["ping", "pong"] }),
 	errors.paramOverride({ name: "openHand", problem: "unknown", known: ["openHands", "games"] }),
 	errors.paramOverride({ name: "games", problem: "mismatch", known: ["openHands", "games"], message: "must be integer" }),
@@ -35,7 +35,7 @@ const samples: readonly SwtIssue[] = [
 	errors.directorNeverActivated({ scheduler: "turns", directors: ["host"] }),
 	errors.noAnswerer({ mechanic: "city", path: "mechanics[1]", answerer: "judge", answered: ["guard"] }),
 	errors.eventTypeTaken({ mechanic: "clash", type: "run_ended" }),
-	errors.packageMismatch({ mechanic: "grid-game", declared: "@acme/grid", actual: "@swarmtales/mechanic-grid-game" }),
+	errors.packageMismatch({ mechanic: "grid", declared: "@acme/grid", actual: "@swarmtales/mechanic-grid" }),
 	errors.bodyMismatch({ mechanic: "marks", part: "tool", name: "pay", problem: "missing" }),
 	errors.bodyMismatch({ mechanic: "marks", part: "service", name: "ledger", problem: "undeclared" }),
 	errors.optionsNoObject({ mechanic: "marks" }),
@@ -77,12 +77,12 @@ describe("the sdk's error catalogue", () => {
 			'  fix: did you mean "playMove"? Or add the mechanic that defines "playMov", or remove the name.',
 			"  docs: docs/reference/errors.md#swt-g012",
 		]);
-		expect(errors.mechanicNotInstalled({ mechanic: "grid-gam", path: "mechanics[1].use", installed: ["grid-game"] }).fix).toMatch(/^did you mean "grid-game"\?/);
+		expect(errors.mechanicNotInstalled({ mechanic: "gird", path: "mechanics[1].use", installed: ["grid"] }).fix).toMatch(/^did you mean "grid"\?/);
 		expect(errors.toolNotDefined({ tool: "fly", place: "locked", path: "locked[0]", defined: [] }).fix).toBe('add the mechanic that defines "fly", or remove the name.');
 	});
 
 	it("names the place: a data path, a package, both or none", () => {
-		expect(errors.optionMismatch({ owner: "grid-game", package: "@swarmtales/mechanic-grid-game", ...mismatch }).where).toEqual({ path: mismatch.path, package: "@swarmtales/mechanic-grid-game" });
+		expect(errors.optionMismatch({ owner: "grid", package: "@swarmtales/mechanic-grid", ...mismatch }).where).toEqual({ path: mismatch.path, package: "@swarmtales/mechanic-grid" });
 		expect(errors.optionMismatch({ owner: "turns", kind: "scheduler", path: "scheduler.options.until", message: "is unknown" }).summary).toBe('`scheduler.options.until` of the scheduler "turns" is unknown');
 		expect(errors.eventTypeTaken({ mechanic: "a", type: "moved", owner: "b" })).not.toHaveProperty("where");
 		expect(errors.eventTypeTaken({ mechanic: "a", type: "moved", owner: "b" }).summary).toMatch(/declared by the mechanic "b" too/);

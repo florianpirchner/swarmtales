@@ -99,7 +99,7 @@ function world(setup: Setup = {}): World {
 		limits: (setup.limits ?? []).map((limit) => ({ id: `tally.${limit.id}`, limit })),
 	};
 	const scheduler: SchedulerDefinition = { id: "s", revision: 1, determinism: "seeded", options: Type.Null({ description: "No options" }), events: {}, create: () => ({ run: () => Promise.resolve(undefined) }) };
-	const definition: KernelDefinition = { game: { id: "grid-game", hash: "h" }, seed: 11, actors: [{ id: "worker:A01", kind: "worker", grant: "worker", shared: {} }, { id: "worker:A02", kind: "worker", grant: "worker", shared: {} }], plugins: [], scheduler: { definition: scheduler, options: null }, grants: {}, names: {}, startLocks: {}, replies: {}, limits: { maxTicks: setup.maxTicks ?? 9 } };
+	const definition: KernelDefinition = { game: { id: "grid", hash: "h" }, seed: 11, actors: [{ id: "worker:A01", kind: "worker", grant: "worker", shared: {} }, { id: "worker:A02", kind: "worker", grant: "worker", shared: {} }], plugins: [], scheduler: { definition: scheduler, options: null }, grants: {}, names: {}, startLocks: {}, replies: {}, limits: { maxTicks: setup.maxTicks ?? 9 } };
 	const closedWith: RunEnd[] = [];
 	const sinks = setup.sinks ?? [{ write: () => undefined, close: (end: RunEnd) => void closedWith.push(end) }];
 	return { life: createLifecycle({ definition, log, clock, steps, loaded, sinks, settle: () => undefined }), log, clock, closedWith, resets: () => resets };
@@ -118,7 +118,7 @@ describe("createLifecycle", () => {
 		const { life, log } = world({ hooks: { runStarted: [says("first"), says("second")] } });
 		life.start();
 		expect(log.lines()).toEqual(["0 kernel/run_started", "0 p/grid/first", "0 p/grid/second"]);
-		expect(log.all()[0]?.payload).toEqual({ game: "grid-game", seed: 11, maxTicks: 9, actors: ["worker:A01", "worker:A02"], plugins: ["grid", "tally"] });
+		expect(log.all()[0]?.payload).toEqual({ game: "grid", seed: 11, maxTicks: 9, actors: ["worker:A01", "worker:A02"], plugins: ["grid", "tally"] });
 	});
 
 	it("plays one tick with a job and two hooks in the order of 3.5", async () => {

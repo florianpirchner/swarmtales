@@ -17,7 +17,7 @@
 			"path": "../../packages/sdk"
 		},
 		{
-			"path": "../../mechanics/grid-game"
+			"path": "../../mechanics/grid"
 		},
 		{
 			"path": "../../packages/testkit"

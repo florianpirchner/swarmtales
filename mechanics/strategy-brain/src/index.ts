@@ -13,7 +13,7 @@
  *   a team closes when the text is written, or at a minute's end when its members made `retroMaxPosts`
  *   team posts, or after `retroMaxMinutes` minutes; when every window is closed the game is released;
  * - every version is the event `brain_written` (audience `human`, so a gamemaker never reads it).
- * It reads the board's words only through the grid-game's events and service. A game other than the grid
+ * It reads the board's words only through the grid's events and service. A game other than the grid
  * game provides `BrainSourceService` (game number, hold, release) and calls `StrategyBrainService` when a game
  * starts or ends; with `solo` every team is one resident, and the briefings and retro lines say so.
  *
@@ -22,7 +22,7 @@
 import { Type } from "typebox";
 import type { InputLine, Refusal } from "@swarmtales/contracts";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
-import { GridGameEvents, GridGameService } from "@swarmtales/mechanic-grid-game/contract";
+import { GridGameEvents, GridGameService } from "@swarmtales/mechanic-grid/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { strategyBrainHead, type Played, type StrategyBrainCtx, type Window } from "./head.ts";
@@ -283,7 +283,7 @@ export const strategyBrain = defineMechanic(strategyBrainHead, {
 	hooks: {
 		// Before the grid game starts game 1, so the game can be held back: the grid game's hook runs `after` this one.
 		runStarted: (ctx) => {
-			if (!ctx.has(BrainSourceService) && !ctx.has(GridGameService)) throw new RangeError("strategy-brain: the story needs a game: grid-game, or a mechanic that provides brain-source");
+			if (!ctx.has(BrainSourceService) && !ctx.has(GridGameService)) throw new RangeError("strategy-brain: the story needs a game: grid, or a mechanic that provides brain-source");
 			if (ctx.options.brainAtStart) holdForRetro(ctx, 0);
 		},
 		tickStarted: (ctx) => {

@@ -19,12 +19,15 @@ afterAll(() => {
 	rmSync(out, { recursive: true, force: true });
 });
 
-/** The four games of before M3 with the game hash of their manifest, taken before the first change of M3. */
+/**
+ * The four games of before M3 with the game hash of their manifest, taken before the first change of M3, and pinned
+ * again by M6-06: the rename of the mechanic and game ids moves the game hash (`13-m6-spec.md` 4.3).
+ */
 const PINNED: readonly (readonly [string, string])[] = [
-	["hello", "135ac2a91155945c5a8b5a8564d5856c57c55d0ced3bf57850211c4ad4f42db7"],
-	["tictactoe-teams", "6d41383c2cd5b7e20648c6587d15ece1e3b9414c75653ce51ce6369b1f1bb2c8"],
-	["quarry", "6490b2a8e16e7dfaf9c4180004b0a5c3acb81183a95c5685a7b773e7689041c1"],
-	["econ-lab", "2ff219a08c9833e17d517409970f1818781c7575dad26f464b752c9155163dc8"],
+	["hello", "6fd90368d1f7ea83142801fcef589e47b084aa9f12ec64e640c88a4809e670af"],
+	["tictactoe", "cc6cf9b9195493d528bfbe560103aeb4fe59d8d9d8ac1ce71d6bf78cfd3dd6a1"],
+	["quarry", "a146fca086cc39a064d749efb973ebd6e154df7e5e1e9da15f7f7066ccb567a9"],
+	["econ-lab", "4cb7ff3e344d795a9319247b259f4e49ce4ac85a6979b3144176a75332614f4d"],
 ];
 
 /**

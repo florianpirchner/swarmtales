@@ -27,7 +27,7 @@ const resets = (events: readonly Logged[]) => lines(events).filter((line) => lin
 describe("ember-tricks, scripted match", () => {
 	it("plays two games, every seat writes its notes after game 1 and reads them in game 2", async () => {
 		const { end, events } = await run();
-		expect(end).toMatchObject({ reason: "limit", limit: "trick-play.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "ember-tricks.match" });
 		expect(ofType(events, "game_ended")).toHaveLength(2);
 		const written = ofType(events, "brain_written");
 		expect(written.map((event) => `${String(field(event, "team"))} ${String(field(event, "game"))}`).sort()).toEqual(["A01 1", "A02 1", "A03 1", "A04 1"]);

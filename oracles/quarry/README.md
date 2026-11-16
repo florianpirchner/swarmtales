@@ -19,3 +19,5 @@ The seeded deal is visible: `draft_game_started` and `draft_pick_opened` carry t
 Not covered: a recorded run of the burn variant (its runs predate a rule change and do not replay exactly), the
 codes behind a closed tool (`ALREADY_PICKED`, `NO_PACK`, `NO_PICK`: `pick` is locked for a seat that has picked or
 has no pack).
+
+Registered change (M6-06, `13-m6-spec.md` 4.3): the mechanic is named `quarry` (the files say `draft-rounds`). The files stay as recorded; the game's oracle tests read them with `runOracle`'s option `renamed` (`{ "draft-rounds": "quarry" }`), which maps the event sources, the event types and facts `<id>.<...>`, `setup.mechanics[]` and the game id; the variant names are not mapped. The random label keeps the old id (`ctx.rng("draft-rounds", ...)`), so the seeded draws are the recorded ones.

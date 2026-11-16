@@ -4,7 +4,7 @@
  * Carried from `test/mechanics/optimal-referee/optimal-referee.test.ts`.
  */
 import { describe, expect, it } from "vitest";
-import { emptyBoard, type Cell } from "@swarmtales/mechanic-grid-game/rules";
+import { emptyBoard, type Cell } from "@swarmtales/mechanic-grid/rules";
 import { play, testKernel } from "@swarmtales/testkit";
 import { scoreMove } from "../src/minimax.ts";
 import { field, matchGame, scriptedPlayer } from "./support.ts";

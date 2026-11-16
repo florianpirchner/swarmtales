@@ -2,7 +2,7 @@
 
 A deck of suited cards, a seeded shuffle and one private hand per seat. It is the base the card games build on: it
 knows no game, only cards, hands and the draw pile. Who plays which card, tricks, hints and scores belong to the game
-mechanic on top of it ([trick-play](../trick-play/README.md), [hint-towers](../hint-towers/README.md)).
+mechanic on top of it ([ember-tricks](../ember-tricks/README.md), [harbor-lights](../harbor-lights/README.md)).
 
 ## At a glance
 

@@ -4,7 +4,7 @@
 	"game": "econ-lab",
 	"arm": "nobrain",
 	"seed": 41,
-	"metric": "econ-games.dilemmaCooperation",
+	"metric": "econ-lab.dilemmaCooperation",
 	"platform": "legacy",
 	"kernelRevision": 2,
 	"values": [
@@ -30,7 +30,7 @@
 		]
 	},
 	"guardrails": {
-		"models.requests per econ-games.decisions": {
+		"models.requests per econ-lab.decisions": {
 			"n": 5,
 			"mean": 1.3194444444444444,
 			"sd": 0.025983731852596784,

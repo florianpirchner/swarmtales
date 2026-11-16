@@ -52,7 +52,7 @@ function dataGrants(grants: NonNullable<Game["grants"]>): DataGrants {
  * @returns The definitions by id; a use of the game wins over an installed mechanic of the same id.
  * @example
  * ```ts
- * const { "grid-game": gridGame } = definitionsOf(game);
+ * const { "grid": gridGame } = definitionsOf(game);
  * ```
  *
  * @public
@@ -71,7 +71,7 @@ export function definitionsOf(game: Game | GameData, installed: Readonly<Record<
  * @example
  * ```ts
  * const { data, mechanics } = gameData(game);
- * data.mechanics; // [{ use: "grid-game", options: { size: 3 } }]
+ * data.mechanics; // [{ use: "grid", options: { size: 3 } }]
  * ```
  *
  * @internal

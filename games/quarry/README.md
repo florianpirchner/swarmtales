@@ -12,7 +12,7 @@ four greedy seats on the same deal, for the report only; residents never see it.
 
 The game is a port of `stories/quarry` of the old platform (tag `v0-final`): the prompts, the tool names, the
 options and their defaults are the same, and the briefings are byte-identical. Its rules are the mechanic
-[`draft-rounds`](../../mechanics/draft-rounds/README.md).
+[`quarry`](../../mechanics/quarry/README.md).
 
 ```
 swt run games/quarry/game.ts --fake
@@ -102,7 +102,7 @@ once the next one has started, also not its own points. The briefing of a later 
 (game 1 still says "No game has been played yet."), and `viewTable` leaves out the points from earlier games. The
 retro after a game still names that game's result, in the context of the game that just ended, so a seat with a
 brain can write it down. The option sets `showResults` of the mechanic `strategy-brain` and `showEarlierPoints` of
-`draft-rounds`; `test/no-results.test.ts` proves it. No series of Quarry uses it yet.
+`quarry`; `test/no-results.test.ts` proves it. No series of Quarry uses it yet.
 
 ## Runs
 

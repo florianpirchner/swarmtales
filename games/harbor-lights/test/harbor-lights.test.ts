@@ -39,7 +39,7 @@ const resets = (events: readonly Logged[]): readonly { readonly resident: string
 describe("harbor-lights, scripted matches", () => {
 	it("crew: talks only between games, one captain writes the shared brain and everyone reads it", async () => {
 		const { end, events } = await run({});
-		expect(end).toMatchObject({ reason: "limit", limit: "hint-towers.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "harbor-lights.match" });
 		expect(ofType(events, "game_ended")).toHaveLength(2);
 		const written = ofType(events, "brain_written");
 		expect(written.map((event) => `${String(field(event, "team"))} ${String(field(event, "game"))}`)).toEqual(["crew 0", "crew 1"]);
@@ -68,7 +68,7 @@ describe("harbor-lights, scripted matches", () => {
 
 	it("solo: every seat writes private notes and reads only its own", async () => {
 		const { end, events } = await run({ brain: "solo" });
-		expect(end).toMatchObject({ reason: "limit", limit: "hint-towers.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "harbor-lights.match" });
 		expect(ofType(events, "team_post")).toHaveLength(0);
 		expect(ofType(events, "brain_written").map((event) => String(field(event, "team"))).sort()).toEqual(["A01", "A01", "A02", "A02", "A03", "A03", "A04", "A04"]);
 		const late = resets(events).filter((entry) => entry.text.includes("Game 2 begins"));

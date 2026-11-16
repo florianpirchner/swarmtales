@@ -17,3 +17,5 @@ The seeded parts (who is paired with whom, who proposes) show in `round_opened`;
 Not covered: the single-game variants (`econ-lab-ultimatum`, `-public-goods`, `-dilemma`), the codes behind a
 closed tool (`WRONG_DECISION`, `NOT_YOURS`, `ALREADY_DECIDED`, `NO_ROUND`: only the decision a seat owes is
 unlocked for it).
+
+Registered change (M6-06, `13-m6-spec.md` 4.3): the mechanic is named `econ-lab` (the files say `econ-games`). The files stay as recorded; the game's oracle tests read them with `runOracle`'s option `renamed` (`{ "econ-games": "econ-lab" }`), which maps the event sources, the event types and facts `<id>.<...>`, `setup.mechanics[]` and the game id; the variant names are not mapped.

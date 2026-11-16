@@ -15,11 +15,11 @@ game: the game tells it who is on move and which values are legal.
 | Package | `@swarmtales/mechanic-consensus` |
 | Id | `consensus` |
 | Summary | A team must agree before a gated tool call is released. |
-| Requires | `consensus-source` (from [grid-game](../grid-game/README.md), [morris](../morris/README.md)) |
+| Requires | `consensus-source` (from [grid](../grid/README.md), [morris](../morris/README.md)) |
 | Uses when loaded | none |
 | Provides | `consensus`, `consensus-agreed` |
 | State | kept, snapshot slice version 1 |
-| Games | [morris-teams](../../games/morris-teams/README.md), [tictactoe-teams](../../games/tictactoe-teams/README.md) |
+| Games | [morris](../../games/morris/README.md), [tictactoe](../../games/tictactoe/README.md) |
 
 <!-- /generated:glance -->
 
@@ -38,7 +38,7 @@ game: the game tells it who is on move and which values are legal.
    them, write `match_invalid` and end the match, so a match nobody played is not mistaken for a result.
 
 The game provides the `consensus-source` service (who is on move, who is captain, which values are legal, how a
-forfeit is played); [grid-game](../grid-game/README.md) does.
+forfeit is played); [grid](../grid/README.md) does.
 
 ## Tools
 
@@ -213,7 +213,7 @@ This mechanic exports no metrics.
 
 ## Example
 
-From [`games/tictactoe-teams/game.ts`](../../games/tictactoe-teams/game.ts):
+From [`games/tictactoe/game.ts`](../../games/tictactoe/game.ts):
 
 ```ts
 consensus({ tool: "playMove", param: "cell", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams }),

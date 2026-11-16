@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The metrics of `sealed-auction` over the new log of an oracle replay (M4 specification, issue 50): each equals the
+ * The metrics of `blind-bid` over the new log of an oracle replay (M4 specification, issue 50): each equals the
  * number computed by hand from the same oracle file, and a metric without its event is absent, never 0.
  */
 import { join } from "node:path";
-import { metricsOf, playOracle, readOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
+import { metricsOf, playOracle, readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { blindBidGame } from "../game.ts";
-import { VARIANTS } from "./support.ts";
+import { RENAMED, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "blind-bid");
 
@@ -41,13 +41,13 @@ const inFile = (oracle: Oracle, path: readonly string[]): readonly number[] =>
 const sum = (values: readonly number[]): number => values.reduce((total, value) => total + value, 0);
 const mean = (values: readonly number[]): number => sum(values) / values.length;
 
-describe("the metrics of sealed-auction over an oracle replay", () => {
+describe("the metrics of blind-bid over an oracle replay", () => {
 	it.each(Object.entries(HAND))("%s: every metric equals the number read by hand in the file", async (file, hand) => {
 		const oracle = readOracle(join(ORACLES, file));
 		const game = blindBidGame({ ...VARIANTS[oracle.variant], seed: oracle.seed });
-		const { events } = await playOracle(oracle, game);
+		const { events } = await playOracle(oracle, game, { renamed: RENAMED });
 		// The replay is the run of the file.
-		expect(timelineOf(events)).toEqual(oracle.timeline);
+		expect(await runOracle(oracle, game, 3, { renamed: RENAMED })).toEqual([]);
 		expect({
 			shading: inFile(oracle, ["firstPrice", "shading"]),
 			truthfulness: inFile(oracle, ["secondPrice", "truthfulness"]),
@@ -56,7 +56,7 @@ describe("the metrics of sealed-auction over an oracle replay", () => {
 			unspent: inFile(oracle, ["unspent"]),
 			missed: inFile(oracle, ["missed"]),
 		}).toEqual(hand);
-		expect(metricsOf(game, "sealed-auction", events)).toEqual({
+		expect(metricsOf(game, "blind-bid", events)).toEqual({
 			shading: mean(hand.shading),
 			truthfulness: mean(hand.truthfulness),
 			bidToEstimate: mean(hand.bidToEstimate),
@@ -70,12 +70,12 @@ describe("the metrics of sealed-auction over an oracle replay", () => {
 		const oracle = readOracle(join(ORACLES, "blind-bid-s7.json"));
 		const game = blindBidGame({ seed: oracle.seed });
 		// The same run stopped before its first tick: no game was scored.
-		const { events } = await playOracle({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game);
+		const { events } = await playOracle({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game, { renamed: RENAMED });
 		expect(events.length).toBeGreaterThan(0);
-		expect(metricsOf(game, "sealed-auction", events)).toEqual({ shading: "absent", truthfulness: "absent", bidToEstimate: "absent", cursed: "absent", unspent: "absent", missed: "absent" });
+		expect(metricsOf(game, "blind-bid", events)).toEqual({ shading: "absent", truthfulness: "absent", bidToEstimate: "absent", cursed: "absent", unspent: "absent", missed: "absent" });
 		// A match of pay-your-bid lots only: the two other kinds have no game to average.
 		const single = blindBidGame({ games: 1, lots: ["first-price"], brain: false });
-		const played = await playOracle({ ...oracle, setup: { ...oracle.setup, minutes: 40 }, timeline: [] }, single);
-		expect(metricsOf(single, "sealed-auction", played.events)).toMatchObject({ shading: 0, truthfulness: "absent", bidToEstimate: "absent", missed: 4 });
+		const played = await playOracle({ ...oracle, setup: { ...oracle.setup, minutes: 40 }, timeline: [] }, single, { renamed: RENAMED });
+		expect(metricsOf(single, "blind-bid", played.events)).toMatchObject({ shading: 0, truthfulness: "absent", bidToEstimate: "absent", missed: 4 });
 	});
 });

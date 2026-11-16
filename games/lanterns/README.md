@@ -39,13 +39,13 @@ The id is always `lanterns`; a variant is a set of options of `lanternsGame`, no
 | `maxWords` | 200 | words a brain may have |
 | `seed`, `minutes` | 31, by `games` and `maxClues` | the seed and the length of the run in ticks (an upper bound; the match ends the run) |
 
-Mechanics: `clue-grid`, `team-channel`, `strategy-brain`.
+Mechanics: `lanterns`, `team-channel`, `strategy-brain`.
 
 ## Open
 
-Resumed from a snapshot file, `clue-grid` gives back its cards, clue records and results with sorted keys, so later
+Resumed from a snapshot file, `lanterns` gives back its cards, clue records and results with sorted keys, so later
 events carry the same values with their keys in another order (`test/standing.test.ts`). The fix belongs to
-`mechanics/clue-grid`.
+`mechanics/lanterns`.
 
 ## Runs
 

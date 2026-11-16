@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { readOracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { lanternsGame, type LanternsOptions } from "../game.ts";
+import { RENAMED } from "./support.ts";
 
 const sha256 = (value: string): string => createHash("sha256").update(value).digest("hex");
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "lanterns");
@@ -35,6 +36,9 @@ const NAMES: readonly (readonly [string, LanternsOptions, number, Readonly<Recor
 /** The oracle file whose setup the old platform wrote for a variant name. */
 const FILE_OF: Readonly<Record<string, string>> = { lanterns: "lanterns-s73.json", "lanterns-nobrain": "lanterns-nobrain-s67.json", "lanterns-g1": "lanterns-g1-s13-silent.json" };
 
+// The id of a mechanic on this platform, from the id the file holds (M6-06).
+const renamedId = (id: string): string => Object.entries(RENAMED).find(([old]) => old === id)?.[1] ?? id;
+
 describe("carried byte for byte", () => {
 	it.each(OLD_BRIEFINGS)("has the briefings of the old platform: %s", (_name, options, hash) => {
 		const game = lanternsGame(options);
@@ -56,7 +60,7 @@ describe("carried byte for byte", () => {
 	it.each(NAMES)("%s: the options give the run length and the mechanic options of the old entry", (name, options, ticks, grid) => {
 		const game = lanternsGame(options);
 		expect(game.end).toEqual({ ticks });
-		expect(game.mechanics.map((use) => use.mechanic.id)).toEqual(["clue-grid", "team-channel", "strategy-brain"]);
+		expect(game.mechanics.map((use) => use.mechanic.id)).toEqual(["lanterns", "team-channel", "strategy-brain"]);
 		expect(game.mechanics[0].options).toEqual(grid);
 		expect(Reflect.get(Object(game.mechanics[2].options), "enabled")).toBe(!name.includes("-nobrain"));
 	});
@@ -64,7 +68,7 @@ describe("carried byte for byte", () => {
 	it.each(Object.entries(FILE_OF))("%s: the options give the setup the old platform recorded", (name, file) => {
 		const setup = readOracle(join(ORACLES, file)).setup;
 		const game = lanternsGame(NAMES.find(([entry]) => entry === name)?.[1]);
-		expect(game.mechanics.map((use) => ({ id: use.mechanic.id, options: use.options }))).toEqual(setup.mechanics);
+		expect(game.mechanics.map((use) => ({ id: use.mechanic.id, options: use.options }))).toEqual(setup.mechanics.map((use) => ({ ...use, id: renamedId(use.id) })));
 		expect([game.end, game.grants?.resident, game.locked, game.limits]).toEqual([{ ticks: setup.minutes }, setup.residentTools, setup.locked, { maxCallsPerTick: 12 }]);
 	});
 });

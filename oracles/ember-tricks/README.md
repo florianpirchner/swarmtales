@@ -27,3 +27,5 @@ On the new platform (M4-34) all four files match at level 3 (`games/ember-tricks
 `call.endsTurn` is needed: no tool of trick play set the flag on the old platform, and none sets it here. The silent
 file's setup holds two games (`games: 2`, 114 minutes), the default of the old entry; this table said three until
 M4-34.
+
+Registered change (M6-06, `13-m6-spec.md` 4.3): the mechanic is named `ember-tricks` (the files say `trick-play`). The files stay as recorded; the game's oracle tests read them with `runOracle`'s option `renamed` (`{ "trick-play": "ember-tricks" }`), which maps the event sources, the event types and facts `<id>.<...>`, `setup.mechanics[]` and the game id; the variant names are not mapped. The random labels keep the old id (`ctx.rng("trick-play", ...)`).

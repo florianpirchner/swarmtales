@@ -41,7 +41,7 @@ function answerWakes(events: readonly Envelope[], tool: string): number[] {
 describe("Blind Bid, the turns after a brain write (P474)", () => {
 	const wakes = async (quietEnds: boolean): Promise<number[]> => {
 		const { end, events } = await play(blindBidGame({ games: 2, quietEnds }), { seed: 7, drivers: (kernel) => ({ resident: oneCall(kernel) }) });
-		expect(end).toMatchObject({ reason: "limit", limit: "sealed-auction.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "blind-bid.match" });
 		return answerWakes(events, "writeBrain");
 	};
 

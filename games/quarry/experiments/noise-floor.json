@@ -23,15 +23,15 @@
 	"replicates": 5,
 	"design": "replicates",
 	"metrics": {
-		"primary": "draft-rounds.tablePoints",
+		"primary": "quarry.tablePoints",
 		"secondary": [
-			"draft-rounds.sharedLanes",
+			"quarry.sharedLanes",
 			"strategy-brain.brainWrites"
 		],
 		"guardrails": [
 			{
 				"metric": "models.requests",
-				"per": "draft-rounds.decisions",
+				"per": "quarry.decisions",
 				"within": {
 					"of": 1.3,
 					"share": 0.1
@@ -43,7 +43,7 @@
 				"max": 0.041
 			},
 			{
-				"metric": "draft-rounds.missedPicks",
+				"metric": "quarry.missedPicks",
 				"max": 0
 			}
 		]

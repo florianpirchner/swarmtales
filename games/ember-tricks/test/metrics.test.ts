@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The metrics of `trick-play` over the new log of an oracle replay (M4 specification, issue 51): each equals the number
+ * The metrics of `ember-tricks` over the new log of an oracle replay (M4 specification, issue 51): each equals the number
  * computed by hand from the same oracle file, and a metric without its events is absent, never 0.
  */
 import { join } from "node:path";
-import { metricsOf, playOracle, readOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
+import { metricsOf, playOracle, readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import { arm, VARIANTS } from "./support.ts";
+import { arm, RENAMED, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "ember-tricks");
 
@@ -56,16 +56,16 @@ function counted(oracle: Oracle): Hand {
 	};
 }
 
-describe("the metrics of trick-play over an oracle replay", () => {
+describe("the metrics of ember-tricks over an oracle replay", () => {
 	it.each(Object.entries(HAND))("%s: every metric equals the number read by hand in the file", async (file, hand) => {
 		const oracle = readOracle(join(ORACLES, file));
 		const game = arm(VARIANTS[oracle.variant]);
-		const { events } = await playOracle(oracle, game);
+		const { events } = await playOracle(oracle, game, { renamed: RENAMED });
 		// The replay is the run of the file: its timeline is the file's (a cut file up to its cut).
-		expect(timelineOf(events).slice(0, oracle.timeline.length)).toEqual(oracle.timeline);
+		expect(await runOracle(oracle, game, 3, { renamed: RENAMED })).toEqual([]);
 		expect(counted(oracle)).toEqual(hand);
 		const bids = hand.hits[1];
-		expect(metricsOf(game, "trick-play", events)).toEqual({
+		expect(metricsOf(game, "ember-tricks", events)).toEqual({
 			hits: hand.hits[0] / bids,
 			zeroBids: hand.zeroBids[0] / bids,
 			meanBid: hand.bid / bids,
@@ -79,8 +79,8 @@ describe("the metrics of trick-play over an oracle replay", () => {
 		const oracle = readOracle(join(ORACLES, "ember-tricks-g1-s31.json"));
 		const game = arm(VARIANTS[oracle.variant]);
 		// The same run stopped before its first tick: no bid was placed, no round scored.
-		const { events } = await playOracle({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game);
+		const { events } = await playOracle({ ...oracle, truncated: { afterMinute: -1, reason: "no tick" } }, game, { renamed: RENAMED });
 		expect(events.length).toBeGreaterThan(0);
-		expect(metricsOf(game, "trick-play", events)).toEqual({ hits: "absent", zeroBids: "absent", meanBid: "absent", points: "absent", vetoes: "absent", forfeits: "absent" });
+		expect(metricsOf(game, "ember-tricks", events)).toEqual({ hits: "absent", zeroBids: "absent", meanBid: "absent", points: "absent", vetoes: "absent", forfeits: "absent" });
 	});
 });

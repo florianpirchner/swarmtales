@@ -19,7 +19,7 @@ describe("Ember Tricks, played by the fake driver", () => {
 		const game = emberTricksGame(options);
 		const { end, events } = await play(game, { seed: 7, drivers: (kernel) => ({ resident: fakeDriver(kernel, 7) }) });
 		expect(end?.reason).not.toBe("error");
-		expect(end).toMatchObject({ reason: "limit", limit: "trick-play.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "ember-tricks.match" });
 		expect(Object.keys(accepted(events)).sort()).toEqual([...tools].sort());
 		expect(game.grants?.resident).toEqual(tools);
 	});

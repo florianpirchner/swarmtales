@@ -6,7 +6,7 @@
  * the order of the seats. The property is checked over scripted matches of several seeds, under the game's own
  * shuffled turn order, from the log alone: the hands are rebuilt from the sealed `draft_card_picked` events.
  */
-import { Card, countsOf, RESOURCES } from "@swarmtales/mechanic-draft-rounds/rules";
+import { Card, countsOf, RESOURCES } from "@swarmtales/mechanic-quarry/rules";
 import { play, testKernel } from "@swarmtales/testkit";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
@@ -58,7 +58,7 @@ const hashOf = (game: Parameters<typeof testKernel>[0]): string => testKernel(ga
 describe("open quarries, frozen per step", () => {
 	it.each(SEEDS)("seed %i: no pick request shows a pick of the same step", async (seed) => {
 		const run = await play(quarryGame({ openHands: true, frozenHands: true }), { seed, ...players });
-		expect(run.end).toMatchObject({ reason: "limit", limit: "draft-rounds.match" });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "quarry.match" });
 		// Three games of 48 picks: every pick is asked for once, with the line.
 		expect(requests(run.events)).toEqual({ asked: 3 * 48, leaks: 0 });
 	});

@@ -4,14 +4,14 @@
  * one member of each team is its keeper (the role rotates game by game) and sees which words belong to whom; the two
  * others are seekers. On its turn the keeper gives one clue word and a number and names, sealed for the report, the
  * words it means; the seekers take turns calling the guesses while the other advises in the team chat. The rules are
- * in the `clue-grid` mechanic. Every game starts from a fresh context; the only memory across games is the team's
+ * in the `lanterns` mechanic. Every game starts from a fresh context; the only memory across games is the team's
  * strategy brain (`brain: false`: the same briefings, no brain), so the question is whether a team builds conventions
  * between keeper and seekers that survive a change of keeper. The mechanic scores how much of what the keeper meant
  * the seekers found, for the report only. A port of the old `stories/lanterns/story.ts`: the variants are options of
  * the factory, the id is always `lanterns`. The file exports the game family: the variants that an experiment or
  * `--set` may choose are its params, and its defaults give the game of the old platform.
  */
-import { clueGrid } from "@swarmtales/mechanic-clue-grid";
+import { clueGrid } from "@swarmtales/mechanic-lanterns";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import { teamChannel } from "@swarmtales/mechanic-team-channel";
 import { defineGame, defineGameFamily } from "@swarmtales/sdk";
@@ -83,11 +83,11 @@ export function lanternsGame(options: LanternsOptions = {}) {
 		grants: { resident: ["viewGrid", "giveClue", "guess", "endGuesses", "postTeam", "readTeam", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: ["giveClue", "guess", "endGuesses", ...(brain ? (["writeBrain"] as const) : [])],
 		// Five passes a tick: a clue, the partner's advice and a few guesses fit in one tick; the reset line comes first, then the lines in the order of the old hook numbers.
-		scheduler: { id: "turns", options: { passes: 5, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "clue-grid" }, { source: "team-channel" }] } },
+		scheduler: { id: "turns", options: { passes: 5, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "lanterns" }, { source: "team-channel" }] } },
 		// A caller may view, read, post and make up to five guesses in one tick, and still write the brain if the game ends then.
 		limits: { maxCallsPerTick: 12 },
 		end: { ticks: options.minutes ?? minutesFor(games, maxClues) },
-		win: { fact: "clue-grid.scores" },
+		win: { fact: "lanterns.scores" },
 		briefing: briefings(brain),
 		model: { id: "anthropic/claude-haiku-5-5", maxOutputTokens: OUTPUT_TOKENS },
 	});

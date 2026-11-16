@@ -12,12 +12,12 @@ import { describe, expect, it } from "vitest";
 import blindBid, { blindBidFamily, blindBidGame, DEFAULT_LOTS } from "../game.ts";
 import { VARIANTS } from "./support.ts";
 
-/** The hash of the plain game of issue M4-36 (`blindBidGame()`), taken before any change of this issue. */
-const PINNED = "d040901dfb4de2757da22030b1993076caa77042e2778068eba6b0838da23b12";
+/** The hash of the plain game of issue M4-36 (`blindBidGame()`), taken before any change of this issue. Pinned again by M6-06: the rename of the mechanic and game ids moves the game hash (`13-m6-spec.md` 4.3). */
+const PINNED = "dd5220f240047adcd47f430b57b066939b1c6720d9ef094723bc67d280977e2d";
 /** The hashes of two more branches, taken the same way: `-nobrain` and `-g5`. */
 const BRANCHES: readonly (readonly [Readonly<Record<string, unknown>>, string])[] = [
-	[{ brain: false }, "88303cbd3253710cb36a53cca427c4bd3774843ec1f39fe9c75ed67495a69d5f"],
-	[{ games: 5 }, "af148528783b24e3235fa83af0cb606cb934e677f07788a62c03ce50d23b5a19"],
+	[{ brain: false }, "0475fe381a9d9243d060457130d6bdb747c38cc9c427be6b995c51fa6b6907c7"],
+	[{ games: 5 }, "a1e7fd80ea6777b7dbe5eceb259043135691b5a7bfff99a9408d3ed29c449d6a"],
 ];
 
 const hashOf = (game: Parameters<typeof testKernel>[0]): string => testKernel(game).kernel.snapshot().gameHash;

@@ -20,7 +20,7 @@ export interface GameEntry {
 /** The games, in the order they were ported. */
 export const GAMES: readonly GameEntry[] = [
 	{ name: "hello", file: "games/hello/game.ts", seeds: [1, 2], fakeSeeds: [7] },
-	{ name: "tictactoe-teams", file: "games/tictactoe-teams/game.ts", seeds: [7, 11], fakeSeeds: [7] },
+	{ name: "tictactoe", file: "games/tictactoe/game.ts", seeds: [7, 11], fakeSeeds: [7] },
 	{ name: "quarry", file: "games/quarry/game.ts", seeds: [29, 31], fakeSeeds: [7] },
 	{ name: "econ-lab", file: "games/econ-lab/game.ts", seeds: [23, 31], fakeSeeds: [7] },
 	{ name: "city-slice", file: "games/city-slice/game.ts", seeds: [7, 11], fakeSeeds: [7, 4] },
@@ -30,7 +30,7 @@ export const GAMES: readonly GameEntry[] = [
 	{ name: "chess", file: "games/chess/game.ts", seeds: [13, 29], fakeSeeds: [7] },
 	{ name: "holdem", file: "games/holdem/game.ts", seeds: [7, 11], fakeSeeds: [7] },
 	{ name: "convoy", file: "games/convoy/game.ts", seeds: [53, 13], fakeSeeds: [7] },
-	{ name: "morris-teams", file: "games/morris-teams/game.ts", seeds: [13, 31], fakeSeeds: [7] },
+	{ name: "morris", file: "games/morris/game.ts", seeds: [13, 31], fakeSeeds: [7] },
 	{ name: "salt-market", file: "games/salt-market/game.ts", seeds: [41, 45], fakeSeeds: [7] },
 	{ name: "blind-bid", file: "games/blind-bid/game.ts", seeds: [7, 11], fakeSeeds: [7] },
 	{ name: "ember-tricks", file: "games/ember-tricks/game.ts", seeds: [23, 31], fakeSeeds: [7] },

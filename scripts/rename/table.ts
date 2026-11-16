@@ -44,6 +44,7 @@ export const EXCEPTIONS: readonly Exception[] = [
 	{ path: /^docs\/(refactoring-before-release|ideas)\//, reason: "carried docs, specifications and errata (4.4)" },
 	{ path: /^docs\/(LESSONS-LEARNED|FINDINGS|ISSUE-RECORD|M2-GATE|M4-GATE|M4-REVIEW|RERUN-PLAN|RERUN-PLAN-M4)\.md$/, reason: "records of past runs and issues (4.4)" },
 	{ path: /^scripts\/rename\//, reason: "the table of the rename itself" },
+	{ path: /^scripts\/(lib\/names\.ts|gates\/retired-ids\.test\.ts)$/, reason: "the name lint's list of the retired ids and its test (M6-06)" },
 	{ path: /\/prompts\/.*\.md$/, line: /^(?!id: )/, reason: "a prompt text is model-facing; only its id moves (D14, A50)" },
 	{ before: /\brng\(\s*"$/, reason: "a random label stays byte-identical, or the seeded draws change (A41)" },
 	{ before: /(stories|test\/mechanics)\/$/, reason: "a path of the old platform (`stories/<id>/`, `test/stories/<id>`, `test/mechanics/<id>/`)" },
@@ -51,4 +52,6 @@ export const EXCEPTIONS: readonly Exception[] = [
 	{ path: /(^|\/)RUNS\.md$/, before: /`$/, after: /^\//, reason: "a data path of a recorded run (4.4)" },
 	{ path: /^games\/[^/]+\/test\/[^/]+\.ts$/, before: /^\s*"$/, after: /^": \{/, reason: "an old variant name, the key of a game test's table of the oracles' variants" },
 	{ after: /^\((\?:)?-/, reason: "a pattern of the old variant names (`<id>(-nobrain)?`)" },
+	{ path: /^packages\/viewer-core\/test\/envelope\.test\.ts$/, line: /\b(storyId|story): "/, reason: "a test of the carried legacy run fixture names the game id the run recorded (4.3)" },
+	{ path: /\/test\/[^/]+\.ts$/, line: /^(export )?const RENAMED = /, reason: "a test's map from the ids the oracle files and the carried hashes hold to the new ids (M6-06)" },
 ];

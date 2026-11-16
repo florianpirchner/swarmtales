@@ -17,7 +17,7 @@ import { SwtError } from "@swarmtales/contracts";
  * @example
  * ```ts
  * try {
- * 	lookup.render("grid-game", "grid-game/tools/playMove", {}, []);
+ * 	lookup.render("grid", "grid/tools/playMove", {}, []);
  * } catch (error) {
  * 	if (error instanceof PromptError && error.code === "SWT-P010") console.error(error.message);
  * }

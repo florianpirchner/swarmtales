@@ -4,12 +4,12 @@
  * of three kinds, two each: pay-your-bid and pay-the-runner-up lots with private values, and shared-worth lots with
  * one hidden worth and a noisy estimate per seat (the winner's curse). A match is several games; each starts from a
  * fresh context, a full purse and fresh lots, and the only memory across games is each seat's private strategy brain
- * (`brain: false`: the same briefings, no brain). The `sealed-auction` mechanic scores each game against closed-form
+ * (`brain: false`: the same briefings, no brain). The `blind-bid` mechanic scores each game against closed-form
  * single-lot references for the report; the seats never see it. A port of the old `stories/blind-bid/story.ts`: the
  * variants are options of the factory, the id is always `blind-bid`. The file exports the game family: the variants
  * that an experiment or `--set` may choose are its params, and its defaults give the game of the old platform.
  */
-import { LotKind, sealedAuction } from "@swarmtales/mechanic-sealed-auction";
+import { LotKind, sealedAuction } from "@swarmtales/mechanic-blind-bid";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import { defineGame, defineGameFamily } from "@swarmtales/sdk";
 import { Type } from "typebox";
@@ -80,10 +80,10 @@ export function blindBidGame(options: BlindBidOptions = {}) {
 		grants: { resident: ["viewAuction", "bid", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: ["bid", ...(brain ? (["writeBrain"] as const) : [])],
 		// Four passes a tick: a lot's bids and the next lot's opening fit in one tick. The reset line comes first, then the lines in the order of the old hook numbers.
-		scheduler: { id: "turns", options: { passes: 4, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "sealed-auction" }] } },
+		scheduler: { id: "turns", options: { passes: 4, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "blind-bid" }] } },
 		limits: { maxCallsPerTick: 6 },
 		end: { ticks: options.ticks ?? ticksFor(games, lots.length) },
-		win: { fact: "sealed-auction.scores" },
+		win: { fact: "blind-bid.scores" },
 		briefing: briefings(brain),
 		// The old entry set no output cap: the default of 4000 stands.
 		model: "anthropic/claude-haiku-5-5",

@@ -27,7 +27,7 @@ const TOOLS = ["viewGrid", "giveClue", "guess", "endGuesses", "postTeam", "readT
 describe("Lanterns, played by the fake driver", () => {
 	it.each([7, 11])("seed %i: ends by the match limit with an accepted call of every resident tool", async (seed) => {
 		const { end, events } = await play(lanternsGame(), { seed, drivers: (kernel) => ({ resident: fakeDriver(kernel, seed) }) });
-		expect(end).toMatchObject({ reason: "limit", limit: "clue-grid.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "lanterns.match" });
 		const counts = accepted(events);
 		for (const tool of TOOLS) expect(counts[tool] ?? 0, tool).toBeGreaterThan(0);
 		expect(ofType(events, "clue_game_ended")).toHaveLength(4);
@@ -38,7 +38,7 @@ describe("Lanterns, played by the fake driver", () => {
 
 	it("without a brain ends the match the same way, with no brain tool granted", async () => {
 		const { end, events } = await play(lanternsGame({ brain: false }), { seed: 7, drivers: (kernel) => ({ resident: fakeDriver(kernel, 7) }) });
-		expect(end).toMatchObject({ reason: "limit", limit: "clue-grid.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "lanterns.match" });
 		const counts = accepted(events);
 		for (const tool of TOOLS.slice(0, 6)) expect(counts[tool] ?? 0, tool).toBeGreaterThan(0);
 		expect([counts.readBrain, counts.writeBrain]).toEqual([undefined, undefined]);

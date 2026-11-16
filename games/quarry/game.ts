@@ -3,7 +3,7 @@
  * Quarry: four solo seats play a match of drafting games. In each game every seat opens packs of cards, keeps one
  * card per pick and passes the rest around the table; at the end every quarry scores the square of each resource it
  * holds, a bonus for strictly the most of a resource, minus the burns it used to destroy cards a neighbour wanted.
- * The rules are in the `draft-rounds` mechanic. Every game starts from a fresh context; the only memory across games
+ * The rules are in the `quarry` mechanic. Every game starts from a fresh context; the only memory across games
  * is each seat's private strategy brain (`brain: false`: the same briefings, no brain), so the question is whether a
  * seat learns to read what its neighbours pass and to stay out of their lanes. The mechanic scores every pick
  * against the greedy pick and every game against four greedy seats on the same deal, for the report only. A port of
@@ -11,7 +11,7 @@
  * exports the game family: the variants that an experiment or `--set` may choose are its params, and its defaults
  * give the game of the old platform.
  */
-import { draftRounds } from "@swarmtales/mechanic-draft-rounds";
+import { draftRounds } from "@swarmtales/mechanic-quarry";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import { defineGame, defineGameFamily } from "@swarmtales/sdk";
 import { Type } from "typebox";
@@ -92,10 +92,10 @@ export function quarryGame(options: QuarryOptions = {}) {
 		grants: { resident: ["viewTable", "pick", ...brainTools] },
 		locked: filled.brain ? ["pick", "writeBrain"] : ["pick"],
 		// Four passes a tick: a pick and the next pick fit in one tick; the reset line comes first, then the lines in the order of the old hook numbers.
-		scheduler: { id: "turns", options: { passes: 4, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "draft-rounds" }] } },
+		scheduler: { id: "turns", options: { passes: 4, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "quarry" }] } },
 		limits: { maxCallsPerTick: 6 },
 		end: { ticks: filled.ticks ?? ticksFor(filled) },
-		win: { fact: "draft-rounds.scores" },
+		win: { fact: "quarry.scores" },
 		briefing: briefings(filled.brain),
 		model: "anthropic/haiku",
 	});

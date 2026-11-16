@@ -18,7 +18,7 @@ game word: a "round" is whatever the caller says it is.
 | Uses when loaded | none |
 | Provides | `team-channel` |
 | State | kept, snapshot slice version 1 |
-| Games | [chess](../../games/chess/README.md), [harbor-lights](../../games/harbor-lights/README.md), [lanterns](../../games/lanterns/README.md), [morris-teams](../../games/morris-teams/README.md), [tictactoe-teams](../../games/tictactoe-teams/README.md) |
+| Games | [chess](../../games/chess/README.md), [harbor-lights](../../games/harbor-lights/README.md), [lanterns](../../games/lanterns/README.md), [morris](../../games/morris/README.md), [tictactoe](../../games/tictactoe/README.md) |
 
 <!-- /generated:glance -->
 
@@ -27,7 +27,7 @@ game word: a "round" is whatever the caller says it is.
 1. **Teams.** `teams` lists the teams and their members; a resident belongs to at most one team.
 2. **Posting.** `postTeam` posts to the own team's channel (`team_post`), at most `maxPostsPerMove` times per round.
    Another mechanic opens the next round with `resetCap` of the `team-channel` service (the
-   [grid-game](../grid-game/README.md) does it when the side on move changes).
+   [grid](../grid/README.md) does it when the side on move changes).
 3. **Reading.** `readTeam` returns the posts of the current epoch. With `notify` new posts are shown to the other
    members at the start of their turn.
 4. **Others.** The [strategy-brain](../strategy-brain/README.md) counts successful team posts in a retro window
@@ -134,7 +134,7 @@ This mechanic exports no metrics.
 
 ## Example
 
-From [`games/tictactoe-teams/game.ts`](../../games/tictactoe-teams/game.ts):
+From [`games/tictactoe/game.ts`](../../games/tictactoe/game.ts):
 
 ```ts
 teamChannel({ teams, maxPostsPerMove: 3 }),

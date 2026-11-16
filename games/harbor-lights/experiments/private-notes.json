@@ -44,9 +44,9 @@
 	"replicates": 1,
 	"design": "paired",
 	"metrics": {
-		"primary": "hint-towers.score",
+		"primary": "harbor-lights.score",
 		"secondary": [
-			"hint-towers.misfires",
+			"harbor-lights.misfires",
 			"strategy-brain.brainWrites"
 		],
 		"guardrails": [

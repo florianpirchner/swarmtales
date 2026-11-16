@@ -7,11 +7,11 @@ const ids = (entries: readonly LoadOrderEntry[]): readonly string[] => loadOrder
 const codes = (entries: readonly LoadOrderEntry[]): readonly string[] => loadOrder(entries).issues.map((issue) => issue.code);
 
 /** The heads of tic-tac-toe teams (old `mechanics/<id>/src/index.ts`), by the names of their services. */
-const gridGame = { id: "grid-game", provides: named("grid-game", "consensus-source"), uses: named("consensus", "team-channel") };
+const gridGame = { id: "grid", provides: named("grid", "consensus-source"), uses: named("consensus", "team-channel") };
 const consensus = { id: "consensus", requires: named("consensus-source"), provides: named("consensus") };
 const teamChannel = { id: "team-channel", provides: named("team-channel") };
-const strategyBrain = { id: "strategy-brain", provides: named("strategy-brain"), uses: named("grid-game", "brain-source", "team-channel") };
-const optimalReferee = { id: "optimal-referee", requires: named("grid-game") };
+const strategyBrain = { id: "strategy-brain", provides: named("strategy-brain"), uses: named("grid", "brain-source", "team-channel") };
+const optimalReferee = { id: "optimal-referee", requires: named("grid") };
 const roster = { id: "roster", provides: named("roster") };
 /** The game's order (old `stories/tictactoe-teams/story.ts`). The three variants list the same five mechanics and differ in options. */
 const tictactoe = [gridGame, consensus, teamChannel, strategyBrain, optimalReferee];
@@ -19,12 +19,12 @@ const tictactoe = [gridGame, consensus, teamChannel, strategyBrain, optimalRefer
 describe("loadOrder", () => {
 	it.each(["default", "no-brain", "solo"])("gives the order of 3.4 for the five heads of tic-tac-toe teams (%s)", (variant) => {
 		const game = variant === "default" ? tictactoe : tictactoe.map((head) => ({ ...head }));
-		const expected = ["team-channel", "grid-game", "consensus", "strategy-brain", "optimal-referee"];
+		const expected = ["team-channel", "grid", "consensus", "strategy-brain", "optimal-referee"];
 		expect(loadOrder(game)).toEqual({ order: expected.map((id) => game.find((head) => head.id === id)), issues: [] });
 	});
 
 	it("is called without `roster`: the caller appends it after the order, a listed one would load before a cycle of uses", () => {
-		expect(ids([...tictactoe, roster])).toEqual(["team-channel", "roster", "grid-game", "consensus", "strategy-brain", "optimal-referee"]);
+		expect(ids([...tictactoe, roster])).toEqual(["team-channel", "roster", "grid", "consensus", "strategy-brain", "optimal-referee"]);
 	});
 
 	it("orders by requires and keeps the game's order for ties (carried)", () => {

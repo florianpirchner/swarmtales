@@ -2,7 +2,7 @@
 /**
  * Econ Lab: four solo seats play a match of three classic experimental-economics games in neutral framing, one
  * after another, each over several rounds: a split offer (ultimatum), a shared fund (public goods) and an A-or-B
- * choice (prisoner's dilemma). The rules are in the `econ-games` mechanic. Every game starts from a fresh context;
+ * choice (prisoner's dilemma). The rules are in the `econ-lab` mechanic. Every game starts from a fresh context;
  * the only memory across games is each seat's private strategy brain, rewritten before the first game and after
  * each game, so the question is whether a norm learned in one game carries into the next (`brain: false`: the same
  * briefings, no brain). The mechanic scores each game against Nash play and the social optimum, for the report
@@ -10,7 +10,7 @@
  * `econ-lab`. The file exports the game family: the variants that an experiment or `--set` may choose are its params,
  * and its defaults give the game of the old platform.
  */
-import { econGames, type Block } from "@swarmtales/mechanic-econ-games";
+import { econGames, type Block } from "@swarmtales/mechanic-econ-lab";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import { defineGame, defineGameFamily } from "@swarmtales/sdk";
 import { Type } from "typebox";
@@ -94,10 +94,10 @@ export function econLabGame(options: EconLabOptions = {}) {
 		grants: { resident: ["viewTable", "contribute", "offer", "respond", "choose", ...brainTools] },
 		locked: ["contribute", "offer", "respond", "choose", ...(filled.brain ? (["writeBrain"] as const) : [])],
 		// Four passes a tick: a round's decisions and the next round's opening fit in one tick; the reset line comes first, then the lines in the order of the old hook numbers.
-		scheduler: { id: "turns", options: { passes: 4, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "econ-games" }] } },
+		scheduler: { id: "turns", options: { passes: 4, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "econ-lab" }] } },
 		limits: { maxCallsPerTick: 6 },
 		end: { ticks: filled.ticks ?? ticksFor(filled.blocks) },
-		win: { fact: "econ-games.scores" },
+		win: { fact: "econ-lab.scores" },
 		briefing: briefings(filled.brain),
 		model: "anthropic/haiku",
 	});

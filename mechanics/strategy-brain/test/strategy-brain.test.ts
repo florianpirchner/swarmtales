@@ -142,7 +142,7 @@ describe("the briefing and the hold", () => {
 
 	it("writes a brain per team in every retro and refuses the replay of a game", async () => {
 		const run = await play(brainGame(), players);
-		expect(run.end).toMatchObject({ reason: "limit", limit: "grid-game.match" });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "grid.match" });
 		// The retro captain rotates by game: A01 and A04 before game 1, A02 and A05 after it, A03 and A06 after game 2.
 		const written = ofType(run.events, "brain_written");
 		expect(written.map((event) => [field(event, "team"), field(event, "game"), field(event, "version"), field(event, "author")].join(" ")).sort()).toEqual(["O 0 1 A04", "O 1 2 A05", "O 2 3 A06", "X 0 1 A01", "X 1 2 A02", "X 2 3 A03"]);

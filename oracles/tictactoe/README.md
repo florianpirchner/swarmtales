@@ -41,3 +41,5 @@ rules, `consensus_deadlocked` (the `refuse` setting of the deadlock rule; no reg
 changed after they were played (the turn line of the captain, P410).
 
 Hidden information: none in the game. The brain texts are in `brain_written` (audience `human`).
+
+Registered change (M6-06, `13-m6-spec.md` 4.3): the mechanic is named `grid` (the files say `grid-game`) and the game `tictactoe` (the files say `tictactoe-teams`). The files stay as recorded; the game's oracle tests read them with `runOracle`'s option `renamed` (`{ "grid-game": "grid", "tictactoe-teams": "tictactoe" }`), which maps the event sources, the event types and facts `<id>.<...>`, `setup.mechanics[]` and the game id; the variant names are not mapped.

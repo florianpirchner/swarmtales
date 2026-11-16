@@ -3,7 +3,7 @@
  * The type test of the sdk's author types (M1 specification 6.1, 6.2, 6.5, in the head-declares-tools shape of the
  * mechanic spike, paper 07 section 6.1). `tsc -b` compiles this file and nothing here runs. The definers are declared
  * here with the signatures their issues must build (definers, `define-mechanic.ts`, `define-game.ts`). The heads and
- * body skeletons of `consensus`, `grid-game` and a small mechanic with a derived state must compile without a cast;
+ * body skeletons of `consensus`, `grid` and a small mechanic with a derived state must compile without a cast;
  * every `@ts-expect-error` line fails the build when the types loosen.
  */
 import { Type, type Static, type TSchema, type TUndefined } from "typebox";
@@ -56,14 +56,14 @@ const TeamChannelService = defineService({
 	methods: { resetCap: { kind: "command", summary: "Opens a new round.", input: Type.Object({ team: Type.String() }), output: Type.Boolean() } },
 });
 const GridGameService = defineService({
-	name: "grid-game",
+	name: "grid",
 	summary: "The board of the grid game.",
 	methods: {
 		side: { kind: "query", summary: "The side to move.", input: None0, output: Type.Union([Side, Type.Null()]) },
 		hold: { kind: "command", summary: "Holds the next game back.", input: None0, output: Type.Boolean() },
 	},
 });
-const GridGameEvents = defineEvents("grid-game", {
+const GridGameEvents = defineEvents("grid", {
 	game_started: Type.Object({ game: Type.Integer(), startingSide: Side }),
 	move_played: Type.Object({ game: Type.Integer(), side: Side, by: Type.String(), cell: Type.Integer(), forfeit: Type.Boolean() }),
 	match_ended: Type.Object({ invalid: Type.Optional(Type.Boolean()) }),
@@ -193,7 +193,7 @@ export const consensus = defineMechanic(consensusHead, {
 			return [ctx.prompt("consensus/vote-request", { captain: ctx.call(ConsensusSourceService, "captain", {}), cell: proposal.cell, reason: proposal.reason })];
 		},
 		tickStarted: {
-			after: ["grid-game"],
+			after: ["grid"],
 			run: (ctx) => {
 				ctx.state.teams.forEach((state) => (state.rounds += 0));
 			},
@@ -205,7 +205,7 @@ export const consensus = defineMechanic(consensusHead, {
 	},
 });
 
-// ---- grid-game: two provided services, used services, locks, a job, a run limit, an option check in `start` ----
+// ---- grid: two provided services, used services, locks, a job, a run limit, an option check in `start` ----
 
 const GridSlice = Type.Object({
 	teams: Type.Object({ X: Type.Array(Type.String()), O: Type.Array(Type.String()) }),
@@ -218,8 +218,8 @@ const GridSlice = Type.Object({
 });
 
 const gridHead = defineHead({
-	id: "grid-game",
-	package: "@swarmtales/mechanic-grid-game",
+	id: "grid",
+	package: "@swarmtales/mechanic-grid",
 	summary: "A board game between two teams.",
 	options: Type.Object({
 		size: Type.Integer({ minimum: 2, maximum: 10, default: 3, description: "The board is size x size cells." }),
@@ -230,7 +230,7 @@ const gridHead = defineHead({
 	state: GridSlice,
 	// The return type is written out: a literal (`side: "X"`) in a block body is widened otherwise.
 	start: (setup): Static<typeof GridSlice> => {
-		if (setup.options.size > 10) throw new Error(`grid-game: a board of ${setup.options.size} is too large`);
+		if (setup.options.size > 10) throw new Error(`grid: a board of ${setup.options.size} is too large`);
 		const half = Math.ceil(setup.residents.length / 2);
 		const teams = setup.options.teams ?? { X: setup.residents.slice(0, half), O: setup.residents.slice(half) };
 		return { teams, board: Array.from({ length: setup.options.size ** 2 }, () => "."), side: "X", game: 0, running: false, finished: false };
@@ -238,10 +238,10 @@ const gridHead = defineHead({
 	events: GridGameEvents.events,
 	provides: [GridGameService, ConsensusSourceService],
 	uses: [ConsensusService, TeamChannelService],
-	prompts: { "grid-game/tools/viewBoard": [], "grid-game/tools/playMove": [] },
+	prompts: { "grid/tools/viewBoard": [], "grid/tools/playMove": [] },
 	tools: {
-		viewBoard: { description: "grid-game/tools/viewBoard", params: Type.Object({}), for: ["resident"], free: true },
-		playMove: { description: "grid-game/tools/playMove", params: Type.Object({ cell: Type.Integer({ minimum: 0, description: "The cell to mark." }) }), for: ["resident"] },
+		viewBoard: { description: "grid/tools/viewBoard", params: Type.Object({}), for: ["resident"], free: true },
+		playMove: { description: "grid/tools/playMove", params: Type.Object({ cell: Type.Integer({ minimum: 0, description: "The cell to mark." }) }), for: ["resident"] },
 	},
 });
 
@@ -291,7 +291,7 @@ export const gridGame = defineMechanic(gridHead, {
 		},
 	},
 	services: {
-		"grid-game": {
+		"grid": {
 			side: (_input, ctx) => (ctx.state.running ? ctx.state.side : null),
 			hold: (_input, ctx, caller) => caller !== ctx.mechanic && !ctx.state.finished,
 		},
@@ -348,13 +348,13 @@ export const optimalReferee = defineMechanic(refereeHead, {
 // ---- the game: tool names come from the heads of the listed mechanics ----
 
 export const game = defineGame({
-	id: "tictactoe-teams",
+	id: "tictactoe",
 	residents: 4,
 	mechanics: [gridGame({ size: 3, games: 1 }), consensus({ tool: "playMove" }), optimalReferee()],
 	grants: { resident: ["viewBoard", "proposeMove", "castVote", "playMove"], watcher: { drop: ["castVote"], add: ["viewBoard"] } },
 	locked: ["playMove"],
 	end: { ticks: 20 },
-	win: { fact: "grid-game.captain" },
+	win: { fact: "grid.captain" },
 });
 export const tool: ToolOf<typeof game.mechanics> = "castVote";
 
@@ -403,7 +403,7 @@ export function erase<H extends AnyHead, F extends Readonly<Record<string, TSche
 /**
  * Wrong uses of a context; each line names the offending value.
  *
- * @param ctx - The context of `grid-game`.
+ * @param ctx - The context of `grid`.
  * @param consensusCtx - The context of `consensus`.
  */
 export function wrongContextUse(ctx: GridCtx, consensusCtx: ConsensusCtx): void {
@@ -419,11 +419,11 @@ export function wrongContextUse(ctx: GridCtx, consensusCtx: ConsensusCtx): void 
 	consensusCtx.call(TeamChannelService, "resetCap", { team: "X" });
 	// @ts-expect-error -- the prompt `consensus/proposed` takes the variable `cell`
 	consensusCtx.prompt("consensus/proposed", {});
-	// @ts-expect-error -- grid-game has no state property `winner`
+	// @ts-expect-error -- grid has no state property `winner`
 	ctx.state.winner = "X";
 }
 
-// @ts-expect-error -- `sise` is not an option of grid-game
+// @ts-expect-error -- `sise` is not an option of grid
 export const wrongOption = gridGame({ sise: 4 });
 
 // @ts-expect-error -- `size` is a number
@@ -490,7 +490,7 @@ export const missingMethod = defineMechanic(consensusHead, { tools: { ...voting,
  * A fact or a run limit reads: it may call a query, not a command, and it cannot change the state.
  *
  * @param view - The view of `consensus`.
- * @param grid - The view of `grid-game`.
+ * @param grid - The view of `grid`.
  */
 export function wrongViewUse(view: ViewOf<typeof consensusHead>, grid: GridView): void {
 	view.call(ConsensusSourceService, "team", {});

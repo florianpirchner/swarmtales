@@ -11,12 +11,12 @@ import { describe, expect, it } from "vitest";
 import emberTricks, { emberTricksFamily, emberTricksGame } from "../game.ts";
 import { arm, VARIANTS } from "./support.ts";
 
-/** The hash of the plain game of issue M4-34 (`emberTricksGame()`), taken before any change of this issue. */
-const PINNED = "767f84a84f11d59a5612c69ad2b971388e85351b27cd4b3dd17bbcb0209ca05b";
+/** The hash of the plain game of issue M4-34 (`emberTricksGame()`), taken before any change of this issue. Pinned again by M6-06: the rename of the mechanic and game ids moves the game hash (`13-m6-spec.md` 4.3). */
+const PINNED = "7f461519ba28c56c6552b10390e3cf3127a88ac4b6603ee670cb5cd269692cde";
 /** The hashes of two more branches, taken the same way: `-nobrain` and `-mcbid-g4`. */
 const BRANCHES: readonly (readonly [Readonly<Record<string, unknown>>, string])[] = [
-	[{ brain: false }, "dee98f9adcf2cfaa6465c864a8e35031c2d981c1be0c5af00e3d38585c7296e4"],
-	[{ games: 4, lever: "mcBid" }, "a03cd7f211ec48df424997f251c1d6fd4a0357968572adba44385f9d0986f2d2"],
+	[{ brain: false }, "b61f907252e48579c1bc0a95cc6821154522fc8b197e4f6d873ecdf64094aacd"],
+	[{ games: 4, lever: "mcBid" }, "58251ee63aefa8a9538f0221f6fd943c439b8fd20d45d4e925d363b4c8f44f4e"],
 ];
 
 const hashOf = (game: Parameters<typeof testKernel>[0]): string => testKernel(game).kernel.snapshot().gameHash;

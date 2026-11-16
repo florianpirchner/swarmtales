@@ -27,6 +27,31 @@ export const RETIRED: readonly RetiredWord[] = [
 	{ word: "arena", use: "Swarm Tales (environment names start with SWT_)", inProse: false },
 ];
 
+/** A retired id of the rename of original games (`13-m6-spec.md` 4.2, 4.4): the old mechanic or game id, its old package and the id to use. */
+export interface RetiredId {
+	readonly kind: "mechanic" | "game";
+	readonly id: string;
+	readonly pkg: string;
+	readonly use: string;
+}
+
+/**
+ * The retired ids of the rename (issue M6-06), a list of their own beside `RETIRED`, whose words the glossary lists.
+ * An old id may still stand only where an exception of the rename keeps it (oracle files, run data, carried docs, the
+ * records, paths of the old platform, random labels, prompt texts; `scripts/rename/table.ts`).
+ */
+export const RETIRED_IDS: readonly RetiredId[] = [
+	{ kind: "mechanic", id: "grid-game", pkg: "@swarmtales/mechanic-grid-game", use: "grid" },
+	{ kind: "mechanic", id: "draft-rounds", pkg: "@swarmtales/mechanic-draft-rounds", use: "quarry" },
+	{ kind: "mechanic", id: "clue-grid", pkg: "@swarmtales/mechanic-clue-grid", use: "lanterns" },
+	{ kind: "mechanic", id: "hint-towers", pkg: "@swarmtales/mechanic-hint-towers", use: "harbor-lights" },
+	{ kind: "mechanic", id: "trick-play", pkg: "@swarmtales/mechanic-trick-play", use: "ember-tricks" },
+	{ kind: "mechanic", id: "sealed-auction", pkg: "@swarmtales/mechanic-sealed-auction", use: "blind-bid" },
+	{ kind: "mechanic", id: "econ-games", pkg: "@swarmtales/mechanic-econ-games", use: "econ-lab" },
+	{ kind: "game", id: "tictactoe-teams", pkg: "@swarmtales/game-tictactoe-teams", use: "tictactoe" },
+	{ kind: "game", id: "morris-teams", pkg: "@swarmtales/game-morris-teams", use: "morris" },
+];
+
 /**
  * Exported identifiers that may hold a retired word, each with its reason. Empty at the start; an entry needs an
  * issue.

@@ -148,9 +148,9 @@ importers:
 
   games/blind-bid:
     dependencies:
-      '@swarmtales/mechanic-sealed-auction':
+      '@swarmtales/mechanic-blind-bid':
         specifier: workspace:*
-        version: link:../../mechanics/sealed-auction
+        version: link:../../mechanics/blind-bid
       '@swarmtales/mechanic-strategy-brain':
         specifier: workspace:*
         version: link:../../mechanics/strategy-brain
@@ -345,9 +345,9 @@ importers:
 
   games/econ-lab:
     dependencies:
-      '@swarmtales/mechanic-econ-games':
+      '@swarmtales/mechanic-econ-lab':
         specifier: workspace:*
-        version: link:../../mechanics/econ-games
+        version: link:../../mechanics/econ-lab
       '@swarmtales/mechanic-strategy-brain':
         specifier: workspace:*
         version: link:../../mechanics/strategy-brain
@@ -370,9 +370,9 @@ importers:
       '@swarmtales/mechanic-strategy-brain':
         specifier: workspace:*
         version: link:../../mechanics/strategy-brain
-      '@swarmtales/mechanic-trick-play':
+      '@swarmtales/mechanic-ember-tricks':
         specifier: workspace:*
-        version: link:../../mechanics/trick-play
+        version: link:../../mechanics/ember-tricks
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
@@ -392,9 +392,9 @@ importers:
       '@swarmtales/mechanic-card-table':
         specifier: workspace:*
         version: link:../../mechanics/card-table
-      '@swarmtales/mechanic-hint-towers':
+      '@swarmtales/mechanic-harbor-lights':
         specifier: workspace:*
-        version: link:../../mechanics/hint-towers
+        version: link:../../mechanics/harbor-lights
       '@swarmtales/mechanic-strategy-brain':
         specifier: workspace:*
         version: link:../../mechanics/strategy-brain
@@ -417,9 +417,9 @@ importers:
 
   games/hello:
     dependencies:
-      '@swarmtales/mechanic-grid-game':
+      '@swarmtales/mechanic-grid':
         specifier: workspace:*
-        version: link:../../mechanics/grid-game
+        version: link:../../mechanics/grid
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
@@ -452,9 +452,9 @@ importers:
 
   games/lanterns:
     dependencies:
-      '@swarmtales/mechanic-clue-grid':
+      '@swarmtales/mechanic-lanterns':
         specifier: workspace:*
-        version: link:../../mechanics/clue-grid
+        version: link:../../mechanics/lanterns
       '@swarmtales/mechanic-strategy-brain':
         specifier: workspace:*
         version: link:../../mechanics/strategy-brain
@@ -497,7 +497,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  games/morris-teams:
+  games/morris:
     dependencies:
       '@swarmtales/mechanic-consensus':
         specifier: workspace:*
@@ -530,9 +530,9 @@ importers:
 
   games/quarry:
     dependencies:
-      '@swarmtales/mechanic-draft-rounds':
+      '@swarmtales/mechanic-quarry':
         specifier: workspace:*
-        version: link:../../mechanics/draft-rounds
+        version: link:../../mechanics/quarry
       '@swarmtales/mechanic-strategy-brain':
         specifier: workspace:*
         version: link:../../mechanics/strategy-brain
@@ -569,14 +569,14 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  games/tictactoe-teams:
+  games/tictactoe:
     dependencies:
       '@swarmtales/mechanic-consensus':
         specifier: workspace:*
         version: link:../../mechanics/consensus
-      '@swarmtales/mechanic-grid-game':
+      '@swarmtales/mechanic-grid':
         specifier: workspace:*
-        version: link:../../mechanics/grid-game
+        version: link:../../mechanics/grid
       '@swarmtales/mechanic-optimal-referee':
         specifier: workspace:*
         version: link:../../mechanics/optimal-referee
@@ -844,7 +844,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  mechanics/clue-grid:
+  mechanics/lanterns:
     dependencies:
       '@swarmtales/contracts':
         specifier: workspace:*
@@ -963,7 +963,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  mechanics/draft-rounds:
+  mechanics/quarry:
     dependencies:
       '@swarmtales/contracts':
         specifier: workspace:*
@@ -985,7 +985,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  mechanics/econ-games:
+  mechanics/econ-lab:
     dependencies:
       '@swarmtales/contracts':
         specifier: workspace:*
@@ -1060,7 +1060,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  mechanics/grid-game:
+  mechanics/grid:
     dependencies:
       '@swarmtales/contracts':
         specifier: workspace:*
@@ -1085,7 +1085,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  mechanics/hint-towers:
+  mechanics/harbor-lights:
     dependencies:
       '@swarmtales/contracts':
         specifier: workspace:*
@@ -1346,9 +1346,9 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@swarmtales/mechanic-grid-game':
+      '@swarmtales/mechanic-grid':
         specifier: workspace:*
-        version: link:../grid-game
+        version: link:../grid
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
@@ -1583,7 +1583,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  mechanics/sealed-auction:
+  mechanics/blind-bid:
     dependencies:
       '@swarmtales/contracts':
         specifier: workspace:*
@@ -1672,9 +1672,9 @@ importers:
       '@swarmtales/mechanic-contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@swarmtales/mechanic-grid-game':
+      '@swarmtales/mechanic-grid':
         specifier: workspace:*
-        version: link:../grid-game
+        version: link:../grid
       '@swarmtales/mechanic-team-channel':
         specifier: workspace:*
         version: link:../team-channel
@@ -1748,7 +1748,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  mechanics/trick-play:
+  mechanics/ember-tricks:
     dependencies:
       '@swarmtales/contracts':
         specifier: workspace:*

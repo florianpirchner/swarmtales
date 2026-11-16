@@ -25,16 +25,16 @@
 	"replicates": 5,
 	"design": "replicates",
 	"metrics": {
-		"primary": "econ-games.dilemmaCooperation",
+		"primary": "econ-lab.dilemmaCooperation",
 		"secondary": [
-			"econ-games.dilemmaRound1",
-			"econ-games.fundCooperation",
-			"econ-games.tablePoints"
+			"econ-lab.dilemmaRound1",
+			"econ-lab.fundCooperation",
+			"econ-lab.tablePoints"
 		],
 		"guardrails": [
 			{
 				"metric": "models.requests",
-				"per": "econ-games.decisions",
+				"per": "econ-lab.decisions",
 				"arm": "nobrain",
 				"within": {
 					"of": 1.32,
@@ -47,7 +47,7 @@
 				"max": 0.015
 			},
 			{
-				"metric": "econ-games.missedDecisions",
+				"metric": "econ-lab.missedDecisions",
 				"max": 0
 			}
 		]

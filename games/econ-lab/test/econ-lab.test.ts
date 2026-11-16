@@ -3,7 +3,7 @@
  * Econ Lab through the real mechanics: a scripted match of the three games, offline. Carried from
  * `test/stories/econ-lab.test.ts`; the assertions on the old `turn_started` read `activation_opened`, and the end of
  * the match is a limit of the mechanic (`reason: "limit"`, the old `"referee"`). The part of the old test that
- * belongs to the mechanic alone is in `mechanics/econ-games/test/` (the rule block, the locks of a decision). Not
+ * belongs to the mechanic alone is in `mechanics/econ-lab/test/` (the rule block, the locks of a decision). Not
  * carried: the assertion on the old name registry ("is registered with its arms and single games");
  * `carried.test.ts` holds what replaces it.
  */
@@ -30,7 +30,7 @@ function stepsOf(events: Parameters<typeof ofType>[0]): string[] {
 describe("econ-lab, scripted match", () => {
 	it("plays the three games in order with sealed decisions, payoffs and a brain per seat", async () => {
 		const run = await play(rosterGame(), players);
-		expect(run.end).toMatchObject({ reason: "limit", limit: "econ-games.match" });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "econ-lab.match" });
 		expect(ofType(run.events, "block_ended").map((event) => field(event, "game"))).toEqual(["ultimatum", "public-goods", "dilemma"]);
 		expect(ofType(run.events, "round_resolved")).toHaveLength(18);
 		expect(ofType(run.events, "decision_made").every((event) => JSON.stringify(event.audience) === HUMAN)).toBe(true);
@@ -51,7 +51,7 @@ describe("econ-lab, scripted match", () => {
 		expect(fundScores).toEqual({ A01: 70, A02: 70, A03: 112, A04: 112 });
 		const totals = ofType(run.events, "match_ended").map((event) => field(event, "scores"));
 		expect(totals).toHaveLength(1);
-		expect(run.kernel.fact("econ-games.scores")).toEqual(totals[0]);
+		expect(run.kernel.fact("econ-lab.scores")).toEqual(totals[0]);
 
 		// A first brain before game 1 and a new one after games 1 and 2, for each of the four seats.
 		const written = ofType(run.events, "brain_written");
@@ -90,7 +90,7 @@ describe("econ-lab, scripted match", () => {
 
 	it("takes the defaults for missed decisions and still ends the match", async () => {
 		const run = await play(rosterGame({ brain: false }), { drivers: { resident: idleDriver } });
-		expect(run.end).toMatchObject({ reason: "limit", limit: "econ-games.match" });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "econ-lab.match" });
 		// Ultimatum: 6 rounds x 2 proposers miss; the fund: 7 x 4 seats; the A-or-B game: 5 x 4 seats.
 		// Points: nothing from the split offers, 10 kept per fund round, 1 per round of B against B.
 		const missed = ofType(run.events, "block_scored").map((event): unknown => {
@@ -111,7 +111,7 @@ describe("econ-lab, scripted match", () => {
 
 	it("plays one game alone and tells the horizon only when asked", async () => {
 		const single = await play(rosterGame({ brain: false, blocks: [{ game: "dilemma", rounds: 12 }] }), players);
-		expect(single.end).toMatchObject({ reason: "limit", limit: "econ-games.match" });
+		expect(single.end).toMatchObject({ reason: "limit", limit: "econ-lab.match" });
 		expect(ofType(single.events, "round_resolved")).toHaveLength(12);
 		const told = async (showHorizon: boolean): Promise<string> => JSON.stringify(shown((await play(rosterGame({ showHorizon }), players)).events));
 		expect(await told(true)).toContain("6 rounds");

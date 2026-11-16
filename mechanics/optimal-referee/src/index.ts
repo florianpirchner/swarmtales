@@ -10,8 +10,8 @@
  */
 import { Type } from "typebox";
 import { defineHead, defineMechanic } from "@swarmtales/sdk";
-import { GridGameEvents, GridGameService } from "@swarmtales/mechanic-grid-game/contract";
-import { emptyBoard, type Side } from "@swarmtales/mechanic-grid-game/rules";
+import { GridGameEvents, GridGameService } from "@swarmtales/mechanic-grid/contract";
+import { emptyBoard, type Side } from "@swarmtales/mechanic-grid/rules";
 import { scoreMove } from "./minimax.ts";
 
 const Value = Type.Integer({ minimum: -1, maximum: 1 });
@@ -29,7 +29,7 @@ const MOVE_SCORED = Type.Object({
 const head = defineHead({
 	id: "optimal-referee",
 	package: "@swarmtales/mechanic-optimal-referee",
-	summary: "Scores every grid-game move against minimax (value before and after, class); read-only, for the human and the reporter.",
+	summary: "Scores every grid move against minimax (value before and after, class); read-only, for the human and the reporter.",
 	options: Type.Object({
 		maxEmptyCells: Type.Integer({ minimum: 2, maximum: 16, default: 9, description: "Positions with more free cells than this are not scored (minimax on a big board is slow)." }),
 	}),

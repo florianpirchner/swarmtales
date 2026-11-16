@@ -25,7 +25,7 @@ const refused = (events: readonly Logged[]): readonly unknown[] => [...new Set(o
 describe("Quarry, played by the fake driver", () => {
 	it("ends by the match limit with an accepted call of every tool, and every pick is made by its seat", async () => {
 		const { end, events } = await play(quarryGame(), { seed: 7, drivers: (kernel) => ({ resident: fakeDriver(kernel, 7) }) });
-		expect(end).toMatchObject({ reason: "limit", limit: "draft-rounds.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "quarry.match" });
 		const counts = accepted(events);
 		for (const tool of ["viewTable", "readBrain", "writeBrain"]) expect(counts[tool] ?? 0, tool).toBeGreaterThan(0);
 		// Four seats, three games, two packs of six cards: every pick is a call, none is taken by the deadline.

@@ -10,6 +10,9 @@ import { Value } from "typebox/value";
 import { expect } from "vitest";
 import { lanternsFamily, lanternsGame, type LanternsOptions } from "../game.ts";
 
+/** The ids this platform renamed (M6-06), from the id the oracle files hold to the id here: the option `renamed` of `runOracle`. */
+export const RENAMED = { "clue-grid": "lanterns" } as const;
+
 /** The hidden words of a grid as a seeker sees it: every cell that is not `[word: owner]`. */
 function hiddenIn(grid: string): string[] {
 	return grid

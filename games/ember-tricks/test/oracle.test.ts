@@ -10,7 +10,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import { arm, VARIANTS } from "./support.ts";
+import { arm, RENAMED, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "ember-tricks");
 
@@ -26,12 +26,12 @@ describe("Ember Tricks against its oracles", () => {
 
 	it.each(FILES)("%s: runOracle at level 3 finds no mismatch", async (file) => {
 		const oracle = readOracle(join(ORACLES, file));
-		expect(await runOracle(oracle, gameOf(oracle), 3)).toEqual([]);
+		expect(await runOracle(oracle, gameOf(oracle), 3, { renamed: RENAMED })).toEqual([]);
 	});
 
 	it("tells the levers apart: the bid-aid file played on the calibration arm differs from its setup on", async () => {
 		const oracle = readOracle(join(ORACLES, "ember-tricks-mcbid-g4-s32.json"));
-		const mismatches = await runOracle(oracle, arm(VARIANTS["ember-tricks-calib-g4"]), 3);
+		const mismatches = await runOracle(oracle, arm(VARIANTS["ember-tricks-calib-g4"]), 3, { renamed: RENAMED });
 		expect(mismatches.slice(0, 1).map(({ level, at }) => [level, at])).toEqual([[1, "setup"]]);
 	});
 });

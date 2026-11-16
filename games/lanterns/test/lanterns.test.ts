@@ -13,7 +13,7 @@ const players = { drivers: { resident: player } };
 describe("lanterns, scripted match", () => {
 	it("plays four games with a rotating keeper and a brain per team, and its retro asks for conventions (P195)", async () => {
 		const run = await play(rosterGame(), players);
-		expect(run.end).toMatchObject({ reason: "limit", limit: "clue-grid.match" });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "lanterns.match" });
 		expect(ofType(run.events, "clue_game_started").map((event) => field(event, "keepers"))).toEqual([
 			{ amber: "A01", teal: "A04" },
 			{ amber: "A02", teal: "A05" },
@@ -25,7 +25,7 @@ describe("lanterns, scripted match", () => {
 		const retro = shown(run.events).find((text) => text.includes("Retro after game 1"));
 		expect(retro).toContain("conventions");
 		expect(retro).toContain("Do not write general caution");
-		expect(ofType(run.events, "clue_match_ended").map((event) => field(event, "scores"))).toEqual([run.kernel.fact("clue-grid.scores")]);
+		expect(ofType(run.events, "clue_match_ended").map((event) => field(event, "scores"))).toEqual([run.kernel.fact("lanterns.scores")]);
 	});
 
 	it("starts every game from a fresh context with the rules, the role and the team's brain", async () => {
@@ -37,7 +37,7 @@ describe("lanterns, scripted match", () => {
 
 	it("without a brain plays the same match with no retro and no brain", async () => {
 		const run = await play(rosterGame({ brain: false }), players);
-		expect(run.end).toMatchObject({ reason: "limit", limit: "clue-grid.match" });
+		expect(run.end).toMatchObject({ reason: "limit", limit: "lanterns.match" });
 		expect(ofType(run.events, "clue_game_ended")).toHaveLength(4);
 		expect([ofType(run.events, "retro_started"), ofType(run.events, "brain_written")]).toEqual([[], []]);
 		expect(resets(run.events).some((reset) => reset.text.includes("strategy brain"))).toBe(false);

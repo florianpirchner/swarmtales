@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { blindBidGame } from "../game.ts";
-import { VARIANTS } from "./support.ts";
+import { RENAMED, VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "blind-bid");
 
@@ -25,13 +25,13 @@ describe("blind-bid against its oracles", () => {
 
 	it.each(FILES)("%s: runOracle at level 3 finds no mismatch", async (file) => {
 		const oracle = readOracle(join(ORACLES, file));
-		expect(await runOracle(oracle, gameOf(oracle), 3)).toEqual([]);
+		expect(await runOracle(oracle, gameOf(oracle), 3, { renamed: RENAMED })).toEqual([]);
 	});
 
 	it("finds the difference when a file is played with the other arm or another lot order", async () => {
 		const oracle = readOracle(join(ORACLES, "blind-bid-nobrain-s7.json"));
-		expect((await runOracle(oracle, blindBidGame({ seed: 7 }), 3)).map(({ level, at }) => [level, at])).toContainEqual([1, "setup"]);
+		expect((await runOracle(oracle, blindBidGame({ seed: 7 }), 3, { renamed: RENAMED })).map(({ level, at }) => [level, at])).toContainEqual([1, "setup"]);
 		const brain = readOracle(join(ORACLES, "blind-bid-s7.json"));
-		expect(await runOracle(brain, blindBidGame({ seed: 7, lots: ["common", "first-price", "second-price", "first-price", "common", "second-price"] }), 3)).not.toEqual([]);
+		expect(await runOracle(brain, blindBidGame({ seed: 7, lots: ["common", "first-price", "second-price", "first-price", "common", "second-price"] }), 3, { renamed: RENAMED })).not.toEqual([]);
 	});
 });

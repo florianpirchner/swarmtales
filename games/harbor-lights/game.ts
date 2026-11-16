@@ -6,7 +6,7 @@
  * teammate; six signal tokens), plays one of their own slots (lit if it is its tower's next rank, else a misfire), or
  * discards a slot to get a signal back. Every card exists once; a lost card is bridged, so it costs exactly its own
  * point. The score is the cards lit, less 3 points for every misfire from the second on (soft strikes; hard strikes:
- * the third strike ends the game). The rules are the `hint-towers` mechanic on the `card-table`.
+ * the third strike ends the game). The rules are the `harbor-lights` mechanic on the `card-table`.
  *
  * Three arms on the same deals: `crew` (default) keeps one shared crew brain, discussed in a team chat that is open
  * only between games and written by a rotating captain; `solo` gives every member private notes and no chat;
@@ -14,7 +14,7 @@
  * `stories/harbor-lights/story.ts`: the variants are params of the game family, the id is always `harbor-lights`.
  */
 import { cardTable } from "@swarmtales/mechanic-card-table";
-import { hintTowers } from "@swarmtales/mechanic-hint-towers";
+import { hintTowers } from "@swarmtales/mechanic-harbor-lights";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import { teamChannel } from "@swarmtales/mechanic-team-channel";
 import { defineGame, defineGameFamily } from "@swarmtales/sdk";
@@ -96,12 +96,12 @@ export function harborLightsGame(options: HarborLightsOptions = {}) {
 		grants: { resident: ["viewTowers", "giveSignal", "playSlot", "discardSlot", ...chat, ...(keeps ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: keeps ? ["writeBrain"] : [],
 		// The seat on turn has news; several seats act in one pass when the turn moves along the roster. The reset line comes first, then the brain's lines before those of the chat, as the old hook numbers ordered them.
-		scheduler: { id: "turns", options: { passes: 8, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "hint-towers" }] } },
+		scheduler: { id: "turns", options: { passes: 8, activation: "onNews", inputs: [{ kind: "context-reset" }, { source: "strategy-brain" }, { source: "harbor-lights" }] } },
 		// Up to two turns a tick for a seat (viewTowers and an action each), and room for a retro post and the brain in the same tick.
 		limits: { maxCallsPerTick: 12 },
 		// About 55 actions a game at eight passes a tick, a move timer of two ticks, and a retro per game.
 		end: { ticks: filled.ticks ?? filled.games * (30 + RETRO_TICKS) + RETRO_TICKS + 4 },
-		win: { fact: "hint-towers.scores" },
+		win: { fact: "harbor-lights.scores" },
 		briefing: briefings(filled.brain, filled.strikes === "soft", SEATS.length),
 		model: "anthropic/haiku",
 	});

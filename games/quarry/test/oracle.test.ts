@@ -9,7 +9,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { readOracle, runOracle, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import { arm } from "./support.ts";
+import { arm, RENAMED } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "quarry");
 
@@ -32,6 +32,6 @@ describe("quarry against its oracles", () => {
 
 	it.each(FILES)("%s: runOracle at level 3 finds no mismatch", async (file) => {
 		const oracle = readOracle(join(ORACLES, file));
-		expect(await runOracle(oracle, gameOf(oracle), 3)).toEqual([]);
+		expect(await runOracle(oracle, gameOf(oracle), 3, { renamed: RENAMED })).toEqual([]);
 	});
 });

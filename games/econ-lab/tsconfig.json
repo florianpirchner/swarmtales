@@ -17,7 +17,7 @@
 			"path": "../../packages/sdk"
 		},
 		{
-			"path": "../../mechanics/econ-games"
+			"path": "../../mechanics/econ-lab"
 		},
 		{
 			"path": "../../mechanics/strategy-brain"

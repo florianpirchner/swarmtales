@@ -44,8 +44,8 @@ function codeOf(run: () => unknown): string | undefined {
  * list stands in for them; issue 22 checks the specs against the loaded heads (`SWT-E010`).
  */
 const METRICS = new Set([
-	...["tablePoints", "sharedLanes", "decisions", "missedPicks"].map((id) => `draft-rounds.${id}`),
-	...["dilemmaCooperation", "dilemmaRound1", "fundCooperation", "tablePoints", "decisions", "missedDecisions"].map((id) => `econ-games.${id}`),
+	...["tablePoints", "sharedLanes", "decisions", "missedPicks"].map((id) => `quarry.${id}`),
+	...["dilemmaCooperation", "dilemmaRound1", "fundCooperation", "tablePoints", "decisions", "missedDecisions"].map((id) => `econ-lab.${id}`),
 	"strategy-brain.brainWrites", "models.requests", "models.costUsd",
 ]);
 
@@ -123,14 +123,14 @@ describe("the legacy baselines", () => {
 	// commit 48ddf0a), block `control`. The line of each number in that file is given beside it.
 	const SOURCE = [
 		{
-			file: "games/quarry/noise-floor.legacy.json", game: "quarry", arm: "control", seed: 31 /* line 11 */, metric: "draft-rounds.tablePoints", kernelRevision: 2 /* line 167 */,
+			file: "games/quarry/noise-floor.legacy.json", game: "quarry", arm: "control", seed: 31 /* line 11 */, metric: "quarry.tablePoints", kernelRevision: 2 /* line 167 */,
 			values: [1080, 1163, 1109, 1033, 1021] /* lines 23-27 */, mean: 1081.2 /* line 29 */, sd: 57.9068217052188 /* line 30 */,
-			rails: { "models.requests per draft-rounds.decisions": 1.2972222222222223 /* line 78 */, "models.costUsd": 0.034390152 /* line 102 */ },
+			rails: { "models.requests per quarry.decisions": 1.2972222222222223 /* line 78 */, "models.costUsd": 0.034390152 /* line 102 */ },
 		},
 		{
-			file: "games/econ-lab/noise-floor.legacy.json", game: "econ-lab", arm: "nobrain", seed: 41 /* line 11 */, metric: "econ-games.dilemmaCooperation", kernelRevision: 2 /* line 215 */,
+			file: "games/econ-lab/noise-floor.legacy.json", game: "econ-lab", arm: "nobrain", seed: 41 /* line 11 */, metric: "econ-lab.dilemmaCooperation", kernelRevision: 2 /* line 215 */,
 			values: [1, 1, 1, 1, 0.35] /* lines 23-27 */, mean: 0.8699999999999999 /* line 29 */, sd: 0.2906888370749727 /* line 30 */,
-			rails: { "models.requests per econ-games.decisions": 1.3194444444444444 /* line 126 */, "models.costUsd": 0.012333016999999998 /* line 150 */ },
+			rails: { "models.requests per econ-lab.decisions": 1.3194444444444444 /* line 126 */, "models.costUsd": 0.012333016999999998 /* line 150 */ },
 		},
 	];
 
@@ -151,7 +151,7 @@ describe("the E catalogue and the results schema", () => {
 		const thrown = [
 			errors.badFile("experiment spec", "/x is unknown"), errors.unknownParam("open", "openHand", ["openHands"]), errors.estimateAboveCap(2, 1.5), errors.capReached(1.2, 0.4, 0.4, 1.5),
 			errors.notComparable("a", "b", "kernel.revision"), errors.badRunFolder("runs/a", "has no end event"), errors.seriesBroken("a run reported a leak"),
-			errors.unknownMetric("draft-rounds.points", ["draft-rounds.tablePoints"]), errors.analysisTooEarly(3),
+			errors.unknownMetric("quarry.points", ["quarry.tablePoints"]), errors.analysisTooEarly(3),
 		];
 		expect(thrown.map((error) => error.code)).toEqual(["SWT-E001", "SWT-E002", "SWT-E003", "SWT-E004", "SWT-E005", "SWT-E006", "SWT-E007", "SWT-E010", "SWT-E011"]);
 		for (const error of thrown) {
@@ -164,10 +164,10 @@ describe("the E catalogue and the results schema", () => {
 		const results = {
 			format: "swarmtales-results", version: 1, spec: { id: "quarry-open-quarries", hash: "h" }, code: { commit: "c", kernelRevision: 3 },
 			runs: [{ run: "r1", arm: "open", seed: 31, replicate: 0, manifestHash: "m", head: "h", status: "excluded", reason: "cost-cap", costUsd: 0.4 }],
-			values: [{ run: "r1", metric: "draft-rounds.tablePoints", value: "absent" }],
-			estimates: [{ metric: "draft-rounds.tablePoints", role: "primary", contrast: ["open", "control"], estimator: "mean of paired differences", estimate: 12.5, se: 20, interval: [-31, 56], n: 11, test: "sign-flip", p: 0.5, over: "included" }],
+			values: [{ run: "r1", metric: "quarry.tablePoints", value: "absent" }],
+			estimates: [{ metric: "quarry.tablePoints", role: "primary", contrast: ["open", "control"], estimator: "mean of paired differences", estimate: 12.5, se: 20, interval: [-31, 56], n: 11, test: "sign-flip", p: 0.5, over: "included" }],
 			pass: { rule: "open minus control is positive", estimate: 12.5, n: 11, verdict: "kept" },
-			guardrails: [{ metric: "models.requests", per: "draft-rounds.decisions", arm: "open", value: 1.3, held: true }],
+			guardrails: [{ metric: "models.requests", per: "quarry.decisions", arm: "open", value: 1.3, held: true }],
 			tolerance: { kind: "mean", baselineMean: 1081.2, newMean: 1100, difference: 18.8, se: 37, within: true },
 			deviations: [],
 		};

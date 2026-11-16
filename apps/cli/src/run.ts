@@ -193,7 +193,7 @@ export async function played(kernel: Kernel, drivers: DriverTable, loop: LoopOpt
  *
  * @param kernel - The kernel of the run, for the reason of a limit.
  * @param end - The end of the run, or the stop of the run loop.
- * @returns "limit grid-game.match: the match is over", "tick limit" or "error"; for a stop "paused", "paused on
+ * @returns "limit grid.match: the match is over", "tick limit" or "error"; for a stop "paused", "paused on
  * <mechanic>.<event>" or "open".
  *
  * @public

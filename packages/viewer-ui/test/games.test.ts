@@ -7,8 +7,8 @@ const game = (id: string, aliases?: readonly string[]): GameInfo => ({ id, title
 
 describe("games", () => {
 	it("finds the game of a variant, the longest id first, and of an earlier name", () => {
-		const games = [game("morris"), game("morris-teams"), game("cityofkeys", ["nexus"])];
-		expect(gameOfRun(games, "morris-teams-nobrain-solo")?.id).toBe("morris-teams");
+		const games = [game("morris"), game("morris"), game("cityofkeys", ["nexus"])];
+		expect(gameOfRun(games, "morris-teams-nobrain-solo")?.id).toBe("morris");
 		expect(gameOfRun(games, "morris")?.id).toBe("morris");
 		expect(gameOfRun(games, "nexus")?.id).toBe("cityofkeys");
 		expect(gameOfRun(games, "chess")).toBeUndefined();

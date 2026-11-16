@@ -49,12 +49,12 @@ describe("bindHooks", () => {
 		const instance = parts();
 		const hooks = bindHooks(instance, {
 			runStarted: say("plain"),
-			tickStarted: { run: say("placed"), after: ["grid-game"] },
-			tickEnded: [say("first"), { run: say("second"), after: ["grid-game", "team-channel"] }, { run: say("third") }],
+			tickStarted: { run: say("placed"), after: ["grid"] },
+			tickEnded: [say("first"), { run: say("second"), after: ["grid", "team-channel"] }, { run: say("third") }],
 		});
 		expect(hooks.runStarted?.map((entry) => Object.keys(entry))).toEqual([["run"]]);
-		expect(hooks.tickStarted?.map((entry) => entry.after)).toEqual([["grid-game"]]);
-		expect(hooks.tickEnded?.map((entry) => entry.after)).toEqual([undefined, ["grid-game", "team-channel"], undefined]);
+		expect(hooks.tickStarted?.map((entry) => entry.after)).toEqual([["grid"]]);
+		expect(hooks.tickEnded?.map((entry) => entry.after)).toEqual([undefined, ["grid", "team-channel"], undefined]);
 		expect(hooks.inputs).toEqual([]);
 		for (const entry of [...(hooks.runStarted ?? []), ...(hooks.tickStarted ?? []), ...(hooks.tickEnded ?? [])]) entry.run();
 		expect(instance.state.value.log).toEqual(["plain@3", "placed@3", "first@3", "second@3", "third@3"]);
@@ -64,7 +64,7 @@ describe("bindHooks", () => {
 		const instance = parts();
 		const hooks = bindHooks(instance, { runEnded: { run: (end, ctx) => void ctx.state.log.push(`${end.reason}@${String(end.tick)}`), after: ["decisions"] } });
 		expect(hooks.runEnded?.map((entry) => entry.after)).toEqual([["decisions"]]);
-		hooks.runEnded?.[0]?.run({ reason: "limit", tick: 4, limit: "grid-game.won" });
+		hooks.runEnded?.[0]?.run({ reason: "limit", tick: 4, limit: "grid.won" });
 		expect(instance.state.value.log).toEqual(["limit@4"]);
 	});
 
@@ -76,12 +76,12 @@ describe("bindHooks", () => {
 	it("calls a resident hook with the bare id, only for a resident, and answers `toAct` with actor ids", () => {
 		const seen: string[] = [];
 		const hooks = bindHooks(parts(), {
-			turnInputs: { run: (resident, ctx) => (seen.push(resident), [`${resident} of ${ctx.mechanic}`, { kind: "board", text: "X.." }]), after: ["grid-game"] },
+			turnInputs: { run: (resident, ctx) => (seen.push(resident), [`${resident} of ${ctx.mechanic}`, { kind: "board", text: "X.." }]), after: ["grid"] },
 			news: (resident) => (seen.push(`news ${resident}`), resident === "A02"),
 			toAct: (ctx) => ctx.residents.ids.slice(1),
 		});
 		const inputs = hooks.inputs?.[0];
-		expect(inputs?.after).toEqual(["grid-game"]);
+		expect(inputs?.after).toEqual(["grid"]);
 		expect(inputs?.run("resident:A01")).toEqual(["A01 of consensus", { kind: "board", text: "X.." }]);
 		expect(inputs?.run("director:D1")).toEqual([]);
 		expect([hooks.news?.("resident:A01"), hooks.news?.("resident:A02"), hooks.news?.("director:D1"), hooks.news?.("kernel")]).toEqual([false, true, false, false]);
@@ -93,9 +93,9 @@ describe("bindHooks", () => {
 		const instance = parts();
 		const hooks = bindHooks(instance, {
 			activationOpened: (resident, ctx) => void ctx.state.log.push(`opened ${resident}`),
-			activationClosed: [{ run: (resident, ctx) => void ctx.state.log.push(`closed ${resident}@${String(ctx.tick)}`), after: ["grid-game"] }],
+			activationClosed: [{ run: (resident, ctx) => void ctx.state.log.push(`closed ${resident}@${String(ctx.tick)}`), after: ["grid"] }],
 		});
-		expect([hooks.activationOpened?.map((entry) => entry.after), hooks.activationClosed?.map((entry) => entry.after)]).toEqual([[undefined], [["grid-game"]]]);
+		expect([hooks.activationOpened?.map((entry) => entry.after), hooks.activationClosed?.map((entry) => entry.after)]).toEqual([[undefined], [["grid"]]]);
 		for (const actor of ACTORS) {
 			hooks.activationOpened?.[0]?.run(actor);
 			hooks.activationClosed?.[0]?.run(actor);

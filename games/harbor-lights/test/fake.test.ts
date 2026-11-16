@@ -20,7 +20,7 @@ describe("Harbor Lights, played by the fake driver", () => {
 		const game = harborLightsGame(options);
 		const { end, events } = await play(game, { seed: 7, drivers: (kernel) => ({ resident: fakeDriver(kernel, 7) }) });
 		expect(end?.reason).not.toBe("error");
-		expect(end).toMatchObject({ reason: "limit", limit: "hint-towers.match" });
+		expect(end).toMatchObject({ reason: "limit", limit: "harbor-lights.match" });
 		const counts = accepted(events);
 		expect(Object.keys(counts).sort()).toEqual([...tools].sort());
 		expect(game.grants?.resident).toEqual(tools);

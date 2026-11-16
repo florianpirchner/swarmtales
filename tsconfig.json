@@ -52,7 +52,7 @@
 			"path": "games/liars-dice"
 		},
 		{
-			"path": "games/morris-teams"
+			"path": "games/morris"
 		},
 		{
 			"path": "games/quarry"
@@ -61,7 +61,7 @@
 			"path": "games/salt-market"
 		},
 		{
-			"path": "games/tictactoe-teams"
+			"path": "games/tictactoe"
 		},
 		{
 			"path": "games/whispers"
@@ -85,7 +85,7 @@
 			"path": "mechanics/city-directors"
 		},
 		{
-			"path": "mechanics/clue-grid"
+			"path": "mechanics/lanterns"
 		},
 		{
 			"path": "mechanics/consensus"
@@ -103,10 +103,10 @@
 			"path": "mechanics/decisions"
 		},
 		{
-			"path": "mechanics/draft-rounds"
+			"path": "mechanics/quarry"
 		},
 		{
-			"path": "mechanics/econ-games"
+			"path": "mechanics/econ-lab"
 		},
 		{
 			"path": "mechanics/exile"
@@ -115,10 +115,10 @@
 			"path": "mechanics/goals"
 		},
 		{
-			"path": "mechanics/grid-game"
+			"path": "mechanics/grid"
 		},
 		{
-			"path": "mechanics/hint-towers"
+			"path": "mechanics/harbor-lights"
 		},
 		{
 			"path": "mechanics/holdem"
@@ -175,7 +175,7 @@
 			"path": "mechanics/seal"
 		},
 		{
-			"path": "mechanics/sealed-auction"
+			"path": "mechanics/blind-bid"
 		},
 		{
 			"path": "mechanics/standoff"
@@ -196,7 +196,7 @@
 			"path": "mechanics/tribunal"
 		},
 		{
-			"path": "mechanics/trick-play"
+			"path": "mechanics/ember-tricks"
 		},
 		{
 			"path": "mechanics/whispers"

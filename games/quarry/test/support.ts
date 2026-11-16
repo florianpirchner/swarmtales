@@ -9,6 +9,9 @@ import { Value } from "typebox/value";
 import { expect } from "vitest";
 import { quarryGame, type QuarryOptions, quarryFamily } from "../game.ts";
 
+/** The ids this platform renamed (M6-06), from the id the oracle files hold to the id here: the option `renamed` of `runOracle`. */
+export const RENAMED = { "draft-rounds": "quarry" } as const;
+
 type Logged = Played["events"][number];
 
 const LANE: Readonly<Record<string, string>> = { A01: "amber", A02: "basalt", A03: "cobalt", A04: "jade" };

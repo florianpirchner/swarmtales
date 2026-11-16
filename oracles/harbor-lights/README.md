@@ -23,3 +23,5 @@ The seeded deal is visible: `deal_revealed` and `card_drawn` carry the hands and
 Not covered: a played match of the registry default with three games and a brain (no recorded run of it replays
 exactly; the one-game files exercise the same mechanics), the decision aid with a brain (`-solo-aid`), a game
 with hard strikes that ends another way than by the strikes.
+
+Registered change (M6-06, `13-m6-spec.md` 4.3): the mechanic is named `harbor-lights` (the files say `hint-towers`). The files stay as recorded; the game's oracle tests read them with `runOracle`'s option `renamed` (`{ "hint-towers": "harbor-lights" }`), which maps the event sources, the event types and facts `<id>.<...>`, `setup.mechanics[]` and the game id; the variant names are not mapped.

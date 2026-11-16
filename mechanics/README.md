@@ -7,13 +7,13 @@ issues land.
 
 | Mechanic | Used by |
 |---|---|
-| [`grid-game`](grid-game/README.md) | Hello Game, tic-tac-toe teams |
+| [`grid`](grid/README.md) | Hello Game, tic-tac-toe teams |
 | [`consensus`](consensus/README.md) | tic-tac-toe teams |
 | [`team-channel`](team-channel/README.md) | tic-tac-toe teams |
 | [`optimal-referee`](optimal-referee/README.md) | tic-tac-toe teams |
 | [`strategy-brain`](strategy-brain/README.md) | tic-tac-toe teams, Quarry, Econ Lab |
-| [`draft-rounds`](draft-rounds/README.md) | Quarry |
-| [`econ-games`](econ-games/README.md) | Econ Lab |
+| [`quarry`](quarry/README.md) | Quarry |
+| [`econ-lab`](econ-lab/README.md) | Econ Lab |
 | [`ledger`](ledger/README.md) | the city slice |
 | [`channels`](channels/README.md) | the city slice |
 | [`exile`](exile/README.md) | the city slice |
@@ -23,11 +23,11 @@ issues land.
 | [`court`](court/README.md) | the city slice; replaced by the tribunal at milestone M5 |
 | [`liars-dice`](liars-dice/README.md) | liar's dice (M4) |
 | [`card-table`](card-table/README.md) | Harbor Lights, Ember Tricks (M4) |
-| [`hint-towers`](hint-towers/README.md) | Harbor Lights (M4) |
-| [`clue-grid`](clue-grid/README.md) | Lanterns (M4) |
+| [`harbor-lights`](harbor-lights/README.md) | Harbor Lights (M4) |
+| [`lanterns`](lanterns/README.md) | Lanterns (M4) |
 | [`chess`](chess/README.md) | chess (M4) |
-| [`trick-play`](trick-play/README.md) | Ember Tricks (M4) |
-| [`sealed-auction`](sealed-auction/README.md) | Blind Bid (M4) |
+| [`ember-tricks`](ember-tricks/README.md) | Ember Tricks (M4) |
+| [`blind-bid`](blind-bid/README.md) | Blind Bid (M4) |
 | [`holdem`](holdem/README.md) | hold'em (M4) |
 | [`morris`](morris/README.md) | morris teams (M4) |
 | [`morris-referee`](morris-referee/README.md) | morris teams (M4) |

@@ -116,7 +116,8 @@ function tableOf(root: string, kind: Rename["kind"]): ReadonlySet<string> {
 }
 
 function clashesOf(root: string, renames: readonly Rename[], moves: readonly Move[]): readonly string[] {
-	const idClashes = renames.flatMap((rename) => {
+	// A rename whose old id the table no longer holds is applied, and its new id is its own.
+	const idClashes = renames.filter((rename) => tableOf(root, rename.kind).has(rename.from)).flatMap((rename) => {
 		const others = [...tableOf(root, rename.kind)].filter((id) => !renames.some((other) => other.kind === rename.kind && other.from === id));
 		const twice = renames.filter((other) => other.kind === rename.kind && other.to === rename.to).length > 1;
 		return others.includes(rename.to) || twice ? [`the ${rename.kind} ${rename.from} would be named ${rename.to}, an id the ${rename.kind}s already hold`] : [];

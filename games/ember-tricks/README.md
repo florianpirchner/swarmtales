@@ -10,7 +10,7 @@ brain for a team of one), written in a short retro after each game.
 
 The game is a port of `stories/ember-tricks` of the old platform (tag `v0-final`): the prompts, the tool names, the
 options and their defaults are the same, and the briefings are byte-identical. Its rules are the mechanics
-[`trick-play`](../../mechanics/trick-play/README.md) and [`card-table`](../../mechanics/card-table/README.md).
+[`ember-tricks`](../../mechanics/ember-tricks/README.md) and [`card-table`](../../mechanics/card-table/README.md).
 
 ```
 swt run games/ember-tricks/game.ts --fake

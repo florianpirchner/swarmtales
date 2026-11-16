@@ -13,7 +13,7 @@
 		"@swarmtales/sdk": "workspace:*",
 		"@swarmtales/mechanic-card-table": "workspace:*",
 		"@swarmtales/mechanic-strategy-brain": "workspace:*",
-		"@swarmtales/mechanic-trick-play": "workspace:*",
+		"@swarmtales/mechanic-ember-tricks": "workspace:*",
 		"typebox": "1.3.27"
 	},
 	"devDependencies": {

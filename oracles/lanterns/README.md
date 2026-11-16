@@ -14,3 +14,5 @@ The seeded grid is visible: `clue_game_started` carries the words, `clue_key_dea
 `human`), `clue_intent` the keeper's targets.
 
 Not covered: the last games and the end of a played match, the two-game variant, `endGuesses`.
+
+Registered change (M6-06, `13-m6-spec.md` 4.3): the mechanic is named `lanterns` (the files say `clue-grid`). The files stay as recorded; the game's oracle tests read them with `runOracle`'s option `renamed` (`{ "clue-grid": "lanterns" }`), which maps the event sources, the event types and facts `<id>.<...>`, `setup.mechanics[]` and the game id; the variant names are not mapped. The random label keeps the old id (`ctx.rng("clue-grid", ...)`), so the seeded grid is the recorded one.

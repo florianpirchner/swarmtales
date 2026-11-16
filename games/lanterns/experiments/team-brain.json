@@ -40,10 +40,10 @@
 	"replicates": 1,
 	"design": "paired",
 	"metrics": {
-		"primary": "clue-grid.recall",
+		"primary": "lanterns.recall",
 		"secondary": [
-			"clue-grid.recallLater",
-			"clue-grid.precision",
+			"lanterns.recallLater",
+			"lanterns.precision",
 			"strategy-brain.brainWrites"
 		],
 		"guardrails": [

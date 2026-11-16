@@ -35,7 +35,7 @@ export function morrisGame(options: MorrisGameOptions = {}): Game {
 	// The engine's side has no residents, so the gate, the chat and the brain know the residents' team only.
 	const playing: Record<string, string[]> = engineDepth === undefined ? { X, O } : { X };
 	return defineGame({
-		id: "morris-teams",
+		id: "morris",
 		seed,
 		residents: [...X, ...O],
 		mechanics: [

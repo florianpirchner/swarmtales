@@ -23,7 +23,7 @@ export interface CardFacts {
 /** The cards by folder under `games/`. */
 export const CARDS: Readonly<Record<string, CardFacts>> = {
 	hello: { title: "Hello Game", family: "none (sample 1 of the README)", proof: "its test plays it with the sampled player and with `swt run --fake`, and verifies the log" },
-	"tictactoe-teams": { title: "Tic-tac-toe teams", residents: "(two teams of three)", oracles: "tictactoe" },
+	"tictactoe": { title: "Tic-tac-toe teams", residents: "(two teams of three)", oracles: "tictactoe" },
 	quarry: { title: "Quarry", oracles: "quarry" },
 	"econ-lab": { title: "Econ Lab", oracles: "econ-lab" },
 	"harbor-lights": { title: "Harbor Lights", oracles: "harbor-lights" },
@@ -37,7 +37,7 @@ export const CARDS: Readonly<Record<string, CardFacts>> = {
 	chess: { title: "Chess", residents: "(4 with teams)", oracles: "chess" },
 	holdem: { title: "Hold'em", residents: "(2 to 6)", oracles: "holdem" },
 	convoy: { title: "Convoy", oracles: "convoy" },
-	"morris-teams": { title: "Nine men's morris", residents: "(two teams of three), 2, or 1 against the search", oracles: "morris-teams" },
+	"morris": { title: "Nine men's morris", residents: "(two teams of three), 2, or 1 against the search", oracles: "morris-teams" },
 	"salt-market": { title: "Salt Market", oracles: "salt-market" },
 	"blind-bid": { title: "Blind Bid", oracles: "blind-bid" },
 	"ember-tricks": { title: "Ember Tricks", oracles: "ember-tricks" },
@@ -54,7 +54,7 @@ export interface OldGame {
 /** The families of the fifteen games of the old platform. */
 export const FAMILIES: readonly { readonly family: string; readonly games: readonly OldGame[] }[] = [
 	{ family: "Societies", games: [{ name: "City of Keys", folder: "city" }, { name: "Whispers", folder: "whispers" }] },
-	{ family: "Board games, all information public", games: [{ name: "chess", folder: "chess" }, { name: "nine men's morris", folder: "morris-teams" }, { name: "tic-tac-toe teams", folder: "tictactoe-teams" }] },
+	{ family: "Board games, all information public", games: [{ name: "chess", folder: "chess" }, { name: "nine men's morris", folder: "morris" }, { name: "tic-tac-toe teams", folder: "tictactoe" }] },
 	{ family: "Hidden information and bluff", games: [{ name: "Hold'em", folder: "holdem" }, { name: "Liar's Dice", folder: "liars-dice" }, { name: "Convoy", folder: "convoy" }] },
 	{ family: "Cooperation under hidden information", games: [{ name: "Harbor Lights", folder: "harbor-lights" }, { name: "Lanterns", folder: "lanterns" }] },
 	{

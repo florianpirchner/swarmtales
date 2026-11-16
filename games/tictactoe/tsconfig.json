@@ -1,0 +1,41 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"rootDir": ".",
+		"outDir": "dist-types",
+		"emitDeclarationOnly": true,
+		"tsBuildInfoFile": "dist-types/.tsbuildinfo"
+	},
+	"include": [
+		"src",
+		"test",
+		"*.ts"
+	],
+	"references": [
+		{
+			"path": "../../packages/contracts"
+		},
+		{
+			"path": "../../packages/sdk"
+		},
+		{
+			"path": "../../mechanics/grid"
+		},
+		{
+			"path": "../../mechanics/consensus"
+		},
+		{
+			"path": "../../mechanics/team-channel"
+		},
+		{
+			"path": "../../mechanics/strategy-brain"
+		},
+		{
+			"path": "../../mechanics/optimal-referee"
+		},
+		{
+			"path": "../../packages/testkit"
+		}
+	]
+}

@@ -3,7 +3,7 @@
 import { Type } from "typebox";
 import { defineHead, type CtxOf } from "@swarmtales/sdk";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
-import { GridGameService } from "@swarmtales/mechanic-grid-game/contract";
+import { GridGameService } from "@swarmtales/mechanic-grid/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { StrategyBrainService } from "./contract.ts";
 import { strategyBrainMetrics } from "./metrics.ts";

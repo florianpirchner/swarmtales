@@ -42,7 +42,7 @@ describe("kernel-facing constants", () => {
 	it("accepts a shown tool name of 1 to 64 letters, digits, underscores and hyphens", () => {
 		const pattern = new RegExp(TOOL_NAME_PATTERN);
 		for (const name of ["playMove", "post_team", "a-1", "x".repeat(64)]) expect(pattern.test(name)).toBe(true);
-		for (const name of ["", "play move", "grid-game/playMove", "x".repeat(65), "né"]) expect(pattern.test(name)).toBe(false);
+		for (const name of ["", "play move", "grid/playMove", "x".repeat(65), "né"]) expect(pattern.test(name)).toBe(false);
 	});
 });
 

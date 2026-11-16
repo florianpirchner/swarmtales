@@ -4,9 +4,9 @@
  * the number computed by hand from the same oracle file, and a metric without its event is absent, never 0.
  */
 import { join } from "node:path";
-import { readOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
+import { playOracle, readOracle, runOracle, timelineOf, type Oracle } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
-import { arm, metricsOf, replay } from "./support.ts";
+import { arm, metricsOf, RENAMED, replay } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "econ-lab");
 
@@ -34,16 +34,17 @@ describe("the metrics over an oracle replay", () => {
 		const oracle = readOracle(join(ORACLES, file));
 		const game = arm(params);
 		const events = await replay(oracle, game);
-		// The replay is the run of the file: its timeline is the file's.
-		expect(timelineOf(events)).toEqual(oracle.timeline);
+		// The replay is the run of the file: the file plays at level 3, and the replay writes its timeline.
+		expect(await runOracle(oracle, game, 3, { renamed: RENAMED })).toEqual([]);
+		expect(timelineOf(events)).toEqual(timelineOf((await playOracle(oracle, game, { renamed: RENAMED })).events));
 		expect(scoredIn(oracle)).toMatchObject([{ game: "ultimatum" }, { game: "public-goods", reference: { cooperation: fund } }, { game: "dilemma", reference: { cooperation: dilemma } }]);
 		expect(metricsOf(game, events)).toEqual({
-			"econ-games.dilemmaCooperation": dilemma,
-			"econ-games.dilemmaRound1": round1,
-			"econ-games.fundCooperation": fund,
-			"econ-games.tablePoints": tablePoints,
-			"econ-games.decisions": decisions,
-			"econ-games.missedDecisions": missed,
+			"econ-lab.dilemmaCooperation": dilemma,
+			"econ-lab.dilemmaRound1": round1,
+			"econ-lab.fundCooperation": fund,
+			"econ-lab.tablePoints": tablePoints,
+			"econ-lab.decisions": decisions,
+			"econ-lab.missedDecisions": missed,
 			"strategy-brain.brainWrites": brainWrites,
 		});
 	});

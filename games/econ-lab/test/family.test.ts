@@ -12,10 +12,10 @@ import { describe, expect, it } from "vitest";
 import econLab, { econLabGame } from "../game.ts";
 import { arm } from "./support.ts";
 
-/** The hash of the plain game of issue M2-14 (`econLabGame()`), taken before any change of the game files. */
-const PINNED = "2ff219a08c9833e17d517409970f1818781c7575dad26f464b752c9155163dc8";
+/** The hash of the plain game of issue M2-14 (`econLabGame()`), taken before any change of the game files. Pinned again by M6-06: the rename of the mechanic and game ids moves the game hash (`13-m6-spec.md` 4.3). */
+const PINNED = "4cb7ff3e344d795a9319247b259f4e49ce4ac85a6979b3144176a75332614f4d";
 /** The hash of the old variant `econ-lab-nobrain`, taken the same way: `econLabGame({ brain: false })`. */
-const ARMS: readonly (readonly [Readonly<Record<string, unknown>>, string])[] = [[{ brain: false }, "cfc6707f3332341e4ae2dd4c2832175aa74c22026d4ccd9ba40f1d9a3f01a18d"]];
+const ARMS: readonly (readonly [Readonly<Record<string, unknown>>, string])[] = [[{ brain: false }, "f102f6f5a8537a751413ecfa63926a06375bf371edeee9f1c9fe5eec041bfa23"]];
 const EXPERIMENTS = join(import.meta.dirname, "..", "experiments");
 
 const hashOf = (game: Parameters<typeof testKernel>[0]): string => testKernel(game).kernel.snapshot().gameHash;
