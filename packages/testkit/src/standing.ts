@@ -102,17 +102,20 @@ function difference(label: string, expected: readonly Envelope[], got: readonly 
 
 /**
  * The boundaries a resume check takes from a run of `ticks` ticks: every boundary from 0 (before the first tick) to
- * `ticks - 1` for a run of at most `every` ticks; for a longer run the first three, the last three and every tenth.
+ * `ticks - 1` for a run of at most `every` ticks; for a longer run at most eight (decision A102): the first, the last
+ * three and one at each fifth of the run. A resume plays the rest of the run, so the early boundaries are the dear ones.
+ * Up to 12 ticks, as the command line's standing checks (M5-92; it was 30 before).
  *
  * @param ticks - The number of ticks the straight run played.
- * @param every - Up to this many ticks every boundary is taken; 30 when left out.
+ * @param every - Up to this many ticks every boundary is taken; 12 when left out.
  * @returns The boundaries, as numbers of finished ticks, ascending.
  *
  * @public
  */
-export function sampleBoundaries(ticks: number, every = 30): readonly number[] {
+export function sampleBoundaries(ticks: number, every = 12): readonly number[] {
 	const all = Array.from({ length: Math.max(ticks, 0) }, (_, index) => index);
-	return ticks <= every ? all : all.filter((tick) => tick < 3 || tick >= ticks - 3 || tick % 10 === 0);
+	const fifths = [1, 2, 3, 4].map((fifth) => Math.floor((ticks * fifth) / 5));
+	return ticks <= every ? all : all.filter((tick) => tick === 0 || tick >= ticks - 3 || fifths.includes(tick));
 }
 
 /**

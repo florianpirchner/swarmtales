@@ -5,28 +5,28 @@
  *
  * - the fake run: `swt run --fake` ends without the reason `error`, prints no warning and holds an accepted call;
  * - resume: the same run with `--snapshot-at` for its boundaries (every one of a run of at most 12 ticks, as the
- *   city slice is; of a longer run the first, the middle and the last, decision A97: a resume through the command line
- *   verifies two hash chains, and the Whispers run of 45 ticks took about 290 s from eleven) writes the same log;
- *   `swt resume` from each snapshot writes a log that is the straight log once the marker `run_resumed` is taken out
- *   and the envelope fields behind it are moved back (decision A34: no payload is touched). The other boundaries are
- *   the job of the in-process `checkResumeEveryBoundary` of `@swarmtales/testkit`, run by each game's
- *   `games/<name>/test/standing.test.ts` (every boundary of a run of at most 30 ticks, `sampleBoundaries` of a longer
- *   one); nine men's morris runs it on its scripted runs, a fake match of one game and, at nine sampled boundaries, the
- *   fake run of the game file (J256);
- * - continuity and replay: `swt replay` of the straight folder is equal; for the first, the middle and the last
- *   boundary `swt log verify --previous` holds and `swt replay` of the resumed folder is equal (the other resumed
- *   folders of a short run hold the same lines with the marker at another place; checking each would double the run
- *   time).
+ *   city slice is; of a longer run the middle one only, decisions A97 and A102: a resume through the command line
+ *   verifies two hash chains and replays, and the Whispers run of 45 ticks took 116 s from three) writes the same
+ *   log; `swt resume` from each snapshot writes a log that is the straight log once the marker `run_resumed` is taken
+ *   out and the envelope fields behind it are moved back (decision A34: no payload is touched). The other boundaries
+ *   are the job of the in-process `checkResumeEveryBoundary` of `@swarmtales/testkit`, run by each game's
+ *   `games/<name>/test/standing.test.ts` (every boundary of a run of at most 12 ticks, the eight of `sampleBoundaries`
+ *   of a longer one); nine men's morris runs it on its scripted runs, a fake match of one game and, at eight sampled
+ *   boundaries, the fake run of the game file (J256);
+ * - continuity and replay: of a short run, `swt replay` of the straight folder is equal, and for the first, the
+ *   middle and the last boundary `swt log verify --previous` holds and `swt replay` of the resumed folder is equal
+ *   (the other resumed folders hold the same lines with the marker at another place; checking each would double the
+ *   run time); of a long run, the folder resumed from the middle verifies and replays, and the straight replay of the
+ *   whole run is left to the in-process `checkReplay` of each game's standing test (decision A102).
  *
- * The checks run in `PARTS` test files (`standing.test.ts`, `standing-b.test.ts`, `standing-c.test.ts`), so the
- * resumes of one long game run in several workers (M4-71: nine men's morris alone took 150 s in one file). The fake
- * run and the straight run with the snapshots of all the boundaries are played once per test session and shared by
- * the parts (decision A99, `standing-cache.ts`); each part checks the fake run's end and the straight log as its own,
- * and starts with the runs whose index modulo `PARTS` is its own (the last of the list, the longest, first), so the
- * parts play different games at once. The rest
- * is dealt in units (a short run whole; of a long run each of its three boundaries, and the replay of the straight
- * folder), and the first part that comes to a unit takes it (`claim`), so a part that starts late (Vitest runs fewer
- * workers than parts) finds less to do. Together the parts check every boundary that one file checked, each once.
+ * The checks run in `PARTS` test files (`standing.test.ts`, `standing-b.test.ts`, `standing-c.test.ts`), so the runs
+ * of the list are checked in several workers (M4-71: nine men's morris alone took 150 s in one file). The fake run and
+ * the straight run with the snapshots of its boundaries are played once per test session and shared by the parts
+ * (decision A99, `standing-cache.ts`); each part checks the fake run's end and the straight log as its own, and starts
+ * with the runs whose index modulo `PARTS` is its own (the last of the list, the longest, first), so the parts play
+ * different games at once. The rest of a run's checks is one unit, and the first part that comes to it takes it
+ * (`claim`), so a part that starts late (Vitest runs fewer workers than parts) finds less to do. Together the parts
+ * check every run once.
  *
  * A game joins by its line in the list; the gate `scripts/gates/games-list.test.ts` keeps the list whole.
  */
@@ -51,8 +51,8 @@ export const LIST = readFileSync(new URL("../../../games/index.ts", import.meta.
 const LINE = /\{ name: "([^"]+)", file: "([^"]+)", seeds: \[[\d, ]*\], fakeSeeds: \[([\d, ]+)\] \}/g;
 /** The runs of the list: one per game and fake seed. */
 export const RUNS = [...LIST.matchAll(LINE)].flatMap(([, name = "", file = "", seeds = ""]) => seeds.split(",").map((seed) => ({ name, seed: Number(seed), file: fileURLToPath(new URL(`../../../${file}`, import.meta.url)) })));
-/** The boundaries the command line resumes a run of `ticks` ticks from: every one up to `EVERY` ticks, else the first, the middle and the last. */
-const boundariesOf = (ticks: number): readonly number[] => (ticks <= EVERY ? Array.from({ length: Math.max(ticks, 0) }, (_, tick) => tick) : [0, Math.floor(ticks / 2), ticks - 1]);
+/** The boundaries the command line resumes a run of `ticks` ticks from: every one up to `EVERY` ticks, else the middle one. */
+const boundariesOf = (ticks: number): readonly number[] => (ticks <= EVERY ? Array.from({ length: Math.max(ticks, 0) }, (_, tick) => tick) : [Math.floor(ticks / 2)]);
 
 /** The log of the fake run, checked: the run ended without an error or a warning, and holds an accepted call. */
 function fakeLog(cwd: string, plain: SharedRuns["plain"]): readonly StoredEnvelope[] {
@@ -81,13 +81,16 @@ interface Unit {
 	readonly replay: boolean;
 }
 
-/** The units of a run of `ticks` ticks: a short run is one unit; a long one has one per boundary, the first (the dearest) first, and the replay. */
-const unitsOf = (ticks: number, all: readonly number[]): readonly Unit[] =>
-	ticks <= EVERY ? [{ name: "whole", boundaries: all, replay: true }] : [...all.map((tick) => ({ name: `t${String(tick)}`, boundaries: [tick], replay: false })), { name: "replay", boundaries: [], replay: true }];
+/**
+ * The units of a run of `ticks` ticks: a short run is one unit with the replay of the straight folder; a long one is
+ * its middle boundary alone, whose resumed folder verifies and replays (the straight replay is the in-process `checkReplay`'s).
+ */
+const unitsOf = (ticks: number, all: readonly number[]): readonly Unit[] => [{ name: ticks <= EVERY ? "whole" : "middle", boundaries: all, replay: ticks <= EVERY }];
 
 /**
  * Resumes the straight folder from `boundaries`: each resumed log is the straight log without the marker, and for the
- * first, the middle and the last of `all` the resumed folder verifies against the straight one and replays.
+ * first, the middle and the last of `all` (of a long run, its one boundary) the resumed folder verifies against the
+ * straight one and replays.
  */
 async function checkResumes(swt: Swt, input: { cwd: string; file: string; folder: string; boundaries: readonly number[]; all: readonly number[]; log: readonly StoredEnvelope[] }): Promise<void> {
 	const { cwd, file, folder, all, log } = input;

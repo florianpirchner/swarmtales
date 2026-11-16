@@ -4,9 +4,10 @@
  * resumed from every tick boundary writes the log of the straight run, for fake runs at the seeds of the games list:
  * the default dials on a run of twelve minutes (the doors of Act I), a variant of twelve minutes with the other dials
  * (a named cast at figure direction 6, the gamemaker at 10, every resident woken in two passes, no Confessor), and the
- * whole Act I of seed 11, which ends in tick 27 with the start of Act II in the same tick (beyond 30 ticks the
- * boundaries are sampled; at seed 7 Act I ends in tick 14). The gamemaker's look is the fake driver too, and the Confessor and the judge act on their
- * fallback (`fake.ts`). The command line proves the same over the games list (`apps/cli/test/standing.test.ts`).
+ * whole Act I of seed 11, which ends in tick 27 with the start of Act II in the same tick (at seed 7 Act I ends in
+ * tick 14). A run longer than 12 ticks (the Act I run, the default dials at seed 11) is resumed from the eight
+ * boundaries of `sampleBoundaries` (M5-92: every one of the Act I run took 26 s, the eight take 8 s). The
+ * gamemaker's look is the fake driver too, and the Confessor and the judge act on their fallback (`fake.ts`). The command line proves the same over the games list (`apps/cli/test/standing.test.ts`).
  */
 import type { Envelope } from "@swarmtales/contracts";
 import { checkReplay, checkResumeEveryBoundary, play } from "@swarmtales/testkit";

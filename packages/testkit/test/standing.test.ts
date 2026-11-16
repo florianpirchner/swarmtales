@@ -21,12 +21,20 @@ const counting: StandingDrivers = () => {
 };
 
 describe("sampleBoundaries", () => {
-	it("takes every boundary of a short run, and of a long one the first three, the last three and every tenth", () => {
+	it("takes every boundary of a short run, and of a long one the first, the fifths and the last three", () => {
 		expect(sampleBoundaries(4)).toEqual([0, 1, 2, 3]);
-		expect(sampleBoundaries(30)).toHaveLength(30);
-		expect(sampleBoundaries(45)).toEqual([0, 1, 2, 10, 20, 30, 40, 42, 43, 44]);
-		expect(sampleBoundaries(13, 12)).toEqual([0, 1, 2, 10, 11, 12]);
+		expect(sampleBoundaries(12)).toHaveLength(12);
+		expect(sampleBoundaries(13)).toEqual([0, 2, 5, 7, 10, 11, 12]);
+		expect(sampleBoundaries(28)).toEqual([0, 5, 11, 16, 22, 25, 26, 27]);
+		expect(sampleBoundaries(45)).toEqual([0, 9, 18, 27, 36, 42, 43, 44]);
+		expect(sampleBoundaries(31, 30)).toEqual([0, 6, 12, 18, 24, 28, 29, 30]);
+		expect(sampleBoundaries(30, 30)).toHaveLength(30);
 		expect(sampleBoundaries(0)).toEqual([]);
+	});
+
+	it("takes at most eight boundaries of a run longer than 12 ticks (decision A102, M5-92)", () => {
+		const lengths = Array.from({ length: 300 }, (_, index) => index + 13);
+		expect(lengths.filter((ticks) => sampleBoundaries(ticks).length > 8)).toEqual([]);
 	});
 });
 
