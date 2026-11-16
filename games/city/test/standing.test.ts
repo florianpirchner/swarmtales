@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The standing checks of the City, in process (M4 specification 4.3; issue M5-48): the log replays equal, and a run
- * resumed from every tick boundary writes the log of the straight run, for fake runs at the seeds of the games list:
- * the default dials on a run of twelve minutes (the doors of Act I), a variant of twelve minutes with the other dials
- * (a named cast at figure direction 6, the gamemaker at 10, every resident woken in two passes, no Confessor), and the
- * whole Act I of seed 11, which ends in tick 27 with the start of Act II in the same tick (at seed 7 Act I ends in
- * tick 14). A run longer than 12 ticks (the Act I run, the default dials at seed 11) is resumed from the eight
- * boundaries of `sampleBoundaries` (M5-92: every one of the Act I run took 26 s, the eight take 8 s). The
- * gamemaker's look is the fake driver too, and the Confessor and the judge act on their fallback (`fake.ts`). The command line proves the same over the games list (`apps/cli/test/standing.test.ts`).
+ * resumed from its tick boundaries (every one of a run of up to 12 ticks, the eight of `sampleBoundaries` of a longer
+ * run) writes the log of the straight run, for fake runs at the seeds of the games list: the default dials on a run of
+ * twelve minutes (the doors of Act I), a variant of twelve minutes with the other dials (a named cast at figure
+ * direction 6, the gamemaker at 10, every resident woken in two passes, no Confessor), and the whole Act I of seed 11,
+ * which ends in tick 27 with the start of Act II in the same tick (at seed 7 Act I ends in tick 14). A run longer than
+ * 12 ticks (the Act I run, the default dials at seed 11) is resumed from the eight boundaries of `sampleBoundaries`
+ * (M5-92: every one of the Act I run took 26 s, the eight take 8 s). The gamemaker's look is the fake driver too, and
+ * the Confessor and the judge act on their fallback (`fake.ts`). The command line proves the same over the games list
+ * (`apps/cli/test/standing.test.ts`).
  */
 import type { Envelope } from "@swarmtales/contracts";
 import { checkReplay, checkResumeEveryBoundary, play } from "@swarmtales/testkit";
@@ -47,7 +49,7 @@ describe("city: the standing checks", () => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	}, 120_000);
 
-	it.each(RUNS)("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each(RUNS)("$name: resumed from its boundaries (every one up to 12 ticks, the eight of sampleBoundaries beyond), the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
 	}, 300_000);
 });

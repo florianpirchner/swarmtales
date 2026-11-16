@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The standing checks of the city slice, in process (M4 specification 4.3): the log replays equal, and a run resumed from
- * every tick boundary writes the log of the straight run. The command line proves the same over the games list
+ * The standing checks of the city slice, in process (M4 specification 4.3): the log replays equal, and a run resumed
+ * from its tick boundaries (every one of a run of up to 12 ticks, the eight of `sampleBoundaries` of a longer run)
+ * writes the log of the straight run. The command line proves the same over the games list
  * (`apps/cli/test/standing.test.ts`).
  */
 import { checkReplay, checkResumeEveryBoundary } from "@swarmtales/testkit";
@@ -17,7 +18,7 @@ describe("the city slice: the standing checks", () => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	});
 
-	it.each(RUNS)("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each(RUNS)("$name: resumed from its boundaries (every one up to 12 ticks, the eight of sampleBoundaries beyond), the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
 	});
 });

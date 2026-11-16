@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The standing checks of tic-tac-toe teams, in process (M4 specification 4.3): the log replays equal, and a run resumed from
- * every tick boundary writes the log of the straight run. The scripted runs get both checks, the fake runs the
- * replay: their resume from every boundary is proven through the command line over the games list
- * (`apps/cli/test/standing.test.ts`).
+ * The standing checks of tic-tac-toe teams, in process (M4 specification 4.3): the log replays equal, and a run resumed
+ * from its tick boundaries (every one of a run of up to 12 ticks, the eight of `sampleBoundaries` of a longer run)
+ * writes the log of the straight run. The scripted runs get both checks, the fake runs the replay: their resume is
+ * proven through the command line (from the first, middle and last boundary of a run of up to 12 ticks, from the middle
+ * one of a longer run) over the games list (`apps/cli/test/standing.test.ts`).
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
@@ -24,7 +25,7 @@ describe("tic-tac-toe teams: the standing checks", () => {
 
 	// Boundary 0 holds both teams' retro windows; a snapshot file gives them back in key order, and the brain walks them
 	// in the order of its option `teams`, so the resumed `resetCap` calls keep the straight order (A43).
-	it.each(RUNS.filter((run) => run.name.startsWith("scripted")))("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each(RUNS.filter((run) => run.name.startsWith("scripted")))("$name: resumed from its boundaries (every one up to 12 ticks, the eight of sampleBoundaries beyond), the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
 	});
 });

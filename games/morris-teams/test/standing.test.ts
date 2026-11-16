@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The standing checks of nine men's morris, in process (M4 specification 4.3): the log replays equal, and a run
- * resumed from every tick boundary writes the log of the straight run. The scripted runs (one game of at most 30
- * turns, two teams and one resident against the search) and a fake run of one game get both checks; the fake runs on
- * the game's params get the replay. The fake run of the game file (its default params, `morrisGame()`) at the fake
- * seed of the games list (seed 7, 156 ticks) is resumed from the eight boundaries of `sampleBoundaries` (J256,
- * decision A102): the command line resumes it from the middle boundary only (`apps/cli/test/standing-part.ts`).
- * Every run here longer than 12 ticks is resumed from those eight.
+ * The standing checks of nine men's morris, in process (M4 specification 4.3): the log replays equal, and a run resumed
+ * from its tick boundaries (every one of a run of up to 12 ticks, the eight of `sampleBoundaries` of a longer run)
+ * writes the log of the straight run. The scripted runs (one game of at most 30 turns, two teams and one resident
+ * against the search) and a fake run of one game get both checks; the fake runs on the game's params get the replay.
+ * The fake run of the game file (its default params, `morrisGame()`) at the fake seed of the games list (seed 7, 156
+ * ticks) is resumed from the eight boundaries of `sampleBoundaries` (J256, decision A102): the command line resumes it
+ * from the middle boundary only (`apps/cli/test/standing-part.ts`). Every run here longer than 12 ticks is resumed from
+ * those eight.
  *
  * The fake driver hands control back to the event loop before each activation (decision A112): the runs never wait on
  * a timer or a file, so without it this file held its Vitest worker's event loop for 52 s on three workers, near
@@ -43,7 +44,7 @@ describe("nine men's morris: the standing checks", () => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	});
 
-	it.each(RUNS.slice(0, 3))("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each(RUNS.slice(0, 3))("$name: resumed from its boundaries (every one up to 12 ticks, the eight of sampleBoundaries beyond), the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
 	}, 120_000);
 

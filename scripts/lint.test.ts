@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
+import { fork, type ChildProcess } from "node:child_process";
+import { once } from "node:events";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ESLint } from "eslint";
 import tseslint from "typescript-eslint";
 import { afterAll, describe, expect, it } from "vitest";
-import { lintFiles, ownFiles, readProjects, typecheck } from "./lint.ts";
+import { lintFiles, ownFiles, readProjects, runPool, typecheck } from "./lint.ts";
 
 const folder = mkdtempSync(join(tmpdir(), "swt-lint-"));
 afterAll(() => {
@@ -64,4 +66,25 @@ describe("pnpm lint: the typecheck and lint in one pass", () => {
 		expect(linted).toMatchObject({ errors: 1, files: 1 });
 		expect(linted.output).toContain("no-floating-promises");
 	});
+});
+
+describe("pnpm lint: a worker that dies", () => {
+	/** A worker that holds the rest pass forever and aborts on a project, as V8 aborts when its heap is full. */
+	const fixture = join(folder, "abort-worker.mjs");
+	writeFileSync(fixture, 'process.on("message", (task) => {\n\tif (task.config !== undefined) process.kill(process.pid, "SIGABRT");\n});\n');
+
+	it("fails when a worker exits by a signal, and ends the other workers", async () => {
+		const children: ChildProcess[] = [];
+		const spawn = (): ChildProcess => {
+			const child = fork(fixture, [], { execArgv: [], stdio: "ignore" });
+			children.push(child);
+			return child;
+		};
+		const projects = [{ config: join(folder, "lone", "tsconfig.json"), references: [], files: [] }];
+		const tally = await runPool(projects, { parallel: 2, times: false, pretty: false, spawn });
+		expect(tally.crashed).toBe(1);
+		const ended = (child: ChildProcess): boolean => child.exitCode !== null || child.signalCode !== null;
+		await Promise.all(children.filter((child) => !ended(child)).map((child) => once(child, "exit")));
+		expect(children.map((child) => child.signalCode).sort()).toEqual(["SIGABRT", "SIGTERM"]);
+	}, 20_000);
 });

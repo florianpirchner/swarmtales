@@ -11,10 +11,12 @@
  *   through the command line verifies two hash chains and replays, and the Whispers run of 45 ticks took 116 s from
  *   three); `swt resume` from each snapshot writes a log that is the straight log once the marker `run_resumed` is
  *   taken out and the envelope fields behind it are moved back (decision A34: no payload is touched).
- *   The other boundaries are the job of the in-process `checkResumeEveryBoundary` of `@swarmtales/testkit`, run by each game's
- *   `games/<name>/test/standing.test.ts` (every boundary of a run of at most 12 ticks, the eight of `sampleBoundaries`
- *   of a longer one); nine men's morris runs it on its scripted runs, a fake match of one game and, at eight sampled
- *   boundaries, the fake run of the game file (J256);
+ *   More boundaries are the job of the in-process `checkResumeEveryBoundary` of `@swarmtales/testkit`, where a game's
+ *   `games/<name>/test/standing.test.ts` runs it (every boundary of a run of at most 12 ticks, the eight of
+ *   `sampleBoundaries` of a longer one; some games run it on their scripted runs only, so their fake runs are resumed
+ *   through the command line alone); nine men's morris runs it on its scripted runs, a fake match of one game and, at
+ *   eight sampled boundaries, the fake run of the game file (J256). The other boundaries of a run longer than 12 ticks
+ *   are resumed from by neither (M5-106);
  * - continuity and replay: of a short run, `swt replay` of the straight folder is equal, and for each of its three
  *   boundaries `swt log verify --previous` holds and `swt replay` of the resumed folder is equal; of a long run, the
  *   folder resumed from the middle verifies and replays, and the straight replay of the whole run is left to the
@@ -144,7 +146,7 @@ export function describeStandingPart(part: number): void {
 	const first = [...last.filter((_, index) => (RUNS.length - 1 - index) % PARTS === part), ...last.filter((_, index) => (RUNS.length - 1 - index) % PARTS !== part)];
 
 	describe(`the standing checks through the command line, part ${String(part + 1)} of ${String(PARTS)}`, () => {
-		it.each(first)("$name, fake seed $seed: the fake run holds, and resumed from its boundaries it is the straight run, verifies and replays", async ({ name, seed, file }) => {
+		it.each(first)("$name, fake seed $seed: the fake run holds, and resumed from its first, middle and last boundary (the middle one beyond 12 ticks) it is the straight run, verifies and replays", async ({ name, seed, file }) => {
 			const out = `${name}-${String(seed)}`;
 			const { straight, entry } = await sharedRuns({ file, seed, boundariesOf, cwd, out });
 			const { log, ticks } = fakeLog(cwd, straight);

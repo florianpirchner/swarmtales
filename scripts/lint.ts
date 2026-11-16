@@ -221,7 +221,7 @@ function option(name: string, fallback: number): number {
 }
 
 /** What the pass found so far. */
-interface Tally {
+export interface Tally {
 	readonly typed: Set<string>;
 	readonly failed: Set<string>;
 	readonly skipped: Set<string>;
@@ -261,6 +261,9 @@ function record(report: Report, tally: Tally, times: boolean): void {
 /** The workers and the projects they still have to take. */
 interface Pool {
 	readonly pending: Project[];
+	/** Every worker started, and the ones the pool ended itself (their exit by a signal is no crash). */
+	readonly children: ChildProcess[];
+	readonly killed: Set<ChildProcess>;
 	readonly own: ReadonlyMap<string, readonly string[]>;
 	readonly idle: ChildProcess[];
 	readonly tally: Tally;
@@ -279,8 +282,20 @@ function nextTask(pool: Pool): Task | undefined {
 	return project === undefined ? undefined : { config: project.config, files: [...(pool.own.get(project.config) ?? [])], pretty: pool.pretty };
 }
 
-/** Gives the idle workers what is ready; true once nothing runs and nothing is left. */
+/** Ends every worker of the pool that still runs. */
+function endWorkers(pool: Pool): void {
+	for (const child of pool.children) {
+		pool.killed.add(child);
+		child.kill();
+	}
+}
+
+/** Gives the idle workers what is ready; true once nothing runs and nothing is left, or a worker ended early. */
 function dispatch(pool: Pool): boolean {
+	if (pool.tally.crashed > 0) {
+		endWorkers(pool);
+		return true;
+	}
 	for (let task = nextTask(pool); task !== undefined; task = nextTask(pool)) {
 		pool.busy += 1;
 		pool.idle.pop()?.send(task);
@@ -288,46 +303,75 @@ function dispatch(pool: Pool): boolean {
 	if (pool.busy > 0) return false;
 	// A project that never became ready (a cycle of references) did not run either.
 	for (const project of pool.pending.splice(0)) pool.tally.skipped.add(project.config);
-	for (const child of pool.idle) child.kill();
+	endWorkers(pool);
 	return true;
 }
 
-function startWorker(pool: Pool, times: boolean, next: () => void): void {
-	const child = fork(import.meta.filename, ["--worker"], { execArgv: ["--max-old-space-size=4096", "--expose-gc"] });
+/** Starts a lint worker in its own 4 GB heap. */
+function forkWorker(): ChildProcess {
+	return fork(import.meta.filename, ["--worker"], { execArgv: ["--max-old-space-size=4096", "--expose-gc"] });
+}
+
+function startWorker(pool: Pool, options: PoolOptions, next: () => void): void {
+	const child = (options.spawn ?? forkWorker)();
+	pool.children.push(child);
 	child.on("message", (message: unknown) => {
 		if (!Value.Check(Report, message)) throw new Error("lint: a worker sent a message that is no report");
-		record(message, pool.tally, times);
+		record(message, pool.tally, options.times);
 		if (message.kind === "linted") {
 			pool.busy -= 1;
 			pool.idle.push(child);
 		}
 		next();
 	});
+	// A worker that dies by a signal (code null: V8 aborts when the heap is full, the OOM killer sends SIGKILL) has
+	// crashed as much as one that exits with an error, unless the pool ended it itself (M5-106).
 	child.on("exit", (code) => {
-		if (code === 0 || code === null) return;
+		if (code === 0 || pool.killed.has(child)) return;
 		pool.tally.crashed += 1;
-		pool.pending.length = 0;
-		pool.busy -= 1;
 		next();
 	});
 	pool.idle.push(child);
 }
 
-function main(): Promise<Tally> {
-	const parallel = option("parallel", PARALLEL);
-	const times = process.argv.includes("--times");
-	const projects = readProjects(join(ROOT, "tsconfig.json"));
+/** How the pass runs its workers. */
+export interface PoolOptions {
+	/** The number of workers side by side. */
+	readonly parallel: number;
+	/** Whether the time of each project is printed. */
+	readonly times: boolean;
+	/** Whether the output goes to a terminal. */
+	readonly pretty: boolean;
+	/** Starts one worker; a test passes its own, the pass forks this file with `--worker`. */
+	readonly spawn?: () => ChildProcess;
+}
+
+/**
+ * Types and lints the projects in a pool of workers, and the files no project lists in one more task.
+ *
+ * @param projects - The projects, every project after the projects it references.
+ * @param options - The number of workers, the output, and how a worker is started.
+ * @returns What the pass found, once every worker is done; at once when a worker ends early (an exit code other than
+ * 0, or a signal the pool did not send), with the other workers ended.
+ */
+export function runPool(projects: readonly Project[], options: PoolOptions): Promise<Tally> {
 	const own = ownFiles(projects);
 	const tally: Tally = { typed: new Set(), failed: new Set(), skipped: new Set(), errors: 0, warnings: 0, files: 0, crashed: 0 };
-	const pretty = isatty(1);
-	const pool: Pool = { pending: [...projects], own, idle: [], tally, pretty, rest: { files: [...own.values()].flat(), pretty }, busy: 0 };
+	const { pretty } = options;
+	const rest = { files: [...own.values()].flat(), pretty };
+	const pool: Pool = { pending: [...projects], children: [], killed: new Set(), own, idle: [], tally, pretty, rest, busy: 0 };
 	return new Promise((done) => {
 		const next = (): void => {
 			if (dispatch(pool)) done(tally);
 		};
-		for (let index = 0; index < parallel; index += 1) startWorker(pool, times, next);
+		for (let index = 0; index < options.parallel; index += 1) startWorker(pool, options, next);
 		next();
 	});
+}
+
+function main(): Promise<Tally> {
+	const options = { parallel: option("parallel", PARALLEL), times: process.argv.includes("--times"), pretty: isatty(1) };
+	return runPool(readProjects(join(ROOT, "tsconfig.json")), options);
 }
 
 if (process.argv[1] === import.meta.filename) {

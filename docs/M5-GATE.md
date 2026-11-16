@@ -90,7 +90,16 @@ which need the owner's go ("Brainstorm before building").
 
 ## Left open
 
-- The data commits of the eight rows of the runs indexes say "pending (the integrator's push)"; the folders are on
-  `data/runs` at the commits named above. Writing them into `games/*/RUNS.md` is outside the paths of M5-57.
+- ~~The data commits of the eight rows of the runs indexes say "pending (the integrator's push)"~~ (done: every row
+  of `games/whispers/RUNS.md` and `games/city/RUNS.md` names its data commit on `data/runs`, as "What ran" lists
+  them; finding 7 of `docs/M5-REVIEW.md`, M5-106).
+- Two manifest commits are on no branch (finding 7 of `docs/M5-REVIEW.md`): the manifests of `city/act2/5a` and
+  `city/act2/5c` carry as `kernel.commit` the builder's unsquashed commits `8e11ab1e` and `0d119aa9`, which
+  `git branch -a --contains` finds on no branch, so a fetch cannot get them and a `git gc` may remove them. Their trees
+  differ from commits on `rewrite/develop` only in docs and the ledger: `8e11ab1e` from `04891abb` in
+  `docs/RERUN-PLAN-M5.md`, `games/city/RUNS.md` and `games/m5-ledger.jsonl`; `0d119aa9` from `a39b6b34` in
+  `games/m5-ledger.jsonl` alone (`git diff --stat`). So the code of 5a is that of `04891abb` and the code of 5c that of
+  `a39b6b34`, as the rows of `games/city/RUNS.md` say. Open for the integrator or the owner: keep the two commits
+  under tags (`runs/m5-5a`, `runs/m5-5c`), or leave the manifests as they are with this note.
 - The owner's: the German summary of the runs of M5 to Flo (`CLAUDE.md`, "After every live run", point 5), if the
   integrator has not sent it; one look at the provider's usage page against 2.30 USD.

@@ -207,3 +207,7 @@ new `@ts-expect-error` is in a test (`packages/contracts/test/kernel-types.test.
 | the same file, "refuses a break called an addition whose base is moved to the commit of the break" | 2 | the gate derives or checks the base |
 | the same file, "refuses a new required field of a frozen format called an addition" | 3 | the forms are compared as schemas |
 | `games/city/test/classifier-oracle.test.ts`, "cityofkeys-act1-classifier-s7.json: runOracle finds no mismatch at level 3" | 4 | the file matches, or a decision row applies cut 3 (then the test goes) |
+
+**Status after A116** (added by the integrator): the four tests are plain `it` and pass. Findings 1, 2, 3 and 8
+are fixed by M5-104, finding 4 by M5-105 (addition 3 at level 3, no cut), findings 5 to 7 by M5-106 (the
+TSDoc of the frozen `checkResumeEveryBoundary` still says "every"; a docs-only addition row is owed, J319).

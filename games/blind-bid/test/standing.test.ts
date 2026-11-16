@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The standing checks of Blind Bid, in process (M4 specification 4.3): the log replays equal, and a run resumed from
- * every tick boundary writes the log of the straight run, on the scripted bidders (with their brains) and on the
- * fake driver, with the seeds of the games list.
+ * its tick boundaries (every one of a run of up to 12 ticks, the eight of `sampleBoundaries` of a longer run) writes
+ * the log of the straight run, on the scripted bidders (with their brains) and on the fake driver, with the seeds of
+ * the games list.
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
@@ -20,7 +21,7 @@ describe("blind-bid: the standing checks", () => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	});
 
-	it.each(RUNS)("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each(RUNS)("$name: resumed from its boundaries (every one up to 12 ticks, the eight of sampleBoundaries beyond), the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
 	});
 });

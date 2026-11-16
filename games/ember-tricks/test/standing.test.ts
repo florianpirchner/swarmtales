@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The standing checks of Ember Tricks, in process (M4 specification 4.3): the log replays equal, and a run resumed
- * from every tick boundary writes the log of the straight run. The match of the registry default (two games) is
- * checked on games of three rounds, so that a cut falls inside a game and inside the retro window between them; the
- * scripted seats (with notes, on the calibration and bid-aid levers, and the control arm) and the fake runs get both
- * checks.
+ * The standing checks of Ember Tricks, in process (M4 specification 4.3): the log replays equal, and a run resumed from
+ * its tick boundaries (every one of a run of up to 12 ticks, the eight of `sampleBoundaries` of a longer run) writes
+ * the log of the straight run. The match of the registry default (two games) is checked on games of three rounds, so
+ * that a cut falls inside a game and inside the retro window between them; the scripted seats (with notes, on the
+ * calibration and bid-aid levers, and the control arm) and the fake runs get both checks.
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
@@ -27,7 +27,7 @@ describe("Ember Tricks: the standing checks", () => {
 		expect(await checkReplay(game, drivers, options)).toEqual([]);
 	});
 
-	it.each(RUNS)("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
+	it.each(RUNS)("$name: resumed from its boundaries (every one up to 12 ticks, the eight of sampleBoundaries beyond), the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
 	});
 });
