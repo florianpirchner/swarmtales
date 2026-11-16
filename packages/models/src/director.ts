@@ -165,9 +165,12 @@ export function createAsker(source: ModelSource, meter: CostMeter, limits: (acto
 /**
  * The offline asker: the answers of each actor in order, by the count of its questions. It asks no model, writes
  * no record and costs nothing; the value is given as it is written, so the caller's check against `output` decides.
+ * The detail of a missing answer holds no count, so an actor without a list answers the same in a process resumed
+ * from a snapshot as in the straight one (J235): only the answers of a list are counted, per process.
  *
  * @param script - Actor id to its answers, in order.
- * @returns The asker; an actor without a list, and a question after the last answer, get `{ ok: false, reason: "error" }`.
+ * @returns The asker; an actor without a list, and a question after the last answer, get `{ ok: false, reason: "error" }`
+ * with the detail `the script of <actor> has no answer`.
  * @example
  * ```ts
  * const ask = scriptedAsker({ "director:warden": [{ line: "The city has heard the proposal." }] });
@@ -181,8 +184,8 @@ export function scriptedAsker(script: Readonly<Record<string, readonly unknown[]
 		const { actor } = activation;
 		const answers = Object.hasOwn(script, actor) ? (script[actor] ?? []) : [];
 		const call = calls.get(actor) ?? 0;
+		if (call >= answers.length) return Promise.resolve(none("error", `the script of ${actor} has no answer`));
 		calls.set(actor, call + 1);
-		if (call >= answers.length) return Promise.resolve(none("error", `the script of ${actor} has no answer ${String(call + 1)}`));
 		return Promise.resolve({ ok: true, value: answers[call], costUsd: 0 });
 	};
 }

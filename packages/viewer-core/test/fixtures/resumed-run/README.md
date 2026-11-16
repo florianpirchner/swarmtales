@@ -8,7 +8,7 @@ A run folder of the new platform that holds a resume marker, for the tests of th
 - `swt run <game> --fake --seed 7 --hand amended.jsonl` wrote `city-slice-001` with `snapshots/t7.json`;
   `swt resume city-slice-001 --game <game> --hand amended.jsonl` wrote this folder (`city-slice-002`). The
   residents play the script of `apps/cli/test/resumed-fixture.test.ts`, the recorder of this folder; the Director
-  takes its fallback, as in every fake run. The run is of runtime revision 4: no payload holds a log position.
+  takes its fallback, as in every fake run. The run is of runtime revision 6 (recorded again by M5-78): no payload holds a log position.
 - `events.jsonl` (255 lines): the log of the first run up to the snapshot, the marker `run_resumed` at seq 163
   (inside the pause, seq 161 to 165), then the resumed part: the amendment (seq 182 to 184), the settlement
   (seq 187) and the suspension of A02.

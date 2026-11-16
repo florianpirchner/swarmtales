@@ -300,8 +300,9 @@ export async function playFake(play: FakePlay, io: CliIo): Promise<number> {
 	if (game.win !== undefined) kernel.fact(game.win);
 	const fake = fakeDriver(kernel, game.definition.seed);
 	const driver = resumed === undefined ? fake : resumed.began(kernel, fake);
-	// A Director that acts by tool use plays its look with the fake driver, from the `sample` functions of its tools.
-	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask, facts: (key) => kernel.fact(key), look: (activation) => fake(activation).then(() => undefined) }) };
+	// A Director that acts by tool use plays its look with the fake driver, from the `sample` functions of its tools;
+	// in a resumed run through the same wrapper as a resident, so the marker `run_resumed` does not move its basis.
+	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask, facts: (key) => kernel.fact(key), look: (activation) => driver(activation).then(() => undefined) }) };
 	const loop = loopOf(game, kernel, folder.opened, { hand: play.hand, snapshotAt: play.snapshotAt, warn: io.err, pauseOn: play.pauseOn });
 	const { end, issues, hand } = await played(kernel, drivers, { ...loop, ticks: play.ticks ?? loop.ticks }).finally(() => folder.opened()?.close());
 	const failed = whyOf(kernel, end) === "error";

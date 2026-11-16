@@ -7,8 +7,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
-import type { ActorId, AskModel, Envelope, GameData, ModelAnswer } from "@swarmtales/contracts";
-import { guessNumber, play } from "@swarmtales/testkit";
+import type { ActorId, AskModel, DriverTable, Envelope, GameData, ModelAnswer } from "@swarmtales/contracts";
+import { checkResumeEveryBoundary, guessNumber, play } from "@swarmtales/testkit";
 import { createAsker, DIRECTOR_MODEL_RECORDS, scriptedAsker } from "../src/director.ts";
 import { createCostMeter, type CostMeter } from "../src/meter.ts";
 import { fail, say, scriptedSource, type ScriptStep } from "../src/scripted.ts";
@@ -176,8 +176,26 @@ describe("the scripted asker", () => {
 		const ask: AskModel = scriptedAsker({ [A01]: [{ line: "One." }, 7] });
 		const answers: ModelAnswer[] = [];
 		const { events } = await play(game(3), { installed: { "guess-number": guessNumber }, drivers: { resident: async (activation) => void answers.push(await ask(activation, QUESTION), await ask({ ...activation, actor: "director:none" }, QUESTION)) } });
-		const missing = (call: number): ModelAnswer => ({ ok: false, reason: "error", detail: `the script of director:none has no answer ${String(call)}` });
-		expect(answers).toEqual([{ ok: true, value: { line: "One." }, costUsd: 0 }, missing(1), { ok: true, value: 7, costUsd: 0 }, missing(2), { ok: false, reason: "error", detail: `the script of ${A01} has no answer 3` }, missing(3)]);
+		const missing = (actor: string): ModelAnswer => ({ ok: false, reason: "error", detail: `the script of ${actor} has no answer` });
+		expect(answers).toEqual([{ ok: true, value: { line: "One." }, costUsd: 0 }, missing("director:none"), { ok: true, value: 7, costUsd: 0 }, missing("director:none"), missing(A01), missing("director:none")]);
 		expect(events.filter((event) => event.source === DIRECTOR_MODEL_RECORDS.id)).toEqual([]);
+	});
+
+	// J235: the asker of `swt run --fake` is made new in a resumed process; the detail it gives holds no count of the
+	// questions asked before, so the resumed log is the straight one. The resident writes each detail as a record.
+	it("writes the same detail in a run resumed from every boundary as in the straight run", async () => {
+		const drivers = (): DriverTable => {
+			const ask = scriptedAsker({});
+			return {
+				resident: async (activation) => {
+					const answer = await ask({ ...activation, actor: "director:confessor" }, QUESTION);
+					activation.record(DIRECTOR_MODEL_RECORDS.id, "text", { text: answer.ok ? "answered" : answer.detail });
+				},
+			};
+		};
+		const options = { installed: { "guess-number": guessNumber }, records: [DIRECTOR_MODEL_RECORDS] };
+		const { events } = await play(game(4), { ...options, drivers: drivers() });
+		expect(events.filter((event) => event.source === DIRECTOR_MODEL_RECORDS.id).map((event) => event.payload)).toEqual(Array.from({ length: 4 }, () => ({ text: "the script of director:confessor has no answer" })));
+		expect(await checkResumeEveryBoundary(game(4), drivers, { ...options, boundaries: [0, 1, 2, 3] })).toEqual([]);
 	});
 });
