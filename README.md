@@ -192,3 +192,8 @@ held key value.
   never does; open). Problems P491 (refusals that write the withheld value; open), P492 (the courier names a private
   motive; open), P493 (the report of a resumed run counts its base; open). LH5, LH6 (ransom then exiled anyway), LH7
   (pieces in a will are free) seen again.
+- `city/act2/5b`: Act II again, 0.3261 USD, ticks 8 to 54; one door opened; exiled A03 (after a self-ransom), A06,
+  A02; seats Bastion (A04) and Dazzle (A01). LH21 and P491 again; the Confessor's one `lie` label was right.
+- `city/act2/5c`: Act II again, 0.2907 USD, ticks 8 to 52; no door opened; exiled A03 (after a self-ransom), A05, A02;
+  seats Dazzle and Bastion from the faction bonuses, a goal and wills. LH5 (a denied delivered DM, not blamed), LH21
+  and P491 again.
