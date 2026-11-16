@@ -13,7 +13,7 @@ import { createKeyBroker } from "@swarmtales/models";
 import { MANIFEST_FILE } from "@swarmtales/runlog";
 import type { MechanicDefinition } from "@swarmtales/sdk";
 import { readEnv } from "./env.ts";
-import { installedTable } from "./installed.ts";
+import { installedPackages, packageFilesFor } from "./installed.ts";
 import { scanFolder } from "./leak-scan.ts";
 import type { CliIo } from "./main.ts";
 import { resolveFile } from "./run.ts";
@@ -78,7 +78,7 @@ async function mechanicsOf(input: ReportInput, manifest: RunManifest, io: CliIo)
 	const plugins = manifest.plugins.filter((plugin) => plugin.package !== SDK).map((plugin) => plugin.id);
 	let mechanics: readonly MechanicDefinition[];
 	if (input.game === undefined) {
-		const installed = new Map(Object.entries(io.installed ?? (await installedTable(PACKAGE_FILE))));
+		const installed = new Map(Object.entries(io.installed ?? (await installedPackages(packageFilesFor(resolve(io.cwd, input.directory), PACKAGE_FILE))).mechanics));
 		mechanics = plugins.flatMap((id) => installed.get(id) ?? []);
 	} else {
 		const params = Object.keys(manifest.game.params).length === 0 ? {} : { params: manifest.game.params };
@@ -91,7 +91,8 @@ async function mechanicsOf(input: ReportInput, manifest: RunManifest, io: CliIo)
  * Writes `REPORT.md` of a run folder: reads the run (`readRun` of the lab, which verifies the log first), renders
  * the report with the titles and units of the metrics, writes it through the redaction of the key broker and scans
  * the folder for a held key value. Without `--game` the mechanics are those of the installed table that the
- * plugin ids of the manifest name; a plugin of the run without a definition (neither in the table nor, with
+ * plugin ids of the manifest name (the packages of the nearest `package.json` above the run folder, then of the
+ * command line's own); a plugin of the run without a definition (neither in the table nor, with
  * `--game`, in the game) is named in a line "metrics absent: <id>" at the head of the facts table.
  *
  * @param input - The run folder and, for a game whose mechanics are not installed with the command line, its game file.

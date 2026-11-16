@@ -20,7 +20,7 @@ import { loopOf, pauseEvent, runManifest, type LoopOptions } from "./assembly.ts
 import { toolWithoutSample } from "./errors.ts";
 import type { PauseOn } from "./flags.ts";
 import { handEnded, handOf } from "./hand.ts";
-import { installedTable } from "./installed.ts";
+import { installedPackages, packageFilesFor, type InstalledPackages } from "./installed.ts";
 import { loadGame } from "./load-game.ts";
 import { runLoop, type HandSource, type LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
@@ -69,9 +69,18 @@ export interface ResolvedFile {
 	readonly texts: PromptLookup;
 }
 
+// The installed table of a data game: a test's mechanics (and no Director), else the packages of the project's
+// `package.json` (the nearest above the game file) and of the command line's own (A121).
+async function tableOf(file: string, io: Pick<CliIo, "installed">): Promise<InstalledPackages> {
+	if (io.installed !== undefined) return { mechanics: io.installed, directors: {} };
+	return installedPackages(packageFilesFor(dirname(file), PACKAGE_FILE));
+}
+
 /**
  * Loads a game file and resolves it: the file, the installed table for a data game, the prompts. A game family is
- * built from the defaults of its params with the overrides on top.
+ * built from the defaults of its params with the overrides on top. A data game names its mechanics and its
+ * Directors by id; the ids come from the packages that the project's `package.json` (the nearest one above the game
+ * file) and the command line's own list as dependencies, the project's first.
  *
  * @param input - The game file, the seed and the overrides of the params.
  * @param io - The current directory and the installed table of a test.
@@ -84,7 +93,8 @@ export interface ResolvedFile {
  */
 export async function resolveFile(input: Pick<RunInput, "file" | "seed" | "params">, io: Pick<CliIo, "cwd" | "installed">, records: readonly RecordSource[] = []): Promise<ResolvedFile> {
 	const loaded = await loadGame(input.file, io.cwd);
-	const installed = loaded.type === "module" ? undefined : (io.installed ?? (await installedTable(PACKAGE_FILE)));
+	const table = loaded.type === "module" ? undefined : await tableOf(loaded.file, io);
+	const installed = table?.mechanics;
 	const folder = join(dirname(loaded.file), "prompts");
 	const texts = createPromptLookup(existsSync(folder) ? { game: folder } : {});
 	const game = resolveGame({
@@ -93,7 +103,7 @@ export async function resolveFile(input: Pick<RunInput, "file" | "seed" | "param
 		prompts: texts,
 		...(input.params === undefined ? {} : { params: input.params }),
 		...(records.length === 0 ? {} : { records }),
-		...(installed === undefined ? {} : { installed }),
+		...(table === undefined ? {} : { installed: table.mechanics, directors: table.directors }),
 		...(input.seed === undefined ? {} : { seed: input.seed }),
 	});
 	// The family resolved, so its effective params build the game the definitions are read from.

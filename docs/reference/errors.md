@@ -680,8 +680,8 @@ A `--director-model` names no Director of the game.
 
 The installed table cannot be built.
 
-- **Why:** A game in its data form names its mechanics by id; the ids come from the `swarmtales.mechanics` field of the installed packages, each entry the name of an export that is a mechanic definition.
-- **Fix:** Install the dependencies again; in a mechanic package, list in `swarmtales.mechanics` only exports made with `defineMechanic`, and give every mechanic its own id.
+- **Why:** A game in its data form names its mechanics and its Directors by id; the ids come from the `swarmtales.mechanics` and `swarmtales.directors` fields of the packages that the project's `package.json` and the command line's own list as dependencies, each entry the name of an export that is a definition.
+- **Fix:** Install the dependencies again; in a mechanic package, list in `swarmtales.mechanics` only exports made with `defineMechanic` and in `swarmtales.directors` only exports made with `defineDirector`, and give every mechanic and every Director its own id.
 - **Named in:** `apps/cli`
 
 ### SWT-C031

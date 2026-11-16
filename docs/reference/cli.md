@@ -19,6 +19,21 @@ work is printed as its issues (code, summary, why, fix) on the error output, or 
 Plays a game into a new run folder `<out>/<game id>-<NNN>`. With `--fake` the fake driver plays seeded legal calls
 (no model, no cost); without it live models play under a cost cap.
 
+A game file is a module (`.ts`, `.js`, `.mjs`) that default-exports a game, or a game in its data form (`.json`,
+`.yaml`), which names its mechanics (`mechanics[].use`) and its Directors (`directors[].use`) by id. The ids come
+from the installed table (decision A121): the packages that the project's `package.json` (the nearest one above the
+game file) and then the command line's own list in `dependencies`, a package once. A package of the kind `mechanic`
+names in its `package.json` the exports that are definitions:
+
+```json
+{ "swarmtales": { "kind": "mechanic", "mechanics": ["guessNumber"], "directors": ["crier"] } }
+```
+
+An id that two packages register, a listed export that is no definition, or a dependency that is not installed is
+`SWT-C030`; a Director id that no package registers is `SWT-D002`. `swt replay`, `swt resume` and `swt report
+--game` read the table so too; `swt report` without `--game` reads it from the nearest `package.json` above the run
+folder.
+
 | Flag | What |
 |---|---|
 | `--fake` | play with the fake driver |
