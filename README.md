@@ -197,3 +197,16 @@ held key value.
 - `city/act2/5c`: Act II again, 0.2907 USD, ticks 8 to 52; no door opened; exiled A03 (after a self-ransom), A05, A02;
   seats Dazzle and Bastion from the faction bonuses, a goal and wills. LH5 (a denied delivered DM, not blamed), LH21
   and P491 again.
+
+## M6 live baseline of tic-tac-toe (2026-11-16, issue M6-24)
+
+Run 1 of `docs/RERUN-PLAN-M6.md`: code commit `155d497e`, runtime revision 8, `kernel.dirty: false`, Node 22.23.4,
+residents `claude-haiku-5-5` via Anthropic (thinking medium, output cap 16000), no Director, pricing `pi-ai@1.4.0`, by
+`games/m6-ledger.jsonl` (M6 cap 2.34 USD). The folder has its own `README.md`.
+
+| Run | Seed | Cost (USD) | End | Result |
+|---|---:|---:|---|---|
+| `tictactoe/baseline/tictactoe-001` | 7 | 0.0785 | the match was over (`grid.match`) after 24 ticks | three draws (`grid.tally` X 0, O 0, draw 3); 15 of 15 scored moves optimal; games 2 and 3 play the same nine cells; problems P77 and P85 again, P497 (the report has no result facts); no loophole |
+
+The folder verifies (`swt log verify`), replays equal (`swt replay --game`), and the leak scan (`swt scan`) found no
+held key value.
