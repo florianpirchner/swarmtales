@@ -12,6 +12,8 @@
  * - **Act.** The answer goes to the tool `interpret` of the mechanic `interpretations`, which drops what is unknown
  *   and writes the old events. **Fail open:** without an answer the round is written as an `interpretation_error`
  *   and stays unlabelled; its statements are remembered all the same.
+ * - **A round without statements** asks nothing and writes nothing, as the old `calls` made no call for it (P481):
+ *   its question is empty, which the asker of the models package does not send, and `act` calls no tool.
  */
 import type { PromptLookup } from "@swarmtales/contracts";
 import { defineDirector, type DirectorContext, type DirectorDefinition } from "@swarmtales/sdk";
@@ -146,6 +148,8 @@ function input(ctx: DirectorContext<ConfessorOptions>): string {
 	const { options } = ctx;
 	const { texts } = options;
 	const { residents, history, statements } = seen(ctx);
+	// A round without statements is no question (the old `calls` returned none): the asker sends nothing for it.
+	if (statements.length === 0) return "";
 	const keys = new Set(statements.flatMap((statement) => conversationKey(statement) ?? []));
 	const context = history.flatMap((entry) => (keys.has(entry.conversation) ? entry.statements : [])).sort((a, b) => a.ref - b.ref);
 	const round = roundOf(ctx);
@@ -193,8 +197,10 @@ export function defineConfessor(sight: ConfessorSight = {}): DirectorDefinition 
 			system: (ctx) => ctx.options.system,
 			input,
 			act: async (answer, ctx) => {
+				const { statements } = seen(ctx);
+				if (statements.length === 0) return;
 				const failed = answer === NO_ANSWER ? { error: "the classifier gave no answer" } : {};
-				await ctx.call("interpret", { round: roundOf(ctx), classifier: ctx.options.label, statements: seen(ctx).statements, items: answer.items, ...failed });
+				await ctx.call("interpret", { round: roundOf(ctx), classifier: ctx.options.label, statements, items: answer.items, ...failed });
 			},
 			fallback: () => NO_ANSWER,
 		},

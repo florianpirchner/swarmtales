@@ -17,6 +17,6 @@ export { asksReset, CONTEXT_RESET_KIND, createResidentSession, isSafeguardRefusa
 export { createToolsNotice, toolsNotice, type ToolsNotice } from "./driver/notice.ts";
 export { parseSavedSessions, SAVED_SESSION_FORMAT, SavedSessionSchema, SavedSessionsSchema, type SavedSession, type SavedSessions } from "./driver/saved.ts";
 export { systemPrompt, type CityPromptFacts, type PromptFacts, type PromptPersona } from "./driver/prompt.ts";
-export { createAsker, DIRECTOR_MODEL_RECORDS, scriptedAsker } from "./director.ts";
+export { createAsker, DIRECTOR_MODEL_RECORDS, EMPTY_QUESTION, scriptedAsker } from "./director.ts";
 export { createToolDirector, LOOK_REQUESTS, type Look, type LookInput } from "./driver/look.ts";
 export { createModelDrivers, RESIDENT_DRIVER, type ModelDrivers, type ModelDriversInput } from "./driver/create.ts";

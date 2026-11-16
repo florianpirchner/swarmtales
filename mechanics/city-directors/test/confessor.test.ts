@@ -122,6 +122,16 @@ describe("the Confessor", () => {
 		expect(inputs[3]).toBe(oldQuestion(4, refOf));
 	});
 
+	it("asks nothing and writes nothing for a round without statements, as the old classifier (P481)", async () => {
+		const inputs: string[] = [];
+		const { events } = await play({ ...GAME, end: { ticks: 6 } }, { drivers: drivers(oldRule, inputs) });
+		// Round 5 has no statement: its question is empty, which the asker does not send, and no tool is called.
+		expect(inputs.map((input) => input === "")).toEqual([false, false, false, false, true]);
+		const written = events.filter((event) => event.source.endsWith("/interpretations") && event.type !== "interpretation");
+		expect(written.map((event) => [event.type, fields(event.payload).round])).toEqual([1, 2, 3, 4].map((round) => ["interpretation_round", round]));
+		expect(events.filter((event) => event.type === "tool_called" && fields(event.payload).as === "interpret")).toHaveLength(4);
+	});
+
 	it("replays equal, and resumes equal from every boundary", async () => {
 		expect(await checkReplay(GAME, drivers(oldRule))).toEqual([]);
 		expect(await checkResumeEveryBoundary(GAME, drivers(oldRule), { boundaries: [0, 1, 2, 3, 4] })).toEqual([]);

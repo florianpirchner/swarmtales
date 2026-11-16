@@ -113,6 +113,9 @@ export function createToolsNotice(texts: PromptLookup, last?: readonly string[])
 export const DIRECTOR_MODEL_RECORDS: RecordSource;
 
 // @public
+export const EMPTY_QUESTION = "the question is empty: nothing was sent";
+
+// @public
 export function emptyModel(provider: string): SwtIssue;
 
 // @public

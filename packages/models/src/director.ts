@@ -31,6 +31,13 @@ type Recorder = <Type extends keyof ResidentRecords>(type: Type, payload: Reside
 const none = (reason: "limit" | "invalid" | "error", detail: string): ModelAnswer => ({ ok: false, reason, detail });
 
 /**
+ * The detail of the answer to a question whose input is empty: the asker sends no request and writes no record.
+ *
+ * @public
+ */
+export const EMPTY_QUESTION = "the question is empty: nothing was sent";
+
+/**
  * Why nothing may be sent: the meter's limit (the cap, or a closed meter), then the actor's own limit. A limit that
  * is no amount lets nothing through.
  *
@@ -103,8 +110,9 @@ async function send(binding: ModelBinding, actor: ActorId, question: ModelQuesti
 }
 
 /**
- * The asker of a live or a scripted source. An actor is bound to its model at its first question. A question is
- * refused with `reason: "limit"`, and nothing is sent, when the meter's limit is breached (the cap is reached or
+ * The asker of a live or a scripted source. An actor is bound to its model at its first question. A question whose
+ * input is empty is answered `{ ok: false, reason: "error", detail: EMPTY_QUESTION }` without a request or a record
+ * (the old runtime sent nothing for an empty batch). A question is refused with `reason: "limit"`, and nothing is sent, when the meter's limit is breached (the cap is reached or
  * the meter is closed) or the actor has spent its `maxCostUsd`; one answer can still overshoot a limit, because a
  * cost is known only once the answer is in. An answer whose cost is not known closes the meter and is not used.
  *
@@ -125,6 +133,8 @@ export function createAsker(source: ModelSource, meter: CostMeter, limits: (acto
 	const bindings = new Map<ActorId, ModelBinding>();
 	return async (activation, question) => {
 		const { actor } = activation;
+		// An empty input is no question: a Director with nothing to ask this time, as the Confessor in a round without statements (P481).
+		if (question.input === "") return none("error", EMPTY_QUESTION);
 		const reached = over(meter, actor, limits(actor).maxCostUsd);
 		if (reached !== undefined) return none("limit", reached);
 		const binding = bindings.get(actor) ?? source.bind(actor, { maxOutputTokens: MODEL_DEFAULTS.maxOutputTokens, timeoutMs: REQUEST_TIMEOUT_MS });

@@ -109,6 +109,9 @@ function pricing(): string {
 	return `pi-ai@${Parse(Pinned, raw).dependencies["@earendil-works/pi-ai"]}`;
 }
 
+// The actors a model plays: neither the Human Hand nor the script, which is no model actor (P483).
+const modelled = ({ kind }: { readonly kind: string }): boolean => kind !== "human" && kind !== "script";
+
 function modelOf(settings: ModelSettings): ManifestModel {
 	const params = { temperature: "provider-default", topP: "provider-default", maxOutputTokens: settings.maxOutputTokens, thinking: settings.thinking } as const;
 	return { provider: settings.provider, requestedId: settings.requestedId, resolvedId: settings.modelId, params, pricing: pricing() };
@@ -128,7 +131,7 @@ function settingsOf(input: LiveInput, game: ResolvedGame, broker: KeyBroker): { 
 	const actors = actorModels(game, input.directorModels ?? {}, { settings, source: input.source ?? createModelSource(settings, registry, broker) }, make, registry);
 	const { source } = actors;
 	// `SWT-X007` comes from `bind`: every actor a model plays is bound once here and the binding dropped, so a model without a price is refused before the run folder exists.
-	for (const actor of game.definition.actors.filter(({ id }) => id !== "human")) source.bind(actor.id, { maxOutputTokens: settings.maxOutputTokens, timeoutMs: REQUEST_TIMEOUT_MS });
+	for (const actor of game.definition.actors.filter(modelled)) source.bind(actor.id, { maxOutputTokens: settings.maxOutputTokens, timeoutMs: REQUEST_TIMEOUT_MS });
 	return { settings, source, actors };
 }
 
@@ -258,7 +261,7 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 		purpose: input.purpose,
 		replicate: input.replicate,
 		budgetUsd: meter.capUsd,
-		models: Object.fromEntries(actors.filter(({ id }) => id !== "human").map((actor) => [actor.id, modelOf(run.actors.settings(actor.id))])),
+		models: Object.fromEntries(actors.filter(modelled).map((actor) => [actor.id, modelOf(run.actors.settings(actor.id))])),
 		systemPrompts,
 		toolSpecs: Object.fromEntries(actors.map((actor) => [actor.grant, kernel.toolSpecs(actor.grant)])),
 		...(input.experiment === undefined ? {} : { experiment: input.experiment }),
