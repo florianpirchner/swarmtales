@@ -197,10 +197,37 @@ With `AMEND` the steward amends `D1` to `A02`; with `UNFIT` the answer does not 
 The same drivers feed the standing checks of the testkit, `checkReplay` and `checkResumeEveryBoundary`. An asker
 that keeps no count answers a resumed run as it answered the straight one. A test never calls a live model.
 
+## 8. Other ways to wake and to act
+
+The steward is woken by one event and answers once. A head can say more; the
+[reference of Directors](../reference/directors.md) lists every field.
+
+- **Every n ticks.** The trigger `{ every: 2 }` fires at the start of every second tick (tick 0 included), before its
+  first pass. A Director that looks after every round of the game takes it, or, as the gamemaker does, the event
+  of the round's end with a `where` for its cadence.
+- **On a resident's call.** `{ event: "tool_called", tool: "nominate" }` fires once a resident's `nominate` has
+  reached `execute`; the payload is `{ actor, as, params }`.
+- **Quiet firings.** A trigger with `quiet: true` queues its firings without waking the Director; the next activation
+  takes them along in `ctx.firings`.
+- **The game's facts.** A head that lists `facts: ["progression.section"]` (as the gamemaker's does) reads
+  `ctx.facts["progression.section"]` in `system`, `input` and `fallback`: a Director sees the facts it lists and no
+  other.
+- **Answering a review.** With `answers: "judge"` the Director answers the questions of the stage `review` that
+  name the answerer `judge`, while the call waits; it reads the question in `ctx.question`, and its `act` is not used.
+  The mechanic that asks decides on the answer ([the stage `review`](../reference/stages.md#the-stage-review)).
+- **Acting by tool use.** With `acts: "tools"` the model gets the open tools of the Director's grant and calls them
+  until it calls none, at most `limits.maxRequests` requests a look; `output`, `act` and `fallback` are not used. The
+  gamemaker of the City and Whispers acts so; a fake run plays its look with the fake driver.
+
+A mechanic can also make a call of its own, as the actor `script`, with `ctx.stage`; that is no Director, and
+[the stages of a call](../reference/stages.md#staged-calls) say how it runs.
+
 ## Where next
 
 - The Director's types are in `packages/sdk/src/director/define.ts`; its driver is in
   `packages/engine/src/directors/driver.ts`.
+- [`mechanics/city-directors/`](../../mechanics/city-directors/README.md) has the four Directors of the City and
+  Whispers: the gamemaker (tool use), the Confessor, the judge and the guard (answering reviews).
 - The city slice, [`games/city-slice/`](../../games/city-slice/README.md), has the Director `warden` in a larger
   game.
 - A live run gives the Director the model of the game (`model`) under a cost cap: `--budget`.

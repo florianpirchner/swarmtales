@@ -221,7 +221,9 @@ Whispers sets `quoteDms`, so a shown DM receipt proves the words.
 
 ## Lessons and loopholes
 
-None recorded against this mechanic on this platform yet. On the old platform: LH4 (receipts used as proof of the
+On this platform: P486 (the variant `whispers-rumours` tells the residents the city keeps no proof, and still writes
+a delivery receipt for every DM; kept as the old game for parity with the baseline, issue B1 of A104 after it). On
+the old platform: LH4 (receipts used as proof of the
 delivery of a value, fixed), P20 (no DM receipt could be shown, built) and P25 (residents waited for the city to
 confirm a value, `quoteDms` built).
 

@@ -269,7 +269,8 @@ mechanics: [ledger(), marks({ rules }), channels({ defiance: true }), receipts({
 
 ## Lessons and loopholes
 
-None recorded against this mechanic on this platform yet.
+[`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md): P484 (the gamemaker repeated the whisperer's false claim
+about the length of a fragment as the city's fact; open).
 
 ## Tests
 

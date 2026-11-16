@@ -13,6 +13,8 @@ names and the model blocks are carried byte for byte.
 swt run games/whispers/game.ts --fake
 ```
 
+The recorded live runs are listed in [`RUNS.md`](RUNS.md).
+
 ## Files
 
 | File | Holds |
@@ -27,6 +29,8 @@ swt run games/whispers/game.ts --fake
 | `test/holdout.test.ts` | `whispers-holdout-s7` at level 3 up to the call of the trial, and the trial to its strike by projection |
 | `test/fake.test.ts`, `test/fake.ts` | the fake run of 45 minutes, the gamemaker's look included, with every reachable tool; the drivers of a fake run |
 | `test/standing.test.ts` | replay and resume from every boundary, on fake runs with the Directors acting |
+| `test/prompts.test.ts` | the residents' system prompts against the sha256 of the old ones (`oracles/system-prompts.md`) |
+| `test/metrics.test.ts`, `test/report.test.ts` | the metrics of the facts table against the oracle files, none absent on the holdout file; the facts table of `swt report` |
 | `test/story.test.ts` | the old story test (`test/stories/whispers.test.ts` of `legacy`) where it tests the game: one scripted run of all seven doors and the final vote, the control run and the rumours |
 
 ## Params

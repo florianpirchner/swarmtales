@@ -36,8 +36,12 @@ private note or post on the board through the tools of its grant, until it calls
 - **Its system text.** Composed by `gamemakerOptions(input, prompts)` from the game's brief, rules and act roles and
   the direction dial, out of the prompt files under `prompts/gamemaker/`, carried byte for byte with their old ids.
   A Director reads no file, so the game composes the options; the template of the budget line goes with them.
-- **Not yet.** The tracks per resident, the events since the last look and the notes are issue M5-35; standing
-  orders of the Human Hand are not ported (decision A61).
+- **What it keeps.** Nothing between two looks (decision A74). The tracks per resident come from the facts of
+  `progression` and `directors`, its own notes from `channels.notes`, the budget line from the roster; the events since
+  the last look are the firings of its quiet triggers (`GAMEMAKER_EVENTS`, `defineGamemaker({ events })`), which the
+  look on `round_end` takes along. A look ends when the model calls no more tools, or after `limits.maxRequests`
+  requests (2, the old `modelCallsPerTurn`).
+- **Not ported.** Standing orders of the Human Hand (decision A61).
 
 ### The Confessor
 
@@ -209,26 +213,39 @@ This mechanic has no prompt files.
 
 ## Example
 
-No game loads the package yet (Whispers and the City do from issues M5-38 and M5-45). The shape:
+Whispers loads all four, the Confessor before the gamemaker, as the old `OVERSEER_ORDER` had them
+([`games/whispers/game.ts`](../../games/whispers/game.ts)):
 
 ```ts
-const options = gamemakerOptions({ city: "ECHO", agents: 6, survivors: 2, rules, spec, holdout, whisperer: true }, createPromptLookup());
-defineGame({
-	...,
-	mechanics: [..., arena(), interpretations()],
-	directors: [{ use: confessor, options: confessorOptions(createPromptLookup()) }, { use: defineGamemaker({ facts: ["progression.section", "whispers.section"] }), options }],
-});
+		...(params.classifier ? [{ use: confessor, options: confessorOptions(prompts, { maxChars: story.classifier.maxChars }), model: haiku }] : []),
+		...(params.gamemaker ? [gamemakerUse(story, params)] : []),
+		...(params.guards ? [{ use: guard, options: guardOptions(prompts), model: haiku }] : []),
+		{ use: judge, options: judgeOptions(prompts), model: haiku },
 ```
+
+The gamemaker's options are composed by `gamemakerOptions` from the story's brief and the dial `gmDirection`; the
+guard answers the `review` handler of `puzzles` only when the dial `guards` is on, and the judge every `blame`. The City
+([`games/city/game.ts`](../../games/city/game.ts)) loads the same Directors but the guard.
 
 ## Lessons and loopholes
 
 [`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md): P6 (the gamemaker paraphrased a private label to another
-resident; fixed on `legacy` by the note check `PRIVATE_BLOCKED`, whose port is decision A62).
+resident; fixed on `legacy` by the note check `PRIVATE_BLOCKED`, whose port is decision A62). From the Whispers runs of
+M5: P480 (a third of the guard's answers could not be read and let the call through; built: the last object that
+fits the schema is read, runtime revision 7; the rest is open, issue B2 of A104), P481 (the Confessor was asked on
+rounds without statements; built: no request for an empty round), P482 (a review's cost was charged to the resident
+whose call it reviewed; fixed: it is the answering Director's), P484 (the gamemaker repeated the whisperer's false
+claim as the city's fact; open).
 
 ## Tests
 
 `test/director.test.ts`, `situation.test.ts`, `sections.test.ts` and `system.test.ts` cover the gamemaker against
-the old report and system texts. `test/confessor.test.ts` plays the statements of the old classifier's recording
+the old report and system texts; `look.test.ts` plays a look over the real `ledger`, `channels`, `progression` and
+`standoff` (tracks, events since the last look, notes, budget line), and `recent.test.ts` carries the old gamemaker
+tests that apply to its text. `notes.test.ts` holds the check of a private thought in a Director's note.
+`judge.test.ts` and `guard.test.ts` play the judge through the real `blame` of `receipts` and the guard through the
+`review` handler of the real `puzzles`, each with a scripted answerer, against the old tests: a failed or unfit
+answer is `JUDGE_FAILED` for the judge and lets the call through for the guard. `test/confessor.test.ts` plays the statements of the old classifier's recording
 (`test/fixtures/old-classifier.json`, from `legacy` `test/overseers/classifier.test.ts`) through stand-ins of
 `channels`, `cast`, `names` and the run frame: the questions and the events are the old ones without thoughts and
 asides, a round without an answer fails open, and the run replays and resumes equal at every boundary.

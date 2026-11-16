@@ -7,17 +7,15 @@ whose parts sit with others, with tribunals, factions, the black seal, secret go
 The game is a port of `stories/cityofkeys` of the old platform (tag `v0-final`): the story data, the figures, the
 prompts, the tool names and the model blocks are carried byte for byte.
 
-State (issue M5-45): the story data, the compose step and the family are built and pinned, and
-`cityofkeys-act1-s7.json` replays at level 3 after its registered changes (`oracles/cityofkeys/README.md`, "The
-game against the files"). Issue M5-46 adds `cityofkeys-act1-s11.json` at level 3, the resumed Act I file (equal to
-the straight one by A34, and resumed from every boundary on this platform) and `cityofkeys-burn-s7.json` at level 3,
-played by the reduced City of its setup (`cityGameOf`, `test/burn.ts`). Issue M5-47 checks Act II: the two files
-of the second act (`cityofkeys-act2-s7.json`, `cityofkeys-act2-seal-s7.json`) start from an old snapshot that cannot
-be loaded here (A56), so the game is brought into the snapshot's situation (every resident past door 7 at minute 15,
+How it is checked: the story data, the compose step and the family are pinned against the old setup files, and
+`cityofkeys-act1-s7.json`, `cityofkeys-act1-s11.json` and `cityofkeys-burn-s7.json` replay at level 3 after their
+registered changes (`oracles/cityofkeys/README.md`, "The game against the files"); the burn file is played by the
+reduced City of its setup (`cityGameOf`, `test/burn.ts`). The resumed Act I file equals the straight one (A34), and
+the game resumes from every boundary under its calls. The two Act II files start from an old snapshot that cannot be
+loaded here (A56), so the game is brought into the snapshot's situation (every resident past door 7 at minute 15,
 the snapshot's balances, the act from minute 16) and driven by the files' calls; the act's events are then compared
-by projection, source by source, with the minute of each (`test/act2.ts`, `test/act2.test.ts`). The registered changes
-are listed in the head of `test/act2.test.ts`. Doors 8 to 10 played to their end and the feast of STEWARD are a
-scripted run (`test/wall.test.ts`, the old `cityofkeys-wall.test.ts`).
+by projection, source by source, with the minute of each (`test/act2.ts`). Doors 8 to 10 played to their end and
+the feast of STEWARD are a scripted run (`test/wall.test.ts`, the old `cityofkeys-wall.test.ts`).
 
 ## Files
 
@@ -32,6 +30,12 @@ scripted run (`test/wall.test.ts`, the old `cityofkeys-wall.test.ts`).
 | `test/burn.ts` | the reduced City of the burn file (the old `fragmentCity`), pinned to `setup/cityofkeys-burn.story.json` by `carried.test.ts` |
 | `test/act2.ts`, `test/act2.test.ts` | the Act II files by projection: the story of the files (the old `halfCity`, pinned to `setup/cityofkeys-act2.story.json`), the snapshot's situation, the files' calls with their message numbers mapped; the shipped City's tribunals from the same situation; resumes inside the act |
 | `test/wall.test.ts` | doors 8 to 10 to their end and the feast of STEWARD, from the old `cityofkeys-wall.test.ts` |
+| `test/params.test.ts` | the cast choice and the direction dials, with the old command line's refusals as `SWT-G041` of the family |
+| `test/prompts.test.ts` | the residents' system prompts against the sha256 of the old ones (`oracles/system-prompts.md`) |
+| `test/fake.test.ts`, `test/fake.ts` | the fake run of 80 minutes through both acts, the gamemaker at direction 10, with every reachable tool; the drivers of a fake run |
+| `test/standing.test.ts` | replay and resume from every boundary, on fake runs of the default dials, of a variant with the other dials and of the whole Act I |
+| `test/pause.test.ts` | `swt run --pause-on progression.act_ended` and `swt resume` on the fake driver: how the Act I base is cut |
+| `test/metrics.test.ts`, `test/report.test.ts` | the metrics of the facts table against the Act II files, none absent; the facts table of `swt report` |
 
 ## Params
 
@@ -42,4 +46,14 @@ scripted run (`test/wall.test.ts`, the old `cityofkeys-wall.test.ts`).
 | `passesPerMinute`, `activation` | 3, `onNews` | the scheduler |
 | `stopWhenDone`, `stopWhenSeatsDecided` | true | end the run early |
 | `personas`, `gamemaker`, `classifier`, `names`, `coreMotives` | true | the dials of the old story |
-| `gmDirection` | 4 | the gamemaker's direction level |
+| `cast` | `[]` | the cast figures to play, at most one per resident (old `--cast`); none: a seeded pick |
+| `figureDirection`, `gmDirection` | 4 | the direction levels of a cast figure (from 6 a figure plays no persona, old `led`) and of the gamemaker |
+
+`cast` and a `figureDirection` other than 4 need `coreMotives`; the family refuses them otherwise with `SWT-G041`,
+as it refuses a number of residents other than six.
+
+## Turn inputs
+
+As in Whispers, the scheduler's `inputs` keeps the old hook order: the script, the status line (`{ kind: "status",
+join: " · " }`), the task with the lines its owners write under it (`{ kind: "task", join: "\n" }`), the rest of
+`progression`, then `channels`.

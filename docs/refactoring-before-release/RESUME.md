@@ -10,17 +10,21 @@ the contracts `identity`, `allowance` and `receipt-source` in `mechanics/contrac
 kernel word list. The budgets at the start (kernel 1402, sdk 2107, engine 360, together 3869 of 4100) are in
 `docs/ISSUE-RECORD.md`, "The budgets at the start of M5". The section on M4 below still holds for what it says.
 
+**The docs of M5** (M5-56): the READMEs of the two games and of the new mechanics, the tutorial of a Director with
+the tick trigger, the call trigger, the review and tool use, the reference pages `docs/reference/stages.md` and
+`docs/reference/directors.md`, and line 64 of the design checklist (`docs/LESSONS-LEARNED.md`).
+
 **Open questions of the specification** (`12-m5-spec.md`, section 17), each with the issue that meets it first:
 
-| # | Question | Leaning | Settled by |
-|---|---|---|---|
-| 1 | Should the gamemaker run on DeepSeek via OpenRouter rather than Haiku? | closed: Haiku through Anthropic for every M5 run (A52); a DeepSeek gamemaker is an arm after 1.0 | decided with the challenge |
-| 2 | Does the review stage fit 15 kernel lines, and if not, may the hard limit be met exactly (1500) with the `afford`/`settle` handlers too? | no: way out 2 of section 1.3 stops the issue | M5-04's count; the integrator by a decision row |
-| 3 | Is the precedence of a marks refusal kept in `rule`, or does the game need the kernel's `afford`? (No oracle file holds a marks refusal.) | `rule`, with registered changes | M5-17's first test, from the carried tests |
-| 4 | Does the seeded order of `turns` equal the old story host's order? | yes (the stream is carried bit for bit, M1) | M5-38's first test |
-| 5 | Can `act2-s7` be projected without its old start state? | yes for tribunals, votes and exiles; not for balances | M5-47 |
-| 6 | Is the City's level 3 reachable, or does the order between sources need more registered changes than M3 listed? | reachable, with the rows of M3 and one per moved listener | M5-45 and M5-46 |
-| 7 | What a resident session's saved context holds when the provider caches it, and whether a resumed live run's first request is a cache miss | a miss, paid once | M5-08 |
+| # | Question | Leaning | Settled by | Answer |
+|---|---|---|---|---|
+| 1 | Should the gamemaker run on DeepSeek via OpenRouter rather than Haiku? | closed: Haiku through Anthropic for every M5 run (A52); a DeepSeek gamemaker is an arm after 1.0 | decided with the challenge | closed with the challenge (A52) |
+| 2 | Does the review stage fit 15 kernel lines, and if not, may the hard limit be met exactly (1500) with the `afford`/`settle` handlers too? | no: way out 2 of section 1.3 stops the issue | M5-04's count; the integrator by a decision row | yes: the review stage took 26 kernel lines, the three kernel parts 70 of 88, the gate is 1472 (A66, M5-05) |
+| 3 | Is the precedence of a marks refusal kept in `rule`, or does the game need the kernel's `afford`? (No oracle file holds a marks refusal.) | `rule`, with registered changes | M5-17's first test, from the carried tests | `rule`: the old `marks` had no stage handler, `NO_MARKS` is logged at `rule` (J99, M5-17) |
+| 4 | Does the seeded order of `turns` equal the old story host's order? | yes (the stream is carried bit for bit, M1) | M5-38's first test | yes, with the order `arena` of `turns` (M5-38) |
+| 5 | Can `act2-s7` be projected without its old start state? | yes for tribunals, votes and exiles; not for balances | M5-47 | yes, balances too: the game is brought into the snapshot's situation and driven by the files' calls (J263, M5-47) |
+| 6 | Is the City's level 3 reachable, or does the order between sources need more registered changes than M3 listed? | reachable, with the rows of M3 and one per moved listener | M5-45 and M5-46 | reachable: Act I at seeds 7 and 11, the resumed Act I and the burn file at level 3 with registered changes (M5-45, M5-46; J259 to J261) |
+| 7 | What a resident session's saved context holds when the provider caches it, and whether a resumed live run's first request is a cache miss | a miss, paid once | M5-08 | the cache counts of a resumed live run differ, and the equality of A34 for a live resume leaves `input`, `cacheRead` and `cacheWrite` of the `response` records out (J15, J83, J95) |
 
 ## State at the end of M4, 2026-11-15, about 14:00 UTC
 

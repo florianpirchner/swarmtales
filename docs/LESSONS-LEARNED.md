@@ -229,6 +229,14 @@ Each line is a lesson that cost us a run. The log entries behind it are in brack
     gain and in Lanterns on the rewrite most of it was already there in game 1, where nothing can have been
     learned. And a brain may only hold rules the game allows: a convention the rules refuse ("the keeper names
     the targets in chat") makes the seekers wait for a message that cannot come. [P330, P469]
+64. **A base mechanic names no game mechanic; the owner of a rule enforces it in its own stage handler.** When a
+    game's rule bears on a tool of a base mechanic (a price on a direct message, the guard on a board post, the
+    check of a secret in a Director's note), the base mechanic does not ask the game's mechanic for it: the
+    mechanic that owns the rule sees the tool by its bare name in its own `rule`, `review` or `after` handler, and a
+    fact the base mechanic shows (a name, the marks left) comes through a contract the game mechanic provides. The
+    old `channels` checked a Director's note against the facts of five game mechanics and the Confessor's events,
+    so the base mechanic knew every game that used it.
+    [`12-m5-spec.md` 2.2 and 2.3; its challenge, row 9]
 
 ## Notes from outside research
 

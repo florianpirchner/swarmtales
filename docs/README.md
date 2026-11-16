@@ -1,8 +1,7 @@
 # Docs
 
 The documentation of Swarm Tales. During the rewrite it holds the rules of the repository, the plan of the rewrite and
-the documents carried from the old platform. Tutorials, how-to guides and the generated reference arrive with the
-milestones that build what they describe.
+the documents carried from the old platform, and the tutorials and the reference of what is built so far.
 
 ## Rules of the repository
 
@@ -14,6 +13,19 @@ milestones that build what they describe.
   [`../LICENSE-FAQ.md`](../LICENSE-FAQ.md)), the allowlist for third parties, the licence gate.
 - [`MECHANIC-README.md`](MECHANIC-README.md): the fixed shape of a mechanic's README and its generated sections.
 - [`ISSUE-RECORD.md`](ISSUE-RECORD.md): tokens, wall time and changed lines per issue; the budget.
+
+## Tutorials and reference
+
+- Tutorials, each played by a sample's tests: [`tutorials/mechanic.md`](tutorials/mechanic.md) (write a mechanic),
+  [`tutorials/director.md`](tutorials/director.md) (write a Director), [`tutorials/scheduler.md`](tutorials/scheduler.md)
+  (write a scheduler).
+- [`reference/cli.md`](reference/cli.md): the command line `swt`, its flags and exit codes.
+- [`reference/errors.md`](reference/errors.md): every error code with why and fix (generated, `pnpm docs:errors`).
+- [`reference/stages.md`](reference/stages.md): the stages of a tool call, the stage `review` and staged calls.
+- [`reference/directors.md`](reference/directors.md): the head of a Director, its triggers (events, every n ticks, a
+  resident's call), the reviews it answers and acting by tool use.
+- [`reference/stability.md`](reference/stability.md): what the API freeze holds until 1.0, and how a break is asked
+  for; [`API-FREEZE.md`](API-FREEZE.md) is the record of every change to the frozen surface.
 
 ## The rewrite
 
