@@ -3,8 +3,10 @@
  * The standing checks of nine men's morris, in process (M4 specification 4.3): the log replays equal, and a run
  * resumed from every tick boundary writes the log of the straight run. The scripted runs (one game of at most 30
  * turns, two teams and one resident against the search) and a fake run of one game get both checks; the fake runs on
- * the game file get the replay (their resume from the sampled boundaries is proven through the command line over the
- * games list, `apps/cli/test/standing.test.ts`).
+ * the game's params get the replay. The fake run of the game file (its default params, `morrisGame()`) at the fake
+ * seed of the games list (seed 7, 156 ticks) is resumed from `FILE_BOUNDARIES` (J256): the command line resumes it
+ * from the first, the middle and the last boundary only (decision A97, `apps/cli/test/standing-part.ts`), and the 21
+ * boundaries of `sampleBoundaries` took 41 s, so this check takes the second, every 25th and the last two (19 s).
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
@@ -20,6 +22,8 @@ const RUNS = [
 	{ name: "fake, one game, seed 13", game: morrisGame({ games: 1 }), drivers: fake(13), options: { seed: 13 } },
 	...[13, 31].map((seed) => ({ name: `fake, seed ${String(seed)}`, game: morrisGame(), drivers: fake(seed), options: { seed } })),
 ];
+/** The boundaries the fake run of the game file is resumed from in process: the second, every 25th and the last two of its 156 ticks. */
+const FILE_BOUNDARIES = [1, 25, 50, 75, 100, 125, 150, 154, 155];
 
 describe("nine men's morris: the standing checks", () => {
 	it.each(RUNS)("$name: the log replays equal", async ({ game, drivers, options }) => {
@@ -28,5 +32,9 @@ describe("nine men's morris: the standing checks", () => {
 
 	it.each(RUNS.slice(0, 3))("$name: resumed from every boundary, the log is the straight log", async ({ game, drivers, options }) => {
 		expect(await checkResumeEveryBoundary(game, drivers, options)).toEqual([]);
+	}, 120_000);
+
+	it("the fake run of the game file, seed 7: resumed from the sampled boundaries, the log is the straight log", async () => {
+		expect(await checkResumeEveryBoundary(morrisGame(), fake(7), { seed: 7, boundaries: FILE_BOUNDARIES })).toEqual([]);
 	}, 120_000);
 });
