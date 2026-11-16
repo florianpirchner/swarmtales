@@ -5,6 +5,7 @@
  * end. The old calls of `exile` (`onExiled`, `noteHeir`) are listeners to its events now.
  */
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
+import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { MotivesService } from "@swarmtales/mechanic-motives/contract";
@@ -98,7 +99,8 @@ export function goalOf(ctx: GoalReader, agent: string): HeldGoal | undefined {
 }
 
 /**
- * The status line part for `agent`, while its act runs.
+ * The status line part for `agent`, while its act runs, with each resident id shown by the name its resident chose
+ * (the old host showed the status through `names`; erratum J247). Without a provider of `identity` it keeps the ids.
  *
  * @param ctx - The context.
  * @param agent - The resident.
@@ -106,7 +108,9 @@ export function goalOf(ctx: GoalReader, agent: string): HeldGoal | undefined {
  */
 export function statusOf(ctx: GoalsCtx, agent: string): string | undefined {
 	const held = goalOf(ctx, agent);
-	return held === undefined ? undefined : renderTemplate(ctx.options.texts.status, { goal: held.text, bonus: String(ctx.options.bonus) });
+	if (held === undefined) return undefined;
+	const text = renderTemplate(ctx.options.texts.status, { goal: held.text, bonus: String(ctx.options.bonus) });
+	return ctx.tryCall(IdentityService, "display", { text }) ?? text;
 }
 
 /**

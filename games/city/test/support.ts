@@ -182,11 +182,42 @@ function taskSource(input: Input): Input {
 	return { ...input, source: ["progression", ...owners].join("+") };
 }
 
+// The names chosen before `at`, by resident id.
+function namesBefore(timeline: readonly OracleEntry[], at: number): ReadonlyMap<string, string> {
+	const chosen = timeline.slice(0, at).filter(isEvent("names", "name_chosen"));
+	return new Map(chosen.flatMap((entry) => (entry.k === "event" ? [[String(field(entry.payload, "agent")), String(field(entry.payload, "name"))] as const] : [])));
+}
+
+// The texts of the notices to `resident` since its last turn, as its turn input shows them, in the order of the log.
+function noticesBefore(timeline: readonly OracleEntry[], at: number, resident: string): readonly string[] {
+	const names = namesBefore(timeline, at);
+	const shown = (text: string): string => text.replace(/\bA\d\d\b/g, (id) => names.get(id) ?? id);
+	const texts: string[] = [];
+	for (let back = at - 1; back >= 0; back--) {
+		const entry = timeline[back];
+		if (entry?.k === "turn" && entry.resident === resident) break;
+		if (isEvent("channels", "notice", (payload) => field(payload, "to") === resident)(entry) && entry?.k === "event") texts.unshift(`[${String(field(entry.payload, "author"))}] ${shown(String(field(entry.payload, "text")))}`);
+	}
+	return texts;
+}
+
+/**
+ * The goals of the act change (`MOVES`): the notice of the deal moves after the notices of the solved level on the log,
+ * and a turn shows its notices in the order of the log. The notices found on the log keep their slots among the inputs.
+ */
+function inLogOrder(inputs: readonly Input[], texts: readonly string[]): readonly Input[] {
+	const rank = (input: Input): number => (input.kind === "notice" ? texts.indexOf(input.text) : -1);
+	const sorted = inputs.filter((input) => rank(input) !== -1).sort((a, b) => rank(a) - rank(b));
+	let next = 0;
+	return inputs.map((input) => (rank(input) === -1 ? input : (sorted[next++] ?? input)));
+}
+
 function turnInputs(timeline: readonly OracleEntry[]): readonly OracleEntry[] {
 	return timeline.map((entry, at) => {
 		if (entry.k !== "turn") return entry;
 		const more = deliveredBefore(timeline, at, entry.resident);
-		return { ...entry, inputs: entry.inputs.map(taskSource).map((input) => (input.kind === "status" && more > 0 ? withReceipts(input, more) : input)) };
+		const inputs = entry.inputs.map(taskSource).map((input) => (input.kind === "status" && more > 0 ? withReceipts(input, more) : input));
+		return { ...entry, inputs: [...inLogOrder(inputs, noticesBefore(timeline, at, entry.resident))] };
 	});
 }
 

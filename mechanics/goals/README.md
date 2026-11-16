@@ -32,7 +32,8 @@ Ported from the old platform (M5-40).
    without a core motive; `lead` only with `factions`. Every `protect(X)` gets an `exile(X)` in other hands when the
    city is large enough, and the targets spread.
 2. **While the act runs.** The goal is the resident's part of the status line (`texts.status`, in the old place after
-   the points). The facts `texts` (the gamemaker's "secret goal") and `running` show the goals of running acts; the
+   the points), with each resident shown by the name it chose through `display` of `identity` (the id while no
+   provider is loaded). The facts `texts` (the gamemaker's "secret goal") and `running` show the goals of running acts; the
    service `goals` answers `goalOf`, and takes the leaders of a tribunal's factions (`noteLeaders`).
 3. **Exile and will.** When `exile` writes `exiled`, the banished resident's goal is void (`goal_resolved` with
    `void`) and read out on the board (`texts.exiledReadout`). When it writes `last_will`, each heir counts for `heir`.
@@ -177,5 +178,5 @@ None recorded that concern the goals themselves; see the City of Keys rows of
 [`test/goals.test.ts`](test/goals.test.ts): the deal and the resolution of `cityofkeys-act1-s7` and
 `cityofkeys-act1-s11` line for line (the real `motives` deals the drives; the acts and the exile are stand-ins), the
 deal over 6, 12 and 48 residents, every kind resolved, the void goal of an exiled resident, the heirs of a will, the
-leaders through the service, the status part and the facts, the goal check of a Director's note, the documented
+leaders through the service, the status part (with the chosen names through `identity`) and the facts, the goal check of a Director's note, the documented
 options and the resume at every boundary.

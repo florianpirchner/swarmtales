@@ -138,8 +138,5 @@ within one source; no payload is changed but the numbers below.
 |---|---|---|---|
 | The deal of the core motives | `motive_dealt` before the puzzles' deal | after the last `ledger_entry` of the start | `motives` writes `motive_dealt` in its `runStarted` (A86); on `legacy` the deal ran in the world's constructor |
 | The numbers of a moved look | `postSeq` of the city's board posts and `number` of the gamemaker's notes in the file's order | the same numbers given out again in the order of the moved span | the look runs after the tick start (J126), so its posts take their numbers after the posts of the tick start |
-| The goals of the act change | `goal_dealt` and each goal's notice right after `act_started`, before the solved level's events | after `level_up`, `level_entered` and `submission` of the solved level | `goals` listens to `act_started`, and `progression` writes the solved level in one go |
+| The goals of the act change | `goal_dealt` and each goal's notice right after `act_started`, before the solved level's events | after `level_up`, `level_entered` and `submission` of the solved level; a resident's next turn shows its notices in that log order too (J255) | `goals` listens to `act_started`, and `progression` writes the solved level in one go |
 
-Not registered but pinned by the test, a defect: the `goal` status part of `goals` shows the target's id
-(`your goal: A03 is still in the city`) where the file shows its chosen name (`Slate-7306`); the notice of the deal
-shows the name. The fix is in `mechanics/goals` (the part read through `identity`, as `channels` shows its texts).

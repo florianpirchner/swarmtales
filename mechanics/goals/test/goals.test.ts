@@ -12,6 +12,7 @@ import { Type } from "typebox";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import type { ToolOutcome } from "@swarmtales/contracts";
+import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { defineHead, defineMechanic, reply, type Game } from "@swarmtales/sdk";
 import { checkOptionsDocumented, checkPackage, checkResumeEveryBoundary, idleDriver, testKernel, type TestKernel } from "@swarmtales/testkit";
 import { GoalsService, GoalSchema, goals } from "../src/index.ts";
@@ -169,6 +170,28 @@ describe("the goal book", () => {
 		await script(test, "endAct", { fromLevel: 8 });
 		expect([test.fact("goals.texts"), test.fact("goals.running"), await script(test, "held", { resident: "A01" })]).toEqual([{}, [], "null"]);
 	});
+
+	it("shows the target of a goal in the status line by the name its resident chose when identity is loaded (J247)", async () => {
+		const test = testKernel(gameOf({ more: [identity()] }));
+		await script(test, "startAct", { fromLevel: 8 });
+		const dealt = dealtGoals(test);
+		const seen = new Map<string, string>();
+		await test.playTicks((activation) => {
+			seen.set(activation.actor, activation.inputs.filter((note) => note.kind === "status").map((note) => note.text).join(""));
+			return Promise.resolve();
+		}, 1);
+		const targeted = dealt.filter((entry) => "target" in entry.goal);
+		expect(targeted.length).toBeGreaterThan(0);
+		for (const { agent, text } of dealt) expect(seen.get(`resident:${agent}`)).toBe(`0 points · your goal: ${named(text)} (+15)`);
+		for (const { agent, goal } of targeted) if ("target" in goal) expect(seen.get(`resident:${agent}`)).toContain(named(goal.target));
+		expect([...seen.values()].join("")).not.toMatch(/A0\d/);
+	});
+});
+
+// A stand-in of `names`: every resident id reads as `Slate-73<number>` (A06 as `Slate-7306`).
+const named = (text: string): string => text.replace(/\bA\d\d\b/g, (id) => `Slate-73${id.slice(1)}`);
+const identity = defineMechanic(defineHead({ id: "names", package: "@test/names", summary: "Test: the names.", provides: [IdentityService] }), {
+	services: { identity: { nameOf: ({ resident }) => named(resident), display: ({ text }) => named(text), resolve: ({ text }) => text } },
 });
 
 describe("the goal check of a Director's note", () => {
