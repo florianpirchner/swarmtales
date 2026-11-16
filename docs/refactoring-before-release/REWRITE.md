@@ -272,11 +272,18 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
 **State of the milestones** (added while building; the table above is the plan as decided). M1: done. M2: done;
 its gate with the live series ([`../M2-GATE.md`](../M2-GATE.md)) and its milestone review are merged. M3: done; its
 done-when is proven offline by the gate issue M3-31 (the tests and the softer check of section 7 are in
-[`../ISSUE-RECORD.md`](../ISSUE-RECORD.md), "The gate of M3"), and its review closed it (decision A28). M4: built,
+[`../ISSUE-RECORD.md`](../ISSUE-RECORD.md), "The gate of M3"), and its review closed it (decision A28). M4: done,
 72 issues; its gate M4-63 proves the nine done-whens of `11-m4-spec.md` (the tests and the softer check are in
 [`../ISSUE-RECORD.md`](../ISSUE-RECORD.md), "The gate of M4"; the live series in [`../M4-GATE.md`](../M4-GATE.md):
 both firm effects of M4 keep their sign, the chess count holds). The ten tabletop games match their oracle files at
-level 3, and the sample `parallel` needed no line of kernel, sdk or engine. The milestone closes with its review.
+level 3, and the sample `parallel` needed no line of kernel, sdk or engine. Its review closed it (M4-72, A47).
+M5: **built**, 102 issues (58 planned, A48; 44 beside the plan by A65 to A113); its gate M5-57 proves the nine
+done-whens of `12-m5-spec.md` (the tests and the softer check are in [`../ISSUE-RECORD.md`](../ISSUE-RECORD.md), "The
+gate of M5"; the live runs in [`../M5-GATE.md`](../M5-GATE.md)). The row's done-when holds: the City plays Act I and
+Act II on the new platform, and a new Act I base snapshot is recorded (`city/base/city-001` on `data/runs`). Whispers
+and the City match the oracle files of their done-whens at level 3 (the Act II files by projection, A56), the kernel took 71 of the 88
+reserved lines and no mechanism that was not reserved, and the API is frozen from 2026-11-16
+([`../API-FREEZE.md`](../API-FREEZE.md), row F1). The milestone closes with its review.
 
 ### 4.1 Where the rewrite happens
 

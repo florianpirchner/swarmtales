@@ -12,7 +12,7 @@ checks the kind against the diff from the file's `base` (section 5.2 of the spec
 
 | Row | Date | Paths | Kind | Decision | What |
 |---|---|---|---|---|---|
-| F1 | (the merge of M5-57) | every file of the frozen list | freeze | A60 | the surface as M5-50 left it, with the merges up to M5-57 |
+| F1 | 2026-11-16 | every file of the frozen list | freeze | A60 | the surface as M5-50 left it, with the merges up to M5-57; recorded and dated by M5-57 on `565efaeb` |
 
 A row names its paths in backticks; only a freeze row may say "every file of the frozen list". Its decision is one row
 `A<n>` of section 9 of `DECISIONS.md`; a break's decision row says "the owner's go".
@@ -46,6 +46,14 @@ the text forms with the merge. At the merge of M5-57, the integrator writes the 
 `pnpm api:freeze --write` once more on the merged head, so that each base is a commit that holds its text. From that
 date on, the gate requires the base of a freeze row to hold the text and to be committed on that day or before,
 `--write` refuses to record a change under F1, and every change needs a new row.
+
+**The freeze is in force since 2026-11-16.** Issue M5-57 ran `pnpm api:freeze --write` on its head, whose parent is
+`565efaeb` of `rewrite/develop` (M5-103 and A114 merged, no frozen file changed by M5-57 itself), so every one of the
+27 rows of `frozen.json` has the base `565efaeb`, committed on 2026-11-16 and reached from `HEAD` after the squash
+merge; then it wrote the date into F1 (the order of erratum J293: with the date in the cell, `--write` refuses a
+change under F1). `pnpm api:freeze` passes on that tree: "27 frozen files, each as recorded". From here on, a change
+of a frozen file is an `addition`, `addition: docs only` or `break` row (section 5.3 of the specification); a break
+needs the owner's go.
 
 ## The surface before the freeze (issue M5-50)
 

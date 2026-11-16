@@ -10,7 +10,7 @@ that stands, section 14 holds the ruling as the text of a decision row. Section 
 decide.
 
 **Errata:** `12-m5-spec-errata.md` is started by the first builder who finds a difference between this file and
-the code (rows J1 onward, the letter after H of M4; I is skipped because it reads like a number); where the two
+the code (rows J1 to J312, the letter after H of M4; I is skipped because it reads like a number); where the two
 differ, the errata hold.
 
 Words as in the earlier specifications. An "old" path is a path on the branch `legacy` (read with

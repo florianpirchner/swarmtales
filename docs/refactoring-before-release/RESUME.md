@@ -1,6 +1,60 @@
 # Resume note of the rewrite (kept by the integrator)
 
-## M5 started, 2026-11-15 (read this part first)
+## State at the end of M5, 2026-11-16, about 15:30 UTC (read this part first)
+
+Written by the gate issue of M5 (M5-57). The sections below are kept as they were; where they differ, this one holds.
+
+- **M5 is built.** 101 issues are merged on `rewrite/develop` up to `565efae` (decision A114), and the gate M5-57 is
+  the 102nd: the 58 of the plan (A48) and 44 beside it (M5-58 to M5-103 by A65 to A113; the ids M5-73 and M5-93 were
+  never given). Decisions run to A114 (`DECISIONS.md` section 9); the specification is `12-m5-spec.md`, its errata
+  `12-m5-spec-errata.md` (J1 to J312, closed by the gate). Stop rule 1 (above 116) did not fire; the cut list of
+  10.2 was never applied although the count passed 80 (J310).
+- **Games that play:** the fifteen of M4 and, ported in M5, **Whispers** (`games/whispers`, the variants `whispers`
+  and `whispers-rumours`) and the **City of Keys** (`games/city`, Act I and Act II). Whispers matches its three
+  oracle files at level 3 and the holdout file up to its trial (the trial by projection); the City matches Act I at
+  seeds 7 and 11, the resumed Act I and the burn file at level 3, and the two Act II files by projection (A56). Both
+  pass the standing checks; both have their cards in `GAMES.md`. The City cluster is recut: fifteen new mechanics and
+  `mechanics/city-directors` (class `director`: the gamemaker, the Confessor, the judge, the guard).
+- **The gate:** the nine done-whens are met, each with its test or its write-up, in `docs/ISSUE-RECORD.md` ("The
+  gate of M5", "The softer check of M5"; the live runs in `docs/M5-GATE.md`). The kernel has 1473 code lines (71
+  added: `runEnded`, staged calls, the stage `review`, all reserved; gate 1473), kernel + sdk + engine 4055 of 4100
+  (45 left). `SchedulerPort` did not change; `turns` gained the order `arena` (A67, J312).
+- **The API is frozen since 2026-11-16** (`docs/API-FREEZE.md`, row F1, dated by M5-57 after
+  `pnpm api:freeze --write` on its head; every base `565efae`). A change of a frozen file now needs a row of kind
+  `addition`, `addition: docs only` or `break`; a break needs the owner's go.
+- **Live:** `games/m5-ledger.jsonl` holds 2.2980 USD of the cap of 12.00 (8 runs: Whispers 0.9517 and 0.2145, the
+  Act I base 0.0686, the check resume 0.0000 and 0.0741, Act II 0.3724, 0.3261, 0.2907). The base is
+  `city/base/city-001` on `data/runs` (its hashes in `games/city/RUNS.md`); every folder of M5 is on `data/runs` up to
+  `053457c5`. The rewrite has spent 9.6985 of 50 USD on this platform. Runtime revision 7 since M5-88 and M5-89.
+- **The check:** the cold full check is green in 510.3 s of 600 s, peak 5942 MB of 6144 MB, on `565efae` (check 71;
+  the tests without isolation between files on two workers, A114).
+
+**Open points, in this order:**
+
+1. **Owed by the owner** (the build session cannot push tags, O3): the tag `v0-final` on `a73e6a9` (set in the local
+   clone, not on the remote; the switch of `main` waits for it), `runtime-r4` (`b158a5b`), `runtime-r5` (`6d1a685`)
+   and `runtime-r6` (`390448d`), set in the local clone and not on the remote, and `runtime-r7` at the merge of the
+   last of M5-88 and M5-89 (`d022725`), not set; the milestone tag of M5; **the switch of `main`** to the new
+   platform (`rewrite/root` and `rewrite/develop` become `main` and `develop`, decision A5), which waits for
+   `v0-final` on the remote and the milestone review. None of these is done by a build session.
+2. **The milestone review of M5:** a challenger session that reads the specification, the errata and the result,
+   and attacks the gate; its findings become issues by a decision row; M5 is closed by it.
+3. **The record:** row 379 (M5-57) waits for its commit id, merge time, lines, tokens and agent time, which the
+   integrator writes in with the merge; the rows 281 to 378 say "not recorded" for tokens, which the integrator may
+   fill from the builders' notices. The runs indexes (`games/whispers/RUNS.md`, `games/city/RUNS.md`) still say
+   "pending" for the data commits, which `docs/M5-GATE.md` names.
+4. **For after M5** (A104, A114): B1, the rumours variant without delivery receipts or its text adjusted (P486); B2,
+   the guard answers by a tool (the rest of P480); B3, the 16 tests in 10 files that depend on the order inside their
+   file (J309). P494 (run 1 of Whispers on a dirty tree) is open.
+5. **M6** is specified next (`REWRITE.md` section 4, row M6; `12-m5-spec.md` section 15): samples 2 to 4, a mechanic
+   and a Director installed from outside the repository with the run-time check of A37, the rename of original
+   games, `swt doctor --online`, names and publishing. Its inputs from M5: the 45 lines left of the engine total (the
+   check of A37 is planned in the sdk and is the first to claim them, J312), the frozen API (every change an
+   addition, or a break with the owner's go), the tick trigger `{ every: n }` frozen without a game user (J288), and
+   the owner's go still open for the items of `12-m5-spec.md` section 8 (two more Act I bases before an Act II
+   comparison is evidence, runs with 12 residents, the rule changes the runs suggest: P484, P485, P491, P492, LH21).
+
+## M5 started, 2026-11-15
 
 Written by the scaffold of M5 (M5-00). The specification is `12-m5-spec.md` (58 issues, A48; decisions A48 to A63),
 its errata `12-m5-spec-errata.md` (rows J1 onward). The scaffold holds the fifteen mechanic packages and
