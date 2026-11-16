@@ -27,13 +27,22 @@ and `$L` for `--ledger games/m5-ledger.jsonl`:
 
 | # | Run | Command | Cap | Expected | Issue | On `data/runs` |
 |---|---|---|---:|---:|---|---|
-| 1 | Whispers, seed 11, 45 ticks | `swt run games/whispers/game.ts --seed 11 --provider anthropic --model claude-haiku-5-5 --thinking low $GM --budget 1.00 $L --out $RUNS/whispers/smoke` | 1.00 | 0.50 | 53 | `whispers/smoke/<run>/` |
-| 2 | Whispers `whispers-rumours`, seed 11 | as 1, with `--set receipts=false` | 1.00 | 0.45 | 53 | `whispers/smoke/<run>/` |
-| 3 | City Act I, seed 7: **the base** | `swt run games/city/game.ts --seed 7 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --pause-on progression.act_ended --budget 0.50 $L --purpose exploratory --out $RUNS/city/base` | 0.50 | 0.20 | 54 | `city/base/<run>/` |
+| 1 | Whispers, seed 11, 45 ticks | `swt run games/whispers/game.ts --seed 11 --provider anthropic --model claude-haiku-5-5 --thinking low $GM --budget 1.00 $L --out $RUNS/whispers/smoke` | 1.00 | 0.95 | 53 | `whispers/smoke/<run>/` |
+| 2 | Whispers `whispers-rumours`, seed 11 | as 1, with `--set receipts=false` | 1.00 | 0.86 | 53 | `whispers/smoke/<run>/` |
+| 3 | City Act I, seed 7: **the base** | `swt run games/city/game.ts --seed 7 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --pause-on progression.act_ended --budget 0.50 $L --purpose exploratory --out $RUNS/city/base` | 0.50 | 0.38 | 54 | `city/base/<run>/` |
 | 3b | a second base, only if 3 does not pause on `act_ended` | as 3 | 0.50 | | 54 | `city/base/<run>/` |
-| 4 | City Act II, the check resume: 6 ticks from the base | `swt resume $RUNS/city/base/<base> --game games/city/game.ts --ticks 6 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --budget 0.40 $L --out $RUNS/city/act2` | 0.40 | 0.15 | 55 | `city/act2/<run>/` |
-| 5a | City Act II from the base to its end (done-when 6) | as 4 without `--ticks`, with `--budget 2.00 --purpose exploratory` | 2.00 | 1.00 | 55 | `city/act2/<run>/` |
-| 5b, 5c | the same twice more (cut 1 and cut 2 of 10.2: 5c goes first) | as 5a | 2.00 each | 1.00 each | 55 | `city/act2/<run>/` |
+| 4 | City Act II, the check resume: 6 ticks from the base | `swt resume $RUNS/city/base/<base> --game games/city/game.ts --ticks 6 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --budget 0.40 $L --out $RUNS/city/act2` | 0.40 | 0.29 | 55 | `city/act2/<run>/` |
+| 5a | City Act II from the base to its end (done-when 6) | as 4 without `--ticks`, with `--budget 2.00 --purpose exploratory` | 2.00 | 1.90 | 55 | `city/act2/<run>/` |
+| 5b, 5c | the same twice more (cut 1 and cut 2 of 10.2: 5c goes first) | as 5a | 2.00 each | 1.90 each | 55 | `city/act2/<run>/` |
+
+**Expected costs corrected after run 1** (issue M5-53; the caps are unchanged). Run 1 (`whispers/smoke/whispers-001`)
+cost 0.9517 USD against 0.50 expected, 1.9 times: half of it (0.4792) is the 63 resident requests above 100,000 input
+tokens, which the price table charges five times (J252), from minute 31 on as the sessions grow (P479); the gamemaker
+cost 0.0454. Run 1 now shows its measured cost, run 2 that cost times 0.9 (the ratio of the two variants' old expectations,
+0.45 to 0.50), and the City rows their old expectation times the same 1.9, since their long sessions reach the same tier; the expected
+spend is then 8.18 USD against run caps of 8.90, and a City Act II run may well end at its cap of 2.00. The deviation
+is in the run's README: the run folder was written under `live-runs/` of the builder's worktree (untracked) instead of
+a `$RUNS` outside it.
 
 The seeds are the games' own (Whispers 11, the City 7) and are written out so that no environment can move them.
 `--purpose`: the specification names none; runs 1, 2 and 4 are smokes (the default, read as smokes before the next
@@ -83,8 +92,8 @@ first. The long sessions of Act II can reach it; the meter counts it, and the ca
 | reserve: a second Act I base beyond 3b, or one Act II run again | 2.00 | a reservation line, written by the integrator with its decision row (below) |
 | the runs and the reserve together | 10.90 (11.40 with 3b) | their sum; 1.10 (0.60) of room under 12.00 for the overshoot of the runs in flight |
 
-The run caps sum to 8.90 (9.40 with 3b); the expected spend is 4.30 USD (old costs, raised for a gamemaker on Haiku;
-section 7.2). Before M5 the rewrite spent 7.4005 USD (`docs/ISSUE-RECORD.md`), so with the cap of M5 it stands at
+The run caps sum to 8.90 (9.40 with 3b); the expected spend was 4.30 USD (old costs, raised for a gamemaker on Haiku;
+section 7.2) and is 8.18 USD after run 1 (above). Before M5 the rewrite spent 7.4005 USD (`docs/ISSUE-RECORD.md`), so with the cap of M5 it stands at
 19.40 USD at most of its 50. A run's cost may pass its cap by the overshoot the meter allows (`docs/reference/cli.md`,
 `--budget`); the room above covers it.
 
