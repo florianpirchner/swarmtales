@@ -28,7 +28,7 @@ and `$L` for `--ledger games/m5-ledger.jsonl`:
 | # | Run | Command | Cap | Expected | Issue | On `data/runs` |
 |---|---|---|---:|---:|---|---|
 | 1 | Whispers, seed 11, 45 ticks | `swt run games/whispers/game.ts --seed 11 --provider anthropic --model claude-haiku-5-5 --thinking low $GM --budget 1.00 $L --out $RUNS/whispers/smoke` | 1.00 | 0.95 | 53 | `whispers/smoke/<run>/` |
-| 2 | Whispers `whispers-rumours`, seed 11 | as 1, with `--set receipts=false` | 1.00 | 0.86 | 53 | `whispers/smoke/<run>/` |
+| 2 | Whispers `whispers-rumours`, seed 11 | as 1, with `--set receipts=false` | 1.00 | 0.21 | 53 | `whispers/smoke/<run>/` |
 | 3 | City Act I, seed 7: **the base** | `swt run games/city/game.ts --seed 7 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --pause-on progression.act_ended --budget 0.50 $L --purpose exploratory --out $RUNS/city/base` | 0.50 | 0.38 | 54 | `city/base/<run>/` |
 | 3b | a second base, only if 3 does not pause on `act_ended` | as 3 | 0.50 | | 54 | `city/base/<run>/` |
 | 4 | City Act II, the check resume: 6 ticks from the base | `swt resume $RUNS/city/base/<base> --game games/city/game.ts --ticks 6 --provider anthropic --model claude-haiku-5-5 --thinking medium $GM --budget 0.40 $L --out $RUNS/city/act2` | 0.40 | 0.29 | 55 | `city/act2/<run>/` |
@@ -43,6 +43,15 @@ cost 0.0454. Run 1 now shows its measured cost, run 2 that cost times 0.9 (the r
 spend is then 8.18 USD against run caps of 8.90, and a City Act II run may well end at its cap of 2.00. The deviation
 is in the run's README: the run folder was written under `live-runs/` of the builder's worktree (untracked) instead of
 a `$RUNS` outside it.
+
+**Run 2 played** (issue M5-53, `whispers/smoke/whispers-001-r7`, runtime r7): 0.2145 USD against 0.86 expected. All six
+passed door 7 at minute 36, so the sessions stayed short (no request above 52,059 input tokens, none at the second tier)
+and the last nine minutes woke almost nobody; run 1 stalled at the late doors and its sessions grew past the tier. Run 2
+now shows its measured cost; the City rows keep the factor of run 1, since one Whispers run that ends early says nothing
+about the long Act II sessions. The expected spend is 7.53 USD against run caps of 8.90 (spent so far 1.1662: run 1
+0.9517, run 2 0.2145). The CLI numbered the run `whispers-001` in its own `--out` folder, the same id as run 1 (and the
+same ledger name `smoke/whispers-001`, with another `id`); its folder was renamed `whispers-001-r7` so that the two do
+not collide on `data/runs` (it verifies and replays equal under that name).
 
 The seeds are the games' own (Whispers 11, the City 7) and are written out so that no environment can move them.
 `--purpose`: the specification names none; runs 1, 2 and 4 are smokes (the default, read as smokes before the next
