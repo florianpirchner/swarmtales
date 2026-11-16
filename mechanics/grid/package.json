@@ -1,10 +1,17 @@
 {
 	"name": "@swarmtales/mechanic-grid",
-	"version": "0.0.0",
-	"private": true,
+	"version": "0.1.0",
 	"description": "Mechanic: a line game on a square grid, played by two sides",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "mechanics/grid"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",
@@ -29,9 +36,25 @@
 			"default": "./dist/rules.js"
 		}
 	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"./contract": {
+				"types": "./dist/contract.d.ts",
+				"default": "./dist/contract.js"
+			},
+			"./rules": {
+				"types": "./dist/rules.d.ts",
+				"default": "./dist/rules.js"
+			}
+		}
+	},
 	"files": [
 		"dist",
-		"src"
+		"prompts"
 	],
 	"scripts": {
 		"build": "tsdown",

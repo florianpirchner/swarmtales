@@ -1,10 +1,17 @@
 {
 	"name": "@swarmtales/city-directors",
-	"version": "0.0.0",
-	"private": true,
+	"version": "0.1.0",
 	"description": "Directors: the gamemaker, the Confessor, the judge and the guard of the City and Whispers (decision A58)",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "mechanics/city-directors"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",
@@ -21,9 +28,17 @@
 			"default": "./dist/index.js"
 		}
 	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		}
+	},
 	"files": [
 		"dist",
-		"src"
+		"prompts"
 	],
 	"scripts": {
 		"build": "tsdown",

@@ -1,13 +1,45 @@
 {
 	"name": "@swarmtales/cli",
-	"version": "0.0.0",
-	"private": true,
+	"version": "1.0.0",
 	"description": "The swt command line",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "apps/cli"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L6"
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./src/*": "./src/*"
+	},
+	"publishConfig": {
+		"bin": {
+			"swt": "./dist/bin.js"
+		},
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown"
 	},
 	"dependencies": {
 		"@swarmtales/contracts": "workspace:*",

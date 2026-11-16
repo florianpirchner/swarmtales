@@ -1931,6 +1931,9 @@ importers:
 
   packages/swarmtales:
     dependencies:
+      '@swarmtales/cli':
+        specifier: workspace:*
+        version: link:../../apps/cli
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../sdk

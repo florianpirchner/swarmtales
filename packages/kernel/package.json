@@ -1,10 +1,17 @@
 {
 	"name": "@swarmtales/kernel",
-	"version": "0.0.0",
-	"private": true,
+	"version": "1.0.0",
 	"description": "The single-writer state machine over an append-only log",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "packages/kernel"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L1"
@@ -16,9 +23,17 @@
 			"default": "./dist/index.js"
 		}
 	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		}
+	},
 	"files": [
 		"dist",
-		"src"
+		"kernel.api.md"
 	],
 	"scripts": {
 		"build": "tsdown",

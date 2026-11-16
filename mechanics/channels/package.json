@@ -1,10 +1,17 @@
 {
 	"name": "@swarmtales/mechanic-channels",
-	"version": "0.0.0",
-	"private": true,
+	"version": "1.0.0",
 	"description": "Mechanic: talk on the board, direct messages and notices",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "mechanics/channels"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",
@@ -24,9 +31,22 @@
 			"default": "./dist/contract.js"
 		}
 	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"./contract": {
+				"types": "./dist/contract.d.ts",
+				"default": "./dist/contract.js"
+			}
+		}
+	},
 	"files": [
 		"dist",
-		"src"
+		"prompts",
+		"mechanic-channels.api.md"
 	],
 	"scripts": {
 		"build": "tsdown",

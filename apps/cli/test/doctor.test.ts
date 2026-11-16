@@ -48,7 +48,7 @@ describe("swt doctor on an installed tree", () => {
 		const checks = check(cwd, "v22.23.4");
 		expect(lines(checks, "node")).toEqual(['ok Node v22.23.4 against the engines ">=22.19" of the installed swarmtales']);
 		expect(lines(checks, "versions")).toEqual(["ok the platform line: 3 packages at 1.0.0", "ok the plugins line: 1 packages at 0.1.0"]);
-		expect(lines(checks, "swt")).toEqual(["ok this swt is @swarmtales/cli 0.0.0"]);
+		expect(lines(checks, "swt")).toEqual(["ok this swt is @swarmtales/cli 1.0.0"]);
 		expect(checks.every((item) => item.status !== "fail")).toBe(true);
 	});
 
@@ -96,7 +96,7 @@ describe("swt doctor in a clone of the repository", () => {
 		const repository = fileURLToPath(new URL("../../..", import.meta.url));
 		const checks = check(repository, process.version);
 		expect(lines(checks, "node")[0]).toMatch(/against the clone's `\.node-version` 22\./);
-		expect(lines(checks, "versions")[0]).toMatch(/^ok the platform line: \d+ packages at 0\.0\.0$/);
+		expect(lines(checks, "versions")[0]).toMatch(/^ok the platform line: \d+ packages at 1\.0\.0$/);
 	});
 });
 

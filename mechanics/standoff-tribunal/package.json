@@ -1,10 +1,17 @@
 {
 	"name": "@swarmtales/mechanic-standoff-tribunal",
-	"version": "0.0.0",
-	"private": true,
+	"version": "0.1.0",
 	"description": "Mechanic: the holdout trial of Whispers",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "mechanics/standoff-tribunal"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",
@@ -26,9 +33,21 @@
 			"default": "./dist/contract.js"
 		}
 	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"./contract": {
+				"types": "./dist/contract.d.ts",
+				"default": "./dist/contract.js"
+			}
+		}
+	},
 	"files": [
 		"dist",
-		"src"
+		"prompts"
 	],
 	"scripts": {
 		"build": "tsdown",

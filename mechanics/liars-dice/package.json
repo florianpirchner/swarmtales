@@ -1,10 +1,17 @@
 {
 	"name": "@swarmtales/mechanic-liars-dice",
-	"version": "0.0.0",
-	"private": true,
+	"version": "0.1.0",
 	"description": "Mechanic: the rules of liar's dice",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "mechanics/liars-dice"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",
@@ -24,9 +31,21 @@
 			"default": "./dist/rules.js"
 		}
 	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"./rules": {
+				"types": "./dist/rules.d.ts",
+				"default": "./dist/rules.js"
+			}
+		}
+	},
 	"files": [
 		"dist",
-		"src"
+		"prompts"
 	],
 	"scripts": {
 		"build": "tsdown",

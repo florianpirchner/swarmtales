@@ -1,10 +1,17 @@
 {
 	"name": "@swarmtales/chain",
-	"version": "0.0.0",
-	"private": true,
+	"version": "1.0.0",
 	"description": "Pure verifier of the signed, hash-chained log of a run",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "packages/chain"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L0"
@@ -16,9 +23,17 @@
 			"default": "./dist/index.js"
 		}
 	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		}
+	},
 	"files": [
 		"dist",
-		"src"
+		"chain.api.md"
 	],
 	"scripts": {
 		"build": "tsdown",

@@ -1,10 +1,17 @@
 {
 	"name": "@swarmtales/mechanic-holdem",
-	"version": "0.0.0",
-	"private": true,
+	"version": "0.1.0",
 	"description": "Mechanic: fixed-limit hold'em with duplicate deals",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/florianpirchner/swarmtales.git",
+		"directory": "mechanics/holdem"
+	},
+	"engines": {
+		"node": ">=22.19"
+	},
 	"sideEffects": false,
 	"swarmtales": {
 		"kind": "mechanic",
@@ -19,9 +26,17 @@
 			"default": "./dist/index.js"
 		}
 	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		}
+	},
 	"files": [
 		"dist",
-		"src"
+		"prompts"
 	],
 	"scripts": {
 		"build": "tsdown",
