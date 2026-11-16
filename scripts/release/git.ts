@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * Read-only git for the release scripts (`13-m6-spec.md` 6.3): every call here reads the local clone. None writes a
- * ref, and none talks to a remote; what the owner runs against a remote is printed, never run.
+ * Read-only git for the release scripts (`13-m6-spec.md` 6.3): every call here reads the local clone, or, for
+ * `switch-main.ts`, lists a remote's refs with `git ls-remote`. None writes a ref; what the owner runs against a
+ * remote is printed, never run.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
