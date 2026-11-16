@@ -44,5 +44,5 @@ Mechanics: `grid`, `consensus`, `team-channel`, `strategy-brain`, `optimal-refer
 
 ## Runs
 
-No run on this platform yet. The recorded runs of the old platform are under `stories/tictactoe-teams/runs/` at the
+The runs on this platform are listed in [`RUNS.md`](RUNS.md), the first being the live baseline of M6 (issue M6-24). The recorded runs of the old platform are under `stories/tictactoe-teams/runs/` at the
 tag `v0-final`.
