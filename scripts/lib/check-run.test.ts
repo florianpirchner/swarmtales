@@ -11,19 +11,19 @@ describe("pnpm check", () => {
 		expect(CHECK_BUDGET).toEqual({ seconds: 600, memoryMb: 6144 });
 	});
 
-	it("runs only scripts that package.json defines, and lint in a 4 GB heap", () => {
+	it("runs only scripts that package.json defines, and the typecheck and lint in 4 GB heaps", () => {
 		const scripts = JSON.stringify(JSON.parse(readText("package.json")));
 		for (const gate of GATES) expect(scripts).toContain(`"${gate.command[1] ?? ""}":`);
 		expect(scripts).toContain('"lint":"node scripts/lint.ts"');
-		expect(readText("scripts/lint.ts")).toContain('"--max-old-space-size=4096", "node_modules/eslint/bin/eslint.js"');
+		expect(readText("scripts/lint.ts")).toContain('fork(import.meta.filename, ["--worker"], { execArgv: ["--max-old-space-size=4096"');
 		expect(scripts).toContain('"check":"node scripts/check.ts"');
 	});
 
-	it("runs every gate once, and the API reports after the build in the same lane", () => {
+	it("runs every gate once, and the build and the API reports after the typecheck in the same lane", () => {
 		const byLane = lanes(GATES);
 		expect(byLane.flat().map((gate) => gate.name).sort()).toEqual(GATES.map((gate) => gate.name).sort());
 		const types = byLane.find((gates) => gates.some((gate) => gate.name === "build")) ?? [];
-		expect(types.map((gate) => gate.name)).toEqual(["typecheck", "build", "API reports"]);
+		expect(types.map((gate) => gate.command.join(" "))).toEqual(["pnpm lint", "pnpm build", "pnpm api"]);
 		expect(lanes([{ name: "b", command: [], lane: 2 }, { name: "a", command: [], lane: 0 }, { name: "c", command: [], lane: 2 }]).map((gates) => gates.map((gate) => gate.name))).toEqual([["a"], ["b", "c"]]);
 	});
 
@@ -40,8 +40,8 @@ describe("pnpm check", () => {
 	});
 
 	it("fails on a failed gate, a gate that did not run, and a crossed budget of the whole", () => {
-		expect(failures(run([{ name: "typecheck", ok: false, seconds: 1, peakMb: 1 }]))).toEqual([
-			'the gate "typecheck" failed',
+		expect(failures(run([{ name: "layer check", ok: false, seconds: 1, peakMb: 1 }]))).toEqual([
+			'the gate "layer check" failed',
 			`${GATES.length - 1} gate(s) did not run`,
 		]);
 		// The time is the time of the whole, not the sum of the gates: the lanes run side by side.
