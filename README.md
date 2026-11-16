@@ -93,7 +93,7 @@ hidden information, markets and bids) are ported from the old platform. The cata
 
 ## Requirements and keys
 
-Node 26.13 or newer (the one source is [`.node-version`](.node-version)) and pnpm. `pnpm install`, then
+Node 22.19 or newer (`engines`; the checks run on [`.node-version`](.node-version)) and pnpm. `pnpm install`, then
 `pnpm check`. Nothing here calls a model yet. Key names will start with `SWT_`; keys never reach a log.
 
 ## Honest limits

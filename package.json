@@ -7,7 +7,7 @@
 	"description": "Swarm Tales: a laboratory for AI agents. Games and societies on one engine, every word and every private thought on record",
 	"packageManager": "pnpm@10.28.0",
 	"engines": {
-		"node": ">=26.13"
+		"node": ">=22.19"
 	},
 	"scripts": {
 		"typecheck": "tsc -b",
