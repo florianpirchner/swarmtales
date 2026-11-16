@@ -46,6 +46,8 @@ export type ModelAnswer =
 			readonly reason: "limit" | "invalid" | "error";
 			/** The reason in words, for the log. */
 			readonly detail: string;
+			/** What the request cost, in US dollars, when one was paid for: the asker sets it for `invalid`. Left out: nothing was paid, or the cost is not known. */
+			readonly costUsd?: number;
 	  };
 
 /**

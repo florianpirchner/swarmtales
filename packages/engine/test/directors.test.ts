@@ -9,7 +9,7 @@ import { createKernel } from "@swarmtales/kernel";
 import { defineDirector, defineHead, defineMechanic, reply, resolveGame, type DirectorDefinition } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { createDirectorDrivers, DIRECTOR_RECORDS } from "../src/directors/driver.ts";
+import { createDirectorDrivers, createReviewPort, DIRECTOR_RECORDS, REVIEW_RECORDS } from "../src/directors/driver.ts";
 import { turns } from "../src/turns/turns.ts";
 
 const Line = Type.Object({ line: Type.String({ description: "The line" }) }, { description: "A line" });
@@ -123,17 +123,19 @@ describe("the Director's driver in a real kernel", () => {
 	});
 
 	it("takes the fallback for an answer that does not fit and for no answer; without a fallback nothing is called", async () => {
-		const script = { "0:A01": ["a"], "1:A01": ["b"] };
-		const answers: ModelAnswer[] = [{ ok: true, value: { line: 5 }, costUsd: 0.02 }, { ok: false, reason: "limit", detail: "the cap is reached" }];
+		const script = { "0:A01": ["a"], "1:A01": ["b"], "2:A01": ["c"] };
+		// P482: the asker's `invalid` (an answer it could not read) carries what the request cost into `answered`.
+		const answers: ModelAnswer[] = [{ ok: true, value: { line: 5 }, costUsd: 0.02 }, { ok: false, reason: "limit", detail: "the cap is reached" }, { ok: false, reason: "invalid", detail: "no JSON", costUsd: 0.03 }];
 		const invalid = { ok: false, costUsd: 0.02, reason: "invalid", detail: "the answer does not fit the output of the Director" };
 		const limit = { ok: false, costUsd: 0, reason: "limit", detail: "the cap is reached" };
+		const unread = { ok: false, costUsd: 0.03, reason: "invalid", detail: "no JSON" };
 		const calm = setup({ script, answers, fallback: "calm" });
 		await calm.kernel.run(calm.drivers);
-		expect([payloads(calm.kernel, "answered"), payloads(calm.kernel, "posted")]).toEqual([[{ ...invalid, fallback: true }, { ...limit, fallback: true }], [{ line: "calm" }, { line: "calm" }]]);
+		expect([payloads(calm.kernel, "answered"), payloads(calm.kernel, "posted")]).toEqual([[{ ...invalid, fallback: true }, { ...limit, fallback: true }, { ...unread, fallback: true }], [{ line: "calm" }, { line: "calm" }, { line: "calm" }]]);
 		const bare = setup({ script, answers });
 		expect(await bare.kernel.run(bare.drivers)).toEqual({ reason: "ticks", tick: 3 });
-		expect([payloads(bare.kernel, "answered"), bare.outcomes]).toEqual([[{ ...invalid, fallback: false }, { ...limit, fallback: false }], []]);
-		expect(lines(bare.kernel, "tool_called").filter((line) => line.includes(WARDEN))).toEqual(['0 tool_called director:warden {"as":"take","params":{}}', '1 tool_called director:warden {"as":"take","params":{}}']);
+		expect([payloads(bare.kernel, "answered"), bare.outcomes]).toEqual([[{ ...invalid, fallback: false }, { ...limit, fallback: false }, { ...unread, fallback: false }], []]);
+		expect(lines(bare.kernel, "tool_called").filter((line) => line.includes(WARDEN))).toEqual(['0 tool_called director:warden {"as":"take","params":{}}', '1 tool_called director:warden {"as":"take","params":{}}', '2 tool_called director:warden {"as":"take","params":{}}']);
 	});
 
 	it("gets `TOOL_NOT_GRANTED` for a tool outside its grant, and a throw of `act` ends the run", async () => {
@@ -176,5 +178,31 @@ describe("the Director's driver in a real kernel", () => {
 			await drivers[WARDEN]?.({ actor: WARDEN, tick: 0, basis: 0, detail: {}, inputs: [], tools: [], call, record });
 		}
 		expect([calls, asked, Object.keys(drivers), createDirectorDrivers({ game: { ...game, directors: [] }, ask: record })]).toEqual([["take", "take", "take"], [], ["resident", WARDEN], {}]);
+	});
+
+	it("P482: writes the cost of an unreadable answer into the review's `answered`; a refused question costs 0", async () => {
+		const guard = defineDirector({ id: "guard", summary: "Answers the reviews of the guard.", on: [], output: Line, answers: "guard" }, { system: () => "You are the guard.", input: () => "Keeps it the rule?", act: () => Promise.resolve() });
+		const game = resolveGame({
+			game: { schema: 1, id: "demo", residents: 1, mechanics: [{ use: "votes" }], directors: [{ use: "guard" }], scheduler: { id: "turns", options: { order: "roster", afterBlocks: ["director"] } }, end: { ticks: 1 } },
+			installed: { votes },
+			directors: { guard },
+			schedulers: { turns },
+			prompts: { render: (_owner, id) => id },
+			records: [DIRECTOR_RECORDS, REVIEW_RECORDS],
+		});
+		// The guard's first answer of whispers-001 (#69, #70): read as `invalid`, and paid for.
+		const answers: ModelAnswer[] = [{ ok: false, reason: "invalid", detail: "no JSON", costUsd: 0.000176775 }, { ok: false, reason: "limit", detail: "the cap is reached" }, { ok: true, value: { line: 7 }, costUsd: 0.01 }];
+		const actors: string[] = [];
+		const port = createReviewPort({ game, ask: (activation) => (actors.push(activation.actor), Promise.resolve(answers[actors.length - 1] ?? { ok: false, reason: "error", detail: "none" })) });
+		const answered: unknown[] = [];
+		const call = { tool: "@test/votes/votes/propose", name: "propose", as: "propose", owner: "votes", actor: "resident:A01", params: { line: "x" }, seq: 5 } as const;
+		const record = (source: string, type: string, payload: unknown) => {
+			if (type === "answered") answered.push(payload);
+			return { seq: 6, tick: 0, source, type, actor: call.actor, causedBy: call.seq, payload };
+		};
+		const ask = () => port.ask({ answerer: "guard", question: { text: "x" }, call, record });
+		const results = [await ask(), await ask(), await ask()];
+		expect([results, actors]).toEqual([[{ ok: false }, { ok: false }, { ok: false }], ["director:guard", "director:guard", "director:guard"]]);
+		expect(answered).toEqual([{ answerer: "guard", ok: false, costUsd: 0.000176775, reason: "invalid" }, { answerer: "guard", ok: false, costUsd: 0, reason: "limit" }, { answerer: "guard", ok: false, reason: "invalid", costUsd: 0.01 }]);
 	});
 });

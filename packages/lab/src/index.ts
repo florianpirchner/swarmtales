@@ -12,6 +12,7 @@ export { type Effect, pairedEffect, share, unpairedEffect } from "./stats/effect
 export { BOOTSTRAP_SEED, summarize } from "./stats/summary.ts";
 export { shareWithinNoise, type Tolerance, withinNoise } from "./stats/tolerance.ts";
 export { ACTOR_KEYS, factsOf, type FactValue, type RunFacts } from "./facts/facts.ts";
+export { chargeOf } from "./facts/charge.ts";
 export { readRun } from "./facts/read.ts";
 export { COMPARE_FIELDS, comparable } from "./experiment/compare.ts";
 export { checkMetrics, type PlannedRun, planRuns } from "./experiment/plan.ts";

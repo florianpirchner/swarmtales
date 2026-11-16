@@ -525,6 +525,7 @@ export type ModelAnswer = {
     readonly ok: true;
     readonly value: unknown;
 } | {
+    readonly costUsd?: number;
     readonly detail: string;
     readonly ok: false;
     readonly reason: "error" | "invalid" | "limit";

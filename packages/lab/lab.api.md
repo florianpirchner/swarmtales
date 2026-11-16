@@ -4,6 +4,7 @@
 
 ```ts
 
+import { ActorId } from '@swarmtales/contracts';
 import { Envelope } from '@swarmtales/contracts';
 import { MetricDefinition } from '@swarmtales/contracts';
 import { RunManifest } from '@swarmtales/contracts';
@@ -43,6 +44,9 @@ export const BOOTSTRAP_SEED = 20261114;
 
 // @public
 export function centipawns(score: Score, cap?: number): number;
+
+// @public
+export function chargeOf(manifest: RunManifest): (event: Envelope) => ActorId;
 
 // @public
 export function checkMetrics(spec: ExperimentSpec, known: readonly string[], generic: boolean): void;

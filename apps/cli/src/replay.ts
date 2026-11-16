@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { EVENTS_FILE, jsonHash } from "@swarmtales/chain";
 import { redactSecrets, RunManifestSchema, StoredEnvelopeSchema, SwtError, type Envelope, type EventSink, type KernelPorts, type RecordSource, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import { DIRECTOR_RECORDS, REVIEW_RECORDS } from "@swarmtales/engine";
-import { parseLabFile } from "@swarmtales/lab";
+import { chargeOf, parseLabFile } from "@swarmtales/lab";
 import { createCostMeter, DIRECTOR_MODEL_RECORDS, RESIDENT_RECORDS } from "@swarmtales/models";
 import { MANIFEST_FILE, readSnapshotFile, SNAPSHOTS_FOLDER, verifyRun, type SessionSnapshotFile } from "@swarmtales/runlog";
 import { replay, type ReplayInput, type ReplayResult } from "@swarmtales/testkit";
@@ -33,10 +33,13 @@ function capOf(manifest: RunManifest): Pick<KernelPorts, "limits" | "sinks"> {
 	// A run of an older runtime revision is metered by the rule it was played with.
 	const meter = createCostMeter(cap, { revision: manifest.kernel.revision });
 	const answers = new Set([RESIDENT_RECORDS.id, DIRECTOR_MODEL_RECORDS.id]);
+	// A review's answer is counted under the Director that answered, as its asker counted it in the run (P482).
+	const charge = chargeOf(manifest);
 	const sink: EventSink = {
 		write(event) {
+			const payer = charge(event);
 			if (!answers.has(event.source)) return;
-			if (event.type === "response") meter.add(event.actor, Parse(Usage, event.payload));
+			if (event.type === "response") meter.add(payer, Parse(Usage, event.payload));
 			// Runtime revision 6: the line where the run's meter closed, an answer whose cost is not known.
 			if (event.type === "cost_unknown") meter.close(Parse(Closed, event.payload).reason);
 		},

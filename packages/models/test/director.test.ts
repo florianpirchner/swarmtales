@@ -136,10 +136,12 @@ describe("the asker", () => {
 	});
 
 	it("gives `invalid` for an answer that is no JSON or does not fit the output, and still counts its cost", async () => {
-		const { answers, meter } = await run([say("I say: order."), say('{"line":7}'), say('{"line":"x","more":1}')], { usd: [0.01, 0.01, 0.01] });
+		const { answers, meter } = await run([say("I say: order."), say('{"line":7}'), say('{"line":"x","more":1}')], { usd: [0.01, 0.02, 0.03] });
 		expect(answers.map((answer) => (answer.ok ? "ok" : answer.reason))).toEqual(["invalid", "invalid", "invalid"]);
+		// P482: the unreadable answer carries what its request cost.
+		expect(answers.map((answer) => answer.costUsd)).toEqual([0.01, 0.02, 0.03]);
 		expect(meter.total.requests).toBe(3);
-		expect(meter.total.costUsd).toBeCloseTo(0.03);
+		expect(meter.total.costUsd).toBeCloseTo(0.06);
 	});
 
 	// Runtime revision 7 (A100, P480): the schema written back, or a first answer reasoned past, comes before the answer.

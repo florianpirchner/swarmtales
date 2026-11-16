@@ -7,6 +7,7 @@
 import type { Envelope, MetricDefinition, RunManifest } from "@swarmtales/contracts";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
+import { chargeOf } from "./charge.ts";
 
 /**
  * One value of a run: a number, or `"absent"` when the run has no value for the key.
@@ -105,10 +106,16 @@ function summed(responses: readonly Envelope[], field: (typeof SUMS)[number][1])
 }
 
 // The requests and the cost of every actor that has a model or wrote a record: an actor that asked nothing reads 0.
-function actorValues(manifest: RunManifest, records: readonly Envelope[]): [string, FactValue][] {
-	const actors = new Set<string>([...manifest.actors.filter((actor) => actor.model !== undefined).map((actor) => actor.id), ...records.map((event) => event.actor)]);
+// A record is counted under the actor it is charged to: a review's request under the answering Director (P482).
+function actorValues(manifest: RunManifest, events: readonly Envelope[]): [string, FactValue][] {
+	const charge = chargeOf(manifest);
+	const records = events.flatMap((event) => {
+		const payer = charge(event);
+		return DRIVERS.includes(event.source) ? [{ payer, event }] : [];
+	});
+	const actors = new Set<string>([...manifest.actors.filter((actor) => actor.model !== undefined).map((actor) => actor.id), ...records.map(({ payer }) => payer)]);
 	return [...actors].flatMap((actor): [string, FactValue][] => {
-		const own = records.filter((event) => event.actor === actor);
+		const own = records.filter(({ payer }) => payer === actor).map(({ event }) => event);
 		return [[`${ACTOR_KEYS.requests}${actor}`, count(own, "request")], [`${ACTOR_KEYS.costUsd}${actor}`, summed(own.filter((event) => event.type === "response"), "costUsd")]];
 	});
 }
@@ -122,7 +129,7 @@ function modelValues(manifest: RunManifest, events: readonly Envelope[]): Record
 	return Object.fromEntries([
 		...DRIVER_COUNTS.map(([key, type]): [string, FactValue] => [key, driven ? count(records, type) : "absent"]),
 		...SUMS.map(([key, field]): [string, FactValue] => [key, driven ? summed(responses, field) : "absent"]),
-		...(driven ? actorValues(manifest, records) : []),
+		...(driven ? actorValues(manifest, events) : []),
 	]);
 }
 
@@ -150,7 +157,8 @@ function metricValues(manifest: RunManifest, events: readonly Envelope[], metric
  * driver: no actor of the manifest has a model and the log holds no record of the driver. A run with one has two
  * more keys for every actor that has a model or wrote a record, `models.requests.<actor id>` and
  * `models.costUsd.<actor id>` ({@link ACTOR_KEYS}): an actor that made no request reads `0`. The records of a
- * Director's asker count like those of the model driver, in the keys of the run too.
+ * Director's asker count like those of the model driver, in the keys of the run too; the records of a review,
+ * which the log writes under the caller, count under the Director that answered it ({@link chargeOf}).
  *
  * Two keys of the run come from the kernel's events whatever drives the actors: `run.noCallActivations` counts the
  * `activation_closed` events with the outcome `no-call` (turns that ended without a call), with one more key

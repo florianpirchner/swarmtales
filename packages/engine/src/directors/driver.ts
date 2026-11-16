@@ -50,7 +50,7 @@ export interface DirectorDriverInput {
 // What the model's answer is worth: the value to act on, when there is one, and the record `answered`.
 function settle(director: ResolvedDirector, ctx: DirectorContext<unknown>, answer: ModelAnswer): { readonly value: unknown; readonly record: Static<typeof AnsweredSchema> } {
 	if (answer.ok && Check(director.definition.output, answer.value)) return { value: answer.value, record: { ok: true, fallback: false, costUsd: answer.costUsd } };
-	const why = answer.ok ? { costUsd: answer.costUsd, reason: "invalid" as const, detail: "the answer does not fit the output of the Director" } : { costUsd: 0, reason: answer.reason, detail: answer.detail };
+	const why = answer.ok ? { costUsd: answer.costUsd, reason: "invalid" as const, detail: "the answer does not fit the output of the Director" } : { costUsd: answer.costUsd ?? 0, reason: answer.reason, detail: answer.detail };
 	const value = director.definition.fallback(ctx);
 	return { value, record: { ok: false, fallback: value !== undefined, ...why } };
 }
@@ -141,7 +141,7 @@ export function createReviewPort(input: DirectorDriverInput): ReviewPort {
 			const ctx = directorContext(director, { tick, firings: [], question }, input.facts);
 			const answer = await input.ask({ actor: director.actor, tick, basis: call.seq, detail: {}, inputs: [], tools: [], call: () => Promise.resolve({ ok: false, code: "TOOL_NOT_GRANTED" }), record }, { system: director.definition.system(ctx), input: director.definition.input(ctx), output: director.definition.output });
 			const fits = answer.ok && Check(director.definition.output, answer.value);
-			record(REVIEW_RECORDS.id, "answered", answer.ok ? { answerer, ok: fits, ...(fits ? { answer: answer.value } : { reason: "invalid" }), costUsd: answer.costUsd } : { answerer, ok: false, costUsd: 0, reason: answer.reason });
+			record(REVIEW_RECORDS.id, "answered", answer.ok ? { answerer, ok: fits, ...(fits ? { answer: answer.value } : { reason: "invalid" }), costUsd: answer.costUsd } : { answerer, ok: false, costUsd: answer.costUsd ?? 0, reason: answer.reason });
 			return answer.ok && fits ? { ok: true, answer: answer.value } : { ok: false };
 		},
 	};

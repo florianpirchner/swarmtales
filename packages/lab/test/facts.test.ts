@@ -187,6 +187,29 @@ describe("factsOf", () => {
 		expect(broken).toMatchObject({ "models.requests": 0, "models.inputTokens": "absent", "models.costUsd": "absent", "models.requests.resident:A01": 0, "models.costUsd.resident:A01": "absent" });
 	});
 
+	it("P482: charges a review's requests to the answering Director, not to the resident whose call it reviews", () => {
+		const usage = (costUsd: number) => ({ provider: "anthropic", model: "m", stopReason: "stop", input: 4, output: 213, cacheRead: 0, cacheWrite: 559, costUsd });
+		const model = { provider: "anthropic", requestedId: "haiku", resolvedId: "m", params: { temperature: 1, topP: "provider-default", maxOutputTokens: 1024, thinking: "off" }, pricing: "pi-ai@1" } as const;
+		const guard = actorId("director", "guard");
+		const actors = [...MANIFEST.actors, { id: guard, kind: "director", grant: "guard", driver: "@swarmtales/engine/director", model, textHashes: {} }];
+		const ASKER = "@swarmtales/models/director";
+		const REVIEW = "@swarmtales/engine/review";
+		// The shape of whispers-001 (#65 to #70): every record of the review is the resident's and caused by its `tool_called`.
+		const review = (call: number, answerer: string): Envelope[] => [
+			{ seq: call, tick: 0, source: "kernel", type: "tool_called", actor: A01, causedBy: call - 1, payload: { as: "say", params: {} } },
+			...([[REVIEW, "asked", { answerer, question: {} }], [ASKER, "request", { inputs: ["q"], tools: [], messages: 0 }], [ASKER, "response", usage(0.25)], [REVIEW, "answered", { answerer, ok: false, costUsd: 0.25, reason: "invalid" }]] as const).map(
+				([source, type, payload], index): Envelope => ({ seq: call + 1 + index, tick: 0, source, type, actor: A01, causedBy: call, payload }),
+			),
+		];
+		const resident: Envelope[] = [{ seq: 1, tick: 0, source: DRIVER, type: "request", actor: A01, causedBy: 0, payload: {} }, { seq: 2, tick: 0, source: DRIVER, type: "response", actor: A01, causedBy: 1, payload: usage(0.5) }];
+		const values = factsOf({ ...MANIFEST, actors }, [...resident, ...review(3, "guard"), ...review(8, "guard")], {});
+		expect(values).toMatchObject({ "models.requests": 3, "models.costUsd": 1, "models.requests.director:guard": 2, "models.costUsd.director:guard": 0.5, "models.requests.resident:A01": 1, "models.costUsd.resident:A01": 0.5 });
+		// An answerer that is no actor of the run leaves the request with the caller.
+		const stray = factsOf({ ...MANIFEST, actors }, review(3, "warden"), {});
+		expect(stray).toMatchObject({ "models.requests.director:guard": 0, "models.requests.resident:A01": 1, "models.costUsd.resident:A01": 0.25 });
+		expect("models.requests.director:warden" in stray).toBe(false);
+	});
+
 	it("A44: counts the activations that closed without a call, in the run and per actor; P452: counts the tool calls of the human", () => {
 		const A03 = actorId("resident", "A03");
 		const closed = (actor: ActorId, outcome: string, calls: number) => [0, "kernel", "activation_closed", actor, { actor, calls, outcome }] as const;

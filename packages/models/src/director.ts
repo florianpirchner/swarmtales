@@ -91,7 +91,8 @@ function counted(message: AssistantMessage, actor: ActorId, binding: ModelBindin
 // The value of an answer text (read by `readAnswer`: the whole text, else the last object that fits the output).
 function valueOf(text: string, output: unknown, costUsd: number): ModelAnswer {
 	const read = readAnswer(text, output);
-	return read.ok ? { ok: true, value: read.value, costUsd } : none("invalid", read.detail);
+	// An answer that cannot be read was paid for all the same (P482).
+	return read.ok ? { ok: true, value: read.value, costUsd } : { ...none("invalid", read.detail), costUsd };
 }
 
 // The answer of one message: its error, or the value of its text. `known` is false when its cost could not be counted.
