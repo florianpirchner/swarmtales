@@ -18,7 +18,7 @@ import type { EventChain } from "./chain-writer.ts";
  * const sink = createSink(new EventChain(directory, genesis), () => new Date());
  * ```
  *
- * @public
+ * @internal
  */
 export function createSink(chain: EventChain, now: () => Date, redact: Redact = redactSecrets): EventSink {
 	return {

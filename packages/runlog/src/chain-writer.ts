@@ -34,7 +34,7 @@ function isRunEnd(value: unknown): boolean {
 	return typeof value === "object" && value !== null && Reflect.get(value, "type") === "run_ended" && Reflect.get(value, "source") === "kernel";
 }
 
-/** The options of an {@link EventChain}. @public */
+/** The options of an {@link EventChain}. @internal */
 export interface EventChainOptions {
 	/** A fixed key pair instead of a fresh one; for tests only (the chain's determinism). */
 	readonly keys?: { readonly publicKey: KeyObject; readonly privateKey: KeyObject };
@@ -50,7 +50,7 @@ export interface EventChainOptions {
  * chain.close();
  * ```
  *
- * @public
+ * @internal
  */
 export class EventChain {
 	readonly #events: string;

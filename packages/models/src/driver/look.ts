@@ -19,7 +19,7 @@ import { createResidentSession } from "./session.ts";
 /**
  * The model requests of one look when the Director's limits do not say: the old `modelCallsPerTurn`.
  *
- * @public
+ * @internal
  */
 export const LOOK_REQUESTS = 2;
 

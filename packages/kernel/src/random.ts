@@ -20,7 +20,7 @@ import type { RandomSource } from "@swarmtales/contracts";
  * createRng(1).next(); // 0.6270739405881613
  * ```
  *
- * @public
+ * @internal
  */
 export function createRng(seed: number): RandomSource {
 	let state = seed >>> 0;
@@ -67,7 +67,7 @@ export function createRng(seed: number): RandomSource {
  * @param text - The text.
  * @returns The hash, from 0 to 2^32 - 1.
  *
- * @public
+ * @internal
  */
 export function seedFrom(text: string): number {
 	let hash = 0x811c9dc5;
@@ -86,7 +86,7 @@ export function seedFrom(text: string): number {
  * @param parts - The labels of the purpose.
  * @returns The derived seed.
  *
- * @public
+ * @internal
  */
 export function deriveSeed(seed: number, ...parts: readonly (string | number)[]): number {
 	return seedFrom([String(seed >>> 0), ...parts.map(String)].join(":"));

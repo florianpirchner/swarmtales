@@ -12,7 +12,7 @@ import { Check } from "typebox/value";
 /**
  * The canonical name of the tool a Director takes its firings with.
  *
- * @public
+ * @internal
  */
 export const TAKE_TOOL = "@swarmtales/sdk/directors/take";
 

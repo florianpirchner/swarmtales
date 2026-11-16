@@ -34,7 +34,7 @@ function registrations<F, G>(slot: HookSlot<F> | undefined, bound: (run: F) => G
  * @param hooks - The hooks of the body; undefined: none.
  * @returns The kernel's hooks. `news` and `toAct` are set only when the mechanic has them.
  *
- * @public
+ * @internal
  */
 export function bindHooks<M extends MechanicShape>(parts: InstanceParts<M>, hooks: MechanicHooks<M> | undefined): PluginHooks {
 	const ctx: MechanicContext<M> = contextFor(parts);
@@ -99,7 +99,7 @@ function viewOf(call: ToolCall): StageCall {
  * @param pipeline - The pipeline of the body; undefined: none.
  * @returns The kernel's stage handlers; a stage the mechanic does not handle is left out.
  *
- * @public
+ * @internal
  */
 export function bindStages<M extends MechanicShape>(parts: InstanceParts<M>, pipeline: MechanicPipeline<M> | undefined): StageHandlers {
 	if (pipeline === undefined) return {};

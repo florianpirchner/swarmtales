@@ -39,13 +39,19 @@ export function act(...calls: readonly {
     readonly name: string;
 }[]): ScriptStep;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "asksReset" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function asksReset(activation: Activation): boolean;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "BUILTIN_PROVIDERS" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const BUILTIN_PROVIDERS: readonly ProviderSpec[];
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "callOutsideActivation" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function callOutsideActivation(actor: string): SwtIssue;
 
 // @public
@@ -57,10 +63,14 @@ export interface CityPromptFacts {
     readonly tools: "all" | "story";
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "closedModels" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function closedModels(): MutableModels;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "CONTEXT_RESET_KIND" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const CONTEXT_RESET_KIND = "context-reset";
 
 // @public
@@ -100,22 +110,30 @@ export function createModelSource(settings: ModelSettings, registry: ProviderReg
 // @public
 export function createProviderRegistry(extra?: readonly ProviderSpec[]): ProviderRegistry;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "createResidentSession" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function createResidentSession(input: SessionInput): ResidentSession;
 
 // @public
 export function createToolDirector(input: LookInput): Look;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "createToolsNotice" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function createToolsNotice(texts: PromptLookup, last?: readonly string[]): ToolsNotice;
 
 // @public
 export const DIRECTOR_MODEL_RECORDS: RecordSource;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "EMPTY_QUESTION" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const EMPTY_QUESTION = "the question is empty: nothing was sent";
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "emptyModel" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function emptyModel(provider: string): SwtIssue;
 
 // @public
@@ -124,10 +142,14 @@ export function fail(message: string): ScriptStep;
 // @public
 export function formatUsd(amount: number): string;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "isSafeguardRefusal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function isSafeguardRefusal(error: string | undefined): boolean;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "isToolChoice" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function isToolChoice(value: string): value is ToolChoice;
 
 // @public
@@ -148,10 +170,14 @@ export interface KeyBroker {
 // @public
 export function keyLeaked(files: readonly string[]): SwtIssue;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "limitedStream" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function limitedStream(models: Models, limits: RequestLimits): StreamFn;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "limitsFor" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function limitsFor(maxTokens: number, limits: RequestLimits): RequestLimits;
 
 // @public
@@ -160,7 +186,9 @@ export type Look = (activation: Activation, question: {
     readonly system: string;
 }) => Promise<void>;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "LOOK_REQUESTS" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const LOOK_REQUESTS = 2;
 
 // @public
@@ -177,7 +205,9 @@ export interface LookInput {
     readonly source: ModelSource;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "MODEL_DEFAULTS" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const MODEL_DEFAULTS: Readonly<{
     readonly maxOutputTokens: 4000;
     readonly thinking: "medium";
@@ -217,7 +247,9 @@ export interface ModelEnv {
     readonly SWT_PROVIDER?: string;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "modelOf" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function modelOf(provider: Provider, modelId: string, redact?: Redact): Model<Api>;
 
 // @public
@@ -242,16 +274,24 @@ export interface ModelSource {
     bind(actor: ActorId, limits: RequestLimits): ModelBinding;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "noCostCap" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function noCostCap(): SwtIssue;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "noKey" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function noKey(provider: string, variables: readonly string[]): SwtIssue;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "noPrice" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function noPrice(provider: string, model: string): SwtIssue;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "openRouterProviderPreferences" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function openRouterProviderPreferences(routing: OpenRouterRouting): Readonly<Record<string, unknown>>;
 
 // @public
@@ -260,7 +300,9 @@ export interface OpenRouterRouting {
     readonly order?: readonly string[];
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "outcomeText" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function outcomeText(outcome: ToolOutcome): string;
 
 // @public
@@ -285,7 +327,9 @@ export interface PromptPersona {
     readonly voice: string;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "PROVIDER_RETRIES" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const PROVIDER_RETRIES = 6;
 
 // @public
@@ -305,7 +349,9 @@ export interface ProviderSpec {
     readonly modelAliases?: Readonly<Record<string, string>>;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "recordMismatch" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function recordMismatch(type: string, path: string, message: string): SwtIssue;
 
 // @public
@@ -323,15 +369,20 @@ export const RESIDENT_DRIVER = "@swarmtales/models/resident";
 // @public
 export const RESIDENT_RECORDS: RecordSource;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "residentRecord" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function residentRecord<Type extends keyof ResidentRecords>(type: Type, payload: ResidentRecords[Type]): ResidentRecords[Type];
 
 // Warning: (ae-forgotten-export) The symbol "SCHEMAS" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "ResidentRecords" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @public
+// @internal
 export type ResidentRecords = { readonly [Type in keyof typeof SCHEMAS]: Static<(typeof SCHEMAS)[Type]>; };
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "ResidentSession" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface ResidentSession {
     declare(specs: readonly ToolSpec[]): void;
     readonly declared: readonly string[];
@@ -350,7 +401,9 @@ export const SAVED_SESSION_FORMAT = 1;
 // @public
 export type SavedSession = Static<typeof SavedSessionSchema>;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "savedSessionInvalid" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function savedSessionInvalid(actor: string, reason: string): SwtIssue;
 
 // @public
@@ -389,7 +442,9 @@ export function scriptedSource(script: Script): ModelSource;
 // @public
 export type ScriptStep = FauxResponseStep;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "SessionInput" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface SessionInput {
     readonly actor: ActorId;
     readonly binding: ModelBinding;
@@ -401,7 +456,9 @@ export interface SessionInput {
     readonly tools: readonly ToolSpec[];
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "shortKey" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function shortKey(variable: string): SwtIssue;
 
 // @public
@@ -414,7 +471,9 @@ export interface Spend {
     readonly requests: number;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "StepFrame" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface StepFrame {
     readonly notice?: readonly string[];
     readonly open: readonly string[];
@@ -426,35 +485,53 @@ export function systemPrompt(facts: PromptFacts, texts: PromptLookup): string;
 // @public
 export type ThinkingLevel = NonNullable<ModelChoice["thinking"]>;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "thrown" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function thrown(issue: SwtIssue | readonly SwtIssue[], redact: Redact): SwtError;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "TOOL_CHOICES" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const TOOL_CHOICES: readonly ["auto", "required", "none"];
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "ToolChoice" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export type ToolChoice = (typeof TOOL_CHOICES)[number];
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "toolChoiceDefaults" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function toolChoiceDefaults(choice: ToolChoice, api: string): Readonly<Record<string, unknown>>;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "ToolsNotice" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface ToolsNotice {
     forget(): void;
     readonly last: readonly string[] | undefined;
     next(open: readonly string[]): readonly string[];
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "toolsNotice" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function toolsNotice(tools: readonly string[], texts: PromptLookup): string;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "unknownModel" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function unknownModel(provider: string, model: string, known: readonly string[]): SwtIssue;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "unknownProvider" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function unknownProvider(provider: string, known: readonly string[]): SwtIssue;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "withRequestDefaults" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function withRequestDefaults(payload: unknown, defaults: Readonly<Record<string, unknown>> | undefined): unknown;
 
 // (No @packageDocumentation comment for this package)

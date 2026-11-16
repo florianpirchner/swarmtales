@@ -33,7 +33,7 @@ const none = (reason: "limit" | "invalid" | "error", detail: string): ModelAnswe
 /**
  * The detail of the answer to a question whose input is empty: the asker sends no request and writes no record.
  *
- * @public
+ * @internal
  */
 export const EMPTY_QUESTION = "the question is empty: nothing was sent";
 

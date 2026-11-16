@@ -29,7 +29,7 @@ export const ActorIdSchema = Type.Unsafe<ActorId>(
 /**
  * The schema of `InputNote`: one line of an activation's inputs as shown.
  *
- * @public
+ * @internal
  */
 export const InputNoteSchema = Type.Object(
 	{
@@ -43,7 +43,7 @@ export const InputNoteSchema = Type.Object(
 /**
  * The schema of `RunEnd`: how a run ended.
  *
- * @public
+ * @internal
  */
 export const RunEndSchema = Type.Object(
 	{

@@ -33,7 +33,7 @@ export const DIRECTOR_TAKE: CanonicalTool = `@swarmtales/sdk/${DIRECTORS_PLUGIN}
 /**
  * What {@link resolveDirectors} takes.
  *
- * @public
+ * @internal
  */
 export interface DirectorsInput {
 	/** The game. */
@@ -69,7 +69,7 @@ const activates = (options: JsonValue): boolean => typeof options === "object" &
  * list option of its scheduler names the kind `director`. A taken name is reported by `directorsOf`.
  * @throws Whatever a definition's `parseOptions` throws that is no `SwtError`.
  *
- * @public
+ * @internal
  */
 export function resolveDirectors(input: DirectorsInput): { readonly directors: readonly ResolvedDirector[]; readonly issues: readonly SwtIssue[] } {
 	const { definitions, events, scheduler } = input;
@@ -101,7 +101,7 @@ export function resolveDirectors(input: DirectorsInput): { readonly directors: r
  * @param directors - The Directors of the game.
  * @returns The grants; unchanged for a game without a Director.
  *
- * @public
+ * @internal
  */
 export function directorGrants(grants: Readonly<Record<string, readonly CanonicalTool[]>>, directors: readonly ResolvedDirector[]): Readonly<Record<string, readonly CanonicalTool[]>> {
 	const own = (name: string): readonly CanonicalTool[] => (Object.hasOwn(grants, name) ? grants[name] : undefined) ?? [];

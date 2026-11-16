@@ -29,7 +29,7 @@ const JsonValueSchema = Type.Unsafe<JsonValue>(
 /**
  * The schema of `Job`: a scheduled job of a plugin.
  *
- * @public
+ * @internal
  */
 export const JobSchema = Type.Object(
 	{

@@ -63,7 +63,7 @@ export interface ModelEnv {
 /**
  * The thinking level and the output limit of a game without them.
  *
- * @public
+ * @internal
  */
 export const MODEL_DEFAULTS = Object.freeze({ thinking: "medium", maxOutputTokens: 4000 } as const);
 

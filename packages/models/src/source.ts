@@ -53,7 +53,7 @@ const CLOSED: AuthContext = Object.freeze({ env: () => Promise.resolve(undefined
  *
  * @returns The empty collection; a provider is added with `setProvider`.
  *
- * @public
+ * @internal
  */
 export function closedModels(): MutableModels {
 	return createModels({ authContext: CLOSED });
@@ -66,7 +66,7 @@ export function closedModels(): MutableModels {
  * @param limits - The limits of each request.
  * @returns The stream function.
  *
- * @public
+ * @internal
  */
 export function limitedStream(models: Models, limits: RequestLimits): StreamFn {
 	return (model, context, options) => models.streamSimple(model, context, { ...options, maxTokens: limits.maxOutputTokens, timeoutMs: limits.timeoutMs, maxRetries: PROVIDER_RETRIES });

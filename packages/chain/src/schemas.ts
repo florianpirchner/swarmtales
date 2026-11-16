@@ -100,7 +100,7 @@ export const ChainGenesisV2Schema = Type.Object(
 /** The genesis of version 2. @public */
 export type ChainGenesisV2 = Static<typeof ChainGenesisV2Schema>;
 
-/** What the writer of a version 1 run stated in its genesis; the key and the format fields are the chain's own. @public */
+/** What the writer of a version 1 run stated in its genesis; the key and the format fields are the chain's own. @internal */
 export type ChainGenesisInput = Omit<ChainGenesis, "format" | "version" | "algorithm" | "digest" | "canonical" | "publicKey">;
 /** What the writer of a run states in its genesis; the key and the format fields are the chain's own. @public */
 export type ChainGenesisV2Input = Omit<ChainGenesisV2, "format" | "version" | "algorithm" | "digest" | "canonical" | "publicKey">;

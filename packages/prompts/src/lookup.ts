@@ -47,7 +47,7 @@ export interface LayeredPrompts extends PromptLookup {
  * @returns The folders by mechanic id; empty where the repository's mechanics are not around (an installed
  * package).
  * @throws PromptError `SWT-P015` when there is no `library/prompts/` above this module.
- * @public
+ * @internal
  */
 export function mechanicPromptFolders(): Readonly<Record<string, string>> {
 	const mechanics = join(libraryRoot(), "mechanics");

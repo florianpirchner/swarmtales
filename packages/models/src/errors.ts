@@ -15,7 +15,7 @@ const quoted = (names: readonly string[]): string => names.map((name) => `\`${na
  * @param redact - The function its texts go through: `redact` of the key broker.
  * @returns The error to throw.
  *
- * @public
+ * @internal
  */
 export function thrown(issue: SwtIssue | readonly SwtIssue[], redact: Redact): SwtError {
 	return new SwtError(redactValue(issue, redact));
@@ -28,7 +28,7 @@ export function thrown(issue: SwtIssue | readonly SwtIssue[], redact: Redact): S
  * @param variables - Every variable that was tried, in the order tried.
  * @returns The issue; it names the variables, never a value.
  *
- * @public
+ * @internal
  */
 export function noKey(provider: string, variables: readonly string[]): SwtIssue {
 	const tried = variables.length === 0 ? "no variable is known for this provider" : `tried: ${quoted(variables)}`;
@@ -48,7 +48,7 @@ export function noKey(provider: string, variables: readonly string[]): SwtIssue 
  * @param known - The provider ids that exist.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function unknownProvider(provider: string, known: readonly string[]): SwtIssue {
 	return { code: "SWT-X002", summary: `the provider "${provider}" is not known`, why: "A model is asked through one of the provider adapters.", fix: `Use one of: ${known.join(", ")}.`, details: { provider } };
@@ -62,7 +62,7 @@ export function unknownProvider(provider: string, known: readonly string[]): Swt
  * @param known - The model ids of the provider; at most 12 are listed.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function unknownModel(provider: string, model: string, known: readonly string[]): SwtIssue {
 	const more = known.length > 12 ? `, and ${known.length - 12} more` : "";
@@ -81,7 +81,7 @@ export function unknownModel(provider: string, model: string, known: readonly st
  * @param provider - The provider id.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function emptyModel(provider: string): SwtIssue {
 	return { code: "SWT-X004", summary: `the model id for the provider "${provider}" is empty`, why: "A request names its model.", fix: "Give a model id or an alias of the models package.", details: { provider } };
@@ -92,7 +92,7 @@ export function emptyModel(provider: string): SwtIssue {
  *
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function noCostCap(): SwtIssue {
 	return { code: "SWT-X005", summary: "the live run has no cost cap", why: "A cap that code holds is the precondition of every live request.", fix: "Give the run a cap above zero, in USD." };
@@ -104,7 +104,7 @@ export function noCostCap(): SwtIssue {
  * @param variable - The variable that holds it.
  * @returns The issue; it names the variable, never the value.
  *
- * @public
+ * @internal
  */
 export function shortKey(variable: string): SwtIssue {
 	return {
@@ -123,7 +123,7 @@ export function shortKey(variable: string): SwtIssue {
  * @param model - The model id.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function noPrice(provider: string, model: string): SwtIssue {
 	return {
@@ -161,7 +161,7 @@ export function keyLeaked(files: readonly string[]): SwtIssue {
  * @param message - What the schema says about that place; never the value.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function recordMismatch(type: string, path: string, message: string): SwtIssue {
 	return {
@@ -180,7 +180,7 @@ export function recordMismatch(type: string, path: string, message: string): Swt
  * @param actor - The actor of the session.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function callOutsideActivation(actor: string): SwtIssue {
 	return {
@@ -201,7 +201,7 @@ export function callOutsideActivation(actor: string): SwtIssue {
  * @param reason - What is wrong: the place and what the schema says, or the tools that differ; never a value.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function savedSessionInvalid(actor: string, reason: string): SwtIssue {
 	return {

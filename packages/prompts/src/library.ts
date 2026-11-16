@@ -14,7 +14,7 @@ let root: string | undefined;
  *
  * @returns The directory.
  * @throws PromptError `SWT-P015` when no directory above this module holds `library/prompts/`.
- * @public
+ * @internal
  */
 export function libraryRoot(): string {
 	if (root !== undefined) return root;
@@ -34,7 +34,7 @@ export function libraryRoot(): string {
  *
  * @returns The directory.
  * @throws PromptError `SWT-P015` when there is no `library/prompts/` above this module.
- * @public
+ * @internal
  */
 export function libraryDir(): string {
 	return join(libraryRoot(), "library", "prompts");

@@ -21,7 +21,7 @@ const REPLIES: Readonly<Record<string, string>> = {
 /**
  * A mechanic of the game as step 8 reads it: the prompts and the tools of its head, and its place in the game.
  *
- * @public
+ * @internal
  */
 export interface TextSource {
 	/** The mechanic: its id and, from its head, the declared prompts and the tools with their descriptions. */
@@ -36,7 +36,7 @@ export interface TextSource {
 /**
  * What step 8 gives.
  *
- * @public
+ * @internal
  */
 export interface CollectedTexts {
 	/** Every text by key: `<mechanic id>/<prompt id>`, `<mechanic id>/tools/<tool>` for a description written in the head, `kernel/<prompt id>` for a kernel reply. */
@@ -72,7 +72,7 @@ function rendered(prompts: PromptLookup, owner: string, id: string, variables: r
  * file, and whatever else the lookup reports (`SWT-P011` to `SWT-P014`) unchanged.
  * @throws Whatever the lookup throws that is no `SwtError`.
  *
- * @public
+ * @internal
  */
 export function collectTexts(mechanics: readonly TextSource[], prompts: PromptLookup): CollectedTexts {
 	const texts: Record<string, string> = {};

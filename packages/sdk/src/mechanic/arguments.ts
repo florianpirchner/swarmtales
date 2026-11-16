@@ -61,7 +61,7 @@ function withoutOptionalNulls(value: unknown, schema: TSchema): unknown {
  * @param raw - The arguments as the caller sent them; they are not changed.
  * @returns The converted copy.
  *
- * @public
+ * @internal
  */
 export function convertArguments(schema: TSchema, raw: unknown): unknown {
 	return Convert(schema, withoutOptionalNulls(Clone(raw), schema));

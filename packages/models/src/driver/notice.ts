@@ -15,7 +15,7 @@ import { RESIDENT_RECORDS } from "../records.ts";
  * @returns The text a model reads.
  * @throws What the lookup throws when the prompt file is missing or declares other variables.
  *
- * @public
+ * @internal
  */
 export function toolsNotice(tools: readonly string[], texts: PromptLookup): string {
 	return texts.render(RESIDENT_RECORDS.id, "resident/input/tools-notice", { tools: tools.join(", ") }, ["tools"]);
@@ -24,7 +24,7 @@ export function toolsNotice(tools: readonly string[], texts: PromptLookup): stri
 /**
  * What one resident was last told about its open tools.
  *
- * @public
+ * @internal
  */
 export interface ToolsNotice {
 	/**
@@ -53,7 +53,7 @@ export interface ToolsNotice {
  * notice.next(["guess"]); // []
  * ```
  *
- * @public
+ * @internal
  */
 export function createToolsNotice(texts: PromptLookup, last?: readonly string[]): ToolsNotice {
 	let announced: readonly string[] | undefined = last;

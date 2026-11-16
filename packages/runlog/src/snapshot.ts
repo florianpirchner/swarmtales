@@ -58,7 +58,7 @@ export interface SnapshotExtras {
  * @param sessions - The section `sessions`; left out: none.
  * @returns The hash in hex (`snapshotStateHash`).
  *
- * @public
+ * @internal
  */
 export function snapshotFileState(snapshot: KernelSnapshot, sessions?: SnapshotSessions): string {
 	return sessions === undefined ? snapshotStateHash(snapshot) : snapshotStateHash({ sessions, snapshot });

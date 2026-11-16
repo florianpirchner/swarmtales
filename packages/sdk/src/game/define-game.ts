@@ -74,7 +74,7 @@ export function definitionsOf(game: Game | GameData, installed: Readonly<Record<
  * data.mechanics; // [{ use: "grid-game", options: { size: 3 } }]
  * ```
  *
- * @public
+ * @internal
  */
 export function gameData(game: Game): { readonly data: GameData; readonly mechanics: Readonly<Record<string, MechanicDefinition>>; readonly directors: Readonly<Record<string, DirectorDefinition>> } {
 	const { mechanics: uses, grants, locked, directors: placed, ...rest } = game;

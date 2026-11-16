@@ -25,7 +25,7 @@ const SKIPPED = "skipped";
 /**
  * The refusal code of `take` for a caller that is no Director of the game.
  *
- * @public
+ * @internal
  */
 export const NOT_A_DIRECTOR = "NOT_A_DIRECTOR";
 
@@ -233,7 +233,7 @@ function instanceOf(port: PluginPort, directors: readonly ResolvedDirector[], pl
  * `tickStarted`, the stage handler `after`, the fact `active` and a slice.
  * At load nothing is checked; in a run, `load` of its slice throws `SWT-M024` for saved state of another form.
  *
- * @public
+ * @internal
  */
 export function directorsPlugin(directors: readonly ResolvedDirector[], plugins: readonly ResolvedPlugin[], version: string): ResolvedPlugin {
 	return {

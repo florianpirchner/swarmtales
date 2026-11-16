@@ -23,7 +23,7 @@ import { SwtError } from "@swarmtales/contracts";
  * }
  * ```
  *
- * @public
+ * @internal
  */
 export class PromptError extends SwtError {}
 

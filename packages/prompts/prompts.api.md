@@ -10,7 +10,9 @@ import { SwtError } from '@swarmtales/contracts';
 // @public
 export function createPromptLookup(options?: PromptLookupOptions): LayeredPrompts;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "hasStrayBraces" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function hasStrayBraces(body: string): boolean;
 
 // @public
@@ -18,25 +20,39 @@ export interface LayeredPrompts extends PromptLookup {
     pathOf(owner: string, id: string): string | undefined;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "libraryDir" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function libraryDir(): string;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "libraryRoot" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function libraryRoot(): string;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "mechanicPromptFolders" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function mechanicPromptFolders(): Readonly<Record<string, string>>;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "parsePromptFile" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function parsePromptFile(text: string, source: string): PromptFile;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "placeholders" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function placeholders(body: string): readonly string[];
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "PromptError" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export class PromptError extends SwtError {}
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "PromptFile" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface PromptFile {
     readonly body: string;
     readonly id: string;
@@ -50,7 +66,9 @@ export interface PromptLookupOptions {
     readonly mechanics?: Readonly<Record<string, string>>;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "renderBody" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function renderBody(file: PromptFile, variables: Readonly<Record<string, string | number>>): string;
 
 // (No @packageDocumentation comment for this package)

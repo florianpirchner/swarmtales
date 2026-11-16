@@ -13,10 +13,14 @@ import { ResumeInput } from '@swarmtales/contracts';
 // @public
 export function createKernel(definition: KernelDefinition, ports?: KernelPorts, resume?: ResumeInput): Kernel;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "createRng" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function createRng(seed: number): RandomSource;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "deriveSeed" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function deriveSeed(seed: number, ...parts: readonly (string | number)[]): number;
 
 // @public
@@ -25,7 +29,9 @@ export function rngFor(seed: number, ...parts: readonly (string | number)[]): Ra
 // @public
 export const RUNTIME_REVISION = 7;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "seedFrom" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function seedFrom(text: string): number;
 
 // (No @packageDocumentation comment for this package)

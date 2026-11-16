@@ -25,7 +25,7 @@ export const RESIDENT_KIND = "resident";
  * @param actor - The actor id.
  * @returns The bare id (`A01` of `resident:A01`); undefined when the actor is no resident.
  *
- * @public
+ * @internal
  */
 export function residentOf(actor: ActorId): string | undefined {
 	return kindOf(actor) === RESIDENT_KIND ? nameOf(actor) : undefined;
@@ -37,7 +37,7 @@ export function residentOf(actor: ActorId): string | undefined {
  * @param resident - The bare resident id.
  * @returns The actor id `resident:<id>`.
  *
- * @public
+ * @internal
  */
 export function actorOf(resident: string): ActorId {
 	return actorId(RESIDENT_KIND, resident);
@@ -141,7 +141,7 @@ function accessOf<M extends MechanicShape>(parts: InstanceParts<M>): ResidentAcc
  * `SWT-M021` (a payload that does not match the head's schema) or `SWT-M022` (a service output that does not
  * match the method's schema).
  *
- * @public
+ * @internal
  */
 export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor: ActorId = "kernel"): ToolContext<M> {
 	const { port, head } = parts;
@@ -186,7 +186,7 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
  * service output that does not match the method's schema, and with `SWT-M025` for a method that is a command
  * (the type of the view refuses it too); the command is not called.
  *
- * @public
+ * @internal
  */
 export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactView<M> {
 	const { port } = parts;
@@ -207,7 +207,7 @@ export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactV
 /**
  * The outcome of a staged call as its `then` job gets it: the contracts type `StagedOutcome` as a schema.
  *
- * @public
+ * @internal
  */
 export const StagedOutcomeSchema = Type.Union([Type.Object({ ok: Type.Literal(true), reply: Type.String({ description: "The reply of the call" }) }, { additionalProperties: false, description: "The staged call ran" }), Type.Object({ ok: Type.Literal(false), code: Type.String({ description: "The refusal code" }), detail: Type.Optional(Type.String({ description: "The refusal text" })) }, { additionalProperties: false, description: "The staged call was refused" })], { description: "The outcome of a staged call" });
 

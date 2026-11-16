@@ -36,7 +36,7 @@ export interface OpenRouterRouting {
  * @param routing - The fixed routing.
  * @returns The request fields to merge over the payload.
  *
- * @public
+ * @internal
  */
 export function openRouterProviderPreferences(routing: OpenRouterRouting): Readonly<Record<string, unknown>> {
 	const provider: Record<string, unknown> = {};
@@ -94,7 +94,7 @@ function openRouter(auth: KeyAuth): Provider {
 /**
  * The adapters of the platform: OpenRouter and Anthropic (direct).
  *
- * @public
+ * @internal
  */
 export const BUILTIN_PROVIDERS: readonly ProviderSpec[] = Object.freeze([
 	Object.freeze({
@@ -186,7 +186,7 @@ export function createProviderRegistry(extra: readonly ProviderSpec[] = []): Pro
  * @returns The model of the table, with its limits and prices.
  * @throws SwtError `SWT-X003` when the table has no such model; it lists at most 12 ids.
  *
- * @public
+ * @internal
  */
 export function modelOf(provider: Provider, modelId: string, redact: Redact = redactSecrets): Model<Api> {
 	const models = provider.getModels();

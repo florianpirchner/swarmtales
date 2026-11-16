@@ -19,10 +19,14 @@ import { SwtIssue } from '@swarmtales/contracts';
 // @public
 export function briefingKey(actor: string): string;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "createSink" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function createSink(chain: EventChain, now: () => Date, redact?: Redact): EventSink;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "EventChain" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export class EventChain {
     constructor(directory: string, input: ChainGenesisV2Input, options?: EventChainOptions);
     append(value: unknown): void;
@@ -36,7 +40,9 @@ export class EventChain {
     readonly publicKey: string;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "EventChainOptions" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface EventChainOptions {
     readonly keys?: {
         readonly privateKey: KeyObject;
@@ -126,7 +132,9 @@ export interface SnapshotExtras {
     readonly sessions?: SnapshotSessions;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "snapshotFileState" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function snapshotFileState(snapshot: KernelSnapshot, sessions?: SnapshotSessions): string;
 
 // @public
@@ -135,7 +143,9 @@ export const SNAPSHOTS_FOLDER = "snapshots";
 // @public
 export type SnapshotSessions = Readonly<Record<string, unknown>>;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "TAKE_TOOL" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const TAKE_TOOL = "@swarmtales/sdk/directors/take";
 
 // @public

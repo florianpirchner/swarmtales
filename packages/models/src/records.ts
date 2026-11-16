@@ -77,7 +77,7 @@ export const RESIDENT_RECORDS: RecordSource = Object.freeze({ id: "@swarmtales/m
 /**
  * The payload of every record type of the model driver.
  *
- * @public
+ * @internal
  */
 export type ResidentRecords = { readonly [Type in keyof typeof SCHEMAS]: Static<(typeof SCHEMAS)[Type]> };
 
@@ -93,7 +93,7 @@ export type ResidentRecords = { readonly [Type in keyof typeof SCHEMAS]: Static<
  * activation.record(RESIDENT_RECORDS.id, "text", residentRecord("text", { text: "I take the corner." }));
  * ```
  *
- * @public
+ * @internal
  */
 export function residentRecord<Type extends keyof ResidentRecords>(type: Type, payload: ResidentRecords[Type]): ResidentRecords[Type] {
 	const schema = SCHEMAS[type];

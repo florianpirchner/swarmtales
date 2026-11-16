@@ -49,7 +49,9 @@ export type ChainFault = "chain" | "continuity" | "manifest" | "signature" | "un
 // @public
 export type ChainGenesis = Static<typeof ChainGenesisSchema>;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "ChainGenesisInput" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export type ChainGenesisInput = Omit<ChainGenesis, "algorithm" | "canonical" | "digest" | "format" | "publicKey" | "version">;
 
 // @public
@@ -245,7 +247,9 @@ export function verifyContinuityText(previous: ChainTexts, resumed: ChainTexts, 
 // @public
 export function verifyRunTexts(texts: RunTexts): ChainVerdict;
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "wellFormed" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function wellFormed(text: string): string;
 
 // @public

@@ -106,7 +106,7 @@ export function toolNames(sources: readonly ToolSource[]): ToolNames {
  * @param tools - The tools of the game, from {@link toolNames}.
  * @returns One `SWT-G013` per grant and shown name, at the mechanic of the last tool of the clash.
  *
- * @public
+ * @internal
  */
 export function shownNameClashes(grants: Readonly<Record<string, readonly CanonicalTool[]>>, tools: readonly NamedTool[]): readonly SwtIssue[] {
 	const byCanonical = new Map(tools.map((tool) => [tool.canonical, tool]));

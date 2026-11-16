@@ -17,7 +17,7 @@ import type { InstanceParts, MechanicKit, SliceSpec } from "./parts.ts";
  * What the kit needs from its neighbours `context.ts` and `arguments.ts`. `define-mechanic.ts` passes the three
  * functions; a test passes stand-ins.
  *
- * @public
+ * @internal
  */
 export interface KitBinding {
 	/** The context of a tool (with the caller) or of everything else (without an actor): `contextFor` of `context.ts`. */
@@ -133,7 +133,7 @@ function bindListen<M extends MechanicShape>(parts: InstanceParts<M>, bind: KitB
  * @returns The binders `tool`, `provide`, `listen`, `fact`, `limit` and `slice`.
  * @throws SwtError `tool` passes on what the prompt lookup throws when the description is a prompt id without a text.
  *
- * @public
+ * @internal
  */
 export function createKit<M extends MechanicShape>(parts: InstanceParts<M>, bind: KitBinding): MechanicKit<M> {
 	const id = parts.port.id;

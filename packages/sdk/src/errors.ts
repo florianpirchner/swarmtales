@@ -9,7 +9,7 @@ import { closest, TOOL_NAME_PATTERN, type SwtIssue } from "@swarmtales/contracts
 /**
  * Every code of this catalogue with the case that raises it; the source of the reference page.
  *
- * @public
+ * @internal
  */
 export const SDK_ERRORS = {
 	"SWT-G001": "the game does not match schema version 1",
@@ -48,14 +48,14 @@ export const SDK_ERRORS = {
 /**
  * A code of the sdk's catalogue.
  *
- * @public
+ * @internal
  */
 export type SdkErrorCode = keyof typeof SDK_ERRORS;
 
 /**
  * One mismatch between a value and a schema, as a step reports it.
  *
- * @public
+ * @internal
  */
 export interface Mismatch {
 	/** The data path of the place in the game, for example `mechanics[1].options.size`; left out inside a run. */
@@ -91,7 +91,7 @@ function issue(code: SdkErrorCode, summary: string, why: string, fix: string, pl
  * @param input - One mismatch of the game against `GameDefinitionSchema`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function gameSchemaMismatch(input: Mismatch): SwtIssue {
 	const at = input.path === undefined || input.path === "" ? "the game" : `\`${input.path}\` of the game`;
@@ -105,7 +105,7 @@ export function gameSchemaMismatch(input: Mismatch): SwtIssue {
  * @param input.found - That value; undefined when the field is missing.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function schemaVersion(input: { readonly found: unknown }): SwtIssue {
 	const found = input.found === undefined ? "missing" : JSON.stringify(input.found);
@@ -120,7 +120,7 @@ export function schemaVersion(input: { readonly found: unknown }): SwtIssue {
  * @param input.count - That count.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function directorsReserved(input: { readonly count: number }): SwtIssue {
 	return issue("SWT-G003", `the game lists ${input.count} Director(s)`, "The field `directors` is reserved: this version of the platform cannot run a Director.", "Remove the entries of `directors`, or leave the field out.", { path: "directors" });
@@ -136,7 +136,7 @@ export function directorsReserved(input: { readonly count: number }): SwtIssue {
  * @param input.declared - Every event the mechanics of the game declare, as `<mechanic>.<event>`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function triggerWithoutEvent(input: { readonly director: string; readonly event: string; readonly path: string; readonly declared: readonly string[] }): SwtIssue {
 	return issue("SWT-D001", `the Director "${input.director}" is woken by the event "${input.event}", which no mechanic of the game declares`, `The mechanics of the game declare: ${quoted(input.declared)}.`, `${meant(input.event, input.declared)}add the mechanic that declares the event, or remove the Director.`, { path: input.path }, { event: input.event });
@@ -169,7 +169,7 @@ export function directorName(input: { readonly name: string; readonly path: stri
  * @param input.directors - The names of the game's Directors.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function directorNeverActivated(input: { readonly scheduler: string; readonly directors: readonly string[] }): SwtIssue {
 	return issue("SWT-D003", `the game has the Director(s) ${quoted(input.directors)}, and the scheduler "${input.scheduler}" activates no actor of kind \`director\``, "A Director acts only inside an activation, and a scheduler activates the actor kinds its options name.", 'Name the kind in the scheduler options, for `turns`: `afterBlocks: ["director"]`.', { path: "scheduler.options" });
@@ -185,7 +185,7 @@ export function directorNeverActivated(input: { readonly scheduler: string; read
  * @param input.answered - The answerers the Directors of the game are.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function noAnswerer(input: { readonly mechanic: string; readonly path: string; readonly answerer: string; readonly answered: readonly string[] }): SwtIssue {
 	return issue("SWT-D004", `the mechanic "${input.mechanic}" has a review answered by "${input.answerer}", and no Director of the game answers it`, `A review asks a Director whose head says \`answers: "${input.answerer}"\`; the Directors of the game answer: ${quoted(input.answered)}.`, `${meant(input.answerer, input.answered)}add the Director that answers "${input.answerer}" to \`directors\`.`, { path: input.path }, { answerer: input.answerer });
@@ -200,7 +200,7 @@ export function noAnswerer(input: { readonly mechanic: string; readonly path: st
  * @param input.reason - `doubled`: the id is in the list before; `malformed`: it does not match the id pattern.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function residentId(input: { readonly id: string; readonly path: string; readonly reason: "doubled" | "malformed" }): SwtIssue {
 	const doubled = input.reason === "doubled";
@@ -224,7 +224,7 @@ export function residentId(input: { readonly id: string; readonly path: string; 
  * @param input.residents - The resident ids of the game.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function memberNotResident(input: { readonly kind: "team" | "role"; readonly group: string; readonly id: string; readonly path: string; readonly residents: readonly string[] }): SwtIssue {
 	return issue("SWT-G011", `${input.kind} "${input.group}" names "${input.id}", which is not a resident of the game`, `A ${input.kind} holds residents of the game only. The game's residents are: ${quoted(input.residents)}.`, `${meant(input.id, input.residents)}add "${input.id}" to \`residents\`, or remove it from the ${input.kind}.`, { path: input.path });
@@ -240,7 +240,7 @@ export function memberNotResident(input: { readonly kind: "team" | "role"; reado
  * @param input.defined - The bare names of the tools the game's mechanics define; for `renamed`, the tools of that mechanic.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function toolNotDefined(input: { readonly tool: string; readonly place: "granted" | "locked" | "renamed"; readonly path: string; readonly defined: readonly string[] }): SwtIssue {
 	if (input.place === "renamed") return issue("SWT-G012", `tool "${input.tool}" is renamed with \`as\` but its mechanic does not define it`, `A key of \`as\` is the bare name of a tool of that mechanic, which defines: ${quoted(input.defined)}.`, `${meant(input.tool, input.defined)}remove "${input.tool}" from \`as\`.`, { path: input.path });
@@ -257,7 +257,7 @@ export function toolNotDefined(input: { readonly tool: string; readonly place: "
  * @param input.path - The data path of the later mechanic, for example `mechanics[2]`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function shownNameClash(input: { readonly shown: string; readonly grant: string; readonly tools: readonly string[]; readonly path: string }): SwtIssue {
 	return issue("SWT-G013", `the grant "${input.grant}" holds ${input.tools.length} tools that are shown as "${input.shown}": ${quoted(input.tools)}`, "A caller names a tool by its shown name, so within one grant a shown name stands for one tool.", `Rename one of them in the game with \`as\` on its mechanic, for example \`as: { "${input.shown}": "${input.shown}2" }\`, or drop one from the grant.`, { path: input.path }, { tools: input.tools });
@@ -272,7 +272,7 @@ export function shownNameClash(input: { readonly shown: string; readonly grant: 
  * @param input.path - The data path, for example `mechanics[0].as.playMove`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function shownNameMalformed(input: { readonly shown: string; readonly tool: string; readonly path: string }): SwtIssue {
 	return issue("SWT-G014", `tool "${input.tool}" would be shown as "${input.shown}", which is no valid tool name`, `A shown tool name matches ${TOOL_NAME_PATTERN}: model providers accept nothing else.`, "Give the tool a name of 1 to 64 letters, digits, `_` or `-`, with `as` on its mechanic in the game or in the mechanic itself.", { path: input.path });
@@ -289,7 +289,7 @@ export function shownNameMalformed(input: { readonly shown: string; readonly too
  * @param input.reviewed - True for a tool with a review in the grant `script`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function stagedNotGranted(input: { readonly mechanic: string; readonly tool: string; readonly path: string; readonly reviewed?: boolean }): SwtIssue {
 	if (input.reviewed !== true) return issue("SWT-G015", `mechanic "${input.mechanic}" stages the tool "${input.tool}", which the grant \`script\` does not hold`, "A staged call is made as the actor `script` and passes the whole pipeline, so the game must grant `script` every tool its mechanics stage.", `Add "${input.tool}" to \`grants.script\`, or give the tool \`for: ["script"]\` in its head.`, { path: input.path });
@@ -322,7 +322,7 @@ export function optionMismatch(input: { readonly owner: string; readonly kind?: 
  * @param input.path - The data path of the later entry, for example `mechanics[3]`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function mechanicTwice(input: { readonly mechanic: string; readonly path: string }): SwtIssue {
 	return issue("SWT-G021", `mechanic "${input.mechanic}" is listed twice`, "A game loads a mechanic once: its id names its state, its events and its tools.", "Remove one of the two entries of `mechanics`.", { path: input.path });
@@ -337,7 +337,7 @@ export function mechanicTwice(input: { readonly mechanic: string; readonly path:
  * @param input.installed - The ids of the installed mechanics.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function mechanicNotInstalled(input: { readonly mechanic: string; readonly path: string; readonly installed: readonly string[] }): SwtIssue {
 	return issue("SWT-G022", `the game uses the mechanic "${input.mechanic}", which is not installed`, `A game file names a mechanic by its id, and the id is looked up among the installed mechanic packages: ${quoted(input.installed)}.`, `${meant(input.mechanic, input.installed)}install the package that holds "${input.mechanic}".`, { path: input.path });
@@ -352,7 +352,7 @@ export function mechanicNotInstalled(input: { readonly mechanic: string; readonl
  * @param input.path - The data path of the mechanic, for example `mechanics[1]`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function noProvider(input: { readonly mechanic: string; readonly service: string; readonly path?: string }): SwtIssue {
 	return issue("SWT-G030", `mechanic "${input.mechanic}" needs the service "${input.service}", and no mechanic of the game provides it`, "A mechanic runs only when every service it requires is provided by a mechanic of the same game.", `Add a mechanic that provides "${input.service}" to \`mechanics\`, or remove "${input.mechanic}".`, { path: input.path });
@@ -366,7 +366,7 @@ export function noProvider(input: { readonly mechanic: string; readonly service:
  * @param input.providers - The ids of the mechanics that provide it, in the game's order.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function twoProviders(input: { readonly service: string; readonly providers: readonly string[] }): SwtIssue {
 	return issue("SWT-G031", `the service "${input.service}" is provided by ${quoted(input.providers)}`, "A service has one provider in a game, so a call of it has one answer.", `Keep one of ${quoted(input.providers)} in \`mechanics\` and remove the rest.`, { path: "mechanics" }, { providers: input.providers });
@@ -379,7 +379,7 @@ export function twoProviders(input: { readonly service: string; readonly provide
  * @param input.mechanics - Their ids, in the game's order.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function requiresCycle(input: { readonly mechanics: readonly string[] }): SwtIssue {
 	return issue("SWT-G032", `the requires of ${quoted(input.mechanics)} form a cycle`, "A mechanic loads after the providers of the services it requires, so no chain of `requires` may lead back to its start.", "In one of these mechanics, move the service from `requires` to `uses` and call it with `ctx.tryCall`, or react to an event of the other mechanic.", { path: "mechanics" }, { mechanics: input.mechanics });
@@ -416,7 +416,7 @@ export function paramOverride(input: { readonly name: string; readonly problem: 
  * @param input.package - The package of the mechanic.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function eventTypeTaken(input: { readonly mechanic: string; readonly type: string; readonly owner?: string; readonly package?: string }): SwtIssue {
 	const holder = input.owner === undefined ? "is reserved by the kernel" : `is declared by the mechanic "${input.owner}" too`;
@@ -450,7 +450,7 @@ export function packageMismatch(input: { readonly mechanic: string; readonly dec
  * @param input.problem - `missing`: the head declares it and the body has no handlers; `undeclared`: the body has handlers and the head does not declare it.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function bodyMismatch(input: { readonly mechanic: string; readonly package?: string; readonly part: "tool" | "service"; readonly name: string; readonly problem: "missing" | "undeclared" }): SwtIssue {
 	const key = input.part === "tool" ? "tools" : "services";
@@ -468,7 +468,7 @@ export function bodyMismatch(input: { readonly mechanic: string; readonly packag
  * @param input.package - The package of the mechanic.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function optionsNoObject(input: { readonly mechanic: string; readonly package?: string }): SwtIssue {
 	return issue("SWT-M013", `the \`options\` schema of mechanic "${input.mechanic}" is no object schema`, "A game gives a mechanic its options by name, so the schema of the options is an object with one property per option.", `Declare \`options: Type.Object({ ... })\` in the head of "${input.mechanic}", or leave \`options\` out.`, { package: input.package });
@@ -483,7 +483,7 @@ export function optionsNoObject(input: { readonly mechanic: string; readonly pac
  * @param input.problem - `no-start`: the head has `state` and no `start`; `no-schema`: it has `start` or `snapshot` and no `state` schema.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function stateUnsaved(input: { readonly mechanic: string; readonly package?: string; readonly problem: "no-start" | "no-schema" }): SwtIssue {
 	const summary = input.problem === "no-start" ? `mechanic "${input.mechanic}" declares a state but no \`start\` that builds it` : `mechanic "${input.mechanic}" keeps state that cannot be saved: its head has no \`state\` schema`;
@@ -502,7 +502,7 @@ export function stateUnsaved(input: { readonly mechanic: string; readonly packag
  * @param input.message - What is wrong there, for example `must be a number, got undefined`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function payloadMismatch(input: { readonly mechanic: string; readonly type: string; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
 	return issue("SWT-M021", `mechanic "${input.mechanic}" emitted "${input.type}" with a wrong payload: ${found(input.path, input.message)}`, "An event's payload must match the schema the head declares for it, so every reader of the log can rely on it.", `Correct the \`ctx.emit("${input.type}", ...)\` call, or the schema of "${input.type}" in the head's \`events\`.`, { path: input.path, package: input.package });
@@ -521,7 +521,7 @@ export function payloadMismatch(input: { readonly mechanic: string; readonly typ
  * @param input.message - What is wrong there.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function serviceMismatch(input: { readonly service: string; readonly method: string; readonly side: "input" | "output"; readonly provider?: string; readonly caller: string; readonly path: string; readonly message: string }): SwtIssue {
 	const implementation = input.provider === undefined ? `the implementation of "${input.service}"` : `the implementation in "${input.provider}"`;
@@ -541,7 +541,7 @@ export function serviceMismatch(input: { readonly service: string; readonly meth
  * @param input.message - What is wrong there, for example `must be an integer, got "3"`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function factMismatch(input: { readonly mechanic: string; readonly fact?: string; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
 	const named = input.fact === undefined ? `a fact of mechanic "${input.mechanic}"` : `the fact "${input.mechanic}.${input.fact}"`;
@@ -562,7 +562,7 @@ export function factMismatch(input: { readonly mechanic: string; readonly fact?:
  * @param input.message - What is wrong there; for `saved` and `loaded`.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function sliceMismatch(input: { readonly mechanic: string; readonly package?: string; readonly problem: "saved" | "loaded" | "newer" | "no-migration"; readonly version?: number; readonly known?: number; readonly path?: string; readonly message?: string }): SwtIssue {
 	const version = String(input.version ?? "unknown");
@@ -582,7 +582,7 @@ export function sliceMismatch(input: { readonly mechanic: string; readonly packa
  * @param input.method - The method name, a `command` of the service.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function commandInView(input: { readonly mechanic: string; readonly package?: string; readonly service: string; readonly method: string }): SwtIssue {
 	return issue("SWT-M025", `a fact or a run limit of mechanic "${input.mechanic}" called "${input.service}.${input.method}", which is a command`, "A fact and a run limit only read: they are computed at any moment and any number of times, so they call the `query` methods of a service and never a command.", `Call a query of "${input.service}" in the fact or the run limit of "${input.mechanic}", or move the call of "${input.method}" into a tool, a hook or a listener.`, { package: input.package });
@@ -597,7 +597,7 @@ export function commandInView(input: { readonly mechanic: string; readonly packa
  * @param input.lookedIn - The paths that were tried, in lookup order.
  * @returns The issue.
  *
- * @public
+ * @internal
  */
 export function promptWithoutText(input: { readonly owner: string; readonly prompt: string; readonly lookedIn: readonly string[] }): SwtIssue {
 	const first = input.lookedIn[0];

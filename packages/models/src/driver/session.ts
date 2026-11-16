@@ -21,7 +21,7 @@ import { loadConversation, SAVED_SESSION_FORMAT, saveConversation, type SavedSes
  * The kind of an input line that asks for a context reset: the conversation is dropped (the system prompt stays)
  * before the inputs of that activation enter it.
  *
- * @public
+ * @internal
  */
 export const CONTEXT_RESET_KIND = "context-reset";
 
@@ -31,7 +31,7 @@ export const CONTEXT_RESET_KIND = "context-reset";
  * @param outcome - What the kernel answered.
  * @returns The text of the tool result.
  *
- * @public
+ * @internal
  */
 export function outcomeText(outcome: ToolOutcome): string {
 	if (outcome.ok) return outcome.reply;
@@ -44,7 +44,7 @@ export function outcomeText(outcome: ToolOutcome): string {
  * @param error - The error text of a request; `undefined` for none.
  * @returns True when the text names the safeguards.
  *
- * @public
+ * @internal
  */
 export function isSafeguardRefusal(error: string | undefined): boolean {
 	return error !== undefined && /safeguards/i.test(error);
@@ -56,7 +56,7 @@ export function isSafeguardRefusal(error: string | undefined): boolean {
  * @param activation - The activation.
  * @returns True when one of its input lines has the kind {@link CONTEXT_RESET_KIND}.
  *
- * @public
+ * @internal
  */
 export function asksReset(activation: Activation): boolean {
 	return activation.inputs.some((note) => note.kind === CONTEXT_RESET_KIND);
@@ -65,7 +65,7 @@ export function asksReset(activation: Activation): boolean {
 /**
  * What a session is made of.
  *
- * @public
+ * @internal
  */
 export interface SessionInput {
 	/** The resident; its id is the session id a provider keys its cache by. */
@@ -89,7 +89,7 @@ export interface SessionInput {
 /**
  * What the assembly adds to one step.
  *
- * @public
+ * @internal
  */
 export interface StepFrame {
 	/** The shown names of the tools open now, in grant order; written to the `request` record. */
@@ -101,7 +101,7 @@ export interface StepFrame {
 /**
  * One resident's conversation with its model, for the whole run.
  *
- * @public
+ * @internal
  */
 export interface ResidentSession {
 	/** True when the context ends with tool results the model has not answered. */
@@ -265,7 +265,7 @@ function restore(agent: Agent, input: SessionInput, saved: SavedSession): void {
  * const driver: ActorDriver = (activation) => session.step(activation, { open: kernel.openTools(actor) });
  * ```
  *
- * @public
+ * @internal
  */
 export function createResidentSession(input: SessionInput): ResidentSession {
 	const live: Live = { activation: undefined };

@@ -91,7 +91,7 @@ function call(port: PluginPort, method: string, input: unknown, caller: string):
  * @param version - The version of the sdk package, for the manifest.
  * @returns The plugin: it provides `roster` and computes the fact `residents`.
  *
- * @public
+ * @internal
  */
 export function rosterPlugin(version: string): ResolvedPlugin {
 	return {
@@ -127,7 +127,7 @@ export function rosterPlugin(version: string): ResolvedPlugin {
  * @returns The same list when a plugin provides `roster`, else the list with the `roster` plugin before its first
  * requirer, or at its end when no plugin requires it.
  *
- * @public
+ * @internal
  */
 export function appendRoster(plugins: readonly ResolvedPlugin[], version: string): readonly ResolvedPlugin[] {
 	if (plugins.some((plugin) => plugin.provides.includes(ID))) return plugins;

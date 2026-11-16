@@ -19,7 +19,7 @@ const Frontmatter = Type.Object(
 /**
  * A parsed prompt file.
  *
- * @public
+ * @internal
  */
 export interface PromptFile {
 	/** The prompt id the file states. */
@@ -50,7 +50,7 @@ function frontmatterFields(lines: readonly string[], source: string): ReadonlyMa
  * @param source - The file's name, for the error message.
  * @returns The id, the declared variables and the body.
  * @throws PromptError `SWT-P011`, with `source` in the summary, when the frontmatter is missing or malformed.
- * @public
+ * @internal
  */
 export function parsePromptFile(text: string, source: string): PromptFile {
 	const lines = text.split("\n");
@@ -78,7 +78,7 @@ export function parsePromptFile(text: string, source: string): PromptFile {
  *
  * @param body - The body of a prompt file.
  * @returns The names of the placeholders, in order of appearance (with repeats).
- * @public
+ * @internal
  */
 export function placeholders(body: string): readonly string[] {
 	return [...body.matchAll(PLACEHOLDER)].map((match) => match[1] ?? "");
@@ -89,7 +89,7 @@ export function placeholders(body: string): readonly string[] {
  *
  * @param body - The body of a prompt file.
  * @returns True when a `{{` is left after the placeholders are taken out.
- * @public
+ * @internal
  */
 export function hasStrayBraces(body: string): boolean {
 	return body.replace(PLACEHOLDER, "").includes("{{");
@@ -103,7 +103,7 @@ export function hasStrayBraces(body: string): boolean {
  * @returns The rendered text.
  * @throws PromptError `SWT-P014` when a declared variable is not given, a given one is not declared, or the body
  * uses one that is not declared.
- * @public
+ * @internal
  */
 export function renderBody(file: PromptFile, variables: Readonly<Record<string, string | number>>): string {
 	const given = Object.keys(variables);

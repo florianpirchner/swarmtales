@@ -114,7 +114,7 @@ export function iJsonIssue(text: string, value: unknown): string | undefined {
  *
  * @param text - Any string.
  * @returns The string without lone surrogates.
- * @public
+ * @internal
  */
 export function wellFormed(text: string): string {
 	return text.replace(/\p{Cs}/gu, "�");

@@ -23,7 +23,7 @@ export const REQUEST_TIMEOUT_MS = 120_000;
 /**
  * The client retries of one request (429 and 5xx, with backoff). They are the provider library's, not a loop here.
  *
- * @public
+ * @internal
  */
 export const PROVIDER_RETRIES = 6;
 
@@ -34,7 +34,7 @@ export const PROVIDER_RETRIES = 6;
  * @param limits - The limits that were asked for.
  * @returns The limits, with the output limit cut to the model's own maximum.
  *
- * @public
+ * @internal
  */
 export function limitsFor(maxTokens: number, limits: RequestLimits): RequestLimits {
 	return maxTokens > 0 && limits.maxOutputTokens > maxTokens ? { ...limits, maxOutputTokens: maxTokens } : limits;
@@ -51,7 +51,7 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
  * @param defaults - The fixed fields; `undefined` for none.
  * @returns The merged payload; the payload itself when there are no fixed fields or it is no object.
  *
- * @public
+ * @internal
  */
 export function withRequestDefaults(payload: unknown, defaults: Readonly<Record<string, unknown>> | undefined): unknown {
 	if (defaults === undefined || !isRecord(payload)) return payload;
@@ -61,14 +61,14 @@ export function withRequestDefaults(payload: unknown, defaults: Readonly<Record<
 /**
  * The tool choices of a request.
  *
- * @public
+ * @internal
  */
 export const TOOL_CHOICES = ["auto", "required", "none"] as const;
 
 /**
  * One tool choice of a request.
  *
- * @public
+ * @internal
  */
 export type ToolChoice = (typeof TOOL_CHOICES)[number];
 
@@ -78,7 +78,7 @@ export type ToolChoice = (typeof TOOL_CHOICES)[number];
  * @param value - The text.
  * @returns True when it is one of {@link TOOL_CHOICES}.
  *
- * @public
+ * @internal
  */
 export function isToolChoice(value: string): value is ToolChoice {
 	return TOOL_CHOICES.some((choice) => choice === value);
@@ -92,7 +92,7 @@ export function isToolChoice(value: string): value is ToolChoice {
  * @param api - The API of the model, as the provider library names it.
  * @returns The request fields to merge over the payload.
  *
- * @public
+ * @internal
  */
 export function toolChoiceDefaults(choice: ToolChoice, api: string): Readonly<Record<string, unknown>> {
 	if (api === "anthropic-messages") return { tool_choice: { type: choice === "required" ? "any" : choice } };

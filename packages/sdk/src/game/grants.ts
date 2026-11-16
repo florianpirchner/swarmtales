@@ -11,7 +11,7 @@ import { shownNameClashes, type NamedTool, type ToolSource } from "./tool-names.
 /**
  * What {@link resolveGrants} takes.
  *
- * @public
+ * @internal
  */
 export interface GrantsInput {
 	/** The tools of the game in load order, from `toolNames`. */
@@ -25,7 +25,7 @@ export interface GrantsInput {
 /**
  * The result of {@link resolveGrants}.
  *
- * @public
+ * @internal
  */
 export interface ResolvedGrants {
 	/** Grant name to its tools, in the order a caller sees them: `KernelDefinition.grants`. */
@@ -84,7 +84,7 @@ function derivedGrants(tools: readonly NamedTool[]): Map<string, readonly Canoni
  * resolveGrants({ tools, grants: { resident: { drop: ["resign"] } }, locked: ["playMove"] });
  * ```
  *
- * @public
+ * @internal
  */
 export function resolveGrants(input: GrantsInput): ResolvedGrants {
 	const lookup = lookupOf(input.tools);
@@ -118,7 +118,7 @@ export function resolveGrants(input: GrantsInput): ResolvedGrants {
  * @param grants - The resolved grants.
  * @returns One `SWT-G015` per staged tool that the grant `script` does not hold, then one per tool with a review it holds.
  *
- * @public
+ * @internal
  */
 export function unstagedTools(sources: readonly ToolSource[], tools: readonly NamedTool[], grants: Readonly<Record<string, readonly CanonicalTool[]>>): readonly SwtIssue[] {
 	const script = (Object.hasOwn(grants, "script") ? grants.script : undefined) ?? [];

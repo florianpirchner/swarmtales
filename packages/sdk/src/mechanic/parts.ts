@@ -12,7 +12,7 @@ import type { BodyParts, DeclaredTool, FactSpec, LimitSpec, ListenKit, PluginHea
 /**
  * One instance while it is bound: the port, the erased head, the parsed options, the state and the texts.
  *
- * @public
+ * @internal
  */
 export interface InstanceParts<M extends MechanicShape> {
 	/** The untyped primitives the kernel gave this instance. */
@@ -36,7 +36,7 @@ export interface InstanceParts<M extends MechanicShape> {
 /**
  * The slice of an instance as `define-mechanic.ts` hands it to the kit. Without `snapshot` the state is its own slice.
  *
- * @public
+ * @internal
  */
 export interface SliceSpec<M extends MechanicShape> {
 	/** The version of the saved form. */
@@ -53,7 +53,7 @@ export interface SliceSpec<M extends MechanicShape> {
  * The binders of one instance (`createKit(parts)` in `kit.ts`): each turns one declared part and its handlers into
  * the erased form the kernel holds. `define-mechanic.ts` calls them once per entry of the head and the body.
  *
- * @public
+ * @internal
  */
 export interface MechanicKit<M extends MechanicShape> extends ListenKit<M> {
 	/** Binds a declared tool to its handlers: `prepare` converts the arguments, checks them, then binds `check` and `run`. */
@@ -74,7 +74,7 @@ export interface MechanicKit<M extends MechanicShape> extends ListenKit<M> {
  * signature `(head: AnyHead, body: ErasedBody)` under the typed overload. A body of one concrete head does not: its
  * service functions take a narrower input.
  *
- * @public
+ * @internal
  */
 export interface ErasedBody extends BodyParts<MechanicShape, Readonly<Record<string, TSchema>>> {
 	/** The handlers of the declared tools, by bare name. */

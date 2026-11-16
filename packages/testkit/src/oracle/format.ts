@@ -199,12 +199,12 @@ export type Oracle = Static<typeof OracleSchema>;
 /**
  * Where the calls of an oracle file come from.
  *
- * @public
+ * @internal
  */
 export type OracleSource = Static<typeof Source>;
 /**
  * The game identity and the effective options of an oracle file.
  *
- * @public
+ * @internal
  */
 export type OracleSetup = Static<typeof Setup>;

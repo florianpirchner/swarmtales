@@ -17,7 +17,7 @@ const HUMAN = "human";
 /**
  * One mechanic of a game after step 4: its definition and its options, parsed, with defaults.
  *
- * @public
+ * @internal
  */
 export interface UsedMechanic {
 	/** The position in the game's `mechanics`, for the data path of a later issue. */
@@ -52,7 +52,7 @@ function namedIssues(game: object): readonly SwtIssue[] {
  * @returns The game when it matches, else undefined and the issues: `SWT-G002` alone for another schema version;
  * else `SWT-G010` for a malformed resident id and `SWT-G001` for every other mismatch.
  *
- * @public
+ * @internal
  */
 export function checkSchema(game: unknown): { readonly data: GameData | undefined; readonly issues: readonly SwtIssue[] } {
 	const named = typeof game === "object" && game !== null ? namedIssues(game) : [];
@@ -73,7 +73,7 @@ export function checkSchema(game: unknown): { readonly data: GameData | undefine
  * @param data - The game.
  * @returns The ids in the game's order, each once, and one `SWT-G010` per id that is listed again.
  *
- * @public
+ * @internal
  */
 export function residentsOf(data: GameData): { readonly ids: readonly string[]; readonly issues: readonly SwtIssue[] } {
 	const count = data.residents;
@@ -90,7 +90,7 @@ export function residentsOf(data: GameData): { readonly ids: readonly string[]; 
  * @returns The names in the game's order, each once, and one `SWT-D002` per name that an earlier Director has or
  * that is the grant name of the residents (`resident`) or of the human (`human`).
  *
- * @public
+ * @internal
  */
 export function directorsOf(data: GameData): { readonly names: readonly string[]; readonly issues: readonly SwtIssue[] } {
 	const names = (data.directors ?? []).map((use) => use.as ?? use.use);
@@ -116,7 +116,7 @@ export function directorsOf(data: GameData): { readonly names: readonly string[]
  * @returns The actors in the game's order, and one `SWT-G011` per member of a team or a role that is no resident.
  * A resident that several teams (or roles) name gets the first of them.
  *
- * @public
+ * @internal
  */
 export function actorsOf(data: GameData, ids: readonly string[], directors: readonly string[] = [], grants: Readonly<Record<string, readonly string[]>> = {}): { readonly actors: readonly ActorSpec[]; readonly issues: readonly SwtIssue[] } {
 	const issues: SwtIssue[] = [];
@@ -184,7 +184,7 @@ function eventIssues(definitions: readonly MechanicDefinition[]): readonly SwtIs
  * definition reports them), an event type the kernel or an earlier mechanic holds (`SWT-M010`).
  * @throws Whatever a definition's `parseOptions` throws that is no `SwtError`.
  *
- * @public
+ * @internal
  */
 export function mechanicsOf(data: GameData, definitions: Readonly<Record<string, MechanicDefinition>>): { readonly used: readonly UsedMechanic[]; readonly issues: readonly SwtIssue[] } {
 	const issues: SwtIssue[] = [];
