@@ -33,6 +33,9 @@ resident's system prompt as who it is, never as what to do, and it never changes
 2. **Figures.** With `figures` the residents play finished figures (persona, temperament, drives, a written text): the
    ones `cast` names, at most one per resident, or a seeded pick; the rest are drawn. A wrong cast is refused when the
    run is set up (`SWT-G020`, with the old words).
+   **Personas.** The fact `personas` gives a resident that plays a figure the persona of `personas` that its figure's
+   `profession` names (without case, as the old City did); every other resident gets the catalogue's persona dealt
+   by seat from the stream `personas` of the run seed (the old `assignPersonas`). No event is written for them.
 3. **The whisperer.** When `whispers` is loaded, `motives` asks it who the whisperer is (the service `whispers` of
    `@swarmtales/mechanic-whispers/contract`, one direction), and the whisperer plays `whispererCoreMotive`. Load
    `whispers` before `motives`, so that `whisperer_chosen` comes first, as in the files.
@@ -119,7 +122,7 @@ Audience: everyone
 | `figures` | object[] | unset | Finished figures of the story's cast; residents get a figure instead of a drawn core motive. |
 | `figures[].id` | string | required | The figure id. |
 | `figures[].title` | string | required | The figure's title. |
-| `figures[].profession` | string | required | The persona the figure plays. |
+| `figures[].profession` | string | required | The persona the figure plays: the name of a persona of `personas`, without case. |
 | `figures[].tone` | "light" or "dark" | required | Whether the drive or figure is a light or a dark one. |
 | `figures[].bigFive` | object[] | required | The figure's level per axis. |
 | `figures[].bigFive[].axis` | string | required | The axis id. |
@@ -141,7 +144,7 @@ Audience: everyone
 | `whispererCoreMotive.figure` | string | unset | The id of the figure the whisperer plays, when it plays one. |
 | `whisperer` | object | unset | The game's whisperer plays (the whispers' `whisperer`, in a run that is no control run): the resident it names, else the seeded pick of `pickWhisperer` of the whispers' `/rules`. Without it nobody plays `whispererCoreMotive`. |
 | `whisperer.agent` | string | unset | The resident the game names as its whisperer (the whispers' `whisperer.agent`). |
-| `personas` | object[] | unset | The catalogue of personas (the old story's `personas`), dealt by seat from the run seed as the old `assignPersonas` did; without it nobody has a persona. |
+| `personas` | object[] | unset | The catalogue of personas (the old story's `personas`): a resident that plays a figure gets the one its `profession` names, the others are dealt by seat from the run seed as the old `assignPersonas` did; without it nobody has a persona. |
 | `personas[].name` | string | required | The persona's name, e.g. Archivist. |
 | `personas[].temperament` | string | required | How it feels and reacts. |
 | `personas[].values` | string | required | What it holds dear. |

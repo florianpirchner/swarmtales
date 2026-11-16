@@ -53,7 +53,7 @@ const Figure = Type.Object(
 	{
 		id: Type.String({ description: "The figure id." }),
 		title: Type.String({ description: "The figure's title." }),
-		profession: Type.String({ description: "The persona the figure plays." }),
+		profession: Type.String({ description: "The persona the figure plays: the name of a persona of `personas`, without case." }),
 		tone: Tone,
 		bigFive: Type.Array(Type.Object({ axis: Type.String({ description: "The axis id." }), level: Level }, { description: "A level on one axis." }), { description: "The figure's level per axis." }),
 		drives: Type.Array(Type.Object({ drive: Type.String({ description: "The drive id." }), intensity: Intensity }, { description: "A drive." }), { description: "The figure's drives." }),
@@ -126,7 +126,7 @@ export const MotivesOptions = Type.Object(
 		),
 		personas: Type.Optional(
 			Type.Array(Persona, {
-				description: "The catalogue of personas (the old story's `personas`), dealt by seat from the run seed as the old `assignPersonas` did; without it nobody has a persona.",
+				description: "The catalogue of personas (the old story's `personas`): a resident that plays a figure gets the one its `profession` names, the others are dealt by seat from the run seed as the old `assignPersonas` did; without it nobody has a persona.",
 			}),
 		),
 		noteTools: Type.Array(Type.String({ description: "The bare name of a tool" }), {

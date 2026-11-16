@@ -35,6 +35,8 @@
 		{ "path": "../../mechanics/script" },
 		{ "path": "../../mechanics/arena" },
 		{ "path": "../../packages/engine" },
-		{ "path": "../../packages/testkit" }
+		{ "path": "../../packages/testkit" },
+		{ "path": "../../packages/kernel" },
+		{ "path": "../../apps/cli" }
 	]
 }

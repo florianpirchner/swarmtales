@@ -50,6 +50,9 @@ export function dealMotives(spec: Spec, ids: readonly string[], rng: Streams): R
 export function dealPersonas(catalogue: readonly Persona[], ids: readonly string[], rng: Streams): ReadonlyMap<string, Persona>;
 
 // @public
+export function figurePersona(options: MotivesOptions, figure: string | undefined): Persona | undefined;
+
+// @public
 export const Intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Type.TLiteral<"atTimes">]>;
 
 // @public
@@ -455,6 +458,9 @@ export const Persona: Type.TObject<{
 
 // @public
 export type Persona = Static<typeof Persona>;
+
+// @public
+export function personasOf(options: MotivesOptions, coreMotives: ReadonlyMap<string, Motive>, ids: readonly string[], rng: Streams): ReadonlyMap<string, Persona>;
 
 // @public
 export function renderMotive(spec: Spec, coreMotive: Motive): string;
