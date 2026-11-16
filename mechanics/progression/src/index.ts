@@ -60,7 +60,7 @@ export const progression = defineMechanic(progressionHead, {
 			},
 			// The door clock after the names, the tribunal, the standoff and the whispers' vote (old
 			// `HOOK_ORDER.minuteStarted` 700): a vote counted at a door's minute comes before the door (erratum of M5-38).
-			// The seal names `progression` in its own `after`, so it ticks after the whole progression here.
+			// The seal does not name `progression` (M5-83): it ticks after the door and, through the standoff, before this clock.
 			{
 				after: ["names", "tribunal", "standoff", "whispers"],
 				run: (ctx) => {

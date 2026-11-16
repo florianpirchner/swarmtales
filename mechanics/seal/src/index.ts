@@ -97,9 +97,11 @@ export const seal = defineMechanic(sealHead, {
 		},
 	},
 	hooks: {
-		// Old `HOOK_ORDER.minuteStarted.seal` (400): after the motives, the door, the names and the tribunal; the standoff names the seal in its `after`.
+		// Old `HOOK_ORDER.minuteStarted.seal` (400): after the motives, the names and the tribunal; the standoff names the seal
+		// in its `after`, and the door clock (700) names the standoff, so the seal must not name `progression` (a cycle,
+		// SWT-R016). The door (100) has no `after` and comes first by load order: `progression` loads before the seal (A96).
 		tickStarted: {
-			after: ["motives", "progression", "names", "tribunal"],
+			after: ["motives", "names", "tribunal"],
 			run: (ctx) => {
 				houseFor(ctx).tick(ctx.tick);
 			},

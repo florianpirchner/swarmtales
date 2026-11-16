@@ -27,7 +27,7 @@ resident from the city at once, without gate, will or ransom, until the act ends
 
 1. **The auction.** The act's seals are laid out when `progression` writes `act_started` for the level `act` (after
    the goals are dealt), one per `perResidents` residents in the city then. At the start of a tick (after the
-   tribunal, before the standoff) the city opens an auction (`seal_auction_opened`). Residents `bid` in secret; the
+   door and the tribunal, before the standoff and the door clock) the city opens an auction (`seal_auction_opened`). Residents `bid` in secret; the
    last bid counts and a bid of 0 withdraws (`seal_bid`). When the bidding closes every bidder pays its bid, won or
    lost (burned in the `ledger`); the highest bid wins, a tie goes to fewer points and then to a seeded draw
    (`rng("seal", seal)`). Nobody learns who bid or who won; the winner hears it privately (`seal_won`).

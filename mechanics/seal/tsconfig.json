@@ -40,6 +40,9 @@
 			"path": "../goals"
 		},
 		{
+			"path": "../standoff"
+		},
+		{
 			"path": "../../packages/testkit"
 		}
 	]

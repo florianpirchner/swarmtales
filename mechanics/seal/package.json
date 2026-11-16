@@ -48,6 +48,7 @@
 	},
 	"devDependencies": {
 		"@swarmtales/mechanic-goals": "workspace:*",
+		"@swarmtales/mechanic-standoff": "workspace:*",
 		"@swarmtales/testkit": "workspace:*"
 	}
 }

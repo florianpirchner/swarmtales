@@ -1472,6 +1472,9 @@ importers:
       '@swarmtales/mechanic-goals':
         specifier: workspace:*
         version: link:../goals
+      '@swarmtales/mechanic-standoff':
+        specifier: workspace:*
+        version: link:../standoff
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit
