@@ -208,8 +208,23 @@ export const GameDefinitionSchema: Type.TObject<{
         thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
     }>]>>;
     prompt: Type.TOptional<Type.TObject<{
+        brief: Type.TOptional<Type.TObject<{
+            reader: Type.TString;
+            text: Type.TString;
+        }>>;
         character: Type.TOptional<Type.TString>;
+        city: Type.TOptional<Type.TObject<{
+            name: Type.TString;
+            namesUntil: Type.TOptional<Type.TInteger>;
+            survivors: Type.TInteger;
+            tools: Type.TUnion<[Type.TLiteral<"story">, Type.TLiteral<"all">]>;
+        }>>;
         frame: Type.TOptional<Type.TString>;
+        persona: Type.TOptional<Type.TUnion<[Type.TString, Type.TRecord<"^.*$", Type.TObject<{
+            temperament: Type.TString;
+            values: Type.TString;
+            voice: Type.TString;
+        }>>]>>;
     }>>;
     residents: Type.TUnion<[Type.TInteger, Type.TArray<Type.TString>]>;
     roles: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;

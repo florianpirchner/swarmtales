@@ -700,6 +700,14 @@ The fact that the game's `prompt.character` names does not hold a text per resid
 - **Fix:** Name a fact whose value is a record of resident id to text, such as `motives.prose`.
 - **Named in:** `apps/cli`
 
+### SWT-C033
+
+The fact that the game's `prompt.persona` or `prompt.brief.reader` names does not hold what the system prompt reads from it.
+
+- **Why:** The persona of a resident and the reader of the brief are parts of the system prompts, read from the facts before the run starts.
+- **Fix:** For `prompt.persona` name a fact whose value is a record of resident id to persona (temperament, values, voice); for `prompt.brief.reader` one whose value is a resident id or null, such as `whispers.whisperer`.
+- **Named in:** `apps/cli`
+
 ## E: Experiments and the lab
 
 ### SWT-E001

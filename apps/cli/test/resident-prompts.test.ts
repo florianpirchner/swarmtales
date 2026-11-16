@@ -6,7 +6,9 @@
  * of the Whispers and City setups (`oracles/whispers/setup/whispers.story.json`,
  * `oracles/cityofkeys/setup/cityofkeys.story.json`, seeds 7 and 11) and of the whisperer A06 of Whispers seed 7 has
  * the sha256 of the old prompt at `v0-final`, computed by the script of `oracles/system-prompts.md`. The persona is
- * the one the old run gave the seat (its `agent_profile`; the seeded assignment of personas is not carried).
+ * the one the old run gave the seat (its `agent_profile`; the seeded assignment of personas is not carried). Since
+ * M5-81 (decisions A89, A94) the game's `prompt` names the City, the persona and the whisperer's brief, and
+ * `residentPrompts` builds the five texts from it alone.
  */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -15,10 +17,10 @@ import { channels } from "@swarmtales/mechanic-channels";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { motives, MotivesOptions } from "@swarmtales/mechanic-motives";
 import { whispers, WhispersOptions } from "@swarmtales/mechanic-whispers";
-import { systemPrompt, type CityPromptFacts } from "@swarmtales/models";
+import { systemPrompt } from "@swarmtales/models";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { turns } from "@swarmtales/engine";
-import { defineGame, resolveGame } from "@swarmtales/sdk";
+import { defineGame, resolveGame, type Game } from "@swarmtales/sdk";
 import { Type, type Static } from "typebox";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
@@ -41,12 +43,12 @@ const sha256 = (text: string): string => createHash("sha256").update(text).diges
 const texts = createPromptLookup();
 
 // The setup as the old host composed it: `whispers` before `motives`, the story's catalogue, its whisperer's character; and the prompt fields.
-function gameOf(story: Story, seed: number) {
+function gameOf(story: Story, seed: number, prompt: Game["prompt"] = { frame: story.coreMotives.frame, character: "motives.prose" }) {
 	const whisperer = story.whisperer;
 	const own = whisperer === undefined ? {} : { whispererCoreMotive: whisperer.coreMotive, whisperer: {} };
 	const options = Value.Parse(MotivesOptions, { noteTools: ["notify", "boardNote"], ...story.coreMotives, ...own });
 	const told = whisperer === undefined ? [] : [whispers(Value.Parse(WhispersOptions, { whisperer: { forgery: whisperer.forgery, duty: whisperer.duty }, control: false, noteTools: ["notify", "boardNote"] }))];
-	const game = defineGame({ id: "prompt-test", seed, residents: 6, mechanics: [ledger({ startPoints: 10 }), channels(), ...told, motives(options)], end: { ticks: 2 }, prompt: { frame: story.coreMotives.frame, character: "motives.prose" } });
+	const game = defineGame({ id: "prompt-test", seed, residents: 6, mechanics: [ledger({ startPoints: 10 }), channels(), ...told, motives(options)], end: { ticks: 2 }, prompt });
 	return resolveGame({ game, schedulers: { turns }, prompts: texts });
 }
 
@@ -77,7 +79,7 @@ describe("the resident prompts of a game with a character (A86)", () => {
 	});
 });
 
-describe("the City order of the old `baseSystemPrompt` (A86)", () => {
+describe("the City order of the old `baseSystemPrompt` from the game's `prompt` (A86, A89, A94)", () => {
 	// Game, setup, seed, seat, the persona of its old `agent_profile`, whether it is the whisperer, the sha256 of its old system prompt at v0-final.
 	it.each([
 		["whispers", "whispers", 7, "A01", "Archivist", false, "b097baf8e42338547dfb54d453e86cd3aef4ce5141387d233c759e8d8ebce9c9"],
@@ -87,15 +89,26 @@ describe("the City order of the old `baseSystemPrompt` (A86)", () => {
 		["cityofkeys", "cityofkeys", 11, "A01", "Recluse", false, "67c4e189244671103b28bab774bc47841c3980590e07c0f974a49ef1908afbcc"],
 	] as const)("composes %s/%s seed %i seat %s as v0-final did", (folder, file, seed, seat, personaName, plays, hash) => {
 		const story = storyOf(folder, file);
-		const game = gameOf(story, seed);
-		const kernel = createKernel(game.definition, {});
-		const prose = Value.Parse(Prose, kernel.fact("motives.prose"));
-		const whisperer = story.whisperer === undefined ? undefined : kernel.fact("whispers.whisperer");
-		const persona = story.personas.find((entry) => entry.name === personaName);
+		const found = story.personas.find((entry) => entry.name === personaName);
+		const persona = found === undefined ? {} : { persona: { [seat]: { temperament: found.temperament, values: found.values, voice: found.voice } } };
 		// Whispers plays without names and with the tools of its doors; the City with names and every tool.
-		const city: CityPromptFacts = { name: story.city, survivors: story.run.survivors, residents: 6, tools: story.toolScope === "story" ? "story" : "all", ...(story.whisperer === undefined ? { namesUntil: story.names.untilMinute } : {}) };
-		const brief = seat === whisperer && story.whisperer !== undefined ? { brief: story.whisperer.brief } : {};
-		const text = systemPrompt({ id: seat, passes: 1, briefing: "", frame: story.coreMotives.frame, city, ...(persona === undefined ? {} : { persona }), character: prose[seat] ?? "", ...brief }, texts);
-		expect([seat === whisperer, sha256(text)]).toEqual([plays, hash]);
+		const city = { name: story.city, survivors: story.run.survivors, tools: story.toolScope === "story" ? "story" : "all", ...(story.whisperer === undefined ? { namesUntil: story.names.untilMinute } : {}) } as const;
+		const brief = story.whisperer === undefined ? {} : { brief: { text: story.whisperer.brief, reader: "whispers.whisperer" } };
+		const game = gameOf(story, seed, { frame: story.coreMotives.frame, character: "motives.prose", city, ...persona, ...brief });
+		const kernel = createKernel(game.definition, {});
+		const prompts = residentPrompts(game, texts, kernel);
+		const whisperer = story.whisperer === undefined ? undefined : kernel.fact("whispers.whisperer");
+		expect([seat === whisperer, sha256(prompts[`resident:${seat}`] ?? "")]).toEqual([plays, hash]);
+		// Only the reader of the brief reads it.
+		const readers = Object.values(prompts).filter((text) => story.whisperer !== undefined && text.endsWith(story.whisperer.brief.trim()));
+		expect(readers).toHaveLength(story.whisperer === undefined ? 0 : 1);
+	});
+
+	it("refuses a persona or brief-reader fact that holds no persona per resident or no resident id (SWT-C033)", () => {
+		const story = storyOf("whispers", "whispers");
+		for (const prompt of [{ persona: "motives.prose" }, { brief: { text: "x", reader: "motives.prose" } }]) {
+			const game = gameOf(story, 7, prompt);
+			expect(() => residentPrompts(game, texts, createKernel(game.definition, {}))).toThrow("SWT-C033");
+		}
 	});
 });

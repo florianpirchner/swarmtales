@@ -37,6 +37,21 @@ const MechanicUse = Type.Object(
 	closed("One mechanic the game uses"),
 );
 
+const PromptCity = Type.Object(
+	{
+		name: Type.String(text("The name of the closed city")),
+		survivors: Type.Integer({ minimum: 0, description: "How many residents remain at the end" }),
+		tools: Type.Union([Type.Literal("story", text("Only the tools of the city's doors")), Type.Literal("all", text("Every tool"))], text("Which tools the system prompt says a resident sees")),
+		namesUntil: Type.Optional(Type.Integer({ minimum: 0, description: "With names: the tick before which a resident chooses its name; the header then names no id" })),
+	},
+	closed("The City world of a resident's system prompt; the neutral one when absent"),
+);
+
+const PromptPersona = Type.Object(
+	{ temperament: Type.String(text("How it feels and reacts")), values: Type.String(text("What it holds dear")), voice: Type.String(text("How it speaks")) },
+	closed("A persona as the system prompt shows it"),
+);
+
 const members = (of: string) => Type.Array(ResidentIdSchema, text(`The residents of one ${of}`));
 
 /**
@@ -151,6 +166,22 @@ export const GameDefinitionSchema = Type.Object(
 					frame: Type.Optional(Type.String(text("The frame said first in the system prompt of every resident with a character: what it plays and how seriously"))),
 					character: Type.Optional(
 						Type.String(text("The key of the fact, `<plugin id>.<fact>`, whose value holds each resident's character by resident id (`motives.prose`), read once before the run starts")),
+					),
+					city: Type.Optional(PromptCity),
+					persona: Type.Optional(
+						Type.Union(
+							[Type.String(text("The key of the fact whose value holds each resident's persona by resident id, read once before the run starts")), Type.Record(ResidentIdSchema, PromptPersona, text("A persona per resident"))],
+							text("The persona block of a resident's system prompt, after the speech rule"),
+						),
+					),
+					brief: Type.Optional(
+						Type.Object(
+							{
+								text: Type.String(text("The text, last in the reader's system prompt")),
+								reader: Type.String(text("The key of the fact whose value is the id of the resident who reads it, or null for none (`whispers.whisperer`), read once before the run starts")),
+							},
+							closed("A text only one resident reads (the whisperer's brief)"),
+						),
 					),
 				},
 				closed("What the game adds to a resident's system prompt"),
