@@ -9,14 +9,7 @@
 	},
 	"mechanics/ledger/prompts/ledger/tools/transferPoints.md": {
 		"legacy": "library/prompts/tools/transferPoints.md",
-		"sha256": "8deb0cde1bf8a6354f0f905385cbcce81a007c9db99555b5fb6a2ddafe1186ad",
-		"erratum": "G11",
-		"undo": [
-			[
-				"another resident",
-				"another competitor"
-			]
-		]
+		"sha256": "8deb0cde1bf8a6354f0f905385cbcce81a007c9db99555b5fb6a2ddafe1186ad"
 	},
 	"mechanics/marks/prompts/marks/status/marks.md": {
 		"legacy": "library/prompts/competitor/status/marks.md",
@@ -231,14 +224,7 @@
 	},
 	"mechanics/channels/prompts/channels/tools/sendDM.md": {
 		"legacy": "library/prompts/tools/sendDM.md",
-		"sha256": "f08490c1d98d140b17163efebae1dffbec6f440b6cc3933a7c95ecf944ee04ac",
-		"erratum": "G11",
-		"undo": [
-			[
-				"another resident",
-				"another competitor"
-			]
-		]
+		"sha256": "f08490c1d98d140b17163efebae1dffbec6f440b6cc3933a7c95ecf944ee04ac"
 	},
 	"mechanics/channels/prompts/channels/tools/setTreasurer.md": {
 		"legacy": "library/prompts/tools/setTreasurer.md",

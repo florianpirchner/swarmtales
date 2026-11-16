@@ -41,6 +41,10 @@ export const ALLOWED_IDENTIFIERS: ReadonlySet<string> = new Set<string>();
 export const CARRIED_TEXTS: readonly string[] = [
 	// mechanics/channels/prompts/channels/tools/addGroupMember.md, M5-13
 	"Adds a competitor to a group you founded.",
+	// mechanics/ledger/prompts/ledger/tools/transferPoints.md, M5-80 (A94, J231)
+	"Transfers points to another competitor.",
+	// mechanics/channels/prompts/channels/tools/sendDM.md, M5-80 (A94, J231)
+	"Sends a private message to another competitor.",
 	// The condition kind of the City's rules (`oracles/cityofkeys/setup/*.story.json`), in mechanics/script/mechanic-script.api.md, M5-31
 	"competitorsAtLevel",
 ];

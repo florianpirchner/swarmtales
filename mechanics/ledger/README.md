@@ -74,7 +74,7 @@ tool text still promises one.
 
 What the caller reads ([ledger/tools/transferPoints](prompts/ledger/tools/transferPoints.md)):
 
-> Transfers points to another resident. Immediate, atomic and irreversible. Both sides get a receipt. The memo may not contain numbers of 4 or more digits (also not split by spaces or dashes); send codes by message.
+> Transfers points to another competitor. Immediate, atomic and irreversible. Both sides get a receipt. The memo may not contain numbers of 4 or more digits (also not split by spaces or dashes); send codes by message.
 
 <!-- /generated:tools -->
 

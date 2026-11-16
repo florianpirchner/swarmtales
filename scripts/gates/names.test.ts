@@ -73,4 +73,13 @@ describe("name lint", () => {
 		expect(carried).toContain("competitor");
 		expect(retiredProse(`> ${carried} No consent is needed.\nA competitor joins.`)).toEqual([{ line: 2, word: "competitor" }]);
 	});
+
+	it("leaves out the carried descriptions of transferPoints and sendDM (M5-80), in the prompt file and in its README", () => {
+		const files = ["mechanics/ledger/prompts/ledger/tools/transferPoints.md", "mechanics/channels/prompts/channels/tools/sendDM.md", "mechanics/ledger/README.md", "mechanics/channels/README.md"];
+		for (const file of files) {
+			const text = readText(file);
+			expect(text, file).toMatch(/to another competitor\./);
+			expect(retiredProse(text), file).toEqual([]);
+		}
+	});
 });

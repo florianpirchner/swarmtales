@@ -115,7 +115,7 @@ describe("direct messages", () => {
 	it("shows the old text of the tool, with the old parameters", () => {
 		const spec = testKernel(game()).kernel.toolSpecs("resident").find((tool) => tool.name === "sendDM");
 		expect(spec?.description).toBe(
-			"Sends a private message to another resident. It arrives at their next activation; only the recipient sees it. Every DM gets a city number; once it reaches the recipient, the city tells you so with its text and a receipt ID that you (or the recipient) can show with showReceipt.",
+			"Sends a private message to another competitor. It arrives at their next activation; only the recipient sees it. Every DM gets a city number; once it reaches the recipient, the city tells you so with its text and a receipt ID that you (or the recipient) can show with showReceipt.",
 		);
 		expect(JSON.stringify(channels.head.tools[2]?.parameters)).toBe(
 			'{"type":"object","required":["target","message"],"properties":{"target":{"type":"string","description":"Recipient name or ID, e.g. A07"},"message":{"type":"string","description":"Message text","minLength":1,"maxLength":800}}}',
