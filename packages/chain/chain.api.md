@@ -49,11 +49,6 @@ export type ChainFault = "chain" | "continuity" | "manifest" | "signature" | "un
 // @public
 export type ChainGenesis = Static<typeof ChainGenesisSchema>;
 
-// Warning: (ae-internal-missing-underscore) The name "ChainGenesisInput" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export type ChainGenesisInput = Omit<ChainGenesis, "algorithm" | "canonical" | "digest" | "format" | "publicKey" | "version">;
-
 // @public
 export const ChainGenesisSchema: Type.TObject<{
     algorithm: Type.TLiteral<"ed25519">;
@@ -246,11 +241,6 @@ export function verifyContinuityText(previous: ChainTexts, resumed: ChainTexts, 
 
 // @public
 export function verifyRunTexts(texts: RunTexts): ChainVerdict;
-
-// Warning: (ae-internal-missing-underscore) The name "wellFormed" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function wellFormed(text: string): string;
 
 // @public
 export const ZERO_HASH: string;

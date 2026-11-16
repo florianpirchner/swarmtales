@@ -291,18 +291,6 @@ export const OracleSchema: Type.TObject<{
     version: Type.TLiteral<1>;
 }>;
 
-// Warning: (ae-forgotten-export) The symbol "Setup" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "OracleSetup" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export type OracleSetup = Static<typeof Setup>;
-
-// Warning: (ae-forgotten-export) The symbol "Source" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "OracleSource" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export type OracleSource = Static<typeof Source>;
-
 // @public
 export type Plan = (activation: Activation) => readonly PlannedCall[] | Promise<readonly PlannedCall[]>;
 

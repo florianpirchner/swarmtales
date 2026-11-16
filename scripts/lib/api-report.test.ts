@@ -77,6 +77,23 @@ describe("API report normal form", () => {
 		expect(normalizeReport(text)).toBe(text);
 	});
 
+	it("drops an internal declaration with its notice lines and the blank line after it", () => {
+		const notice = '// Warning: (ae-internal-missing-underscore) The name "seedFrom" should be prefixed with an underscore';
+		const text = ["// @public", "export function a(): void;", "", notice, "//", "// @internal", "export const S: Type.TObject<{", "    b: Type.TString;", "}>;", "", "// @public", "export const c: 1;", ""];
+		expect(normalizeReport(text.join("\n"))).toBe(["// @public", "export function a(): void;", "", "// @public", "export const c: 1;", ""].join("\n"));
+	});
+
+	it("drops a nested internal member and an internal declaration at the end of a report", () => {
+		const text = ["// @public", "export class K {", "    a(): void;", "    // @internal (undocumented)", "    b(x: {", "        y: 1;", "    }): void;", "    c(): void;", "    // @internal", "    d(): void;", "}", "", "// @internal", "export function e(): void;", ""];
+		expect(normalizeReport(text.join("\n"))).toBe(["// @public", "export class K {", "    a(): void;", "    c(): void;", "}", ""].join("\n"));
+		expect(normalizeReport(["// @public", "export type T = 1;", "", "// @internal", "export type U = 2;"].join("\n"))).toBe(["// @public", "export type T = 1;"].join("\n"));
+	});
+
+	it("keeps a public export that names an internal type", () => {
+		const text = ["// @internal", "export interface Inner {", "    readonly x: number;", "}", "", "// @public", "export function outer(inner: Inner): Inner;", ""];
+		expect(normalizeReport(text.join("\n"))).toBe(["// @public", "export function outer(inner: Inner): Inner;", ""].join("\n"));
+	});
+
 	it("changes a committed report only by the order of union members and object type members", () => {
 		const reports = ["packages", "mechanics", "games", "samples", "apps"].flatMap((group) =>
 			readdirSync(join(REPO_ROOT, group))

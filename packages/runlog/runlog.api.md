@@ -19,37 +19,6 @@ import { SwtIssue } from '@swarmtales/contracts';
 // @public
 export function briefingKey(actor: string): string;
 
-// Warning: (ae-internal-missing-underscore) The name "createSink" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function createSink(chain: EventChain, now: () => Date, redact?: Redact): EventSink;
-
-// Warning: (ae-internal-missing-underscore) The name "EventChain" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export class EventChain {
-    constructor(directory: string, input: ChainGenesisV2Input, options?: EventChainOptions);
-    append(value: unknown): void;
-    checkpoint(state?: string): ChainCheckpoint;
-    close(): void;
-    readonly genesisHash: string;
-    head(): {
-        readonly hash: string;
-        readonly lines: number;
-    };
-    readonly publicKey: string;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "EventChainOptions" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface EventChainOptions {
-    readonly keys?: {
-        readonly privateKey: KeyObject;
-        readonly publicKey: KeyObject;
-    };
-}
-
 // @public
 export function findFirings(log: readonly Envelope[]): readonly FoundFiring[];
 
@@ -132,21 +101,11 @@ export interface SnapshotExtras {
     readonly sessions?: SnapshotSessions;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "snapshotFileState" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function snapshotFileState(snapshot: KernelSnapshot, sessions?: SnapshotSessions): string;
-
 // @public
 export const SNAPSHOTS_FOLDER = "snapshots";
 
 // @public
 export type SnapshotSessions = Readonly<Record<string, unknown>>;
-
-// Warning: (ae-internal-missing-underscore) The name "TAKE_TOOL" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const TAKE_TOOL = "@swarmtales/sdk/directors/take";
 
 // @public
 export const TEXTS_FILE = "texts.json";

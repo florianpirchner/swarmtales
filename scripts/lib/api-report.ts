@@ -5,8 +5,9 @@
  * (`"accuse" | "audit"` against `"audit" | "accuse"`). Sorting the members of every run of adjacent string
  * literals in a union makes the report change only when the API does. The members of an inferred object type (the
  * fields of a Typebox `Static` type) flip the same way (decision A90, issue M5-75), so the member lines of every object
- * type literal are sorted too, each member with its nested block and its leading comment lines. Everything else stays
- * byte for byte.
+ * type literal are sorted too, each member with its nested block and its leading comment lines. A declaration marked
+ * `// @internal` leaves the report (decision A104, issue M5-94), with its leading comment lines and the blank line
+ * after it, so that the report holds the public API only. Everything else stays byte for byte.
  */
 
 /** One string literal in double or single quotes, with escapes. */
@@ -161,11 +162,80 @@ function sortBlocks(lines: readonly string[]): string[] {
 	return out;
 }
 
+/** The release tag line of an internal declaration, at any indent. */
+const INTERNAL = /^(\s*)\/\/ @internal\b/;
+/** The last line of a report, or a line that closes a block. */
+const CLOSER_LINE = /^\s*(?:[}\]]|$)/;
+
+/** The index of the last line of the declaration that starts at line `start`: where its brackets balance at `;` or `}`. */
+function declarationEnd(lines: readonly string[], start: number): number {
+	let depth = 0;
+	for (let index = start; index < lines.length; index += 1) {
+		const line = lines[index] ?? "";
+		if (COMMENT.test(line)) {
+			continue;
+		}
+		depth = walk(line, false, depth).depth;
+		if (depth <= 0 && /[;}]$/.test(line.trimEnd())) {
+			return index;
+		}
+	}
+	return lines.length - 1;
+}
+
+/** The index of the first comment line of the run of comment lines at `indent` that ends at line `tag`. */
+function commentStart(lines: readonly string[], tag: number, indent: string): number {
+	let first = tag;
+	while (first > 0) {
+		const line = lines[first - 1] ?? "";
+		if (!line.startsWith(`${indent}//`)) {
+			break;
+		}
+		first -= 1;
+	}
+	return first;
+}
+
 /**
- * Brings an API report into its normal form: line ends become `\n`, the members of every run of adjacent string
- * literals in a union are sorted by code unit, and so are the member lines of every object type literal (not those
- * of an interface, class, namespace or enum), each member with its nested block and its leading comment lines.
- * All other text is left as it is.
+ * Takes out the blank line that separated a dropped declaration: the one after it (returns the index after that
+ * line), or at the end of a block or of the report the one before it (popped from `out`).
+ */
+function dropSeparator(lines: readonly string[], index: number, out: string[]): number {
+	const after = lines[index];
+	if (after?.trim() === "" && index + 1 < lines.length) {
+		return index + 1;
+	}
+	if (out.at(-1)?.trim() === "" && (after === undefined || CLOSER_LINE.test(after))) {
+		out.pop();
+	}
+	return index;
+}
+
+/** Drops every declaration whose release tag line is `// @internal`, at any depth, with the comment lines before it. */
+function dropInternal(lines: readonly string[]): string[] {
+	const out: string[] = [];
+	let index = 0;
+	while (index < lines.length) {
+		const line = lines[index] ?? "";
+		const tag = INTERNAL.exec(line);
+		if (tag === null) {
+			out.push(line);
+			index += 1;
+			continue;
+		}
+		const indent = tag[1] ?? "";
+		out.length -= index - commentStart(lines, index, indent);
+		index = dropSeparator(lines, declarationEnd(lines, index + 1) + 1, out);
+	}
+	return out;
+}
+
+/**
+ * Brings an API report into its normal form: line ends become `\n`, every declaration marked `// @internal` is
+ * dropped with its leading comment lines, the members of every run of adjacent string literals in a union are sorted
+ * by code unit, and so are the member lines of every object type literal (not those of an interface, class,
+ * namespace or enum), each member with its nested block and its leading comment lines. All other text is left as it
+ * is.
  *
  * @param report - The text of a report as api-extractor wrote it.
  * @returns The report in normal form.
@@ -175,7 +245,7 @@ function sortBlocks(lines: readonly string[]): string[] {
  * ```
  */
 export function normalizeReport(report: string): string {
-	return sortBlocks(report.replace(/\r\n/g, "\n").replace(RUN, sortRun).split("\n")).join("\n");
+	return sortBlocks(dropInternal(report.replace(/\r\n/g, "\n").replace(RUN, sortRun).split("\n"))).join("\n");
 }
 
 /**

@@ -52,47 +52,8 @@ import { TSchema } from 'typebox';
 import { TUndefined } from 'typebox';
 import { Type } from 'typebox';
 
-// Warning: (ae-internal-missing-underscore) The name "actorOf" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function actorOf(resident: string): ActorId;
-
-// Warning: (ae-internal-missing-underscore) The name "actorsOf" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function actorsOf(data: GameData, ids: readonly string[], directors?: readonly string[], grants?: Readonly<Record<string, readonly string[]>>): {
-    readonly actors: readonly ActorSpec[];
-    readonly issues: readonly SwtIssue[];
-};
-
 // @public
 export type AnyHead = MechanicHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], ToolParams>;
-
-// Warning: (ae-internal-missing-underscore) The name "appendRoster" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function appendRoster(plugins: readonly ResolvedPlugin[], version: string): readonly ResolvedPlugin[];
-
-// Warning: (ae-internal-missing-underscore) The name "bindHooks" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function bindHooks<M extends MechanicShape>(parts: InstanceParts<M>, hooks: MechanicHooks<M> | undefined): PluginHooks;
-
-// Warning: (ae-internal-missing-underscore) The name "bindStages" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function bindStages<M extends MechanicShape>(parts: InstanceParts<M>, pipeline: MechanicPipeline<M> | undefined): StageHandlers;
-
-// Warning: (ae-internal-missing-underscore) The name "bodyMismatch" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function bodyMismatch(input: {
-    readonly mechanic: string;
-    readonly name: string;
-    readonly package?: string;
-    readonly part: "service" | "tool";
-    readonly problem: "missing" | "undeclared";
-}): SwtIssue;
 
 // @public
 export interface BodyParts<M extends MechanicShape, F extends Readonly<Record<string, TSchema>>> {
@@ -109,53 +70,6 @@ export interface CallTrigger extends DirectorTrigger {
     readonly event: "tool_called";
     readonly tool: string;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "checkSchema" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function checkSchema(game: unknown): {
-    readonly data: GameData | undefined;
-    readonly issues: readonly SwtIssue[];
-};
-
-// Warning: (ae-internal-missing-underscore) The name "CollectedTexts" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface CollectedTexts {
-    readonly issues: readonly SwtIssue[];
-    readonly replies: Readonly<Record<string, string>>;
-    readonly texts: Readonly<Record<string, string>>;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "collectTexts" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function collectTexts(mechanics: readonly TextSource[], prompts: PromptLookup): CollectedTexts;
-
-// Warning: (ae-internal-missing-underscore) The name "commandInView" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function commandInView(input: {
-    readonly mechanic: string;
-    readonly method: string;
-    readonly package?: string;
-    readonly service: string;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "contextFor" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor?: ActorId): ToolContext<M>;
-
-// Warning: (ae-internal-missing-underscore) The name "convertArguments" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function convertArguments(schema: TSchema, raw: unknown): unknown;
-
-// Warning: (ae-internal-missing-underscore) The name "createKit" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function createKit<M extends MechanicShape>(parts: InstanceParts<M>, bind: KitBinding): MechanicKit<M>;
 
 // @public
 export type CtxOf<H> = MechanicContext<ShapeOf<H>>;
@@ -257,11 +171,6 @@ export interface DirectorDefinition {
     system(ctx: DirectorContext<unknown>): string;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "directorGrants" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function directorGrants(grants: Readonly<Record<string, readonly CanonicalTool[]>>, directors: readonly ResolvedDirector[]): Readonly<Record<string, readonly CanonicalTool[]>>;
-
 // @public
 export interface DirectorHead<O extends TSchema, A extends TSchema> {
     readonly acts?: "answer" | "tools";
@@ -290,14 +199,6 @@ export function directorName(input: {
     readonly taken: "director" | "grant" | "unknown";
 }): SwtIssue;
 
-// Warning: (ae-internal-missing-underscore) The name "directorNeverActivated" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function directorNeverActivated(input: {
-    readonly directors: readonly string[];
-    readonly scheduler: string;
-}): SwtIssue;
-
 // @public
 export interface DirectorPlacement extends Omit<DirectorUse, "use"> {
     readonly use: string | DirectorDefinition;
@@ -306,74 +207,12 @@ export interface DirectorPlacement extends Omit<DirectorUse, "use"> {
 // @public
 export const DIRECTORS_PLUGIN = "directors";
 
-// Warning: (ae-internal-missing-underscore) The name "DirectorsInput" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface DirectorsInput {
-    readonly data: GameData;
-    readonly definitions: Readonly<Record<string, DirectorDefinition>>;
-    readonly events: readonly string[];
-    readonly scheduler: {
-        readonly id: string;
-        readonly options: JsonValue;
-    } | undefined;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "directorsOf" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function directorsOf(data: GameData): {
-    readonly issues: readonly SwtIssue[];
-    readonly names: readonly string[];
-};
-
-// Warning: (ae-internal-missing-underscore) The name "directorsPlugin" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function directorsPlugin(directors: readonly ResolvedDirector[], plugins: readonly ResolvedPlugin[], version: string): ResolvedPlugin;
-
-// Warning: (ae-internal-missing-underscore) The name "directorsReserved" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function directorsReserved(input: {
-    readonly count: number;
-}): SwtIssue;
-
 // @public
 export interface DirectorTrigger {
     readonly event: string;
     readonly quiet?: boolean;
     readonly where?: (payload: unknown) => boolean;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "ErasedBody" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface ErasedBody extends BodyParts<MechanicShape, Readonly<Record<string, TSchema>>> {
-    readonly services?: Readonly<Record<string, ServiceImplementation<ServiceDefinition, MechanicContext<MechanicShape>>>>;
-    readonly tools?: Readonly<Record<string, ToolHandlers<MechanicShape, TSchema>>>;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "eventTypeTaken" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function eventTypeTaken(input: {
-    readonly mechanic: string;
-    readonly owner?: string;
-    readonly package?: string;
-    readonly type: string;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "factMismatch" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function factMismatch(input: {
-    readonly fact?: string;
-    readonly mechanic: string;
-    readonly message: string;
-    readonly package?: string;
-    readonly path: string;
-}): SwtIssue;
 
 // @public
 export interface FactSpec<M extends MechanicShape, F extends TSchema> {
@@ -415,33 +254,10 @@ export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]
     readonly schema?: 1;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "gameData" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function gameData(game: Game): {
-    readonly data: GameData;
-    readonly directors: Readonly<Record<string, DirectorDefinition>>;
-    readonly mechanics: Readonly<Record<string, MechanicDefinition>>;
-};
-
 // @public
 export interface GameFamily<P extends TObject = TObject> {
     build(params: Static<P>): Game;
     readonly params: P;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "gameSchemaMismatch" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function gameSchemaMismatch(input: Mismatch): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "GrantsInput" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface GrantsInput {
-    readonly grants?: GameData["grants"] | undefined;
-    readonly locked?: GameData["locked"] | undefined;
-    readonly tools: readonly NamedTool[];
 }
 
 // @public
@@ -456,33 +272,8 @@ export type HookSlot<F> = F | Ordered<F> | readonly (F | Ordered<F>)[];
 // @public
 export function inSchemaOrder<T extends TSchema>(schema: T, value: Static<T>): Static<T>;
 
-// Warning: (ae-internal-missing-underscore) The name "InstanceParts" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface InstanceParts<M extends MechanicShape> {
-    readonly head: PluginHead;
-    readonly names?: Readonly<Record<string, string>>;
-    readonly options: M["options"];
-    readonly port: PluginPort;
-    readonly setup: Setup<M["options"]>;
-    readonly state: {
-        value: M["state"];
-    };
-    readonly texts: PromptLookup;
-    readonly tools?: ReadonlyMap<string, CanonicalTool>;
-}
-
 // @public
 export function isGameFamily(game: unknown): game is GameFamily;
-
-// Warning: (ae-internal-missing-underscore) The name "KitBinding" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface KitBinding {
-    contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor?: ActorId): ToolContext<M>;
-    convertArguments(schema: TSchema, raw: unknown): unknown;
-    viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactView<M>;
-}
 
 // @public
 export interface LimitSpec<M extends MechanicShape> {
@@ -603,26 +394,6 @@ export interface MechanicHooks<M extends MechanicShape> {
 // @public
 export type MechanicJob<M extends MechanicShape> = (ctx: MechanicContext<M>, data: JsonValue | undefined) => void;
 
-// Warning: (ae-internal-missing-underscore) The name "MechanicKit" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface MechanicKit<M extends MechanicShape> extends ListenKit<M> {
-    fact(spec: FactSpec<M, TSchema>): Fact;
-    limit(id: string, spec: LimitSpec<M>): RunLimit;
-    provide(service: ServiceDefinition, implementation: ServiceImplementation<ServiceDefinition, MechanicContext<M>>): ProvidedService;
-    slice(spec: SliceSpec<M>): SnapshotSlice;
-    tool(declared: DeclaredTool, handlers: ToolHandlers<M, TSchema>): KernelTool;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "mechanicNotInstalled" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function mechanicNotInstalled(input: {
-    readonly installed: readonly string[];
-    readonly mechanic: string;
-    readonly path: string;
-}): SwtIssue;
-
 // @public
 export interface MechanicPipeline<M extends MechanicShape> {
     after?(call: StageCall, outcome: ToolOutcome, ctx: MechanicContext<M>): void;
@@ -651,39 +422,12 @@ export interface MechanicShape {
     readonly uses: readonly ServiceDefinition[];
 }
 
-// Warning: (ae-internal-missing-underscore) The name "mechanicsOf" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function mechanicsOf(data: GameData, definitions: Readonly<Record<string, MechanicDefinition>>): {
-    readonly issues: readonly SwtIssue[];
-    readonly used: readonly UsedMechanic[];
-};
-
-// Warning: (ae-internal-missing-underscore) The name "mechanicTwice" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function mechanicTwice(input: {
-    readonly mechanic: string;
-    readonly path: string;
-}): SwtIssue;
-
 // @public
 export interface MechanicUse<D extends MechanicDefinition = MechanicDefinition> {
     readonly as?: Readonly<Record<string, string>>;
     readonly mechanic: D;
     readonly options: unknown;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "memberNotResident" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function memberNotResident(input: {
-    readonly group: string;
-    readonly id: string;
-    readonly kind: "role" | "team";
-    readonly path: string;
-    readonly residents: readonly string[];
-}): SwtIssue;
 
 // @public
 export type MetricEvent<E extends EventSchemas, K extends keyof E & string> = { readonly [T in K]: Envelope<T, Static<E[T]>>; }[K];
@@ -692,14 +436,6 @@ export type MetricEvent<E extends EventSchemas, K extends keyof E & string> = { 
 export interface MetricSpec<E extends EventSchemas, K extends keyof E & string> extends Omit<MetricDefinition, "compute" | "reads"> {
     compute(events: readonly MetricEvent<E, K>[]): number | undefined;
     readonly reads: readonly K[];
-}
-
-// Warning: (ae-internal-missing-underscore) The name "Mismatch" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface Mismatch {
-    readonly message: string;
-    readonly path?: string;
 }
 
 // @public
@@ -715,35 +451,11 @@ export interface NamedTool {
 // @public
 export type Needs<Keys, Part> = [Keys] extends [never] ? unknown : Part;
 
-// Warning: (ae-internal-missing-underscore) The name "noAnswerer" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function noAnswerer(input: {
-    readonly answered: readonly string[];
-    readonly answerer: string;
-    readonly mechanic: string;
-    readonly path: string;
-}): SwtIssue;
-
 // @public
 export type None = Readonly<Record<symbol, never>>;
 
 // @public
 export type NoOptions = TObject<None>;
-
-// Warning: (ae-internal-missing-underscore) The name "noProvider" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function noProvider(input: {
-    readonly mechanic: string;
-    readonly path?: string;
-    readonly service: string;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "NOT_A_DIRECTOR" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const NOT_A_DIRECTOR = "NOT_A_DIRECTOR";
 
 // @public
 export const onStaged: <M extends MechanicShape>(job: (ctx: MechanicContext<M>, outcome: StagedOutcome) => void) => ((ctx: MechanicContext<M>, data: JsonValue | undefined) => void);
@@ -759,14 +471,6 @@ export function optionMismatch(input: {
 
 // @public
 export type OptionsInput<O extends TSchema> = Partial<Static<O>>;
-
-// Warning: (ae-internal-missing-underscore) The name "optionsNoObject" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function optionsNoObject(input: {
-    readonly mechanic: string;
-    readonly package?: string;
-}): SwtIssue;
 
 // @public
 export function packageMismatch(input: {
@@ -785,17 +489,6 @@ export function paramOverride(input: {
 
 // @public
 export function parseTake(reply: string): TakeAnswer | undefined;
-
-// Warning: (ae-internal-missing-underscore) The name "payloadMismatch" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function payloadMismatch(input: {
-    readonly mechanic: string;
-    readonly message: string;
-    readonly package?: string;
-    readonly path: string;
-    readonly type: string;
-}): SwtIssue;
 
 // @public
 export interface PluginHead {
@@ -823,15 +516,6 @@ export type PromptKeys = Readonly<Record<string, readonly string[]>>;
 // @public
 export type PromptVariables<Names extends readonly string[]> = Readonly<Record<Names[number], string | number>>;
 
-// Warning: (ae-internal-missing-underscore) The name "promptWithoutText" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function promptWithoutText(input: {
-    readonly lookedIn: readonly string[];
-    readonly owner: string;
-    readonly prompt: string;
-}): SwtIssue;
-
 // @public
 export type QueryMethodName<A extends ServiceDefinition> = { [K in ServiceMethodName<A>]: A["methods"][K]["kind"] extends "query" ? K : never; }[ServiceMethodName<A>];
 
@@ -843,13 +527,6 @@ export function reply(text: string, options?: {
     readonly endsTurn?: boolean;
 }): ToolSuccess;
 
-// Warning: (ae-internal-missing-underscore) The name "requiresCycle" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function requiresCycle(input: {
-    readonly mechanics: readonly string[];
-}): SwtIssue;
-
 // @public
 export const RESIDENT_KIND = "resident";
 
@@ -860,28 +537,6 @@ export interface ResidentAccess {
     lock(resident: string, tool: ToolName): void;
     unlock(resident: string, tool: ToolName): void;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "residentId" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function residentId(input: {
-    readonly id: string;
-    readonly path: string;
-    readonly reason: "doubled" | "malformed";
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "residentOf" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function residentOf(actor: ActorId): string | undefined;
-
-// Warning: (ae-internal-missing-underscore) The name "residentsOf" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function residentsOf(data: GameData): {
-    readonly ids: readonly string[];
-    readonly issues: readonly SwtIssue[];
-};
 
 // @public
 export interface ResidentsPort extends ResidentsView {
@@ -917,30 +572,8 @@ export interface ResolvedGame {
     readonly win: string | undefined;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "ResolvedGrants" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface ResolvedGrants {
-    readonly grants: Readonly<Record<string, readonly CanonicalTool[]>>;
-    readonly issues: readonly SwtIssue[];
-    readonly startLocks: Readonly<Record<string, readonly CanonicalTool[]>>;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "resolveDirectors" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function resolveDirectors(input: DirectorsInput): {
-    readonly directors: readonly ResolvedDirector[];
-    readonly issues: readonly SwtIssue[];
-};
-
 // @public
 export function resolveGame(input: ResolveInput): ResolvedGame;
-
-// Warning: (ae-internal-missing-underscore) The name "resolveGrants" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function resolveGrants(input: GrantsInput): ResolvedGrants;
 
 // @public
 export interface ResolveInput {
@@ -954,11 +587,6 @@ export interface ResolveInput {
     readonly seed?: number;
     readonly versions?: Readonly<Record<string, string>>;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "rosterPlugin" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function rosterPlugin(version: string): ResolvedPlugin;
 
 // @public
 export const RosterService: ServiceDefinition<"roster", {
@@ -1006,55 +634,6 @@ readonly summary: "The residents of each team.";
 };
 }>;
 
-// Warning: (ae-internal-missing-underscore) The name "schemaVersion" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function schemaVersion(input: {
-    readonly found: unknown;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "SDK_ERRORS" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const SDK_ERRORS: {
-    readonly "SWT-D001": "a Director's trigger names an event that no mechanic of the game declares";
-    readonly "SWT-D002": "the name of a Director is taken by another Director or by a grant, or its `use` names no definition";
-    readonly "SWT-D003": "the game has a Director and its scheduler activates no actor of kind `director`";
-    readonly "SWT-D004": "a review of a mechanic names an answerer that no Director of the game answers";
-    readonly "SWT-G001": "the game does not match schema version 1";
-    readonly "SWT-G002": "`schema` is not 1";
-    readonly "SWT-G003": "`directors` is not empty before milestone M3 (no longer raised: a game may have Directors)";
-    readonly "SWT-G010": "a resident id is doubled or malformed";
-    readonly "SWT-G011": "a team or a role names an id that is not a resident";
-    readonly "SWT-G012": "a tool is granted or locked but not defined";
-    readonly "SWT-G013": "two tools of one grant share a shown name";
-    readonly "SWT-G014": "a shown tool name does not match the pattern";
-    readonly "SWT-G015": "a mechanic stages a tool that the game does not grant to `script`, or the grant `script` holds a tool with a review";
-    readonly "SWT-G020": "an option does not match its schema";
-    readonly "SWT-G021": "a mechanic is listed twice";
-    readonly "SWT-G022": "a data game names a mechanic that is not installed";
-    readonly "SWT-G030": "a required service has no provider";
-    readonly "SWT-G031": "a service has two providers";
-    readonly "SWT-G032": "`requires` form a cycle";
-    readonly "SWT-G041": "an override names no param of the game, or its value has the wrong type";
-    readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
-    readonly "SWT-M011": "the head's `package` is not the package's name";
-    readonly "SWT-M012": "the body of a mechanic does not fit its head";
-    readonly "SWT-M013": "the `options` schema of a mechanic is no object schema";
-    readonly "SWT-M014": "a mechanic keeps state that cannot be started or saved";
-    readonly "SWT-M021": "an emitted payload does not match its schema";
-    readonly "SWT-M022": "a service input or output does not match its schema";
-    readonly "SWT-M023": "the value of a fact does not match its schema";
-    readonly "SWT-M024": "a snapshot slice cannot be saved or loaded";
-    readonly "SWT-M025": "a fact or a run limit calls a command of a service";
-    readonly "SWT-P003": "a declared prompt has no text";
-};
-
-// Warning: (ae-internal-missing-underscore) The name "SdkErrorCode" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export type SdkErrorCode = keyof typeof SDK_ERRORS;
-
 // @public
 export type ServiceImplementation<A extends ServiceDefinition, Ctx> = { readonly [K in ServiceMethodName<A>]: (input: ServiceInput<A, K>, ctx: Ctx, caller: string) => ServiceOutput<A, K>; };
 
@@ -1063,19 +642,6 @@ export type ServiceInput<A extends ServiceDefinition, K extends ServiceMethodNam
 
 // @public
 export type ServiceMethodName<A extends ServiceDefinition> = keyof A["methods"] & string;
-
-// Warning: (ae-internal-missing-underscore) The name "serviceMismatch" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function serviceMismatch(input: {
-    readonly caller: string;
-    readonly message: string;
-    readonly method: string;
-    readonly path: string;
-    readonly provider?: string;
-    readonly service: string;
-    readonly side: "input" | "output";
-}): SwtIssue;
 
 // @public
 export type ServiceOutput<A extends ServiceDefinition, K extends ServiceMethodName<A>> = Static<A["methods"][K]["output"]>;
@@ -1108,53 +674,6 @@ export interface Shape<O, S, E extends EventSchemas, P extends PromptKeys, R ext
 // @public
 export type ShapeOf<H> = H extends MechanicHead<string, infer O, infer Snap, infer C, infer E, infer P, infer R, infer Pv, infer U, ToolParams> ? Shape<Static<O>, StateOf<Snap, C>, E, P, R, Pv, U> : never;
 
-// Warning: (ae-internal-missing-underscore) The name "shownNameClash" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function shownNameClash(input: {
-    readonly grant: string;
-    readonly path: string;
-    readonly shown: string;
-    readonly tools: readonly string[];
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "shownNameClashes" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function shownNameClashes(grants: Readonly<Record<string, readonly CanonicalTool[]>>, tools: readonly NamedTool[]): readonly SwtIssue[];
-
-// Warning: (ae-internal-missing-underscore) The name "shownNameMalformed" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function shownNameMalformed(input: {
-    readonly path: string;
-    readonly shown: string;
-    readonly tool: string;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "sliceMismatch" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function sliceMismatch(input: {
-    readonly known?: number;
-    readonly mechanic: string;
-    readonly message?: string;
-    readonly package?: string;
-    readonly path?: string;
-    readonly problem: "loaded" | "newer" | "no-migration" | "saved";
-    readonly version?: number;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "SliceSpec" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface SliceSpec<M extends MechanicShape> {
-    readonly migrations?: Readonly<Record<number, (data: unknown) => unknown>>;
-    readonly schema: TSchema;
-    readonly snapshot?: SnapshotSpec<M["state"], unknown, M["options"]>;
-    readonly version: number;
-}
-
 // @public
 export interface SnapshotSpec<S, Data, O> {
     load(data: Data, setup: Setup<O>): S;
@@ -1172,42 +691,11 @@ export interface StageCall {
     readonly tool: string;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "stagedNotGranted" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function stagedNotGranted(input: {
-    readonly mechanic: string;
-    readonly path: string;
-    readonly reviewed?: boolean;
-    readonly tool: string;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "StagedOutcomeSchema" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const StagedOutcomeSchema: Type.TUnion<[Type.TObject<{
-    ok: Type.TLiteral<true>;
-    reply: Type.TString;
-}>, Type.TObject<{
-    code: Type.TString;
-    detail: Type.TOptional<Type.TString>;
-    ok: Type.TLiteral<false>;
-}>]>;
-
 // @public
 export type StateOf<Snap extends TSchema, C> = [C] extends [never] ? Static<Snap> : C;
 
 // @public
 export type StateSetup<O extends TSchema> = Setup<Static<O>>;
-
-// Warning: (ae-internal-missing-underscore) The name "stateUnsaved" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function stateUnsaved(input: {
-    readonly mechanic: string;
-    readonly package?: string;
-    readonly problem: "no-schema" | "no-start";
-}): SwtIssue;
 
 // @public
 export type TakeAnswer = Static<typeof TakeAnswerSchema>;
@@ -1223,23 +711,6 @@ export const TakeAnswerSchema: Type.TObject<{
         tick: Type.TInteger;
     }>>;
 }>;
-
-// Warning: (ae-internal-missing-underscore) The name "TextSource" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface TextSource {
-    readonly mechanic: {
-        readonly head: {
-            readonly prompts: Readonly<Record<string, readonly string[]>>;
-            readonly tools: readonly {
-                readonly description: string;
-                readonly name: string;
-            }[];
-        };
-        readonly id: string;
-    };
-    readonly path: string;
-}
 
 // @public
 export interface TickTrigger {
@@ -1284,16 +755,6 @@ export interface ToolNames {
 // @public
 export function toolNames(sources: readonly ToolSource[]): ToolNames;
 
-// Warning: (ae-internal-missing-underscore) The name "toolNotDefined" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function toolNotDefined(input: {
-    readonly defined: readonly string[];
-    readonly path: string;
-    readonly place: "granted" | "locked" | "renamed";
-    readonly tool: string;
-}): SwtIssue;
-
 // @public
 export type ToolOf<Ms extends readonly MechanicUse[]> = NonNullable<Ms[number]["mechanic"]["toolNames"]>;
 
@@ -1320,44 +781,6 @@ export interface ToolSource {
     };
     readonly path: string;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "triggerWithoutEvent" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function triggerWithoutEvent(input: {
-    readonly declared: readonly string[];
-    readonly director: string;
-    readonly event: string;
-    readonly path: string;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "twoProviders" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function twoProviders(input: {
-    readonly providers: readonly string[];
-    readonly service: string;
-}): SwtIssue;
-
-// Warning: (ae-internal-missing-underscore) The name "unstagedTools" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function unstagedTools(sources: readonly ToolSource[], tools: readonly NamedTool[], grants: Readonly<Record<string, readonly CanonicalTool[]>>): readonly SwtIssue[];
-
-// Warning: (ae-internal-missing-underscore) The name "UsedMechanic" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export interface UsedMechanic {
-    readonly as: Readonly<Record<string, string>>;
-    readonly definition: MechanicDefinition;
-    readonly index: number;
-    readonly options: unknown;
-}
-
-// Warning: (ae-internal-missing-underscore) The name "viewFor" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactView<M>;
 
 // @public
 export type ViewOf<H> = FactView<ShapeOf<H>>;

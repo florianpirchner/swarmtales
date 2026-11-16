@@ -52,6 +52,10 @@
 			},
 			"ae-misplaced-package-tag": {
 				"logLevel": "none"
+			},
+			"ae-internal-missing-underscore": {
+				"logLevel": "none",
+				"addToApiReportFile": false
 			}
 		},
 		"tsdocMessageReporting": {

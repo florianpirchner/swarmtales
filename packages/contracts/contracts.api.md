@@ -255,15 +255,6 @@ export interface InputNote {
     readonly text: string;
 }
 
-// Warning: (ae-internal-missing-underscore) The name "InputNoteSchema" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const InputNoteSchema: Type.TObject<{
-    kind: Type.TOptional<Type.TString>;
-    source: Type.TString;
-    text: Type.TString;
-}>;
-
 // @public
 export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
 
@@ -275,17 +266,6 @@ export interface Job {
     readonly next: number;
     readonly owner: string;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "JobSchema" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const JobSchema: Type.TObject<{
-    data: Type.TOptional<Type.TUnsafe<JsonValue>>;
-    id: Type.TInteger;
-    job: Type.TString;
-    next: Type.TInteger;
-    owner: Type.TString;
-}>;
 
 // @public
 export type JsonValue = string | number | boolean | null | readonly JsonValue[] | {
@@ -723,15 +703,6 @@ export interface RunEnd {
     readonly reason: "error" | "limit" | "ticks";
     readonly tick: number;
 }
-
-// Warning: (ae-internal-missing-underscore) The name "RunEndSchema" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export const RunEndSchema: Type.TObject<{
-    limit: Type.TOptional<Type.TString>;
-    reason: Type.TUnion<[Type.TLiteral<"ticks">, Type.TLiteral<"limit">, Type.TLiteral<"error">]>;
-    tick: Type.TInteger;
-}>;
 
 // @public
 export interface RunLimit {
