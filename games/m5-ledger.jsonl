@@ -11,3 +11,7 @@
 {"run":"smoke/city-002","id":"1042f026-de4a-4366-bd40-5ea90f92e884","costUsd":0.07413800500000005,"at":"2026-11-16T09:31:33.340Z"}
 {"run":"exploratory/city-001","id":"e8a0b100-d587-48da-84e3-f29c911f2d90","reservedUsd":2,"base":"city-001","at":"2026-11-16T09:35:00.977Z"}
 {"run":"exploratory/city-001","id":"e8a0b100-d587-48da-84e3-f29c911f2d90","costUsd":0.37242944999999983,"at":"2026-11-16T09:56:30.679Z"}
+{"run":"exploratory/city-001","id":"5cc524b9-2383-4541-b9f4-d04645c09202","reservedUsd":2,"base":"city-001","at":"2026-11-16T10:05:18.322Z"}
+{"run":"exploratory/city-001","id":"5cc524b9-2383-4541-b9f4-d04645c09202","costUsd":0.3260556199999998,"at":"2026-11-16T10:24:23.599Z"}
+{"run":"exploratory/city-001","id":"a7882de3-f969-4464-a136-6709b1ef0bd6","reservedUsd":2,"base":"city-001","at":"2026-11-16T10:24:42.861Z"}
+{"run":"exploratory/city-001","id":"a7882de3-f969-4464-a136-6709b1ef0bd6","costUsd":0.290699785,"at":"2026-11-16T10:41:33.989Z"}

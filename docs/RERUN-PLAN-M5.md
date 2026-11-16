@@ -81,6 +81,13 @@ exiles, each carried out by its listeners, so the must-show of run 5a holds; no 
 tier (at most 80,703 input tokens). Spent so far 1.6813 (runs 1 to 3 1.2348, run 4 0 and 0.0741, run 5a 0.3724).
 Runs 5b and 5c wait for the integrator.
 
+**Runs 5b and 5c played** (issue M5-55, runtime r7, by the integrator's go, 5b first), each by the command of 5a
+with its own `--out`: 5b (`city/act2/5b/city-001`) 0.3261 USD, ended by its own rule after 54 ticks; 5c
+(`city/act2/5c/city-001`) 0.2907 USD, ended by its own rule after 52 ticks; each with three tribunals and three
+exiles. The three Act II runs cost 0.29 to 0.37 USD against 1.90 expected: no request of them reached 100,000 input
+tokens (at most 80,703), so the factor 1.9 of run 1 did not apply. Spent so far 2.2981 (runs 1 to 3 1.2348, run 4
+0.0741, runs 5a to 5c 0.9892). Every run of the plan is played.
+
 The seeds are the games' own (Whispers 11, the City 7) and are written out so that no environment can move them.
 `--purpose`: the specification names none; runs 1, 2 and 4 are smokes (the default, read as smokes before the next
 run starts), the base and the Act II runs are `exploratory`, single runs whose numbers are read and pooled into no
