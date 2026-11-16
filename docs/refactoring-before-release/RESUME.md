@@ -39,10 +39,8 @@ Written by the gate issue of M5 (M5-57). The sections below are kept as they wer
    `v0-final` on the remote and the milestone review. None of these is done by a build session.
 2. **The milestone review of M5:** a challenger session that reads the specification, the errata and the result,
    and attacks the gate; its findings become issues by a decision row; M5 is closed by it.
-3. **The record:** row 379 (M5-57) waits for its commit id, merge time, lines, tokens and agent time, which the
-   integrator writes in with the merge; the rows 281 to 378 say "not recorded" for tokens, which the integrator may
-   fill from the builders' notices. The runs indexes (`games/whispers/RUNS.md`, `games/city/RUNS.md`) still say
-   "pending" for the data commits, which `docs/M5-GATE.md` names.
+3. **The record:** done by the integrator at the merge: row 379 holds `ab0d283` (tokens and agent time not
+   recorded), and the runs indexes name the data commits (A115).
 4. **For after M5** (A104, A114): B1, the rumours variant without delivery receipts or its text adjusted (P486); B2,
    the guard answers by a tool (the rest of P480); B3, the 16 tests in 10 files that depend on the order inside their
    file (J309). P494 (run 1 of Whispers on a dirty tree) is open.
