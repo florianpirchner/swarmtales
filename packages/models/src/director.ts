@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The asker: the model port `AskModel` of a Director. One request per question, without a tool and without a
- * memory; the answer is the JSON in the model's text. Every answer is counted on the cost meter of the run, as
+ * memory; the answer is the JSON in the model's text (`readAnswer`). Every answer is counted on the cost meter of the run, as
  * the resident session counts (a cost that cannot be counted closes the meter), and nothing is sent once the
  * meter's limit or the actor's own limit is reached.
  */
 import { normalizeContext, type AssistantMessage } from "@earendil-works/pi-ai";
-import type { TSchema } from "typebox";
-import { Check } from "typebox/value";
 import { redactSecrets, type ActorId, type AskModel, type ModelAnswer, type ModelQuestion, type RecordSource } from "@swarmtales/contracts";
+import { readAnswer } from "./answer.ts";
 import { closeOnLog, isSafeguardRefusal } from "./driver/session.ts";
 import type { CostMeter } from "./meter.ts";
 import { RESIDENT_RECORDS, residentRecord, type ResidentRecords } from "./records.ts";
@@ -30,10 +29,6 @@ const ANSWER_FORMAT = "Answer with one JSON value that fits this JSON schema, an
 type Recorder = <Type extends keyof ResidentRecords>(type: Type, payload: ResidentRecords[Type]) => void;
 
 const none = (reason: "limit" | "invalid" | "error", detail: string): ModelAnswer => ({ ok: false, reason, detail });
-
-function isSchema(value: unknown): value is TSchema {
-	return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 /**
  * Why nothing may be sent: the meter's limit (the cap, or a closed meter), then the actor's own limit. A limit that
@@ -86,17 +81,10 @@ function counted(message: AssistantMessage, actor: ActorId, binding: ModelBindin
 	return true;
 }
 
-// The value of an answer text: the JSON in it (a code fence around it is dropped), checked against the schema.
+// The value of an answer text (read by `readAnswer`: the whole text, else the last object that fits the output).
 function valueOf(text: string, output: unknown, costUsd: number): ModelAnswer {
-	const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(text.trim());
-	let value: unknown;
-	try {
-		value = JSON.parse(fenced?.[1] ?? text);
-		if (isSchema(output) && !Check(output, value)) return none("invalid", "the answer does not fit the schema of the output");
-	} catch {
-		return none("invalid", "the answer is no JSON, or its schema cannot be checked");
-	}
-	return { ok: true, value, costUsd };
+	const read = readAnswer(text, output);
+	return read.ok ? { ok: true, value: read.value, costUsd } : none("invalid", read.detail);
 }
 
 // The answer of one message: its error, or the value of its text. `known` is false when its cost could not be counted.

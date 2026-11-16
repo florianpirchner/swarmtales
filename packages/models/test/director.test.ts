@@ -142,6 +142,12 @@ describe("the asker", () => {
 		expect(meter.total.costUsd).toBeCloseTo(0.03);
 	});
 
+	// Runtime revision 7 (A100, P480): the schema written back, or a first answer reasoned past, comes before the answer.
+	it("gives the last object of the text that fits the output, and its cost", async () => {
+		const { answers } = await run([say(`${JSON.stringify(OUTPUT)}\n\nNot the schema, the answer:\n{"line":"First."}\nCorrected: {"line":"Last."}`)], { usd: [0.01] });
+		expect(answers).toEqual([{ ok: true, value: { line: "Last." }, costUsd: 0.01 }]);
+	});
+
 	it("gives `error` for a failed request, records it redacted and counts nothing", async () => {
 		const held = `sk-${"k".repeat(24)}`;
 		const { answers, records, meter } = await run([fail(`the provider is down (${held})`), say('{"line":"Back."}')]);

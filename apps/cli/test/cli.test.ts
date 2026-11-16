@@ -58,7 +58,7 @@ describe("swt run --fake", () => {
 		const manifest = Parse(RunManifestSchema, json(file("runs/guess-number-001", "manifest.json")));
 		const texts = Parse(Texts, json(file("runs/guess-number-001", "texts.json")));
 		expect(manifest.actors.map((actor) => [actor.id, actor.driver])).toEqual([1, 2, 3].map((n) => [`resident:A0${String(n)}`, "fake/sample"]));
-		expect(manifest.kernel.revision).toBe(6);
+		expect(manifest.kernel.revision).toBe(7);
 		expect(Object.keys(manifest.texts).length).toBeGreaterThan(0);
 		expect(Object.fromEntries(Object.keys(manifest.texts).map((key) => [key, jsonHash(texts[key])]))).toEqual(manifest.texts);
 		expect(texts["briefing/resident:A02"]).toBe("Find the secret number.");
