@@ -1,0 +1,3 @@
+fake models: no result
+roles seed 3: ended after 21 ticks (limit grid.match: the match is over)
+result grid.tally: {"X":1,"O":0,"draw":0}

@@ -12,5 +12,24 @@
 		"test",
 		"*.ts"
 	],
-	"references": []
+	"references": [
+		{
+			"path": "../../packages/swarmtales"
+		},
+		{
+			"path": "../../mechanics/grid"
+		},
+		{
+			"path": "../../mechanics/consensus"
+		},
+		{
+			"path": "../../mechanics/team-channel"
+		},
+		{
+			"path": "../../packages/testkit"
+		},
+		{
+			"path": "../../apps/cli"
+		}
+	]
 }

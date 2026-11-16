@@ -8,5 +8,15 @@
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L6"
+	},
+	"dependencies": {
+		"swarmtales": "workspace:*",
+		"@swarmtales/mechanic-grid": "workspace:*",
+		"@swarmtales/mechanic-consensus": "workspace:*",
+		"@swarmtales/mechanic-team-channel": "workspace:*"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*",
+		"@swarmtales/cli": "workspace:*"
 	}
 }

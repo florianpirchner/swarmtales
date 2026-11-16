@@ -2086,7 +2086,27 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  samples/roles: {}
+  samples/roles:
+    dependencies:
+      '@swarmtales/mechanic-consensus':
+        specifier: workspace:*
+        version: link:../../mechanics/consensus
+      '@swarmtales/mechanic-grid':
+        specifier: workspace:*
+        version: link:../../mechanics/grid
+      '@swarmtales/mechanic-team-channel':
+        specifier: workspace:*
+        version: link:../../mechanics/team-channel
+      swarmtales:
+        specifier: workspace:*
+        version: link:../../packages/swarmtales
+    devDependencies:
+      '@swarmtales/cli':
+        specifier: workspace:*
+        version: link:../../apps/cli
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
 
   samples/shipped-director: {}
 

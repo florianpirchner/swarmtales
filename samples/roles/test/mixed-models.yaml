@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
+# A game that asks for a model per resident. The game format has one model for every resident, so this file is
+# refused: test/game.test.ts reads the error that the README shows.
+schema: 1
+id: mixed-models
+residents: [A01, A02]
+mechanics:
+  - use: grid
+    options: { teams: { X: [A01], O: [A02] }, games: 1 }
+end: { ticks: 12 }
+model: { A01: anthropic/haiku, A02: openrouter/glm }
