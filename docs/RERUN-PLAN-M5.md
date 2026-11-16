@@ -53,6 +53,17 @@ about the long Act II sessions. The expected spend is 7.53 USD against run caps 
 same ledger name `smoke/whispers-001`, with another `id`); its folder was renamed `whispers-001-r7` so that the two do
 not collide on `data/runs` (it verifies and replays equal under that name).
 
+**Run 3 played: the base** (issue M5-54, `city/base/city-001`, runtime r7): 0.0686 USD against 0.38 expected. It
+paused after 8 ticks on `progression.act_ended` `{ fromLevel: 1 }` (tick 7, the first resident entered level 8), so
+run 3b is not played. Its `--out` was `$RUNS/city/base`, a
+fresh folder, so the CLI numbered it `city-001` (A103); runs 4 and 5 resume from `$RUNS/city/base/city-001` and write
+each into its own fresh `--out` folder named by the run (`$RUNS/city/act2/check` for run 4, `$RUNS/city/act2/5a`,
+`5b`, `5c` for run 5), each again `city-001` in its folder; on `data/runs` each folder is named by its row
+(`city/act2/check/`, `city/act2/5a/` and so on), since four folders named `city-001` would collide. The City rows keep their
+expected costs: an Act I of eight minutes says nothing about the long Act II sessions. Spent so far 1.2348 (runs 1
+and 2 1.1662, run 3 0.0686). The base was played with one flag more than the row, `--plan`, which `swt run` ignored
+(P487); it has no `REPORT.md`, since `swt report` refuses a paused run (P488).
+
 The seeds are the games' own (Whispers 11, the City 7) and are written out so that no environment can move them.
 `--purpose`: the specification names none; runs 1, 2 and 4 are smokes (the default, read as smokes before the next
 run starts), the base and the Act II runs are `exploratory`, single runs whose numbers are read and pooled into no
