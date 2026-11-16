@@ -675,8 +675,10 @@ holds). The cut list of 13.2 is applied when 40 issues are merged or open; M6 is
 | 28 | The links rewritten (conditional) | trigger: O8 done. `links.ts --write`, every link to its class's target | the 22 files of 7.2 and the 2 of 7.1, `scripts/release/` | 17, O8 | 200 | none |
 | 29 | After the switch (conditional) | trigger: O3 done. The workflows' triggers, `docs/LICENCE-POLICY.md` and the docs that say "until the switch"; the README's links to `main` | `.github/workflows/`, `docs/`, `README.md` | 20, O3 | 120 | none |
 | 30 | Gate of M6 | the ten done-whens, the 1.0 list line by line (line 3: a baseline recorded before the rename counts for its renamed game, since it replays at its own code commit, 4.3; the gate names that commit per game), the softer check, the save list's status, the errata, REWRITE row M6 ticked, the resume note | `scripts/gates/`, `docs/` | everything not cut | 200 | none |
+| 31 | The Node line of 1.0 (A136; written into this table by issue 00) | the published `engines.node` becomes `>=22.18` (the first 22 release that strips types by default), and `.node-version` and the build target of `tsdown.base.ts` follow: one line names the Node the checks and the live runs of M6 run on (22.23.4 in the build environment). Done when the root `engines.node` and every one a `package.json` of the workspace holds, `.node-version` and `tsdown.base.ts` name the 22 line, the docs that state the Node line say so (the README's install line among them, an erratum of issue 00), and the build and the tests pass under Node 22.23.4 | `package.json` files, `.node-version`, `tsdown.base.ts`, `docs/`, `README.md` (its Node line only, by the erratum), the errata | 00 | 30 | none |
 
-31 issues; the sum of the estimates is about 7,000 hand-written lines.
+31 issues; the sum of the estimates is about 7,000 hand-written lines. With M6-31 (A136, wave 1): 32 issues and
+about 7,030 lines; the cut line of 40 and the stop line of 62 of A118 stay.
 
 ### 13.1 The sentences issue 00 changes
 
@@ -707,7 +709,7 @@ Six builders at most. One integrator merges, in wave order.
 | Wave | Issues | Opens when |
 |---|---|---|
 | 0 | 00 | A117 |
-| 1 | 01, 02, 03, 05, 13, 17 | 00; 03 also the decision row of PD1 (its freeze row needs one) |
+| 1 | 01, 02, 03, 05, 13, 17, 31 | 00; 03 also the decision row of PD1 (its freeze row needs one, A135); 31 by A136 |
 | 2 | 04, 06, 14, 16, 18, 20 | 03 for 04; 05 for 06; 17 for 18 |
 | 3 | 07, 09, 15, 19 | 06 for 07 and 09 (09 also 02); 03, 04, 14 for 15 |
 | 4 | 08, 10, 11, 21, 23 | 01, 02, 07, 15 for 08; 09 for 10, 11; 07, 17, 20 for 21; 06, 07 for 23 |
@@ -727,6 +729,7 @@ Issues that share files run in sequence:
 | `scripts/api-freeze/`, `docs/API-FREEZE.md`, `docs/reference/errors.md` | 01, 02, 03, 13, 05, 04, 16 (each rebases and runs `pnpm api:freeze --write` and `pnpm docs:errors`) |
 | `packages/models/src/`, `models.api.md` | 04, then 16 |
 | `scripts/release/` | 17, 18, 20, 07, 21 |
+| `package.json` of the listed packages, `tsdown.base.ts` | 31, then 07 (the Node line before the published fields) |
 | `scripts/lib/check-run.ts`, `vitest.config.ts` | 15, then 08 (15 is in wave 3, 08 in wave 4) |
 | `games/m6-ledger.jsonl`, `docs/LESSONS-LEARNED.md`, branch `data/runs` | 00, 14, 17, 23, then 24, 26, 25 (one run in flight) |
 | every path of the rename's dry run | 06 merges last in wave 2, after 04, 14 and 16; its dry run is made again on that head; no issue opens on a renamed path before it is merged |

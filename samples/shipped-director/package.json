@@ -1,0 +1,12 @@
+{
+	"name": "@swarmtales/sample-shipped-director",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Sample 4: a shipped Director and its dial, placed in a small game and read from the log at two values",
+	"type": "module",
+	"license": "LicenseRef-SUL-1.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	}
+}

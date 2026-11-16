@@ -1,0 +1,12 @@
+{
+	"name": "@swarmtales/sample-team-game",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Sample 2: combine mechanics. Team tic-tac-toe with a team channel and a vote before each move, as a game file and as YAML",
+	"type": "module",
+	"license": "LicenseRef-SUL-1.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	}
+}

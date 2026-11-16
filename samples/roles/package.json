@@ -1,0 +1,12 @@
+{
+	"name": "@swarmtales/sample-roles",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Sample 3: roles and private texts. Sample 2's game with a captain per team and a briefing per role and per resident",
+	"type": "module",
+	"license": "LicenseRef-SUL-1.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	}
+}

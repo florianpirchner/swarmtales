@@ -513,6 +513,7 @@ of the second integrator session, and row 231 waits for its notice.
 | M3 | 32 (A19), 33 with M3-32 (A24) | 33 | M3-00 to M3-32 (rows 130 and 131 are the live smoke M3-30 and the gate M3-31). Beside the plan: M3-33 (A26, row 137) and M3-34 (row 138), which closes the milestone review (row 135). M3 is closed by decision A28 (row 139). Stop line of A19: above 64 |
 | M4 | 64 (A32), 72 with M4-64 to M4-71 (A42, A43, A45, A46) | 72 | M4-00 to M4-71 (rows 144 to 231); M4-44 has no commit of its own and is inside M4-45 (row 167, errata H32); M4-59, the three series, is row 230; M4-63, the gate, has two rows (229 and 231). The specification is row 143. The cut list is applied at 90 issues merged or open, and M4 is stopped and planned again above 128 (A32): 72 stand, nothing was cut. Open after the gate: the milestone review of M4 |
 | M5 | 58 (A48); 102 with the issues M5-58 to M5-103 added by decisions A65 to A113 (the ids M5-73 and M5-93 were never given) | 101 at `565efae`, 102 with the gate M5-57 | M5-00 to M5-57; the specification is row 237; every planned issue is merged but the gate M5-57 (row 379); M5-18 has two parts (rows 269 and 281, the second as M5-64, A71); M5-70 has the erratum row 296 before its build (row 302). Beside the plan (44): M5-58 to M5-72, M5-74 to M5-92 and M5-94 to M5-103, each named in its row with its decision; all are merged. Rows without an issue of their own: 27 commits of the integrator (decisions, API reports, the record commit after `c7c6ef6`, docs) and the follow-ups that name their row. The cut list of section 10.2 was to be applied at 80 issues merged or open; it was never applied (erratum J310): the count passed 80 with decision A94, which added M5-78 to M5-81 (from 77 to 81), and every cut entry was built or played, but for cut 3: the Confessor's file is recorded and no game test compares it (J278). M5 is stopped and planned again above 116 (A48): 102 stand. The gate is row 379, "The gate of M5" below |
+| M6 | 31 (A118), three of them conditional (M6-27 to M6-29); 32 with M6-31, the Node line (A136) | 0 | M6-00 to M6-31; the specification is `13-m6-spec.md` with its errata `13-m6-spec-errata.md`. The cut list of its 13.2 is applied at 40 issues merged or open, and M6 is stopped and planned again above 62 (A118) |
 
 Rows beside the plan: 69. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
 milestone), the specifications of M2, M3 and M4, the reviews A and B and the milestone review of M2, the six
@@ -544,6 +545,33 @@ bound of what the work used. The median of the 70 rows up to row 82 with a numbe
 row 0.64 million. The one recalibration of D4 (the median of the first ten merged issues replaces the 6 million per
 issue) is not done and is closed without being done: the budget it would recalibrate ended with M2, and the rows 83 to
 170 hold no token number (specification of M4, section 5.3; written by issue M4-00).
+
+## The budgets at the start of M6
+
+Measured by issue M6-00 with the counter of the budget gate (`scripts/lib/budget.ts`, `codeLinesOf`) at `0da7ade`, the
+head of `rewrite/develop` after M5's close (A117, `4604a12`), the specification of M6 and the decisions A135 to A139;
+the specification measured the same numbers on `4604a127` and, in its independent challenge, on `797a55fa`
+(`13-m6-spec.md`, section 1.3). No code changed between `4604a12` and `0da7ade`.
+
+| Package | Code lines | M6 may add | After M6, at most | Limit |
+|---|---:|---:|---:|---|
+| `kernel` | 1473 | **0** | 1473 | gate 1473 (`packages/kernel/test/budget.test.ts`), hard 1500 |
+| `sdk` | 2198 | 15 (M6-01, the check of A37, A119) | 2213 | |
+| `engine` | 384 | 10 (M6-16, only if B2 needs the Director driver) | 394 | |
+| kernel + sdk + engine | 4055 | 25 | 4080 | 4100 (A20): 45 left now, 20 after M6, not booked |
+| `apps/cli` | 2031 | about 900 together with `models` and `testkit` | | none |
+| `packages/models` | 1227 | | | none |
+| `packages/testkit` | 1058 | | | none |
+| `contracts` | 1068 | none planned but B2's answer tool (`ModelQuestion`, M6-16) | | none |
+
+The live cap of M6 is the first line of `games/m6-ledger.jsonl`, `{"capUsd":2.34}`: A137 corrects A125's 3.00 to the
+four runs' caps (1.34) and the reserve (1.00). The rewrite has spent 9.6985 of 50 USD on this platform; with the cap
+of M6 it stands at 12.04 USD at most.
+
+The cost of the three sample stubs in `pnpm lint` (section 9 of the specification), measured by M6-00 with
+`node scripts/lint.ts --times` on the shared machine (not a cold check): `samples/roles` 1.5 s, `samples/shipped-director`
+0.2 s, `samples/team-game` 0.1 s, one file each, about 326 MB per worker; the whole pass 225.6 s, 84 projects. The
+cost of the filled samples is measured by M6-09 to M6-11.
 
 ## The budgets at the start of M5
 

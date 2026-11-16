@@ -248,6 +248,15 @@
 		},
 		{
 			"path": "samples/own-scheduler"
+		},
+		{
+			"path": "samples/roles"
+		},
+		{
+			"path": "samples/shipped-director"
+		},
+		{
+			"path": "samples/team-game"
 		}
 	]
 }

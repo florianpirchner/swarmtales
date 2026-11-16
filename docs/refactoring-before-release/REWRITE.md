@@ -224,7 +224,7 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
   `swt director new`; one error standard (`SwtError`: what, where, why, fix, docs link, stable code) for load
   errors; samples 1 (Hello Game: tic-tac-toe, 11 lines, under one minute on Haiku), 5 (own mechanic) and 6 (own
   Director with a decision and Human Hand) written as tests; a glossary with a name lint; the API checklist as the
-  pull-request template. Samples 2 to 4 follow after M4.
+  pull-request template. Samples 2 to 4 follow after M4. They are built at M6 from shipped mechanics only (A128).
 - `--fake` plays from the turn source where one exists and from a tool's `sample` elsewhere. `sample` is optional;
   conformance warns about a tool that has neither.
 - One umbrella package `swarmtales` only re-exports the scoped packages. It exists as a workspace package from M1,
@@ -284,6 +284,7 @@ Act II on the new platform, and a new Act I base snapshot is recorded (`city/bas
 and the City match the oracle files of their done-whens at level 3 (the Act II files by projection, A56), the kernel took 71 of the 88
 reserved lines and no mechanism that was not reserved, and the API is frozen from 2026-11-16
 ([`../API-FREEZE.md`](../API-FREEZE.md), row F1). The milestone closes with its review.
+M6: specified in `13-m6-spec.md` (31 issues, A118; 32 with M6-31, the Node line, added by A136).
 
 ### 4.1 Where the rewrite happens
 

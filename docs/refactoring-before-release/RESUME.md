@@ -1,6 +1,59 @@
 # Resume note of the rewrite (kept by the integrator)
 
-## State at the end of M5, 2026-11-16, about 15:30 UTC (read this part first)
+## M6 started, 2026-11-16 (read this part first)
+
+Written by the scaffold of M6 (M6-00). The specification is `13-m6-spec.md` (31 issues, A118; 32 with M6-31, the Node
+line, A136), challenged twice; its decisions are A118 to A139 (A135 to A139 are the rows PD1 to PD5 its independent
+challenge proposed), its errata `13-m6-spec-errata.md` (rows K1 onward). The scaffold holds the three sample packages
+`samples/team-game`, `samples/roles` and `samples/shipped-director` with README stubs in the fixed format, their
+`tsconfig` references and lockfile entries (the folder rule `samples` of the layer table gives them layer `L6`), and
+`games/m6-ledger.jsonl` with its cap line `{"capUsd":2.34}` (A137). The budgets at the start (kernel 1473, sdk 2198,
+engine 384, together 4055 of 4100) are in `docs/ISSUE-RECORD.md`, "The budgets at the start of M6". The section on
+M5 below still holds for what it says.
+
+**Open questions of the specification** (`13-m6-spec.md`, section 20), each with what settles it:
+
+| # | Question | Leaning | Settled by |
+|---|---|---|---|
+| 1 | Does the packed-install gate fit the check, or does it need its own CI job? | it fits (45 s) | M6-08's measurement; the way out is A120's |
+| 2 | Can the game format express mixed models per resident? | no | M6-10's first test |
+| 3 | Does the shipped gamemaker play outside the City? | yes, with `facts: []` | M6-11's first test; its way out by a decision row |
+| 4 | Does any model-facing text name a renamed id? | no | M6-06's first test |
+| 5 | Are the npm names already reserved (O2)? | unknown | `pnpm release:names` (M6-21), the owner |
+| 6 | Does B2 need engine lines? | no | M6-16 |
+
+The open points of the challenges: the decision rows PD1 to PD5 are entered as A135 to A139 (PD2 chose option (b),
+the 22 line, as M6-31); still open are the offline install on a fresh runner (M6-08's first test), the owner's
+choice for B1 and P445, and whether the npm names are free.
+
+**The owner's hand** (`13-m6-spec.md` 11.1, A134): none of these is done by an agent; each is prepared by the issue
+named.
+
+| # | Action | When | Prepared by |
+|---|---|---|---|
+| O2 | reserve the npm name `swarmtales`, the scope `@swarmtales`, `create-swarmtales` | before the publish | M6-21 |
+| O3 | push the tags of 7.4 (`v0-final` first, `runtime-r3` to `runtime-r8`, `milestone-m1` to `milestone-m6`, the optional `runs/m5-5a` and `runs/m5-5c`); force-push `main` to the new platform; create `develop`; set the default branch | after the milestone review of M5 (done) or of M6 | M6-20 |
+| O4 | Actions on; protect `main`, `develop`, `legacy`; required checks `check`, `Licence gate` (and `Packed install`) | with O3 | M6-21 |
+| O6 | delete `legacy` and `v0-final` | after 1.0, after the save list of 7.2 is ticked and the bundle is kept | M6-17, -18, -19, -28 |
+| O8 | create `swarmtales-runs`, push `data/runs` and the staged legacy runs | before the release; links rewritten after it (M6-28) | M6-17, M6-18 |
+| O9 | Pages from the new `main` | with O3, if the viewer is deployed | none in M6 |
+| O10 | make the repository public | the owner's choice; not before the licence look | M6-21 |
+| O11 | a domain | not recommended before 1.0 | none |
+| O12 | publish to npm, tag `v1.0.0`, the GitHub release (with `CITATION.cff`, A139) | after the milestone review of M6 and O2 | M6-07, M6-21 |
+| O13 | a trademark | not recommended before 1.0 | none |
+| | the look at the final `LICENSE` text by a lawyer (A65) | before O10 and O12 | M6-21 |
+| | the bundle `git bundle create swarmtales-v0-final.bundle v0-final`, kept outside GitHub | before O6 | M6-21 (`docs/RELEASE.md`) |
+| | one look at the provider's usage page against the ledgers of M5 (2.2980) and M6 | after each run | M6-24 to M6-26 |
+
+**Needs the owner's go** (`13-m6-spec.md` 11.2; no issue builds any of them): the quests mechanic; the hidden-role
+game of paper 04's sample 3 and any game a run suggests; B1 (P486: the rumours variant without delivery receipts, or
+its rule text); P445 (the Hello Game's tick limit, 20 ticks before the release smoke); P484, P485, P491, P492, LH21,
+P465; two more Act I bases (P495 lands with the next); runs with 12 residents; a gamemaker on DeepSeek via
+OpenRouter; a break of the frozen API; spend above the cap of M6; publishing the games, `npm create`, the docs site.
+The short German summary of each live run is the job of the session that played it (M6-24 to M6-26), and the summary
+of the M5 runs is still open (`docs/M5-GATE.md`, "Left open").
+
+## State at the end of M5, 2026-11-16, about 15:30 UTC
 
 Written by the gate issue of M5 (M5-57). The sections below are kept as they were; where they differ, this one holds.
 

@@ -253,7 +253,7 @@ install; each costs no kernel line by its plan, and the softer check of M5 says 
 | the game frame of D9 | after 1.0 (A31) |
 | runs with 12 or more residents; Act II comparisons used as evidence (two more bases, D8 of paper 02) | after M5, by the owner's go (section 8) |
 | `parallel` as anything but the sample; a City or Whispers run under it | after 1.0 (A30, A41) |
-| game-specific viewer views, the game tab | M6 |
+| game-specific viewer views, the game tab | after 1.0 (A133) |
 
 ### 1.5 Where M5 starts, and what runs beside it
 
