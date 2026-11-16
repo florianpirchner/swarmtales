@@ -176,7 +176,12 @@ This mechanic provides no service to other mechanics.
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `seal.sealsWon` | Seals won at auction | seals | `seal_auction_opened`, `seal_won`, `seal_used`, `seal_expired` |
+| `seal.sealsUsed` | Seals broken on a resident | seals | `seal_auction_opened`, `seal_won`, `seal_used`, `seal_expired` |
 
 <!-- /generated:metrics -->
 

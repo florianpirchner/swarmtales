@@ -4,6 +4,7 @@ import { Type, type Static } from "typebox";
 import { IdentityService, NoticesService } from "@swarmtales/mechanic-contracts";
 import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { ExileEvents, ExilePurseService, ExileService, ToGate } from "./contract.ts";
+import { exileMetrics } from "./metrics.ts";
 
 const Id = Type.String({ description: "A resident id" });
 const Factors = Type.Array(Type.String({ description: "A piece id" }), { description: "The pieces a will left to heirs" });
@@ -84,6 +85,7 @@ export const exileHead = defineHead({
 		load: (data): ExileState => inSchemaOrder(ExileSlice, data),
 	},
 	events: ExileEvents.events,
+	metrics: exileMetrics(),
 	provides: [ExileService],
 	// The points a ransom burns and a will moves; a name in place of an id; the city's posts and notices. All optional.
 	uses: [ExilePurseService, IdentityService, NoticesService],

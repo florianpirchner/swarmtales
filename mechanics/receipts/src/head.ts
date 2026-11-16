@@ -10,6 +10,7 @@ import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { defineHead, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { ReceiptSchema } from "./book.ts";
 import { ReceiptsEvents } from "./contract.ts";
+import { receiptsMetrics } from "./metrics.ts";
 
 /**
  * The head of the receipts: everything that can be read without running a handler.
@@ -40,6 +41,7 @@ export const receiptsHead = defineHead({
 	),
 	start: () => ({ receipts: [], coming: [], pairs: [] }),
 	events: ReceiptsEvents.events,
+	metrics: receiptsMetrics(),
 	prompts: {
 		"receipts/tools/showReceipt": [],
 		"receipts/replies/shown-board": ["seq", "text"],

@@ -407,7 +407,13 @@ What the tribunal still has to do.
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `tribunal.tribunals` | Tribunals counted | tribunals | `tribunal_scheduled`, `tribunal_vote`, `tribunal_result` |
+| `tribunal.votes` | Secret votes of a tribunal | votes | `tribunal_scheduled`, `tribunal_vote`, `tribunal_result` |
+| `tribunal.gamemakerTribunals` | Tribunals the gamemaker planned | tribunals | `tribunal_scheduled`, `tribunal_vote`, `tribunal_result` |
 
 <!-- /generated:metrics -->
 

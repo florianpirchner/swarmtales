@@ -222,7 +222,13 @@ The game's whisperer.
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `whispers.whisperDms` | The whisperer's direct messages, by its duty notices | messages | `whisper_duty` |
+| `whispers.forgeries` | Receipts forged | receipts | `whisperer_chosen`, `receipt_forged` |
+| `whispers.popularityBallots` | Ballots of the popularity vote | votes | `popularity_opened`, `popularity_ballot` |
 
 <!-- /generated:metrics -->
 

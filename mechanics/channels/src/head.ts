@@ -9,6 +9,7 @@ import { ChannelsService, NotesService } from "./contract.ts";
 import { ChannelsEvents } from "./events.ts";
 import { GROUP_PROMPTS, GROUP_TOOLS } from "./group-specs.ts";
 import { MAX_DM_LENGTH } from "./mailbox.ts";
+import { channelsMetrics } from "./metrics.ts";
 import { ChannelsSlice, loadState, newState, saveState, withoutGroups, withoutMemos, withoutNotes, type ChannelsState } from "./state.ts";
 
 /**
@@ -45,6 +46,7 @@ export const channelsHead = defineHead({
 	version: 4,
 	migrations: { 1: withoutGroups, 2: withoutMemos, 3: withoutNotes },
 	events: ChannelsEvents.events,
+	metrics: channelsMetrics(),
 	provides: [ChannelsService, NoticesService, NotesService],
 	uses: [LedgerService, ReceiptSourceService, IdentityService, AllowanceService, FiguresService, CapExemptionService],
 	prompts: {

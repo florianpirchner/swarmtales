@@ -14,7 +14,7 @@ import { Value } from "typebox/value";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const GAME = join(import.meta.dirname, "..", "game.ts");
-// Seed 7 at the default dials: Act I ends at minute 11 (`standing.test.ts` has the whole Act I of seed 11).
+// Seed 7 at the default dials: Act I ends at minute 14 (`standing.test.ts` has the whole Act I of seed 11).
 const ARGS = ["--fake", "--set", "minutes=16"];
 
 const Line = Type.Object({ seq: Type.Integer(), tick: Type.Integer(), type: Type.String(), causedBy: Type.Optional(Type.Integer()), basis: Type.Optional(Type.Integer()), payload: Type.Unknown() }, { additionalProperties: true, description: "A line of events.jsonl" });
@@ -46,10 +46,10 @@ describe("city: swt run --pause-on in a fake run", () => {
 		expect(await swt("run", GAME, ...ARGS, "--out", "straight")).toBe(0);
 		expect(await swt("run", GAME, ...ARGS, "--out", "base", "--pause-on", "progression.act_ended")).toBe(3);
 		const base = eventsOf("base/city-001");
-		expect(acts(base)).toEqual([[0, "act_started", 1], [11, "act_ended", 1], [11, "act_started", 8]]);
-		expect(base.at(-1)?.tick).toBe(11);
-		// Tick 11 is the twelfth (the first is tick 0): the snapshot is named by the finished ticks.
-		expect(readdirSync(join(cwd, "base/city-001/snapshots"))).toEqual(["t12.json"]);
+		expect(acts(base)).toEqual([[0, "act_started", 1], [14, "act_ended", 1], [14, "act_started", 8]]);
+		expect(base.at(-1)?.tick).toBe(14);
+		// Tick 14 is the fifteenth (the first is tick 0): the snapshot is named by the finished ticks.
+		expect(readdirSync(join(cwd, "base/city-001/snapshots"))).toEqual(["t15.json"]);
 		expect(await swt("resume", "base/city-001", "--game", GAME)).toBe(0);
 		const resumed = eventsOf("base/city-002");
 		expect(acts(resumed).slice(-1)).toEqual([[16, "act_ended", 8]]);

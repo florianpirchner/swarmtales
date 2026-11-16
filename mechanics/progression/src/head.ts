@@ -7,6 +7,7 @@ import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { defineHead, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { CastExtrasService, LevelPiecesService, ProgressionEvents, ProgressionService, TaskLinesService } from "./contract.ts";
+import { progressionMetrics } from "./metrics.ts";
 import { freshState, loadState, PROGRESSION_PROMPTS, ProgressionOptions, ProgressionSlice, saveState, type ProgressionState } from "./model.ts";
 
 const resident = ["resident"] as const;
@@ -25,6 +26,7 @@ export const progressionHead = defineHead({
 	start: ({ residents, options }): ProgressionState => freshState(residents, options),
 	snapshot: { save: (state: ProgressionState) => saveState(state), load: (data): ProgressionState => loadState(data) },
 	events: ProgressionEvents.events,
+	metrics: progressionMetrics(),
 	prompts: PROGRESSION_PROMPTS,
 	// The reward and the penalty are booked by the ledger, the notices go through the channels, the codes and tasks come from the pieces.
 	requires: [LedgerService, ChannelsService, LevelPiecesService],

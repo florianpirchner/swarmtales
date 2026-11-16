@@ -8,6 +8,7 @@ import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { TribunalService } from "@swarmtales/mechanic-tribunal/contract";
 import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { SealEvents } from "./contract.ts";
+import { sealMetrics } from "./metrics.ts";
 import { emptySeal, SealOptions, SealSlice, type SealData } from "./state.ts";
 
 /**
@@ -25,6 +26,7 @@ export const sealHead = defineHead({
 	// A snapshot file sorts the keys: the state comes back in the order of its schema (A43).
 	snapshot: { save: (state: SealData): SealData => structuredClone(state), load: (data): SealData => inSchemaOrder(SealSlice, data) },
 	events: SealEvents.events,
+	metrics: sealMetrics(),
 	// The bids (`ledger`), the board and the notices (`channels`), the standings and the strike (`exile`). The act comes
 	// by its events (old `requires` of `progression`, 12-m5-spec.md 2.3).
 	requires: [LedgerService, ChannelsService, ExileService],

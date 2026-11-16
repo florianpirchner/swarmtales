@@ -296,7 +296,12 @@ The tribunal declares `holdout-pieces` in its `/contract` (the old `PuzzlesApi.o
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `standoff-tribunal.holdouts` | Holdout tribunals called | tribunals | `blocker_found`, `holdout_called`, `holdout_ballot` |
+| `standoff-tribunal.votes` | Secret ballots of a holdout tribunal | votes | `blocker_found`, `holdout_called`, `holdout_ballot` |
 
 <!-- /generated:metrics -->
 

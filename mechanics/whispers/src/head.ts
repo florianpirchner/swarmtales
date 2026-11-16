@@ -8,6 +8,7 @@ import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
 import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { defineHead, inSchemaOrder, type CtxOf, type StateSetup, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { WhispersEvents, WhispersService } from "./contract.ts";
+import { whispersMetrics } from "./metrics.ts";
 import { Direction, WhispererSpec, type Forgery } from "./duty.ts";
 import { pickWhisperer } from "./rules.ts";
 import { PopularitySpec, type Phase } from "./vote.ts";
@@ -104,6 +105,7 @@ export const whispersHead = defineHead({
 	start,
 	snapshot: { save, load },
 	events: WhispersEvents.events,
+	metrics: whispersMetrics(),
 	prompts: {
 		"whispers/tools/forgeReceipt": [],
 		"whispers/tools/nameFavourite": [],

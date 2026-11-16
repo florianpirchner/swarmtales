@@ -199,7 +199,12 @@ Banishes residents, keeps the gate, and says who stands where.
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `exile.exiles` | Residents exiled | residents | `exile_gate`, `exiled`, `ransom_paid`, `ransomed`, `last_will` |
+| `exile.ransoms` | Residents ransomed from the gate | residents | `exile_gate`, `exiled`, `ransom_paid`, `ransomed`, `last_will` |
 
 <!-- /generated:metrics -->
 

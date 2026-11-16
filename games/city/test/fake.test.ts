@@ -8,7 +8,7 @@
  */
 import { join } from "node:path";
 import type { Envelope } from "@swarmtales/contracts";
-import { play, readOracle } from "@swarmtales/testkit";
+import { metricsOf, play, readOracle } from "@swarmtales/testkit";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { cityGame, CityParams } from "../game.ts";
@@ -56,5 +56,9 @@ describe("city, played by the fake driver", () => {
 		expect(refused.some((event) => bare(event) === "blame" && field(event, "code") === "JUDGE_FAILED")).toBe(true);
 		expect(events.some((event) => event.type === "asked" && field(event, "answerer") === "judge")).toBe(true);
 		expect([...new Set(refused.map((event) => String(field(event, "code"))))].filter((code) => !REFUSALS.includes(code))).toEqual([]);
+		// The facts table (issue M5-49): every metric of every loaded mechanic, the Confessor's labels among them, has a value.
+		const facts = game.mechanics.flatMap(({ mechanic }) => Object.entries(metricsOf(game, mechanic.id, events)).map(([id, value]) => [`${mechanic.id}.${id}`, value] as const));
+		expect(facts.map(([key]) => key)).toContain("interpretations.labelledPromise");
+		expect(facts.filter(([, value]) => value === "absent")).toEqual([]);
 	}, 120_000);
 });

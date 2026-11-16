@@ -6,7 +6,7 @@
  * port: no thoughts or asides (no event carries them), one question per round in place of batches of 60, and the
  * number of a firing as the reference in place of the old log `seq`. The run replays and resumes equal.
  */
-import { checkReplay, checkResumeEveryBoundary, play } from "@swarmtales/testkit";
+import { checkReplay, checkResumeEveryBoundary, metricsOf, play } from "@swarmtales/testkit";
 import { describe, expect, it } from "vitest";
 import { confessor, ConfessorAnswerSchema, STATEMENT_EVENTS } from "../src/index.ts";
 import { drivers, GAME, isPrivate, LINE, OLD, type Asker } from "./confessor-support.ts";
@@ -130,6 +130,15 @@ describe("the Confessor", () => {
 		const written = events.filter((event) => event.source.endsWith("/interpretations") && event.type !== "interpretation");
 		expect(written.map((event) => [event.type, fields(event.payload).round])).toEqual([1, 2, 3, 4].map((round) => ["interpretation_round", round]));
 		expect(events.filter((event) => event.type === "tool_called" && fields(event.payload).as === "interpret")).toHaveLength(4);
+	});
+
+	// The facts table (issue M5-49): the labels of the old events of statements, per kind (read by hand in
+	// `fixtures/old-classifier.json`: 57 threats, 57 accusations, 31 promises), each kind without a label 0.
+	it("counts its labels per kind for the facts table, as the old events have them", async () => {
+		const { events } = await play(GAME, { drivers: drivers(oldRule) });
+		const none = { labelledOffer: 0, labelledRefusal: 0, labelledLie: 0, labelledHesitation: 0, labelledHelpRequest: 0, labelledThanks: 0 };
+		expect(metricsOf(GAME, "interpretations", events)).toEqual({ ...none, labelledThreat: 57, labelledAccusation: 57, labelledPromise: 31 });
+		expect(metricsOf(GAME, "interpretations", [])).toEqual(Object.fromEntries(Object.keys({ ...none, labelledThreat: 0, labelledAccusation: 0, labelledPromise: 0 }).map((id) => [id, "absent"])));
 	});
 
 	it("replays equal, and resumes equal from every boundary", async () => {

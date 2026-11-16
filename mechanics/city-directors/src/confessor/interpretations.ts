@@ -13,6 +13,7 @@ import type { ToolSuccess } from "@swarmtales/contracts";
 import { IdentityService } from "@swarmtales/mechanic-contracts";
 import { defineHead, inSchemaOrder, reply, type ToolCtxOf, type ToolsOf, type ViewOf } from "@swarmtales/sdk";
 import { Type, type Static } from "typebox";
+import { interpretationsMetrics } from "./metrics.ts";
 import { conversationKey, StatementSchema, type Statement } from "./statements.ts";
 
 /**
@@ -45,6 +46,13 @@ const Events = {
 	interpretation_round: Type.Object({ round: Int("The old round"), classifier: Classifier, statements: Int("The statements of the round"), labeled: Int("Those with a label") }, { description: "A round was labelled without a failure" }),
 	interpretation_error: Type.Object({ round: Int("The old round"), message: Type.String({ description: "Why there is no answer" }) }, { description: "The Confessor's model gave no answer for a round; its statements stay unlabelled" }),
 };
+
+/**
+ * The event schemas of `interpretations`, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type InterpretationsEvents = typeof Events;
 
 const Conversation = Type.Object({ conversation: Type.String({ description: "`dm:A01|A02` or `group:G1`" }), statements: Type.Array(StatementSchema, { description: "Its last messages, oldest first" }) }, { description: "One conversation" });
 const Private = Type.Object({ round: Int("The old round"), agent: Type.String({ description: "The resident" }), labels: Type.Array(Label, { description: "Its private labels" }) }, { description: "The private labels of one statement" });
@@ -120,6 +128,7 @@ export const interpretationsHead = defineHead({
 	start: () => ({ history: [], window: [] }),
 	snapshot: { save: (state: Static<typeof Slice>) => structuredClone(state), load: (data): Static<typeof Slice> => inSchemaOrder(Slice, data) },
 	events: Events,
+	metrics: interpretationsMetrics(Events, LABELS),
 	uses: [IdentityService],
 	tools: { interpret: { description: "Records the labels of a round's statements.", params: Interpret, for: ["confessor"] } },
 });

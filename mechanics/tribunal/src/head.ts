@@ -12,6 +12,7 @@ import { RansomPriceService, TrialRiskService } from "@swarmtales/mechanic-stand
 import { TribunalViewService } from "@swarmtales/mechanic-arena/contract";
 import { defineHead, inSchemaOrder, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { TribunalEvents, TribunalService } from "./contract.ts";
+import { tribunalMetrics } from "./metrics.ts";
 import { TribunalOptions } from "./spec.ts";
 import { emptyTribunal, TribunalSlice, type TribunalState } from "./state.ts";
 
@@ -30,6 +31,7 @@ export const tribunalHead = defineHead({
 	// A snapshot file sorts the keys: the state comes back in the order of its schema (A43).
 	snapshot: { save: (state: TribunalState): TribunalState => structuredClone(state), load: (data): TribunalState => inSchemaOrder(TribunalSlice, data) },
 	events: TribunalEvents.events,
+	metrics: tribunalMetrics(),
 	// The register and the gate, the city's voice, the points, the act and the doors.
 	requires: [ExileService, ChannelsService, LedgerService, ProgressionService],
 	// What the standoff asks: the price of a ransom now and who stands trial next (J121, J142); what the run's stop rule of

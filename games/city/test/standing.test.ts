@@ -4,8 +4,8 @@
  * resumed from every tick boundary writes the log of the straight run, for fake runs at the seeds of the games list:
  * the default dials on a run of twelve minutes (the doors of Act I), a variant of twelve minutes with the other dials
  * (a named cast at figure direction 6, the gamemaker at 10, every resident woken in two passes, no Confessor), and the
- * whole Act I of seed 11, which ends in tick 42 with the start of Act II in the same tick (beyond 30 ticks the
- * boundaries are sampled; at seed 7 Act I ends in tick 11, inside the runs of twelve minutes). The gamemaker's look is the fake driver too, and the Confessor and the judge act on their
+ * whole Act I of seed 11, which ends in tick 27 with the start of Act II in the same tick (beyond 30 ticks the
+ * boundaries are sampled; at seed 7 Act I ends in tick 14). The gamemaker's look is the fake driver too, and the Confessor and the judge act on their
  * fallback (`fake.ts`). The command line proves the same over the games list (`apps/cli/test/standing.test.ts`).
  */
 import type { Envelope } from "@swarmtales/contracts";
@@ -18,7 +18,7 @@ import { fakeRun, RECORDS } from "./fake.ts";
 const VARIANT = { cast: ["auditor", "banner", "believer", "broker", "candle", "clerk"], figureDirection: 6, gmDirection: 10, activation: "always", passesPerMinute: 2, classifier: false };
 
 /** The last tick of Act I in the fake run of seed 11 at the default dials. */
-const ACT_ONE = 42;
+const ACT_ONE = 27;
 
 const runOf = (name: string, seed: number, overrides: Readonly<Record<string, unknown>>) => {
 	const game = cityGame(Value.Parse(CityParams, Value.Default(CityParams, { ...overrides })));

@@ -182,7 +182,19 @@ This mechanic provides no service to other mechanics.
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `interpretations.labelledPromise` | Statements the Confessor labelled promise | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
+| `interpretations.labelledOffer` | Statements the Confessor labelled offer | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
+| `interpretations.labelledThreat` | Statements the Confessor labelled threat | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
+| `interpretations.labelledRefusal` | Statements the Confessor labelled refusal | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
+| `interpretations.labelledLie` | Statements the Confessor labelled lie | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
+| `interpretations.labelledHesitation` | Statements the Confessor labelled hesitation | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
+| `interpretations.labelledHelpRequest` | Statements the Confessor labelled helpRequest | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
+| `interpretations.labelledAccusation` | Statements the Confessor labelled accusation | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
+| `interpretations.labelledThanks` | Statements the Confessor labelled thanks | statements | `interpretation`, `interpretation_round`, `interpretation_error` |
 
 <!-- /generated:metrics -->
 

@@ -7,6 +7,7 @@ import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { ProgressionService, TaskLinesService } from "@swarmtales/mechanic-progression/contract";
 import { defineHead, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { HoldoutPiecesService, StandoffTribunalEvents } from "./contract.ts";
+import { standoffTribunalMetrics } from "./metrics.ts";
 import { HoldoutSlice, loadHoldout, saveHoldout } from "./slice.ts";
 import { emptyHoldout } from "./types.ts";
 
@@ -71,6 +72,7 @@ export const standoffTribunalHead = defineHead({
 	start: () => ({ data: emptyHoldout() }),
 	snapshot: { save: saveHoldout, load: loadHoldout },
 	events: StandoffTribunalEvents.events,
+	metrics: standoffTribunalMetrics(),
 	prompts: {
 		"standoff-tribunal/tools/tribunalVote": [],
 		"standoff-tribunal/replies/ballot-holdout": ["vote", "accused", "number", "until"],

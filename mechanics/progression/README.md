@@ -285,7 +285,12 @@ The lines other mechanics put under the task of a door-open notice.
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `progression.doorsPassed` | Doors passed | doors | `act_started`, `level_up` |
+| `progression.doorsPerResident` | Doors passed per resident | doors | `act_started`, `level_up` |
 
 <!-- /generated:metrics -->
 

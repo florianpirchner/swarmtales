@@ -172,7 +172,12 @@ The id of the receipt issued for a booking of the ledger or for a delivered dire
 <!-- generated:metrics -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic exports no metrics.
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `receipts.blames` | Blames settled | blames | `receipt_issued`, `blame` |
+| `receipts.blamesUpheld` | Blames upheld | blames | `receipt_issued`, `blame` |
 
 <!-- /generated:metrics -->
 

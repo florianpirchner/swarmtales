@@ -177,7 +177,7 @@ describe("exile names no other mechanic (M3, done-when 4)", () => {
 		for (const id of ["puzzles", "ledger", "court", "channels", "decisions", "humanHand", "factor_burned", "board_post", "transferPoints", "vote"]) expect(foreign.ids.has(id)).toBe(true);
 		for (const own of ["exile", "exiled"]) expect(foreign.ids.has(own)).toBe(false);
 		const files = listFiles(`${EXILE}/src`, isSourceFile);
-		expect(files).toEqual(["contract", "gate", "head", "index", "ransom", "will"].map((name) => `${EXILE}/src/${name}.ts`));
+		expect(files).toEqual(["contract", "gate", "head", "index", "metrics", "ransom", "will"].map((name) => `${EXILE}/src/${name}.ts`));
 		const strings = files.flatMap((file) => stringsOf(ts.createSourceFile(file, readText(file), ts.ScriptTarget.Latest)));
 		expect(strings).toContain("exiled");
 		expect(strings).toContain("@swarmtales/mechanic-exile");
