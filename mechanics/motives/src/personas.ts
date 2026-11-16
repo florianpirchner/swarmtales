@@ -5,7 +5,8 @@
  * decision A98). Every other resident gets the seeded persona of the old `assignPersonas`
  * (`packages/roles/src/agents/personas.ts`, kind `seeded`): the catalogue is shuffled once with the stream `personas`
  * of the run seed, and the residents take the shuffled personas by seat, round again when there are more residents
- * than personas. The run's streams are the old ones bit for bit (`rngFor` of the kernel), so the same seed deals the
+ * than personas. With the option `figurePersonas: false` a figure speaks for itself, without a persona (the old `led`).
+ * The run's streams are the old ones bit for bit (`rngFor` of the kernel), so the same seed deals the
  * same personas.
  */
 import type { Motive, Streams } from "./deal.ts";
@@ -48,7 +49,9 @@ export function figurePersona(options: MotivesOptions, figure: string | undefine
 }
 
 /**
- * The persona of every resident: its figure's profession persona when it plays a figure, else the seeded deal.
+ * The persona of every resident: its figure's profession persona when it plays a figure, else the seeded deal. With
+ * `figurePersonas: false` a resident that plays a figure has none (the old host's `led`, from figure direction 6); the
+ * seeded deal is drawn all the same, so a seat beyond the cast keeps its persona.
  *
  * @param options - The motives' options.
  * @param coreMotives - The core motives dealt, which name the figure a resident plays.
@@ -62,7 +65,9 @@ export function personasOf(options: MotivesOptions, coreMotives: ReadonlyMap<str
 	const seeded = dealPersonas(options.personas ?? [], ids, rng);
 	return new Map(
 		ids.flatMap((agent): [string, Persona][] => {
-			const persona = figurePersona(options, coreMotives.get(agent)?.figure) ?? seeded.get(agent);
+			const figure = coreMotives.get(agent)?.figure;
+			if (figure !== undefined && options.figurePersonas === false) return [];
+			const persona = figurePersona(options, figure) ?? seeded.get(agent);
 			return persona === undefined ? [] : [[agent, persona]];
 		}),
 	);

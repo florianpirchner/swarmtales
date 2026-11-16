@@ -16,6 +16,7 @@ import { exile } from "@swarmtales/mechanic-exile";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { LevelPiecesService, progression } from "@swarmtales/mechanic-progression";
 import { standoff } from "@swarmtales/mechanic-standoff";
+import type { RandomSource } from "@swarmtales/contracts";
 import { defineGame, defineHead, defineMechanic } from "@swarmtales/sdk";
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, play, testKernel, type TestKernel } from "@swarmtales/testkit";
 import { TribunalOptions, tribunal, type TribunalSpec } from "../src/index.ts";
@@ -41,8 +42,9 @@ const pieces = defineMechanic(piecesHead, {
 
 const levels = [{ number: 1, title: "Door 1", reward: 5, tools: ["vote"], task: "Door {level}" }];
 
-function game(extra: readonly ReturnType<typeof decisions>[] = [], options: Partial<TribunalSpec> = {}, ticks = 24) {
+function game(extra: readonly ReturnType<typeof decisions>[] = [], options: Partial<TribunalSpec> = {}, ticks = 24, grants = {}) {
 	return defineGame({
+		grants,
 		id: "tribunal-unit",
 		seed: 7,
 		residents: ["A01", "A02", "A03", "A04", "A05", "A06"],
@@ -133,6 +135,45 @@ describe("the verdict at the decision gate", () => {
 			[10, "tribunal_result", true],
 			[10, "exile_gate", true],
 		]);
+	});
+});
+
+describe("the fake driver's plan of the gamemaker", () => {
+	// A random stream that counts its draws and always gives its lowest value; the plan picks from no list.
+	function counted(): RandomSource & { readonly draws: number } {
+		let draws = 0;
+		const draw = <T>(value: T): T => {
+			draws += 1;
+			return value;
+		};
+		return {
+			get draws() {
+				return draws;
+			},
+			next: () => draw(0),
+			int: (min: number) => draw(min),
+			pick: (): never => {
+				throw new RangeError("the sample of scheduleTribunal picks nothing");
+			},
+			shuffle: <T>(items: readonly T[]): T[] => draw([...items]),
+		};
+	}
+
+	it.each([24, 60])("in an act of %i ticks draws nothing while scheduleTribunal is not offered, then plans inside the window's bounds and is accepted", async (ticks) => {
+		const test = testKernel(game([], { gamemakerRoles: [{ fromLevel: 1, role: "director" }] }, ticks, { script: ["scheduleTribunal"] }));
+		const random = counted();
+		await test.playTicks(idle, 6);
+		expect([test.kernel.sample("script", "scheduleTribunal", random), random.draws]).toEqual([undefined, 0]);
+		await test.playTicks(idle, 3);
+		const Window = Type.Object({ open: Type.Literal(true), earliest: Type.Integer(), missing: Type.Integer(), latestWithRoom: Type.Optional(Type.Integer()) }, { additionalProperties: true });
+		const { window } = Parse(Type.Object({ window: Window }, { additionalProperties: true }), test.fact("tribunal.section"));
+		// With room for one more tribunal it exiles one; in the last that fits, every resident still missing.
+		expect(window.latestWithRoom === undefined).toBe(ticks === 24);
+		const params = test.kernel.sample("script", "scheduleTribunal", random);
+		expect(params).toMatchObject({ minute: window.earliest, count: window.latestWithRoom === undefined ? window.missing : 1 });
+		expect(await test.kernel.submit({ actor: "script", as: "scheduleTribunal", params })).toMatchObject({ ok: true });
+		const drawn = random.draws;
+		expect([test.kernel.sample("script", "scheduleTribunal", random), random.draws]).toEqual([undefined, drawn]);
 	});
 });
 

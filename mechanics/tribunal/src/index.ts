@@ -21,7 +21,7 @@ import { missing } from "./city.ts";
 import { tick } from "./court.ts";
 import { runJoin, runNominate, runRefuse, sampleStep, stepOpen } from "./draft.ts";
 import { tribunalHead, type TribunalToolCtx } from "./head.ts";
-import { mayScheduleTribunal, runSchedule } from "./schedule.ts";
+import { mayScheduleTribunal, runSchedule, sampleSchedule } from "./schedule.ts";
 import { DraftFact, SectionFact } from "./section.ts";
 import { statusLines } from "./status.ts";
 import { commitVerdict, prices, VERDICT, Verdict } from "./verdict.ts";
@@ -84,7 +84,7 @@ export const tribunal = defineMechanic(tribunalHead, {
 			},
 		},
 		refuse: { run: ({ agent }, ctx) => runRefuse(ctx, agent), sample: (ctx, random) => withAgent(sampleStep(ctx, "refuse", random)) },
-		scheduleTribunal: { run: (params, ctx) => runSchedule(ctx, params) },
+		scheduleTribunal: { run: (params, ctx) => runSchedule(ctx, params), sample: sampleSchedule },
 	},
 	services: {
 		// What others pay for a ransom of a gate that opened now (old `ransomPrices().price`); the standoff halves it (J121).

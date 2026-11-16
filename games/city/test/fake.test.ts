@@ -15,7 +15,7 @@ import { cityGame, CityParams } from "../game.ts";
 import { fakeRun, RECORDS } from "./fake.ts";
 import { ORACLES } from "./support.ts";
 
-const SEED = 7;
+const SEED = 1;
 
 /** The resident tools a fake run reaches. */
 const RESIDENT = ["transferPoints", "chooseName", "readBoard", "postBoard", "sendDM", "createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer", "defy", "showReceipt", "getStatus", "activeTools", "getProblem", "submitSolution", "listAgents", "claimPiece", "payRansom", "lastWill", "vote", "nominate", "join", "refuse", "bid", "permaDeath"];
@@ -27,8 +27,8 @@ const UNREACHED: Readonly<Record<string, string>> = {
 	blame: "called from door 8, and refused with JUDGE_FAILED: the judge of a fake run asks no model and gives no verdict",
 };
 
-/** The tools of the Directors a fake run reaches; `scheduleTribunal` has no `sample` (erratum of M5-48). */
-const DIRECTOR = ["take", "interpret", "notify", "boardNote", "ultimatum"];
+/** The tools of the Directors a fake run reaches. */
+const DIRECTOR = ["take", "interpret", "notify", "boardNote", "ultimatum", "scheduleTribunal"];
 
 /** The refusals a fake run meets: its samples do not count the caps, the marks, the factions or the note checks. */
 const REFUSALS = ["GROUP_LIMIT", "FACTION_FULL", "LEAK_BLOCKED", "MAILBOX_SENDER_LIMIT", "NO_MARKS", "JUDGE_FAILED"];

@@ -46,6 +46,16 @@ describe("the personas of the old `assignPersonas`", () => {
 		expect(namesOf(test)).toEqual(expected);
 	});
 
+	it("with `figurePersonas: false` gives a seat that plays a figure no persona, and the seeded deal to a seat beyond the cast (old `led`)", () => {
+		const n = (CITY.motives.figures?.length ?? 0) + 2;
+		const played = Value.Parse(Type.Record(Type.String(), Type.Object({ figure: Type.Optional(Type.String()) }, { additionalProperties: true })), testKernel(gameOf(CITY, { residents: n })).fact("motives.coreMotives"));
+		const seeded = namesOf(testKernel(gameOf({ motives: { ...CITY.motives, figures: [] } }, { residents: n })));
+		const beyond = Object.keys(played).filter((seat) => played[seat]?.figure === undefined);
+		expect(beyond).toHaveLength(2);
+		expect(namesOf(testKernel(gameOf({ motives: { ...CITY.motives, figurePersonas: false } }, { residents: n })))).toEqual(Object.fromEntries(beyond.map((seat) => [seat, seeded[seat]])));
+		expect(namesOf(testKernel(gameOf({ motives: { ...CITY.motives, figurePersonas: true } }, { residents: n })))).toEqual(namesOf(testKernel(gameOf(CITY, { residents: n }))));
+	});
+
 	it("falls back to the seeded deal when the catalogue has no persona of the figure's profession", () => {
 		const figures = (CITY.motives.figures ?? []).map((figure) => ({ ...figure, profession: "nobody" }));
 		const seeded = namesOf(testKernel(gameOf({ motives: { ...CITY.motives, figures: [] } })));

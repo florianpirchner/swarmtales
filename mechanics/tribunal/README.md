@@ -63,7 +63,9 @@ leaders, the bloc bonus); the gamemaker's `scheduleTribunal`, the act's end and 
    pending, something is missing, no snapshot door is shut, and the plan fits before the act's last tick, with room
    for one more unless it exiles everything still missing. It is offered only while a resident in the city plays a
    level of the `director` role of `gamemakerRoles`; once it planned in a tick it stays open for that tick, and a
-   second plan is refused `NOT_NOW`. Without a plan the city calls one itself (`cityCall`).
+   second plan is refused `NOT_NOW`. Without a plan the city calls one itself (`cityCall`). The fake driver's sample
+   plans now and then inside the window (one resident while there is room for one more, else all still missing),
+   and draws nothing while the tool is not offered.
 6. **The end.** Once the tribunals (and the seals) have exiled `targetShare` of the residents of the act's start and
    the last gate closed, the board says `texts.targetReached` and the act ends (`endAct` of `progression`).
 

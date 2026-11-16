@@ -6,7 +6,7 @@
  */
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { refuse, reply } from "@swarmtales/sdk";
-import type { ToolOutcome } from "@swarmtales/contracts";
+import type { RandomSource, ToolOutcome } from "@swarmtales/contracts";
 import { active, endOfAct, missing, present } from "./city.ts";
 import { planTribunal } from "./court.ts";
 import type { Reads, TribunalCtx, TribunalToolCtx } from "./head.ts";
@@ -170,4 +170,27 @@ export function mayScheduleTribunal(ctx: TribunalCtx): boolean {
 	const roles = ctx.options.gamemakerRoles ?? [];
 	const roleOn = (level: number): string | undefined => roles.filter((entry) => entry.fromLevel <= level).at(-1)?.role;
 	return present(ctx).some((agent) => roleOn(ctx.call(ProgressionService, "levelOf", { resident: agent })) === "director");
+}
+
+/** The share of the times the sample of `scheduleTribunal` is asked in which it gives a plan. */
+const SAMPLE_RATE = 0.25;
+const SAMPLE_REASON = "The city has waited long enough; the next tribunal settles who is still missing.";
+
+/**
+ * What the fake driver (`--fake`) may call of `scheduleTribunal`: now and then a plan inside the window's bounds, for
+ * one resident at an opening that leaves room for one more tribunal, or for every resident still missing at any
+ * opening when none fits after it (the story's factions). While the tool is not offered it gives nothing and draws
+ * nothing, so a run in which the gamemaker cannot plan plays as before. No sample changes state.
+ *
+ * @param ctx - The context of the tool call.
+ * @param random - The fake driver's random stream.
+ * @returns The params, or undefined most of the time and while the tool is not offered.
+ */
+export function sampleSchedule(ctx: TribunalToolCtx, random: RandomSource): { minute: number; count: number; reason: string } | undefined {
+	if (!mayScheduleTribunal(ctx)) return undefined;
+	const window = schedulingWindow(ctx);
+	if (!window.open || random.next() >= SAMPLE_RATE) return undefined;
+	const { earliest, latestWithRoom, missing: left } = window;
+	if (latestWithRoom === undefined) return { minute: random.int(earliest, window.latestFinal), count: left, reason: SAMPLE_REASON };
+	return { minute: random.int(earliest, latestWithRoom), count: 1, reason: SAMPLE_REASON };
 }

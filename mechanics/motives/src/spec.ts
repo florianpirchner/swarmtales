@@ -129,6 +129,11 @@ export const MotivesOptions = Type.Object(
 				description: "The catalogue of personas (the old story's `personas`): a resident that plays a figure gets the one its `profession` names, the others are dealt by seat from the run seed as the old `assignPersonas` did; without it nobody has a persona.",
 			}),
 		),
+		figurePersonas: Type.Optional(
+			Type.Boolean({
+				description: "false gives a resident that plays a figure no persona: the figure speaks for itself (the old host's `led`, from figure direction 6); a resident beyond the cast keeps its seeded persona. Default true.",
+			}),
+		),
 		noteTools: Type.Array(Type.String({ description: "The bare name of a tool" }), {
 			default: ["notify", "boardNote"],
 			description: "The tools of a Director's note whose `text` (or `reason`) is checked for a resident's core motive (`PRIVATE_BLOCKED`); `notify` is read by its `agent`, the others by the board.",

@@ -35,7 +35,9 @@ resident's system prompt as who it is, never as what to do, and it never changes
    run is set up (`SWT-G020`, with the old words).
    **Personas.** The fact `personas` gives a resident that plays a figure the persona of `personas` that its figure's
    `profession` names (without case, as the old City did); every other resident gets the catalogue's persona dealt
-   by seat from the stream `personas` of the run seed (the old `assignPersonas`). No event is written for them.
+   by seat from the stream `personas` of the run seed (the old `assignPersonas`). No event is written for them. With
+   `figurePersonas: false` a resident that plays a figure has no persona (the old `led`, from figure direction 6),
+   and a resident beyond the cast keeps its seeded one.
 3. **The whisperer.** When `whispers` is loaded, `motives` asks it who the whisperer is (the service `whispers` of
    `@swarmtales/mechanic-whispers/contract`, one direction), and the whisperer plays `whispererCoreMotive`. Load
    `whispers` before `motives`, so that `whisperer_chosen` comes first, as in the files.
@@ -149,6 +151,7 @@ Audience: everyone
 | `personas[].temperament` | string | required | How it feels and reacts. |
 | `personas[].values` | string | required | What it holds dear. |
 | `personas[].voice` | string | required | How it speaks. |
+| `figurePersonas` | boolean | unset | false gives a resident that plays a figure no persona: the figure speaks for itself (the old host's `led`, from figure direction 6); a resident beyond the cast keeps its seeded persona. Default true. |
 | `noteTools` | string[] | `["notify","boardNote"]` | The tools of a Director's note whose `text` (or `reason`) is checked for a resident's core motive (`PRIVATE_BLOCKED`); `notify` is read by its `agent`, the others by the board. |
 
 <!-- /generated:options -->

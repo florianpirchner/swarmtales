@@ -34,8 +34,6 @@ const RESIDENTS = 6;
 /** The default of both direction dials (old `DEFAULT_DIRECTION`). */
 const DIRECTION = 4;
 
-/** From this figure direction a figure speaks for itself, with no persona beside it (old `led`). */
-const LED = 6;
 
 const flag = (value: boolean, description: string) => Type.Boolean({ default: value, description });
 
@@ -109,7 +107,7 @@ function directorsOf(story: CityData, params: CityParams) {
  * @returns The game in its builder form.
  * @throws SwtError `SWT-G041` when `agents` is not six; when `cast` or a `figureDirection` other than 4 is set without
  * core motives (the old command line's refusals); when `cast` names a figure twice or one the story lacks, or more
- * figures than residents; or when `figureDirection` is 6 or more with a cast of fewer figures than residents.
+ * figures than residents.
  *
  * @public
  */
@@ -178,9 +176,7 @@ function dialIssue(params: CityParams): Refusal | undefined {
 	return params.figureDirection === DIRECTION ? undefined : { name: "figureDirection", message: "steers cast figures by their core motives: leave it at 4, or set coreMotives to true" };
 }
 
-// The cast the run names, with the old words (`castList` of the command line, `namedCast` of the motives). From
-// figure direction 6 a figure plays no persona while a resident beyond the cast keeps its seeded one; the persona is
-// one fact for all seats, so only a full cast is played there (erratum of M5-48).
+// The cast the run names, with the old words (`castList` of the command line, `namedCast` of the motives).
 function castIssue(story: CityData, params: CityParams): Refusal | undefined {
 	const { cast } = params;
 	if (cast.length === 0) return undefined;
@@ -188,18 +184,17 @@ function castIssue(story: CityData, params: CityParams): Refusal | undefined {
 	const unknown = cast.find((id) => !known.includes(id));
 	if (cast.length > RESIDENTS) return { name: "cast", message: `names ${String(cast.length)} figures for ${String(RESIDENTS)} residents` };
 	if (new Set(cast).size !== cast.length) return { name: "cast", message: "names a figure twice" };
-	if (unknown !== undefined) return { name: "cast", message: `names the unknown figure "${unknown}"; the cast has ${known.join(", ")}` };
-	return params.figureDirection >= LED && cast.length < RESIDENTS ? { name: "figureDirection", message: `of 6 or more needs a figure for every resident, and cast names ${String(cast.length)} of ${String(RESIDENTS)}` } : undefined;
+	return unknown === undefined ? undefined : { name: "cast", message: `names the unknown figure "${unknown}"; the cast has ${known.join(", ")}` };
 }
 
 // The City order of the system text (A89, M5-81): the city with its names deadline and every tool, the character and
 // the persona `motives` deals (A95, A98). Without core motives `motives` is not loaded: no character, no persona. From
-// figure direction 6 every seat plays a figure (`castIssue`) and speaks for itself: no persona (old `led`; the rest
-// of the old prompt at 6 and above is not carried, A89).
+// figure direction 6 a seat that plays a figure speaks for itself: `motives` deals it no persona (old `led`, M5-90),
+// and a seat beyond the cast keeps its seeded one; the rest of the old prompt at 6 and above is not carried (A89).
 function promptOf(story: CityData, params: CityParams) {
 	const city = { name: story.city, survivors: story.run.survivors, tools: "all" as const, ...(params.names ? { namesUntil: story.names.untilMinute } : {}) };
 	if (!params.coreMotives) return { city };
-	return { frame: story.coreMotives.frame, character: "motives.prose", city, ...(params.personas && params.figureDirection < LED ? { persona: "motives.personas" } : {}) };
+	return { frame: story.coreMotives.frame, character: "motives.prose", city, ...(params.personas ? { persona: "motives.personas" } : {}) };
 }
 
 /**

@@ -115,6 +115,7 @@ clearly: Type.TString;
 }>;
 tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
 }>>;
+figurePersonas: Type.TOptional<Type.TBoolean>;
 figures: Type.TOptional<Type.TArray<Type.TObject<{
 bigFive: Type.TArray<Type.TObject<{
 axis: Type.TString;
@@ -216,6 +217,7 @@ clearly: Type.TString;
 }>;
 tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
 }>>;
+figurePersonas: Type.TOptional<Type.TBoolean>;
 figures: Type.TOptional<Type.TArray<Type.TObject<{
 bigFive: Type.TArray<Type.TObject<{
 axis: Type.TString;
@@ -360,6 +362,7 @@ export const MotivesOptions: Type.TObject<{
         }>;
         tone: Type.TUnion<[Type.TLiteral<"light">, Type.TLiteral<"dark">]>;
     }>>;
+    figurePersonas: Type.TOptional<Type.TBoolean>;
     figures: Type.TOptional<Type.TArray<Type.TObject<{
         bigFive: Type.TArray<Type.TObject<{
             axis: Type.TString;

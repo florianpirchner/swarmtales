@@ -2,8 +2,9 @@
 /**
  * The remaining params of the City (issue M5-48): the cast choice (old `--cast`) and the direction dials, with the
  * old command line's refusals as `SWT-G041` of the family. From figure direction 6 a figure plays no persona (old
- * `led`, `apps/cli/src/host/residents.ts`): every seat plays a figure there, so the prompts are those without
- * personas; the rest of the old prompt at 6 and above is not carried (A89).
+ * `led`, `apps/cli/src/host/residents.ts`): with every seat a figure the prompts are those without personas, and a
+ * seat beyond a partial cast keeps its seeded persona (M5-90); the rest of the old prompt at 6 and above is not
+ * carried (A89).
  */
 import { residentPrompts } from "@swarmtales/cli/src/resident-prompts.ts";
 import { SwtError } from "@swarmtales/contracts";
@@ -54,7 +55,6 @@ describe("city: the cast and the direction dials", () => {
 		[{ cast: ["auditor", "auditor"] }, "cast"],
 		[{ cast: ["auditor", "nobody"] }, "cast"],
 		[{ cast: [...SIX, "tally"] }, "cast"],
-		[{ cast: ["auditor", "banner"], figureDirection: 6 }, "figureDirection"],
 	])("refuses %j with SWT-G041 on the param %s", (overrides, param) => {
 		expect(refusal(overrides)).toEqual(["SWT-G041", param]);
 	});
@@ -65,7 +65,7 @@ describe("city: the cast and the direction dials", () => {
 	});
 
 	it("builds the dials the old command line let through: no cast, a cast without direction, a full cast at 10, direction 5 as 4", () => {
-		for (const overrides of [{ cast: [] }, { cast: ["auditor"] }, { cast: SIX, figureDirection: 10 }, { figureDirection: 6 }, { coreMotives: false }]) expect(refusal(overrides)).toBeUndefined();
+		for (const overrides of [{ cast: [] }, { cast: ["auditor"] }, { cast: SIX, figureDirection: 10 }, { figureDirection: 6 }, { cast: ["auditor", "banner"], figureDirection: 6 }, { coreMotives: false }]) expect(refusal(overrides)).toBeUndefined();
 		expect(resolveGame({ game: cityGame(paramsOf({ figureDirection: 5 })), schedulers: { turns }, prompts: texts }).data).toEqual(resolveGame({ game: cityGame(paramsOf({})), schedulers: { turns }, prompts: texts }).data);
 	});
 
@@ -83,5 +83,20 @@ describe("city: the cast and the direction dials", () => {
 		expect(led).toEqual(started({ personas: false }, seed).prompts);
 		for (const [actor, prompt] of Object.entries(led)) expect(prompt, actor).not.toBe(plain[actor]);
 		expect(started({ figureDirection: 5 }, seed).prompts).toEqual(plain);
+	});
+
+	it.each([7, 11])("seed %i: at figure direction 6 a partial cast drops the figures' personas and keeps the seeded one beyond the cast", (seed) => {
+		const cast = ["auditor", "banner"];
+		const { kernel, prompts } = started({ cast, figureDirection: 6 }, seed);
+		const played = Value.Parse(Played, kernel.fact("motives.coreMotives"));
+		const bare = started({ cast, personas: false }, seed).prompts;
+		const seeded = started({ cast }, seed);
+		const figureSeats = Object.keys(played).filter((seat) => played[seat]?.figure !== undefined);
+		expect(figureSeats).toHaveLength(2);
+		expect(Object.keys(Value.Parse(Type.Record(Type.String(), Type.Unknown()), kernel.fact("motives.personas"))).sort()).toEqual(Object.keys(played).filter((seat) => !figureSeats.includes(seat)).sort());
+		const figureActors = figureSeats.map((seat) => `resident:${seat}`);
+		expect(Object.keys(prompts)).toHaveLength(6);
+		for (const [actor, prompt] of Object.entries(prompts)) expect(prompt, actor).toBe(figureActors.includes(actor) ? bare[actor] : seeded.prompts[actor]);
+		for (const actor of figureActors) expect(prompts[actor], actor).not.toBe(seeded.prompts[actor]);
 	});
 });
