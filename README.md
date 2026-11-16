@@ -174,3 +174,12 @@ times its expected cost (P479, the second price tier above 100,000 input tokens)
 
 The folder verifies (`swt log verify`), replays equal (`swt replay --game`), and the leak scan (`swt scan`) found no
 held key value.
+
+## M5 live runs of the City of Keys
+
+- `city/base/city-001`: the Act I base (run 3 of `docs/RERUN-PLAN-M5.md`, M5-54), seed 7, residents Haiku via
+  Anthropic, runtime revision 7. 0.0686 USD, 8 ticks; paused on `progression.act_ended` when A01 entered level 8.
+  Base snapshot `snapshots/t8.json`. Loopholes: none new (LH1, LH2 not seen). Problems: P487 (`swt run` accepted the
+  flag `--plan` of another command; open), P488 (no report of a paused run, `SWT-E006`; open), P489 (the pause lands at
+  the end of the tick, so the base holds the rest of minute 7 played as Act II; count Act II from `act_started` at
+  #1827; open), P7 updated (one `lie` label on a true DM).
