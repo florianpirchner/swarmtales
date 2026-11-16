@@ -17,7 +17,7 @@ export function createKernel(definition: KernelDefinition, ports?: KernelPorts, 
 export function rngFor(seed: number, ...parts: readonly (string | number)[]): RandomSource;
 
 // @public
-export const RUNTIME_REVISION = 7;
+export const RUNTIME_REVISION = 8;
 
 // (No @packageDocumentation comment for this package)
 

@@ -87,6 +87,8 @@ describe("the guard", () => {
 		expect([guard.id, guard.answers, guard.on, guard.acts]).toEqual(["guard", "guard", [], "answer"]);
 		expect(GUARD_VERDICT_TEXT).toBe(lookup.render("city-directors", "guard/tool-verdict", {}, []));
 		expect(guard.output).toBe(GuardAnswer);
-		expect(GuardAnswer).toMatchObject({ description: GUARD_VERDICT_TEXT });
+		// Runtime revision 8 (B2): the title asks the engine for the answer tool `verdict`, the name its system text gives.
+		expect(GuardAnswer).toMatchObject({ title: "verdict", description: GUARD_VERDICT_TEXT });
+		expect(options.system).toContain("Call the tool verdict exactly once");
 	});
 });

@@ -83,6 +83,9 @@
 			"path": "../../packages/kernel"
 		},
 		{
+			"path": "../../packages/models"
+		},
+		{
 			"path": "../../apps/cli"
 		}
 	]

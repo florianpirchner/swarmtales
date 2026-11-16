@@ -523,6 +523,10 @@ export const ModelChoiceSchema: Type.TObject<{
 
 // @public
 export interface ModelQuestion {
+    readonly answerTool?: {
+        readonly description: string;
+        readonly name: string;
+    };
     readonly input: string;
     readonly output: unknown;
     readonly system: string;

@@ -47,6 +47,14 @@ export interface DirectorDriverInput {
 	readonly look?: (activation: Activation, question: ModelQuestion) => Promise<void>;
 }
 
+// The question of a Director. An `output` schema with a `title` asks to be answered by a tool of that name, described
+// by the schema's `description` (runtime revision 8, B2: the guard's `verdict`); any other is answered in the text.
+function questionOf({ definition }: ResolvedDirector, ctx: DirectorContext<unknown>): ModelQuestion {
+	const { output } = definition;
+	const tool = "title" in output && typeof output.title === "string" ? { name: output.title, description: "description" in output && typeof output.description === "string" ? output.description : "" } : undefined;
+	return { system: definition.system(ctx), input: definition.input(ctx), output, ...(tool === undefined ? {} : { answerTool: tool }) };
+}
+
 // What the model's answer is worth: the value to act on, when there is one, and the record `answered`.
 function settle(director: ResolvedDirector, ctx: DirectorContext<unknown>, answer: ModelAnswer): { readonly value: unknown; readonly record: Static<typeof AnsweredSchema> } {
 	if (answer.ok && Check(director.definition.output, answer.value)) return { value: answer.value, record: { ok: true, fallback: false, costUsd: answer.costUsd } };
@@ -63,7 +71,7 @@ function driverOf(director: ResolvedDirector, take: string, { ask, facts, look }
 		const firings = taken.ok ? (parseTake(taken.reply)?.firings ?? []) : [];
 		if (firings.length === 0) return;
 		const ctx = directorContext(director, { tick: activation.tick, firings }, facts);
-		const question = { system: definition.system(ctx), input: definition.input(ctx), output: definition.output };
+		const question = questionOf(director, ctx);
 		activation.record(DIRECTOR_RECORDS.id, "asked", { firings: firings.map((firing) => firing.n) } satisfies Static<typeof AskedSchema>);
 		if (definition.acts === "tools") return look?.(activation, question);
 		const { value, record } = settle(director, ctx, await ask(activation, question));
@@ -139,7 +147,7 @@ export function createReviewPort(input: DirectorDriverInput): ReviewPort {
 			if (director === undefined) return { ok: false };
 			const { tick } = record(REVIEW_RECORDS.id, "asked", { answerer, question });
 			const ctx = directorContext(director, { tick, firings: [], question }, input.facts);
-			const answer = await input.ask({ actor: director.actor, tick, basis: call.seq, detail: {}, inputs: [], tools: [], call: () => Promise.resolve({ ok: false, code: "TOOL_NOT_GRANTED" }), record }, { system: director.definition.system(ctx), input: director.definition.input(ctx), output: director.definition.output });
+			const answer = await input.ask({ actor: director.actor, tick, basis: call.seq, detail: {}, inputs: [], tools: [], call: () => Promise.resolve({ ok: false, code: "TOOL_NOT_GRANTED" }), record }, questionOf(director, ctx));
 			const fits = answer.ok && Check(director.definition.output, answer.value);
 			record(REVIEW_RECORDS.id, "answered", answer.ok ? { answerer, ok: fits, ...(fits ? { answer: answer.value } : { reason: "invalid" }), costUsd: answer.costUsd } : { answerer, ok: false, costUsd: answer.costUsd ?? 0, reason: answer.reason });
 			return answer.ok && fits ? { ok: true, answer: answer.value } : { ok: false };

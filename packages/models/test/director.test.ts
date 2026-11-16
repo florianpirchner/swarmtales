@@ -7,16 +7,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
-import type { ActorId, AskModel, DriverTable, Envelope, GameData, ModelAnswer } from "@swarmtales/contracts";
+import type { JsonObject } from "@earendil-works/pi-ai";
+import type { ActorId, AskModel, DriverTable, Envelope, GameData, ModelAnswer, ModelQuestion } from "@swarmtales/contracts";
 import { checkResumeEveryBoundary, guessNumber, play } from "@swarmtales/testkit";
 import { createAsker, DIRECTOR_MODEL_RECORDS, scriptedAsker } from "../src/director.ts";
 import { createCostMeter, type CostMeter } from "../src/meter.ts";
-import { fail, say, scriptedSource, type ScriptStep } from "../src/scripted.ts";
+import { act, fail, say, scriptedSource, type ScriptStep } from "../src/scripted.ts";
 import type { ModelSource } from "../src/source.ts";
 
 const A01: ActorId = "resident:A01";
 const OUTPUT = Type.Object({ line: Type.String({ description: "The line" }) }, { additionalProperties: false, description: "The answer" });
 const QUESTION = { system: "You are the warden.", input: "A decision was proposed.", output: OUTPUT };
+const TOOL_QUESTION: ModelQuestion = { system: "You are the guard.", input: QUESTION.input, output: Type.Object({ line: Type.String({ description: "The line" }) }, { additionalProperties: false, title: "verdict", description: "The answer" }), answerTool: { name: "verdict", description: "Record the line." } };
 const game = (ticks: number): GameData => ({
 	schema: 1,
 	id: "guess",
@@ -36,6 +38,8 @@ interface Setup {
 	readonly price?: number;
 	/** The stream function throws at this request (counted from 0). */
 	readonly throwAt?: number;
+	/** The question; default: QUESTION. */
+	readonly question?: ModelQuestion;
 }
 interface Run {
 	readonly answers: readonly ModelAnswer[];
@@ -43,10 +47,12 @@ interface Run {
 	readonly meter: CostMeter;
 	/** The system prompt of every request that reached the stream function. */
 	readonly sent: readonly string[];
+	/** The tools of every request that reached the stream function, as JSON; `null` for none. */
+	readonly tools: readonly string[];
 }
 
 // The source with a cost on every answer, a price on the model and a count of what was sent.
-function wired(source: ModelSource, setup: Setup, sent: string[]): ModelSource {
+function wired(source: ModelSource, setup: Setup, sent: string[], tools: string[]): ModelSource {
 	return {
 		bind: (actor, limits) => {
 			const binding = source.bind(actor, limits);
@@ -56,6 +62,7 @@ function wired(source: ModelSource, setup: Setup, sent: string[]): ModelSource {
 				streamFn: async (model, context, options) => {
 					const first = context.messages[0];
 					const at = sent.push(first?.role === "system" && typeof first.content === "string" ? first.content : "") - 1;
+					tools.push(JSON.stringify(first?.role === "system" ? (first.toolsAdded ?? null) : null));
 					expect([options?.sessionId, limits.maxOutputTokens, limits.timeoutMs]).toEqual([actor, 4000, 120_000]);
 					if (at === setup.throwAt) throw new TypeError(`fetch https://user:${"p".repeat(20)}@host/v1 failed`);
 					const inner = await binding.streamFn(model, context, options);
@@ -77,18 +84,20 @@ function wired(source: ModelSource, setup: Setup, sent: string[]): ModelSource {
 async function run(script: readonly ScriptStep[], setup: Setup = {}, ticks = script.length): Promise<Run> {
 	const meter = createCostMeter(setup.capUsd ?? 100);
 	const sent: string[] = [];
-	const ask = createAsker(wired(scriptedSource({ [A01]: script }), setup, sent), meter, () => (setup.maxCostUsd === undefined ? {} : { maxCostUsd: setup.maxCostUsd }));
+	const tools: string[] = [];
+	const question = setup.question ?? QUESTION;
+	const ask = createAsker(wired(scriptedSource({ [A01]: script }), setup, sent, tools), meter, () => (setup.maxCostUsd === undefined ? {} : { maxCostUsd: setup.maxCostUsd }));
 	const answers: ModelAnswer[] = [];
 	const { events } = await play(game(ticks), {
 		installed: { "guess-number": guessNumber },
 		records: [DIRECTOR_MODEL_RECORDS],
 		drivers: {
 			resident: async (activation) => {
-				answers.push(await ask(activation, QUESTION), ...(setup.capUsd === undefined ? [] : [await ask(activation, QUESTION)]));
+				answers.push(await ask(activation, question), ...(setup.capUsd === undefined ? [] : [await ask(activation, question)]));
 			},
 		},
 	});
-	return { answers, records: events.filter((event) => event.source === DIRECTOR_MODEL_RECORDS.id), meter, sent };
+	return { answers, records: events.filter((event) => event.source === DIRECTOR_MODEL_RECORDS.id), meter, sent, tools };
 }
 const types = (records: readonly Envelope[]): readonly string[] => records.map((record) => record.type);
 
@@ -104,7 +113,7 @@ afterEach(() => {
 
 describe("the asker", () => {
 	it("asks once, writes its records as the actor, counts the cost on the meter and gives the checked value", async () => {
-		const { answers, records, meter, sent } = await run([say('{"line":"Order."}'), say('```json\n{"line":"Again."}\n```')], { usd: [0.01, 0.02] });
+		const { answers, records, meter, sent, tools } = await run([say('{"line":"Order."}'), say('```json\n{"line":"Again."}\n```')], { usd: [0.01, 0.02] });
 		expect(answers).toEqual([
 			{ ok: true, value: { line: "Order." }, costUsd: 0.01 },
 			{ ok: true, value: { line: "Again." }, costUsd: 0.02 },
@@ -117,6 +126,28 @@ describe("the asker", () => {
 		expect(meter.total.costUsd).toBeCloseTo(0.03);
 		// Every question is a new conversation: the system prompt, then the schema of the answer.
 		expect(sent).toEqual([`You are the warden.\n\nAnswer with one JSON value that fits this JSON schema, and with nothing else:\n${JSON.stringify(OUTPUT)}`, sent[0]]);
+		// A question without an answer tool is sent without a tool, as before runtime revision 8.
+		expect(tools).toEqual(["null", "null"]);
+	});
+
+	// Runtime revision 8 (B2, P480): the guard answers by the tool its system text names.
+	it("answers a question with an answer tool by the arguments of its one call, offered as the only tool beside the system text alone", async () => {
+		const verdict = (args: JsonObject): ScriptStep => act({ name: "verdict", args });
+		const script = [verdict({ line: "Order." }), verdict({ line: 7 }), act({ name: "verdict", args: { line: "One." } }, { name: "verdict", args: { line: "Two." } }), say('Text: {"line":"Said."}'), act({ name: "other", args: { line: "No." } })];
+		const { answers, records, sent, tools } = await run(script, { usd: [0.01, 0.01, 0.01, 0.01, 0.01], question: TOOL_QUESTION });
+		expect(answers).toEqual([
+			{ ok: true, value: { line: "Order." }, costUsd: 0.01 },
+			{ ok: false, reason: "invalid", detail: "the answer does not fit the schema of the output", costUsd: 0.01 },
+			{ ok: false, reason: "invalid", detail: "the answer called the tool verdict more than once", costUsd: 0.01 },
+			// No call: the text is read as without the tool (revision 7); a call of another tool is no answer.
+			{ ok: true, value: { line: "Said." }, costUsd: 0.01 },
+			{ ok: false, reason: "invalid", detail: "the answer is no JSON, or its schema cannot be checked", costUsd: 0.01 },
+		]);
+		expect(sent).toEqual(Array.from({ length: 5 }, () => "You are the guard."));
+		// The parameters are the output schema without its title and description, as the old tool's parameters were.
+		const parameters = { additionalProperties: false, type: "object", required: ["line"], properties: { line: { type: "string", description: "The line" } } };
+		expect(tools.map((tool): unknown => JSON.parse(tool))).toEqual(Array.from({ length: 5 }, () => [{ name: "verdict", description: "Record the line.", parameters }]));
+		expect(records.filter((record) => record.type === "request").map((record) => record.payload)).toEqual(Array.from({ length: 5 }, () => ({ inputs: [QUESTION.input], tools: ["verdict"], messages: 0 })));
 	});
 
 	it("refuses with `limit` and sends nothing once the actor spent its `maxCostUsd`", async () => {

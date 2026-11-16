@@ -36,6 +36,7 @@
 		"@swarmtales/engine": "workspace:*",
 		"@swarmtales/testkit": "workspace:*",
 		"@swarmtales/cli": "workspace:*",
-		"@swarmtales/kernel": "workspace:*"
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/models": "workspace:*"
 	}
 }

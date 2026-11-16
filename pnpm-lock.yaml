@@ -672,6 +672,9 @@ importers:
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@swarmtales/models':
+        specifier: workspace:*
+        version: link:../../packages/models
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit

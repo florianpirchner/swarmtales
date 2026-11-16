@@ -44,13 +44,13 @@ function appendRow(root: string, row: string): void {
 }
 
 /** A repository whose freeze F1 is in force since 2026-11-15, as `rewrite/develop` is since M5-57. */
-function inForce(): string {
+function inForce(report = "export function a(): void;\n\nexport function b(): void;\n"): string {
 	const root = mkdtempSync(join(tmpdir(), "swt-freeze-review-"));
 	roots.push(root);
 	git(root, "init", "-q");
 	git(root, "config", "user.email", "test@example.com");
 	git(root, "config", "user.name", "Test");
-	put(root, { [DECISIONS_DOC]: DECISIONS, [REPORT]: "export function a(): void;\n\nexport function b(): void;\n", [FORM]: MANIFEST, [FREEZE_DOC]: TABLE });
+	put(root, { [DECISIONS_DOC]: DECISIONS, [REPORT]: report, [FORM]: MANIFEST, [FREEZE_DOC]: TABLE });
 	appendRow(root, "| F1 | (the merge) | every file of the frozen list | freeze | A60 | the surface |");
 	commit(root, "reports", "2026-11-15T12:00:00Z");
 	const recorded = recordFrozen(root, [REPORT, FORM]);
@@ -125,6 +125,18 @@ describe("the API freeze gate, attacked by the review of M5", () => {
 		put(root, { [FROZEN_LIST]: listText(recordFrozen(root, [REPORT, FORM]).files) });
 		expect(freezeProblems(root, [REPORT, FORM])).toEqual([]);
 		put(root, { [FORM]: last.replace('\t\t"seed": {\n\t\t\t"type": "number"\n\t\t},\n', "") });
+		put(root, { [FROZEN_LIST]: listText(recordFrozen(root, [REPORT, FORM]).files) });
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining("removes or changes a line")]);
+	});
+
+	// Issue M6-16, decision A143: a runtime revision raises the kernel's revision value; that alone is no break, another value still is.
+	it("passes a raised RUNTIME_REVISION as an addition, and still refuses another changed value", () => {
+		const root = inForce("export const RUNTIME_REVISION = 7;\n\nexport const LIMIT = 3;\n");
+		put(root, { [REPORT]: "export const RUNTIME_REVISION = 8;\n\nexport const LIMIT = 3;\n" });
+		appendRow(root, `| F2 | 2026-11-20 | \`${REPORT}\` | addition | A60 | revision 8 |`);
+		put(root, { [FROZEN_LIST]: listText(recordFrozen(root, [REPORT, FORM]).files) });
+		expect(freezeProblems(root, [REPORT, FORM])).toEqual([]);
+		put(root, { [REPORT]: "export const RUNTIME_REVISION = 8;\n\nexport const LIMIT = 4;\n" });
 		put(root, { [FROZEN_LIST]: listText(recordFrozen(root, [REPORT, FORM]).files) });
 		expect(freezeProblems(root, [REPORT, FORM])).toEqual([expect.stringContaining("removes or changes a line")]);
 	});

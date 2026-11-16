@@ -4,7 +4,7 @@
  * 4.4 and 4.6): the cases of the old `test/host/overseers.test.ts` that are about an event trigger, `maxCalls`,
  * the fallback and the logged call. The asker is written here: the engine imports no model.
  */
-import { nameOf, TOOL_NOT_GRANTED, type ActorDriver, type AskModel, type DirectorUse, type DriverTable, type Kernel, type ModelAnswer, type ToolOutcome } from "@swarmtales/contracts";
+import { nameOf, TOOL_NOT_GRANTED, type ActorDriver, type AskModel, type DirectorUse, type DriverTable, type Kernel, type ModelAnswer, type ModelQuestion, type ToolOutcome } from "@swarmtales/contracts";
 import { createKernel } from "@swarmtales/kernel";
 import { defineDirector, defineHead, defineMechanic, reply, resolveGame, type DirectorDefinition } from "@swarmtales/sdk";
 import { Type } from "typebox";
@@ -68,7 +68,7 @@ function setup({ script, answers, use, fallback }: Setup) {
 	});
 	const asked: string[] = [];
 	const ask: AskModel = (_activation, question) => {
-		asked.push(`${question.system} ${question.input}`);
+		asked.push(`${question.system} ${question.input}${question.answerTool === undefined ? "" : ` (tool ${question.answerTool.name})`}`);
 		return Promise.resolve(answers[asked.length - 1] ?? { ok: false, reason: "error", detail: "no answer left" });
 	};
 	const resident: ActorDriver = async (activation) => {
@@ -204,5 +204,29 @@ describe("the Director's driver in a real kernel", () => {
 		const results = [await ask(), await ask(), await ask()];
 		expect([results, actors]).toEqual([[{ ok: false }, { ok: false }, { ok: false }], ["director:guard", "director:guard", "director:guard"]]);
 		expect(answered).toEqual([{ answerer: "guard", ok: false, costUsd: 0.000176775, reason: "invalid" }, { answerer: "guard", ok: false, costUsd: 0, reason: "limit" }, { answerer: "guard", ok: false, reason: "invalid", costUsd: 0.01 }]);
+	});
+
+	// Runtime revision 8 (B2): the guard's answer schema has the title `verdict`; a Director without a title is asked as before.
+	it("asks for an answer tool named by the title of the answer schema, in a review and in an activation, and for none without a title", async () => {
+		const Verdict = Type.Object({ allowed: Type.Boolean({ description: "Kept" }) }, { title: "verdict", description: "Record the verdict." });
+		const guard = defineDirector({ id: "guard", summary: "Answers the reviews of the guard.", on: [], output: Verdict, answers: "guard" }, { system: () => "You are the guard.", input: () => "Keeps it the rule?", act: () => Promise.resolve() });
+		const game = resolveGame({
+			game: { schema: 1, id: "demo", residents: 1, mechanics: [{ use: "votes" }], directors: [{ use: "guard" }], scheduler: { id: "turns", options: { order: "roster", afterBlocks: ["director"] } }, end: { ticks: 1 } },
+			installed: { votes },
+			directors: { guard },
+			schedulers: { turns },
+			prompts: { render: (_owner, id) => id },
+			records: [DIRECTOR_RECORDS, REVIEW_RECORDS],
+		});
+		const questions: ModelQuestion[] = [];
+		const port = createReviewPort({ game, ask: (_activation, question) => (questions.push(question), Promise.resolve({ ok: true, value: { allowed: false }, costUsd: 0 })) });
+		const call = { tool: "@test/votes/votes/propose", name: "propose", as: "propose", owner: "votes", actor: "resident:A01", params: { line: "x" }, seq: 5 } as const;
+		const record = (source: string, type: string, payload: unknown) => ({ seq: 6, tick: 0, source, type, actor: call.actor, causedBy: call.seq, payload });
+		expect(await port.ask({ answerer: "guard", question: { text: "x" }, call, record })).toEqual({ ok: true, answer: { allowed: false } });
+		expect(questions).toEqual([{ system: "You are the guard.", input: "Keeps it the rule?", output: Verdict, answerTool: { name: "verdict", description: "Record the verdict." } }]);
+		const { kernel, drivers, asked } = setup({ script: { "0:A01": ["one"] }, answers: [says("heard")] });
+		await kernel.run(drivers, { ticks: 1 });
+		expect(asked).toEqual(["You are warden. 0: one"]);
+		expect(warden([]).output).not.toHaveProperty("title");
 	});
 });

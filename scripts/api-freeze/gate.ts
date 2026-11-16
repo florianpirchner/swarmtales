@@ -47,7 +47,10 @@ function onlyAdds(before: readonly string[], now: readonly string[]): boolean {
 const lines = (text: string): readonly string[] => text.split("\n");
 // In a JSON text form a member added after the last one puts a comma behind the line before it (issue M6-04): the
 // lines are compared without a trailing comma, and what the comma cannot show is the schema comparison's (`forms.ts`).
-const formLines = (path: string, text: string): readonly string[] => (path.endsWith(".json") ? lines(text).map((line) => line.replace(/,$/, "")) : lines(text));
+// The kernel's revision is a value that each runtime revision raises (`docs/RUNTIME-REVISIONS.md`), not a surface:
+// its line is compared without the number (decision A143).
+const revisionLine = (line: string): string => line.replace(/^(export (?:declare )?const RUNTIME_REVISION = )\d+;$/, "$1<revision>;");
+const formLines = (path: string, text: string): readonly string[] => (path.endsWith(".json") ? lines(text).map((line) => line.replace(/,$/, "")) : lines(text).map(revisionLine));
 const apiLines = (text: string): string => lines(text).filter((line) => !isDocsLine(line)).join("\n");
 
 /** Why the row of an entry cannot admit its path, or `undefined`. */

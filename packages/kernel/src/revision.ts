@@ -8,8 +8,9 @@
  * the log positions out of the payloads (decision A34); 5 lets the cost meter reserve the dearest answer so far
  * (decision A46, P472); 6 writes the closing of the cost meter on the log, as the record `cost_unknown` of the
  * model drivers (decision A47, M4-72); 7 reads a Director's answer as the last object in its text that the schema
- * of the answer accepts (decision A100, M5-88).
+ * of the answer accepts (decision A100, M5-88); 8 answers a Director whose answer schema has a `title` by a tool of
+ * that name, the guard's `verdict` (B2, decision A126, M6-16).
  *
  * @public
  */
-export const RUNTIME_REVISION = 7;
+export const RUNTIME_REVISION = 8;

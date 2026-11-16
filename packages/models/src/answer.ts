@@ -71,6 +71,19 @@ function whole(text: string, output: unknown): { readonly value: unknown; readon
 }
 
 /**
+ * Reads the arguments of a call of a Director's answer tool against the schema of its output (runtime revision 8).
+ *
+ * @param value - The arguments of the call.
+ * @param output - The JSON schema of the output; a value that is no schema object checks nothing.
+ * @returns The arguments when the schema accepts them, or the detail of why they are no answer.
+ *
+ * @internal
+ */
+export function readArguments(value: unknown, output: unknown): AnswerReading {
+	return !isSchema(output) || Check(output, value) ? { ok: true, value } : { ok: false, detail: NO_FIT };
+}
+
+/**
  * Reads the value of a Director's answer text against the schema of its output.
  *
  * @param text - The text of the answer, its text blocks joined.

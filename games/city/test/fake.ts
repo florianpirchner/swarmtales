@@ -13,7 +13,8 @@ import { fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
 /** The record sources of the Directors' driver and of the review stage. */
 export const RECORDS: readonly RecordSource[] = [DIRECTOR_RECORDS, REVIEW_RECORDS];
 
-const noAnswer: AskModel = () => Promise.resolve({ ok: false, reason: "error", detail: "a fake run asks no model" });
+/** The answer of every question in a fake run. */
+export const noAnswer: AskModel = () => Promise.resolve({ ok: false, reason: "error", detail: "a fake run asks no model" });
 
 /** The drivers of a fake run and the answerer port of its reviews. */
 export interface FakeRun {
@@ -26,9 +27,10 @@ export interface FakeRun {
  *
  * @param game - The game.
  * @param seed - The seed of the run and of the fake driver.
+ * @param ask - The model port of the Directors; default: no answer, as `swt run --fake`.
  * @returns The drivers, as a function of the kernel, and the review port, which reads the facts of that kernel.
  */
-export function fakeRun(game: Game, seed: number): FakeRun {
+export function fakeRun(game: Game, seed: number, ask: AskModel = noAnswer): FakeRun {
 	const resolved = resolveGame({ game, seed, schedulers: { turns }, prompts: createPromptLookup(), records: RECORDS });
 	let bound: Kernel | undefined;
 	const facts = (key: string): unknown => bound?.fact(key);
@@ -41,7 +43,7 @@ export function fakeRun(game: Game, seed: number): FakeRun {
 			await new Promise((resolve) => setImmediate(resolve));
 			await fake(activation);
 		};
-		return { resident: yielding, ...createDirectorDrivers({ game: resolved, ask: noAnswer, facts, look: yielding }) };
+		return { resident: yielding, ...createDirectorDrivers({ game: resolved, ask, facts, look: yielding }) };
 	};
-	return { drivers, review: createReviewPort({ game: resolved, ask: noAnswer, facts }) };
+	return { drivers, review: createReviewPort({ game: resolved, ask, facts }) };
 }

@@ -6,13 +6,14 @@
  * where it has the ultimatum and residents may defy it; the run of the default dials reaches a subset of the same
  * tools. Every tool a fake run can reach is accepted at least once; the others are listed with the reason none is.
  */
+import { createHash } from "node:crypto";
 import { join } from "node:path";
-import type { Envelope } from "@swarmtales/contracts";
+import type { AskModel, Envelope } from "@swarmtales/contracts";
 import { metricsOf, play, readOracle } from "@swarmtales/testkit";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { cityGame, CityParams } from "../game.ts";
-import { fakeRun, RECORDS } from "./fake.ts";
+import { fakeRun, noAnswer, RECORDS } from "./fake.ts";
 import { ORACLES } from "./support.ts";
 
 const SEED = 1;
@@ -35,6 +36,13 @@ const REFUSALS = ["GROUP_LIMIT", "FACTION_FULL", "LEAK_BLOCKED", "MAILBOX_SENDER
 
 const bare = (event: Envelope): string => event.tool?.split("/").at(-1) ?? "";
 const accepted = (events: readonly Envelope[], kind: string): ReadonlySet<string> => new Set(events.filter((event) => event.type === "tool_result" && event.actor.startsWith(`${kind}:`)).map(bare));
+/**
+ * The sha256 of the questions the Confessor and the judge ask in this run, as JSON, recorded on runtime revision 7
+ * before issue M6-16: the answer tool of revision 8 is the guard's alone, so their questions, and with them the
+ * requests the asker builds from them, stay byte-equal (`13-m6-spec.md` section 8, B2).
+ */
+const QUESTIONS_R7 = "948e21659e9023ff643b635a797a2c619eea483514101d47310208241885b61d";
+
 const field = (event: Envelope, name: string): unknown => (typeof event.payload === "object" && event.payload !== null ? Reflect.get(event.payload, name) : undefined);
 
 describe("city, played by the fake driver", () => {
@@ -44,9 +52,16 @@ describe("city, played by the fake driver", () => {
 
 	it(`seed ${String(SEED)}: plays 80 minutes through both acts and accepts a call of every reachable tool`, async () => {
 		const game = cityGame(Value.Parse(CityParams, Value.Default(CityParams, { gmDirection: 10 })));
-		const { drivers, review } = fakeRun(game, SEED);
+		const asked: unknown[] = [];
+		const ask: AskModel = (activation, question) => {
+			if (activation.actor === "director:confessor" || activation.actor === "director:judge") asked.push([activation.actor, question]);
+			return noAnswer(activation, question);
+		};
+		const { drivers, review } = fakeRun(game, SEED, ask);
 		const { end, events } = await play(game, { seed: SEED, records: RECORDS, review, drivers });
 		expect(end).toMatchObject({ reason: "ticks", tick: 80 });
+		expect(new Set(asked.map((entry) => JSON.stringify(entry).slice(0, 22)))).toEqual(new Set(['["director:confessor",', '["director:judge",{"sy']));
+		expect(createHash("sha256").update(JSON.stringify(asked)).digest("hex")).toBe(QUESTIONS_R7);
 		expect(events.filter((event) => event.type === "act_started").map((event) => field(event, "fromLevel"))).toEqual([1, 8]);
 		const residents = accepted(events, "resident");
 		for (const tool of RESIDENT) expect(residents.has(tool), tool).toBe(true);

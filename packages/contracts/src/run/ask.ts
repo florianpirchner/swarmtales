@@ -18,6 +18,16 @@ export interface ModelQuestion {
 	readonly input: string;
 	/** The JSON schema the answer must fit. */
 	readonly output: unknown;
+	/**
+	 * The tool the model answers by (runtime revision 8): the model is offered this one tool, its parameters the
+	 * schema `output`, and the arguments of its call are the answer. Left out: the model answers in its text.
+	 */
+	readonly answerTool?: {
+		/** The tool's name, as the model is told it. */
+		readonly name: string;
+		/** The tool's description. */
+		readonly description: string;
+	};
 }
 
 /**

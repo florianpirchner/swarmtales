@@ -7,7 +7,9 @@
  *
  * - **Question.** The old pieces (`guard/rule`, `guard/wants` with what the tool's text is, the secrets, the message
  *   cut to 2000 characters, `guard/question`).
- * - **Answer.** The old verdict, `{ allowed, reason }`, the reason at most 300 characters. A verdict against the
+ * - **Answer.** The old verdict, `{ allowed, reason }`, the reason at most 300 characters, given as the arguments of
+ *   one call of the old tool `verdict` (runtime revision 8, B2: the schema's `title` names the tool, its
+ *   `description` is the tool's text `guard/tool-verdict`, as its system text asks). A verdict against the
  *   rule is `GUARD_BLOCKED` with its reason; an answer that fails or does not fit reaches the handler as
  *   `{ ok: false }`, which lets the call through ("fail open"), as before.
  */
@@ -30,8 +32,12 @@ const REASON_MAX = 300;
  */
 export const GUARD_VERDICT_TEXT = "Record whether the message keeps the city's rule, and why.";
 
+/** The name of the old answer tool, which the system text `guard/system` names. */
+const VERDICT_TOOL = "verdict";
+
 /**
- * The guard's answer: the old verdict tool's parameters, read by `puzzles` as `{ allowed, reason? }`.
+ * The guard's answer: the old verdict tool's parameters, read by `puzzles` as `{ allowed, reason? }`. Its `title`
+ * asks the engine to have the model answer by the tool `verdict`.
  *
  * @public
  */
@@ -40,7 +46,7 @@ export const GuardAnswer = Type.Object(
 		allowed: Type.Boolean({ description: "true when the message keeps the rule, false when it breaks it" }),
 		reason: Type.String({ minLength: 1, maxLength: REASON_MAX, description: "One short sentence for the author; never a secret" }),
 	},
-	{ description: GUARD_VERDICT_TEXT },
+	{ title: VERDICT_TOOL, description: GUARD_VERDICT_TEXT },
 );
 
 /**
