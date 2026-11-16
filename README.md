@@ -183,3 +183,12 @@ held key value.
   flag `--plan` of another command; open), P488 (no report of a paused run, `SWT-E006`; open), P489 (the pause lands at
   the end of the tick, so the base holds the rest of minute 7 played as Act II; count Act II from `act_started` at
   #1827; open), P7 updated (one `lie` label on a true DM).
+- `city/act2/check-0`: run 4 as first planned (`--ticks 6`), resumed from the base and played no tick, because
+  `--ticks` counts the base's ticks too (P490; plan fixed by A111, CLI fix M5-101). 0 USD.
+- `city/act2/check`: run 4 again with `--ticks 14`, ticks 8 to 13, 0.0741 USD. A blame upheld against Ledger (A02) for
+  a denied delivery. Problems: P488 (no report of a paused run).
+- `city/act2/5a`: Act II to its end, 0.3724 USD, ticks 8 to 54, three tribunals, exiled A03, A02, A05; seats Dazzle (A01)
+  and Bastion (A04). New loophole LH21 (the verification wall: pieces held until "the city confirms the value", which it
+  never does; open). Problems P491 (refusals that write the withheld value; open), P492 (the courier names a private
+  motive; open), P493 (the report of a resumed run counts its base; open). LH5, LH6 (ransom then exiled anyway), LH7
+  (pieces in a will are free) seen again.
