@@ -12,5 +12,39 @@
 		"test",
 		"*.ts"
 	],
-	"references": []
+	"references": [
+		{
+			"path": "../../packages/swarmtales"
+		},
+		{
+			"path": "../../mechanics/grid"
+		},
+		{
+			"path": "../../mechanics/consensus"
+		},
+		{
+			"path": "../../mechanics/team-channel"
+		},
+		{
+			"path": "../../mechanics/channels"
+		},
+		{
+			"path": "../../mechanics/city-directors"
+		},
+		{
+			"path": "../../mechanics/arena"
+		},
+		{
+			"path": "../../packages/contracts"
+		},
+		{
+			"path": "../../packages/engine"
+		},
+		{
+			"path": "../../packages/testkit"
+		},
+		{
+			"path": "../../apps/cli"
+		}
+	]
 }

@@ -2,11 +2,27 @@
 	"name": "@swarmtales/sample-shipped-director",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Sample 4: a shipped Director and its dial, placed in a small game and read from the log at two values",
+	"description": "Sample 4: a Director and its dial, placed in a small game and read from the log at two values",
 	"type": "module",
 	"license": "LicenseRef-SUL-1.0",
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L6"
+	},
+	"dependencies": {
+		"swarmtales": "workspace:*",
+		"@swarmtales/mechanic-channels": "workspace:*",
+		"@swarmtales/mechanic-grid": "workspace:*",
+		"@swarmtales/mechanic-consensus": "workspace:*",
+		"@swarmtales/mechanic-team-channel": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/city-directors": "workspace:*",
+		"@swarmtales/mechanic-arena": "workspace:*",
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/engine": "workspace:*",
+		"@swarmtales/testkit": "workspace:*",
+		"@swarmtales/cli": "workspace:*"
 	}
 }

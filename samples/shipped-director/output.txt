@@ -1,0 +1,3 @@
+fake models: no result
+coached-game seed 2: ended after 18 ticks (limit grid.match: the match is over)
+result grid.tally: {"X":0,"O":1,"draw":0}
