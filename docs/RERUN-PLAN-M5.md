@@ -64,6 +64,14 @@ expected costs: an Act I of eight minutes says nothing about the long Act II ses
 and 2 1.1662, run 3 0.0686). The base was played with one flag more than the row, `--plan`, which `swt run` ignored
 (P487); it has no `REPORT.md`, since `swt report` refuses a paused run (P488).
 
+**Run 4 played: no tick** (issue M5-55, `city/act2/check/city-001`, runtime r7): 0.0000 USD of the cap 0.40, by the
+row's command with no flag more. `--ticks` of `swt resume` counts the finished ticks of the whole run, the base's 8
+included, so `--ticks 6` was reached at the resume: the run wrote `run_resumed` (the base's snapshot hash, no
+`replaced`) and stopped open, exit 3, with no request (P490). The resume itself holds (game hash, snapshot, manifest,
+verify with `--previous`, replay, scan), but no live tick was played, so run 5a waits for the integrator: the row's
+"6 ticks from the base" is `--ticks 14`, a change of the command that needs a decision row. Spent so far 1.2348, as
+before.
+
 The seeds are the games' own (Whispers 11, the City 7) and are written out so that no environment can move them.
 `--purpose`: the specification names none; runs 1, 2 and 4 are smokes (the default, read as smokes before the next
 run starts), the base and the Act II runs are `exploratory`, single runs whose numbers are read and pooled into no

@@ -10,6 +10,7 @@ Haiku with thinking off, as the game file says; pricing `pi-ai@1.4.0`. The spend
 | Run | Path on `data/runs` | Data commit | Code commit | Runtime | Cost (USD) | Result |
 |---|---|---|---|---:|---:|---|
 | **The Act I base** (issue M5-54, run 3 of the plan, A54), seed 7, purpose `exploratory`, `--pause-on progression.act_ended` | `city/base/city-001` | pending (the integrator's push) | `1ffa813f` | 7 | 0.0686 of the cap 0.50 | paused after 8 ticks (0 to 7) on `progression.act_ended` `{ fromLevel: 1 }` (#1826, tick 7: Dazzle, A01, entered level 8, so Act I ended by its own rule); all six past door 6, Dazzle (A01) and Bastion (A04) past door 7: A01 80, A04 80, A02 65, A03 65, A05 65, A06 65 (`arena.round_end` #2015); 38 submissions, all correct; the gamemaker's 16 notes landed |
+| **The Act II check resume** (issue M5-55, run 4 of the plan), from the base, `--ticks 6`, purpose `smoke` | `city/act2/check` | pending (the integrator's push) | `87481748` | 7 | 0.0000 of the cap 0.40 | played no tick: "stopped after 8 ticks (open)", exit 3; `--ticks` counts the base's 8 finished ticks, so 6 was reached at the resume (P490); `run_resumed` #2017 with the base's snapshot hash and no `replaced`; verifies with `--previous` (2017 lines, continuity holds), replays equal, scan clean, no `REPORT.md` (P488); run 5a not played |
 
 **The base snapshot** (A54): `city/base/city-001/snapshots/t8.json`, tick 8, game hash
 `9418a743ae8e7c820ac3c323f0e3c620312af006d84ffed09952244fa0cfa1ad`, snapshot hash (`jsonHash` of the file, the
