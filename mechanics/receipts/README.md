@@ -20,7 +20,7 @@ platform in two halves (M5-21, M5-22).
 | Uses when loaded | `identity` (from [names](../names/README.md)), `allowance` (from [marks](../marks/README.md)), `exile` (from [exile](../exile/README.md)), `progression` (from [progression](../progression/README.md)), `deal` (from [puzzles](../puzzles/README.md)) |
 | Provides | `receipt-source` |
 | State | kept, snapshot slice version 1 |
-| Games | [whispers](../../games/whispers/README.md) |
+| Games | [city](../../games/city/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

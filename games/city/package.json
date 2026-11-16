@@ -8,5 +8,33 @@
 	"sideEffects": false,
 	"swarmtales": {
 		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/prompts": "workspace:*",
+		"@swarmtales/city-directors": "workspace:*",
+		"@swarmtales/mechanic-ledger": "workspace:*",
+		"@swarmtales/mechanic-marks": "workspace:*",
+		"@swarmtales/mechanic-names": "workspace:*",
+		"@swarmtales/mechanic-channels": "workspace:*",
+		"@swarmtales/mechanic-petitions": "workspace:*",
+		"@swarmtales/mechanic-motives": "workspace:*",
+		"@swarmtales/mechanic-receipts": "workspace:*",
+		"@swarmtales/mechanic-puzzles": "workspace:*",
+		"@swarmtales/mechanic-progression": "workspace:*",
+		"@swarmtales/mechanic-cast": "workspace:*",
+		"@swarmtales/mechanic-goals": "workspace:*",
+		"@swarmtales/mechanic-standoff": "workspace:*",
+		"@swarmtales/mechanic-exile": "workspace:*",
+		"@swarmtales/mechanic-tribunal": "workspace:*",
+		"@swarmtales/mechanic-seal": "workspace:*",
+		"@swarmtales/mechanic-script": "workspace:*",
+		"@swarmtales/mechanic-arena": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/engine": "workspace:*",
+		"@swarmtales/testkit": "workspace:*"
 	}
 }

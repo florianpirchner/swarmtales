@@ -19,7 +19,7 @@ long. The budget and the snapshot checkpoint of the old arena are the platform's
 | Uses when loaded | `exile` (from [exile](../exile/README.md)), `tribunal-view` (from [tribunal](../tribunal/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
-| Games | [whispers](../../games/whispers/README.md) |
+| Games | [city](../../games/city/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

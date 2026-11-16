@@ -18,7 +18,7 @@ looks. Its place in the layer table is in [`docs/LAYERS.md`](../../docs/LAYERS.m
 | Uses when loaded | `identity` (from [names](../names/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
-| Games | [whispers](../../games/whispers/README.md) |
+| Games | [city](../../games/city/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

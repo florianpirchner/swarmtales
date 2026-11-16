@@ -9,7 +9,32 @@
 	},
 	"include": [
 		"src",
-		"test"
+		"test",
+		"*.ts"
 	],
-	"references": []
+	"references": [
+		{ "path": "../../packages/contracts" },
+		{ "path": "../../packages/sdk" },
+		{ "path": "../../packages/prompts" },
+		{ "path": "../../mechanics/city-directors" },
+		{ "path": "../../mechanics/ledger" },
+		{ "path": "../../mechanics/marks" },
+		{ "path": "../../mechanics/names" },
+		{ "path": "../../mechanics/channels" },
+		{ "path": "../../mechanics/petitions" },
+		{ "path": "../../mechanics/motives" },
+		{ "path": "../../mechanics/receipts" },
+		{ "path": "../../mechanics/puzzles" },
+		{ "path": "../../mechanics/progression" },
+		{ "path": "../../mechanics/cast" },
+		{ "path": "../../mechanics/goals" },
+		{ "path": "../../mechanics/standoff" },
+		{ "path": "../../mechanics/exile" },
+		{ "path": "../../mechanics/tribunal" },
+		{ "path": "../../mechanics/seal" },
+		{ "path": "../../mechanics/script" },
+		{ "path": "../../mechanics/arena" },
+		{ "path": "../../packages/engine" },
+		{ "path": "../../packages/testkit" }
+	]
 }

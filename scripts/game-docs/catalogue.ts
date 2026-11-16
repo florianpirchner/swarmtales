@@ -42,6 +42,7 @@ export const CARDS: Readonly<Record<string, CardFacts>> = {
 	"blind-bid": { title: "Blind Bid", oracles: "blind-bid" },
 	"ember-tricks": { title: "Ember Tricks", oracles: "ember-tricks" },
 	whispers: { title: "Whispers", proof: "three of the four oracle files match at level 3, the holdout file up to its trial and the trial by projection; a fake run reaches every reachable tool; replay and resume give the same log" },
+	city: { title: "City of Keys", proof: "one of the seven oracle files, Act I at seed 7, matches at level 3 but for one pinned defect (the goal status names an id); the fake runs end without error; replay and resume give the same log" },
 };
 
 /** One game of the old platform: its name there and the folder of its port. */
@@ -52,7 +53,7 @@ export interface OldGame {
 
 /** The families of the fifteen games of the old platform. */
 export const FAMILIES: readonly { readonly family: string; readonly games: readonly OldGame[] }[] = [
-	{ family: "Societies", games: [{ name: "City of Keys", folder: "city-of-keys" }, { name: "Whispers", folder: "whispers" }] },
+	{ family: "Societies", games: [{ name: "City of Keys", folder: "city" }, { name: "Whispers", folder: "whispers" }] },
 	{ family: "Board games, all information public", games: [{ name: "chess", folder: "chess" }, { name: "nine men's morris", folder: "morris-teams" }, { name: "tic-tac-toe teams", folder: "tictactoe-teams" }] },
 	{ family: "Hidden information and bluff", games: [{ name: "Hold'em", folder: "holdem" }, { name: "Liar's Dice", folder: "liars-dice" }, { name: "Convoy", folder: "convoy" }] },
 	{ family: "Cooperation under hidden information", games: [{ name: "Harbor Lights", folder: "harbor-lights" }, { name: "Lanterns", folder: "lanterns" }] },

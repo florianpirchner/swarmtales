@@ -18,7 +18,7 @@ every tool takes a name where an id goes. Ported from the old platform (M5-16).
 | Uses when loaded | `deal` (from [puzzles](../puzzles/README.md)), `channels` (from [channels](../channels/README.md)), `exile` (from [exile](../exile/README.md)), `progression` (from [progression](../progression/README.md)) |
 | Provides | `identity` |
 | State | kept, snapshot slice version 1 |
-| Games | [whispers](../../games/whispers/README.md) |
+| Games | [city](../../games/city/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

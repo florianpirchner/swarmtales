@@ -19,7 +19,7 @@ Ported from the old platform (M5-40).
 | Uses when loaded | `exile` (from [exile](../exile/README.md)), `motives` (from [motives](../motives/README.md)), `identity` (from [names](../names/README.md)) |
 | Provides | `goals` |
 | State | kept, snapshot slice version 1 |
-| Games | none of the games in this repository |
+| Games | [city](../../games/city/README.md) |
 
 <!-- /generated:glance -->
 

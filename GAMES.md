@@ -5,7 +5,7 @@ The catalogue of the games that run on Swarm Tales.
 <!-- generated:status -->
 <!-- Written by `pnpm docs:games` from games/index.ts, the game files and scripts/game-docs/catalogue.ts; edit those, not this block. -->
 
-Sixteen games run on the new platform today, fourteen of them ports of the games of the old platform.
+Seventeen games run on the new platform today, fifteen of them ports of the games of the old platform.
 
 <!-- /generated:status -->
 
@@ -43,6 +43,7 @@ mechanics, Directors and params of each game's default build. Family and proof c
 | [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `sealed-auction`, `strategy-brain` | none | a game family: `games`, `lots`, `purse`, `brain`, `maxWords`, `quietEnds` | five oracle files match at level 3 |
 | [Ember Tricks](#ember-tricks) | markets, bids and economics | 4 | `card-table`, `trick-play`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `lever`, `maxWords`, `quietEnds` | four oracle files match at level 3 |
 | [Whispers](#whispers) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `receipts`, `whispers`, `motives`, `puzzles`, `progression`, `cast`, `standoff`, `exile`, `standoff-tribunal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `guard`, `judge` | a game family: `receipts`, `agents`, `minutes`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `gamemaker`, `classifier`, `names`, `coreMotives`, `whisperer`, `guards`, `figureDirection`, `gmDirection` | three of the four oracle files match at level 3, the holdout file up to its trial and the trial by projection; a fake run reaches every reachable tool; replay and resume give the same log |
+| [City of Keys](#city-of-keys) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `motives`, `receipts`, `puzzles`, `progression`, `cast`, `goals`, `standoff`, `exile`, `tribunal`, `seal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `judge` | a game family: `agents`, `minutes`, `startLevel`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `personas`, `gamemaker`, `classifier`, `names`, `coreMotives`, `gmDirection` | one of the seven oracle files, Act I at seed 7, matches at level 3 but for one pinned defect (the goal status names an id); the fake runs end without error; replay and resume give the same log |
 
 <!-- /generated:overview -->
 
@@ -305,6 +306,23 @@ the whisperer can forge one. A gamemaker looks after every round and may put a r
   vote. The story data is byte-identical to the old story files, and every prompt body to its old file.
 - Links: [folder](games/whispers/), [README](games/whispers/README.md), [oracle files](oracles/whispers/).
 
+## City of Keys
+
+Six residents of NEXUS pass ten doors. In Act I (doors 1 to 7) every door's password is split over a team, and
+every door opens one more way to talk: the board, groups, DMs, receipts, transfers, blame. Act II, the wall (doors 8
+to 10), gives each resident a personal code whose parts sit with others, a secret goal, and the tribunals, factions,
+the black seal and the feast of STEWARD. A gamemaker looks after every round; a Confessor reads the residents'
+statements.
+
+- Params of the game family: `minutes`, `startLevel`, `lastLevel`, the pacing (`passesPerMinute`, `activation`),
+  the early ends (`stopWhenDone`, `stopWhenSeatsDecided`) and the dials of the old story (`personas`, `gamemaker`,
+  `classifier`, `names`, `coreMotives`, `gmDirection`).
+- Proof: the Act I file of seed 7 matches at level 3 after the registered changes of its README, but for one
+  pinned defect (the goal status shows the target's id, not its name); the other City files are not compared yet.
+  The story data is byte-identical to the old story file, and every prompt body to its old file. Fake runs replay
+  equal and resume equal from every boundary.
+- Links: [folder](games/city/), [README](games/city/README.md), [oracle files](oracles/cityofkeys/).
+
 ## The games of the old platform
 
 The old platform has fifteen games in five families: thirteen tabletop games, Whispers and City of Keys. The Hello
@@ -313,11 +331,11 @@ Game and the city slice are new and are not among them.
 <!-- generated:families -->
 <!-- Written by `pnpm docs:games` from games/index.ts, the game files and scripts/game-docs/catalogue.ts; edit those, not this block. -->
 
-Fourteen of the fifteen are ported so far, marked in bold, each with its card above.
+Fifteen of the fifteen are ported so far, marked in bold, each with its card above.
 
 | Family | Games |
 |---|---|
-| Societies | City of Keys, **[Whispers](#whispers)** |
+| Societies | **[City of Keys](#city-of-keys)**, **[Whispers](#whispers)** |
 | Board games, all information public | **[Chess](#chess)**, **[Nine men's morris](#nine-mens-morris)**, **[Tic-tac-toe teams](#tic-tac-toe-teams)** |
 | Hidden information and bluff | **[Hold'em](#holdem)**, **[Liar's dice](#liars-dice)**, **[Convoy](#convoy)** |
 | Cooperation under hidden information | **[Harbor Lights](#harbor-lights)**, **[Lanterns](#lanterns)** |

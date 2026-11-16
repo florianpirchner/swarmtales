@@ -19,7 +19,7 @@ change, and they may come back over time. Ported from the old platform (M5-17).
 | Uses when loaded | `progression` (from [progression](../progression/README.md)), `channels` (from [channels](../channels/README.md)), `task-lines` (from [progression](../progression/README.md)) |
 | Provides | `allowance` |
 | State | kept, snapshot slice version 1 |
-| Games | [whispers](../../games/whispers/README.md) |
+| Games | [city](../../games/city/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

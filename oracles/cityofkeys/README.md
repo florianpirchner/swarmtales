@@ -122,3 +122,24 @@ A projection leaves these out or maps them; nothing else may differ.
 | No marks | `posted · #16 · marks 8/8 left` | `posted · #6` | `marks` is not ported. The test cuts ` · marks <n>/<m> left` from the end of an answer |
 | The standing of a resident is an option | `progression` events | the option `standings` of `puzzles` | `progression` is not ported at M3; the test computes the option from the file |
 
+
+## The game against the files (M5)
+
+The game's oracle test (`games/city/test/oracle.test.ts`, issue M5-45) plays `cityofkeys-act1-s7.json` from its
+inputs under the game's own scheduler, with the params of its dials (`setup.definition.effective`), and compares it
+by `runOracle` at level 3 after these mappings of the file (`games/city/test/support.ts`). The changes that Whispers
+registered for the same mechanics hold here too (`../whispers/README.md`, "Registered changes against the files"):
+the solved level and its `levelUp` receipt, the delivery notice before its receipt, the gamemaker's look after the
+tick start, the run-start locks, the lines under the task (here `progression+names` and `progression+marks`), the
+receipt of a message delivered as a turn opens, and several messages delivered at once. Each move keeps the order
+within one source; no payload is changed but the numbers below.
+
+| Change | In the file | On the rewritten platform | Why |
+|---|---|---|---|
+| The deal of the core motives | `motive_dealt` before the puzzles' deal | after the last `ledger_entry` of the start | `motives` writes `motive_dealt` in its `runStarted` (A86); on `legacy` the deal ran in the world's constructor |
+| The numbers of a moved look | `postSeq` of the city's board posts and `number` of the gamemaker's notes in the file's order | the same numbers given out again in the order of the moved span | the look runs after the tick start (J126), so its posts take their numbers after the posts of the tick start |
+| The goals of the act change | `goal_dealt` and each goal's notice right after `act_started`, before the solved level's events | after `level_up`, `level_entered` and `submission` of the solved level | `goals` listens to `act_started`, and `progression` writes the solved level in one go |
+
+Not registered but pinned by the test, a defect: the `goal` status part of `goals` shows the target's id
+(`your goal: A03 is still in the city`) where the file shows its chosen name (`Slate-7306`); the notice of the deal
+shows the name. The fix is in `mechanics/goals` (the part read through `identity`, as `channels` shows its texts).

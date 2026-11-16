@@ -21,7 +21,7 @@ decides what the cast does; this mechanic keeps its state. Ported from the old p
 | Uses when loaded | none |
 | Provides | `cast`, `cast-extras`, `figures` |
 | State | kept, snapshot slice version 1 |
-| Games | [whispers](../../games/whispers/README.md) |
+| Games | [city](../../games/city/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

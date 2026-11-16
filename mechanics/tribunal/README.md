@@ -22,7 +22,7 @@ leaders, the bloc bonus); the gamemaker's `scheduleTribunal`, the act's end and 
 | Uses when loaded | `decisions` (from [decisions](../decisions/README.md)), `identity` (from [names](../names/README.md)), `goals` (from [goals](../goals/README.md)) |
 | Provides | `ransom-price`, `trial-risk`, `tribunal-view`, `tribunal` |
 | State | kept, snapshot slice version 1 |
-| Games | none of the games in this repository |
+| Games | [city](../../games/city/README.md) |
 
 <!-- /generated:glance -->
 

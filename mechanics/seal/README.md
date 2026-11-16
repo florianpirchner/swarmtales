@@ -19,7 +19,7 @@ resident from the city at once, without gate, will or ransom, until the act ends
 | Uses when loaded | `identity` (from [names](../names/README.md)), `tribunal` (from [tribunal](../tribunal/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
-| Games | none of the games in this repository |
+| Games | [city](../../games/city/README.md) |
 
 <!-- /generated:glance -->
 

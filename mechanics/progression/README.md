@@ -20,7 +20,7 @@ the levels into acts and keeps the ranking. Ported from the old platform in two 
 | Uses when loaded | `identity` (from [names](../names/README.md)), `receipt-source` (from [receipts](../receipts/README.md)), `allowance` (from [marks](../marks/README.md)), `exile` (from [exile](../exile/README.md)), `cast-extras` (from [cast](../cast/README.md)) |
 | Provides | `progression`, `task-lines` |
 | State | kept, snapshot slice version 1 |
-| Games | [whispers](../../games/whispers/README.md) |
+| Games | [city](../../games/city/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

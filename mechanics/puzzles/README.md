@@ -22,7 +22,7 @@ values of a level (`level-pieces`).
 | Uses when loaded | `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)) |
 | Provides | `level-pieces`, `deal`, `held-pieces`, `holdout-pieces` |
 | State | kept, snapshot slice version 1 |
-| Games | [city-slice](../../games/city-slice/README.md), [whispers](../../games/whispers/README.md) |
+| Games | [city](../../games/city/README.md), [city-slice](../../games/city-slice/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 
