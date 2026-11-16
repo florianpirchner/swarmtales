@@ -8,7 +8,7 @@ export { fakeDriver, idleDriver, scriptedDriver, type CallRecord, type Plan, typ
 export { play, testKernel, type Played, type PlayOptions, type TestKernel } from "./play.ts";
 export { metricsOf } from "./metrics.ts";
 export { replay, type ReplayInput, type ReplayResult } from "./replay.ts";
-export { checkReplay, checkResumeEveryBoundary, sampleBoundaries, type StandingDrivers, type StandingOptions } from "./standing.ts";
+export { answeringReview, checkReplay, checkResumeEveryBoundary, playStanding, sampleBoundaries, type StandingDrivers, type StandingOptions, type StandingReview } from "./standing.ts";
 
 export { checkDeterminism, checkOptionsDocumented, checkPackage, checkSnapshotRoundTrip, type ConformanceOptions } from "./conformance.ts";
 export { guessNumber, guessNumberHead } from "./fixtures/index.ts";

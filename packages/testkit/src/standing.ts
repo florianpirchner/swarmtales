@@ -5,9 +5,10 @@
  * assert on it. The same two checks through the command line, and the fake run, are `apps/cli/test/standing.test.ts`
  * over the games list `games/index.ts`.
  */
-import type { DriverTable, Envelope, GameData, Kernel } from "@swarmtales/contracts";
+import type { DriverTable, Envelope, GameData, JsonValue, Kernel, ReviewPort } from "@swarmtales/contracts";
+import { REVIEW_RECORDS } from "@swarmtales/engine";
 import type { Game } from "@swarmtales/sdk";
-import { play, testKernel, type PlayOptions } from "./play.ts";
+import { play, testKernel, type Played, type PlayOptions } from "./play.ts";
 import { replay } from "./replay.ts";
 
 
@@ -21,6 +22,15 @@ import { replay } from "./replay.ts";
 export type StandingDrivers = (kernel: Kernel) => DriverTable;
 
 /**
+ * Makes the answerer port of the stage `review` for one run, as `StandingDrivers` makes the drivers: once for the
+ * straight run and once for every resumed run. An answer must follow from the question, not from what the port
+ * answered before.
+ *
+ * @public
+ */
+export type StandingReview = () => ReviewPort;
+
+/**
  * How a standing check plays: the options of `play` it passes on, and the boundaries it resumes from.
  *
  * @public
@@ -28,6 +38,47 @@ export type StandingDrivers = (kernel: Kernel) => DriverTable;
 export interface StandingOptions extends Pick<PlayOptions, "seed" | "prompts" | "installed" | "params" | "records"> {
 	/** The boundaries to resume from, as numbers of finished ticks; default: `sampleBoundaries` of the run's tick count. */
 	readonly boundaries?: readonly number[];
+	/**
+	 * Makes the answerer port of each run (`answeringReview` gives one); the replay asks the straight run's port who
+	 * answers, and `REVIEW_RECORDS` of the engine joins `records`. Left out: no answerer answers, in the run and in
+	 * its replay.
+	 */
+	readonly review?: StandingReview;
+}
+
+/**
+ * An answerer port for the standing checks: each named answerer answers what its function gives for the question,
+ * and the port records the question and the answer (`asked`, `answered` of the engine's `REVIEW_RECORDS`) as the
+ * engine's port does, so a replay feeds the answer from the log.
+ *
+ * @param answers - Answerer name to its answer, from the question alone.
+ * @returns The maker of a fresh port for each run.
+ * @example
+ * ```ts
+ * const review = answeringReview({ judge: (question) => ({ deniesReceipt: JSON.stringify(question).includes("never") }) });
+ * expect(await checkReplay(game, drivers, { review })).toEqual([]);
+ * ```
+ *
+ * @public
+ */
+export function answeringReview(answers: Readonly<Record<string, (question: JsonValue) => unknown>>): StandingReview {
+	return () => ({
+		answers: (answerer) => Object.hasOwn(answers, answerer),
+		ask: ({ answerer, question, record }) => {
+			record(REVIEW_RECORDS.id, "asked", { answerer, question });
+			const answer = answers[answerer]?.(question);
+			record(REVIEW_RECORDS.id, "answered", { answerer, ok: true, answer, costUsd: 0 });
+			return Promise.resolve({ ok: true, answer });
+		},
+	});
+}
+
+// The options of `play` for one run: the given ones, with a fresh answerer port and its record source where one is made.
+function playing(options: StandingOptions): Omit<PlayOptions, "drivers"> {
+	const { review, ...rest } = options;
+	if (review === undefined) return rest;
+	const records = rest.records ?? [];
+	return { ...rest, review: review(), records: records.includes(REVIEW_RECORDS) ? records : [...records, REVIEW_RECORDS] };
 }
 
 const plain = (value: unknown): unknown => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
@@ -65,11 +116,27 @@ export function sampleBoundaries(ticks: number, every = 30): readonly number[] {
 }
 
 /**
+ * The straight run of a standing check: the game played with the drivers and the options as `checkReplay` plays it
+ * (a fresh answerer port, `REVIEW_RECORDS` among the record sources), so a test can see what the check covers.
+ *
+ * @param game - The game, in its builder form or its data form.
+ * @param drivers - Makes the drivers of the run.
+ * @param options - As `checkReplay`; the boundaries are not read.
+ * @returns The played run.
+ * @throws SwtError What `play` throws.
+ *
+ * @public
+ */
+export async function playStanding(game: Game | GameData, drivers: StandingDrivers, options: StandingOptions = {}): Promise<Played> {
+	return play(game, { ...playing(options), drivers });
+}
+
+/**
  * Replay: plays the game with the drivers and replays its log; the replayed log must be the log, line by line.
  *
  * @param game - The game, in its builder form or its data form (a family is built first).
  * @param drivers - Makes the drivers of the run: a script of the game's tests, or the fake driver.
- * @param options - The seed, the prompts, the installed mechanics, the params and the record sources.
+ * @param options - The seed, the prompts, the installed mechanics, the params, the record sources and the answerer port.
  * @returns The problems; empty when the replay is equal. A run without an accepted call is a problem: it proves nothing.
  * @throws SwtError What `play` and `replay` throw.
  * @example
@@ -80,9 +147,12 @@ export function sampleBoundaries(ticks: number, every = 30): readonly number[] {
  * @public
  */
 export async function checkReplay(game: Game | GameData, drivers: StandingDrivers, options: StandingOptions = {}): Promise<readonly string[]> {
-	const { events } = await play(game, { ...options, drivers });
+	const run = playing(options);
+	const { events } = await play(game, { ...run, drivers });
 	if (!events.some((event) => event.type === "tool_result")) return ["replay: the run holds no accepted call, so its replay proves nothing"];
-	const again = await replay({ game, log: events, ...(options.records === undefined ? {} : { records: options.records }) });
+	const port = run.review;
+	const answerers = port === undefined ? [] : (answerer: string): boolean => port.answers(answerer);
+	const again = await replay({ game, log: events, answerers, ...(run.records === undefined ? {} : { records: run.records }) });
 	return again.issue === undefined ? [] : [`replay: ${again.issue.summary}:\n  ${JSON.stringify(again.firstDifference?.expected)}\n  ${JSON.stringify(again.firstDifference?.got)}`];
 }
 
@@ -94,7 +164,7 @@ export async function checkReplay(game: Game | GameData, drivers: StandingDriver
  *
  * @param game - The game, in its builder form or its data form (a family is built first).
  * @param drivers - Makes the drivers of each run; see `StandingDrivers` for what a driver may depend on.
- * @param options - As `checkReplay`, and the boundaries when not every sampled one is wanted.
+ * @param options - As `checkReplay` (a fresh answerer port for each run), and the boundaries when not every sampled one is wanted.
  * @returns The problems, at most one per boundary; empty when every resumed run equals the straight one. A run
  * without a boundary, and a boundary the run did not have, are problems.
  * @throws SwtError What `play` throws.
@@ -106,8 +176,8 @@ export async function checkReplay(game: Game | GameData, drivers: StandingDriver
  * @public
  */
 export async function checkResumeEveryBoundary(game: Game | GameData, drivers: StandingDrivers, options: StandingOptions = {}): Promise<readonly string[]> {
-	const { boundaries, ...playing } = options;
-	const { kernel } = testKernel(game, playing);
+	const { boundaries } = options;
+	const { kernel } = testKernel(game, playing(options));
 	const table = drivers(kernel);
 	const cuts: { readonly snapshot: unknown; readonly lines: number }[] = [];
 	while (kernel.ended === undefined) {
@@ -123,7 +193,7 @@ export async function checkResumeEveryBoundary(game: Game | GameData, drivers: S
 			problems.push(`resume from boundary ${String(tick)}: the run of ${String(cuts.length)} ticks has no such boundary`);
 			continue;
 		}
-		const resumed = await play(game, { ...playing, drivers, resume: { snapshot: cut.snapshot, log: straight.slice(0, cut.lines).map(plain) } });
+		const resumed = await play(game, { ...playing(options), drivers, resume: { snapshot: cut.snapshot, log: straight.slice(0, cut.lines).map(plain) } });
 		const label = `resume from boundary ${String(tick)}`;
 		problems.push(...difference(label, straight, resumed.events));
 		if (JSON.stringify(resumed.end) !== JSON.stringify(kernel.ended)) problems.push(`${label}: ended with ${JSON.stringify(resumed.end)}, the straight run with ${JSON.stringify(kernel.ended)}`);

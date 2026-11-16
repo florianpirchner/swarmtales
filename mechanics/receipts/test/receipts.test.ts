@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 import { cast } from "@swarmtales/mechanic-cast";
 import { CastService } from "@swarmtales/mechanic-cast/contract";
 import { defineHead, defineMechanic, reply, type Game } from "@swarmtales/sdk";
-import { checkReplay, checkResumeEveryBoundary, fakeDriver, idleDriver, testKernel } from "@swarmtales/testkit";
+import { answeringReview, checkReplay, checkResumeEveryBoundary, fakeDriver, idleDriver, playStanding, testKernel } from "@swarmtales/testkit";
 import { PuzzlesService } from "@swarmtales/mechanic-puzzles/contract";
 import { game, lines, namesAndMarks, say } from "./support.ts";
 
@@ -130,17 +130,18 @@ describe("the status part", () => {
 });
 
 describe("the receipts in the snapshot", () => {
-	// `blame` is locked here: `checkReplay` plays the straight run without an answerer (`JUDGE_ABSENT`) but replays it
-	// with the game's judge as one, so a sampled blame would differ at its line (a harness matter of the testkit).
-	it("replay and resume at every boundary equal under the fake driver, which transfers and shows", async () => {
+	// The judge answers from the question alone (a claim that says "never" denies receipt), so every resumed run, with
+	// its fresh port, hears what the straight run heard; with no judge the sampled blame is refused on both sides.
+	const review = answeringReview({ judge: (question) => ({ deniesReceipt: JSON.stringify(question).includes("never") }) });
+	it("replay and resume at every boundary equal under the fake driver, which transfers, shows and blames", async () => {
 		const drivers = (kernel: Parameters<typeof fakeDriver>[0]) => ({ resident: fakeDriver(kernel, 7) });
-		const fakeGame = (): Game => game({ quoteDms: true }, [], 10, ["blame"]);
-		const played = testKernel(fakeGame());
-		await played.playTicks(fakeDriver(played.kernel, 7), 10);
-		const types = new Set(played.kernel.log.all().map((event) => event.type));
-		expect(["receipt_issued", "receipt_shown"].filter((type) => !types.has(type))).toEqual([]);
+		const fakeGame = (): Game => game({ quoteDms: true }, [], 10);
+		const played = await playStanding(fakeGame(), drivers, { review });
+		const types = new Set(played.events.map((event) => event.type));
+		expect(["receipt_issued", "receipt_shown", "blame", "answered"].filter((type) => !types.has(type))).toEqual([]);
+		expect(await checkReplay(fakeGame(), drivers, { review })).toEqual([]);
+		expect(await checkResumeEveryBoundary(fakeGame(), drivers, { review })).toEqual([]);
 		expect(await checkReplay(fakeGame(), drivers)).toEqual([]);
-		expect(await checkResumeEveryBoundary(fakeGame(), drivers)).toEqual([]);
 	});
 });
 

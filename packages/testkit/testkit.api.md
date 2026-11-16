@@ -12,6 +12,7 @@ import { Envelope } from '@swarmtales/contracts';
 import { EventSink } from '@swarmtales/contracts';
 import { Game } from '@swarmtales/sdk';
 import { GameData } from '@swarmtales/contracts';
+import { JsonValue } from '@swarmtales/contracts';
 import { Kernel } from '@swarmtales/contracts';
 import { KernelPorts } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
@@ -30,6 +31,9 @@ import { SwtIssue } from '@swarmtales/contracts';
 import { ToolOutcome } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
 import { Type } from 'typebox';
+
+// @public
+export function answeringReview(answers: Readonly<Record<string, (question: JsonValue) => unknown>>): StandingReview;
 
 // @public
 export interface CallRecord {
@@ -338,6 +342,9 @@ export interface PlayOptions {
 export function playOracle(oracle: Oracle, game: Game | GameData, options?: OracleOptions): Promise<Played>;
 
 // @public
+export function playStanding(game: Game | GameData, drivers: StandingDrivers, options?: StandingOptions): Promise<Played>;
+
+// @public
 export function projectCalls(timeline: readonly OracleEntry[], tools: readonly string[], rewrite?: (text: string) => string): readonly ProjectedEvent[];
 
 // @public
@@ -387,7 +394,7 @@ export function replay(input: ReplayInput): Promise<ReplayResult>;
 
 // @public
 export interface ReplayInput {
-    readonly answerers?: readonly string[];
+    readonly answerers?: readonly string[] | ((answerer: string) => boolean);
     readonly game: ResolvedGame | Game | GameData;
     readonly log: readonly Envelope[];
     readonly ports?: Pick<KernelPorts, "limits" | "sinks">;
@@ -423,7 +430,11 @@ export type StandingDrivers = (kernel: Kernel) => DriverTable;
 // @public
 export interface StandingOptions extends Pick<PlayOptions, "installed" | "params" | "prompts" | "records" | "seed"> {
     readonly boundaries?: readonly number[];
+    readonly review?: StandingReview;
 }
+
+// @public
+export type StandingReview = () => ReviewPort;
 
 // @public
 export interface TestKernel {

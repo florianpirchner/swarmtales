@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** The two standing checks in process: they pass on a game that holds, and each names the fault of one that does not. */
-import type { ActorDriver } from "@swarmtales/contracts";
-import { defineGame } from "@swarmtales/sdk";
+import type { ActorDriver, ReviewAnswer } from "@swarmtales/contracts";
+import { defineDirector, defineGame, defineHead, defineMechanic, refuse, reply } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { fakeDriver, idleDriver, scriptedDriver } from "../src/drivers.ts";
 import { guessNumber } from "../src/fixtures/guess-number.ts";
-import { checkReplay, checkResumeEveryBoundary, sampleBoundaries, type StandingDrivers } from "../src/standing.ts";
+import { play } from "../src/play.ts";
+import { replay } from "../src/replay.ts";
+import { answeringReview, checkReplay, checkResumeEveryBoundary, playStanding, sampleBoundaries, type StandingDrivers } from "../src/standing.ts";
 
 const game = defineGame({ id: "guess", residents: 2, seed: 7, mechanics: [guessNumber({ max: 20 })], end: { ticks: 6 } });
 /** A driver that decides from its activation alone. */
@@ -50,5 +53,47 @@ describe("checkResumeEveryBoundary", () => {
 		expect(problems.map((problem) => problem.split(":")[0])).toEqual([1, 2, 3, 4, 5].map((tick) => `resume from boundary ${String(tick)}`));
 		expect(problems[0]).toMatch(/^resume from boundary 1: line \d+ differs:\n {2}\{.*"value":3.*\n {2}\{.*"value":1/);
 		expect(await checkResumeEveryBoundary(game, byTick, { boundaries: [2, 6] })).toEqual(["resume from boundary 6: the run of 6 ticks has no such boundary"]);
+	});
+});
+
+// A game whose `blame` asks the judge: refused `JUDGE_ABSENT` without one, else upheld or rejected by the answer.
+const Blame = Type.Object({ dm: Type.Integer({ description: "The DM" }) }, { description: "A blame" });
+const Verdict = Type.Object({ upheld: Type.Boolean({ description: "Whether the blame holds" }) }, { description: "The judge's verdict" });
+const upheld = (answer: ReviewAnswer | undefined): boolean | undefined => (answer?.ok === true && typeof answer.answer === "object" && answer.answer !== null && "upheld" in answer.answer && typeof answer.answer.upheld === "boolean" ? answer.answer.upheld : undefined);
+const court = defineMechanic(defineHead({ id: "court", package: "@test/court", summary: "Blames.", tools: { blame: { description: "Blames.", params: Blame, for: ["resident"] } } }), {
+	tools: {
+		blame: {
+			review: { answerer: "judge", ask: (params, _ctx, answerable) => (answerable ? { question: { dm: params.dm } } : refuse("JUDGE_ABSENT", "no judge")) },
+			run: (_params, _ctx, answer) => {
+				const verdict = upheld(answer);
+				return verdict === undefined ? refuse("JUDGE_FAILED", "no verdict") : reply(verdict ? "upheld" : "rejected");
+			},
+		},
+	},
+});
+const judge = defineDirector({ id: "judge", summary: "Answers the blames.", on: [], output: Verdict, answers: "judge" }, { system: () => "You are the judge.", input: () => "", act: () => Promise.resolve() });
+const judged = defineGame({ id: "judged", residents: 2, seed: 7, mechanics: [guessNumber({ max: 20 }), court()], directors: [{ use: judge }], scheduler: { id: "turns", options: { afterBlocks: ["director"] } }, end: { ticks: 4 } });
+const blaming: StandingDrivers = () => ({ resident: scriptedDriver((activation) => [{ tool: "guess", params: { value: activation.tick + 1 } }, { tool: "blame", params: { dm: activation.tick } }]) });
+const review = answeringReview({ judge: (question) => ({ upheld: JSON.stringify(question).includes('"dm":2') }) });
+
+describe("the standing checks with an answerer of the stage review", () => {
+	const outcomes = async (withJudge: boolean): Promise<readonly string[]> => {
+		const { events } = await playStanding(judged, blaming, withJudge ? { review } : {});
+		return events.filter((event) => event.actor === "resident:A01" && ["tool_result", "tool_refused"].includes(event.type) && JSON.stringify(event.payload).includes("blame")).map((event) => JSON.stringify(event.payload));
+	};
+
+	it("plays the blame by the answer: refused without a judge, upheld or rejected with one", async () => {
+		expect(await outcomes(false)).toEqual(Array.from({ length: 4 }, () => '{"as":"blame","stage":"consult","code":"JUDGE_ABSENT","detail":"no judge"}'));
+		expect(await outcomes(true)).toEqual(["rejected", "rejected", "upheld", "rejected"].map((said) => `{"as":"blame","reply":"${said}"}`));
+	});
+
+	it("pass with the same answerers on the straight run and the replay: none, or the judge", async () => {
+		expect(await checkReplay(judged, blaming)).toEqual([]);
+		expect(await checkResumeEveryBoundary(judged, blaming)).toEqual([]);
+		expect(await checkReplay(judged, blaming, { review })).toEqual([]);
+		expect(await checkResumeEveryBoundary(judged, blaming, { review })).toEqual([]);
+		// The fault this fixes: a run without a judge, replayed with the game's Directors as answerers, differs.
+		const { events } = await play(judged, { drivers: blaming });
+		expect(await replay({ game: judged, log: events })).toMatchObject({ equal: false });
 	});
 });

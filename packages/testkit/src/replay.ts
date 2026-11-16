@@ -37,11 +37,11 @@ export interface ReplayInput {
 	 */
 	readonly ports?: Pick<KernelPorts, "limits" | "sinks">;
 	/**
-	 * The answerers of the stage `review` the run had (`ReviewPort.answers`); left out: the answerers of the game's
-	 * Directors (`answers`), as `createReviewPort` of the engine gives them. A run played without an answerer port
-	 * passes `[]`.
+	 * The answerers of the stage `review` the run had, as names or as the run's `ReviewPort.answers`; left out: the
+	 * answerers of the game's Directors (`answers`), as `createReviewPort` of the engine gives them. A run played
+	 * without an answerer port passes `[]`.
 	 */
-	readonly answerers?: readonly string[];
+	readonly answerers?: readonly string[] | ((answerer: string) => boolean);
 }
 
 /**
@@ -209,13 +209,20 @@ async function repeat(kernel: Kernel, activation: Activation, event: Envelope): 
 	else activation.record(event.source, event.type, event.payload);
 }
 
+// Who answers in a replay: the given names or test, else the game's Directors that answer.
+function answersOf(game: ResolvedGame, given: ReplayInput["answerers"]): (answerer: string) => boolean {
+	if (typeof given === "function") return given;
+	const names = given ?? (game.directors ?? []).flatMap((director) => (director.definition.answers === undefined ? [] : [director.definition.answers]));
+	return (answerer) => names.includes(answerer);
+}
+
 // The answerer port of a replay: it asks nothing. A question of a call writes the records that call caused in the
 // log again, each at its line, up to the next record `answered` of the engine's review source, and answers what that
 // record holds; a call that asked twice (a review handler, then the tool's own review) takes them in turn.
-function reviewsOf(log: readonly Envelope[], sources: ReadonlySet<string>, answerers: readonly string[], kernel: () => Kernel | undefined): ReviewPort {
+function reviewsOf(log: readonly Envelope[], sources: ReadonlySet<string>, answers: (answerer: string) => boolean, kernel: () => Kernel | undefined): ReviewPort {
 	const taken = new Map<number, number>();
 	return {
-		answers: (answerer) => answerers.includes(answerer),
+		answers,
 		async ask({ call, record }) {
 			const caused = log.filter((event) => event.causedBy === call.seq && sources.has(event.source)).slice(taken.get(call.seq) ?? 0);
 			const last = caused.findIndex((event) => event.source === REVIEW_RECORDS.id && event.type === "answered");
@@ -317,9 +324,8 @@ export async function replay(input: ReplayInput): Promise<ReplayResult> {
 	const { definition } = game;
 	const sources = new Set((input.records ?? definition.records ?? []).map((source) => source.id));
 	const plan = planOf(input.log, sources, definition.actors.some((actor) => actor.id === "script"));
-	const answerers = input.answerers ?? (game.directors ?? []).flatMap((director) => (director.definition.answers === undefined ? [] : [director.definition.answers]));
 	const made: { kernel?: Kernel } = {};
-	const review = reviewsOf(input.log, sources, answerers, () => made.kernel);
+	const review = reviewsOf(input.log, sources, answersOf(game, input.answerers), () => made.kernel);
 	const kernel = createKernel(definition, { ...input.ports, redact: (text) => text, review }, input.resume);
 	made.kernel = kernel;
 	const start = startOf(input.log, input.resume === undefined ? 0 : kernel.log.length);

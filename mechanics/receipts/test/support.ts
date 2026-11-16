@@ -99,17 +99,15 @@ export const namesAndMarks = defineMechanic(defineHead({ id: "names", package: "
  * @param options - The options of the receipts.
  * @param more - Further mechanics.
  * @param ticks - The ticks.
- * @param locked - The tools the game keeps locked.
  * @returns The game.
  */
-export function game(options: Parameters<typeof receipts>[0] = {}, more: readonly MechanicUse[] = [], ticks = 4, locked: readonly string[] = []): Game {
+export function game(options: Parameters<typeof receipts>[0] = {}, more: readonly MechanicUse[] = [], ticks = 4): Game {
 	return defineGame({
 		id: "receipts-test",
 		seed: 7,
 		residents: ["A01", "A02", "A03", "A04"],
 		mechanics: [ledger({ startPoints: 10 }), channels(), exile(), receipts(options), levels(), court(), ...more],
 		directors: [{ use: judge }],
-		...(locked.length === 0 ? {} : { locked: [...locked] }),
 		scheduler: { id: "turns", options: { passes: 1, activation: "always", order: "roster", inputs: [{ kind: "status", join: " · " }], afterBlocks: ["director"] } },
 		end: { ticks },
 	});
