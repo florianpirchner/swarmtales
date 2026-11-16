@@ -41,7 +41,7 @@ export interface Exception {
 export const EXCEPTIONS: readonly Exception[] = [
 	{ path: /^oracles\//, reason: "oracle files stay byte-equal to the old platform (4.3)" },
 	{ path: /^(games\/[^/]+-ledger\.jsonl|apps\/cli\/test\/fixtures\/|packages\/viewer-core\/test\/fixtures\/)/, reason: "run data, recorded (4.3)" },
-	{ path: /^docs\/(refactoring-before-release|ideas)\//, reason: "carried docs, specifications and errata (4.4)" },
+	{ path: /^docs\/(refactoring-before-release|ideas|history)\//, reason: "carried docs, specifications and errata (4.4)" },
 	{ path: /^docs\/(LESSONS-LEARNED|FINDINGS|ISSUE-RECORD|M2-GATE|M4-GATE|M4-REVIEW|RERUN-PLAN|RERUN-PLAN-M4)\.md$/, reason: "records of past runs and issues (4.4)" },
 	{ path: /^scripts\/rename\//, reason: "the table of the rename itself" },
 	{ path: /^scripts\/(lib\/names\.ts|gates\/retired-ids\.test\.ts)$/, reason: "the name lint's list of the retired ids and its test (M6-06)" },

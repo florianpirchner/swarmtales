@@ -10,6 +10,7 @@ export const CARRIED_DOCS = [
 	"docs/RELATED-WORK.md",
 	"docs/RUNTIME-REVISIONS.md",
 	"docs/ideas/",
+	"docs/history/",
 	"oracles/",
 ] as const;
 
