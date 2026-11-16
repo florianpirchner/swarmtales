@@ -27,6 +27,10 @@ describe("pnpm check", () => {
 		expect(lanes([{ name: "b", command: [], lane: 2 }, { name: "a", command: [], lane: 0 }, { name: "c", command: [], lane: 2 }]).map((gates) => gates.map((gate) => gate.name))).toEqual([["a"], ["b", "c"]]);
 	});
 
+	it("runs the tests on three Vitest workers (decision A112)", () => {
+		expect(GATES.filter((gate) => gate.command[1] === "test").map((gate) => gate.command)).toEqual([["pnpm", "test", "--maxWorkers=3"]]);
+	});
+
 	it("sums the memory of one process group", () => {
 		const ps = "  100  2048\n  100 1024\n  200 4096\n\n";
 		expect(groupMemoryMb(ps, 100)).toBe(3);

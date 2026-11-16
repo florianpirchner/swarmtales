@@ -18,14 +18,16 @@ export interface Gate {
  * The gates. Three lanes keep the four cores of a hosted runner busy inside 6 GB: the typecheck and lint in one pass
  * (`scripts/lint.ts`: each project typed as `tsc -b` types it and linted from the same program, decision A110), then
  * the build (which reuses the declarations of that pass) and the API reports (which read the build) in one; the quick
- * gates in the second; the tests (two workers) in the third. The first failure stops the check.
+ * gates in the second; the tests in the third, on three Vitest workers (decision A112: on two they took the whole
+ * budget; the command-line standing parts run their commands in child processes, so a long run no longer holds a
+ * worker past Vitest's RPC timeout). The first failure stops the check.
  */
 export const GATES: readonly Gate[] = [
 	{ name: "typecheck and lint (tsc -b per project, limits, TSDoc, 4 GB heap)", command: ["pnpm", "lint"], lane: 0 },
 	{ name: "layer check", command: ["pnpm", "check:layers"], lane: 1 },
 	{ name: "licence gate", command: ["pnpm", "check:licences"], lane: 1 },
 	{ name: "sign-off check", command: ["pnpm", "check:signoff"], lane: 1 },
-	{ name: "tests (budgets, words, English, README, names, exceptions, workspace shape)", command: ["pnpm", "test"], lane: 2 },
+	{ name: "tests (budgets, words, English, README, names, exceptions, workspace shape)", command: ["pnpm", "test", "--maxWorkers=3"], lane: 2 },
 	{ name: "build", command: ["pnpm", "build"], lane: 0 },
 	{ name: "API reports", command: ["pnpm", "api"], lane: 0 },
 ];

@@ -7,13 +7,28 @@
  * seed of the games list (seed 7, 156 ticks) is resumed from the eight boundaries of `sampleBoundaries` (J256,
  * decision A102): the command line resumes it from the middle boundary only (`apps/cli/test/standing-part.ts`).
  * Every run here longer than 12 ticks is resumed from those eight.
+ *
+ * The fake driver hands control back to the event loop before each activation (decision A112): the runs never wait on
+ * a timer or a file, so without it this file held its Vitest worker's event loop for 52 s on three workers, near
+ * Vitest's 60 s RPC timeout. The log does not change: the driver's calls and their order are the same.
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
+import { setImmediate as handBack } from "node:timers/promises";
 import { describe, expect, it } from "vitest";
 import { morrisGame } from "../game.ts";
 import { morrisPlayer } from "./support.ts";
 
-const fake = (seed: number): StandingDrivers => (kernel) => ({ resident: fakeDriver(kernel, seed) });
+const fake =
+	(seed: number): StandingDrivers =>
+	(kernel) => {
+		const driver = fakeDriver(kernel, seed);
+		return {
+			resident: async (activation) => {
+				await handBack();
+				await driver(activation);
+			},
+		};
+	};
 const scripted = (): { resident: typeof morrisPlayer } => ({ resident: morrisPlayer });
 const RUNS = [
 	{ name: "scripted teams", game: morrisGame({ games: 1, maxTurns: 30, refereeDepth: 2 }), drivers: scripted, options: {} },

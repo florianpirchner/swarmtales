@@ -13,7 +13,11 @@
  * fake run reads (the sources of the games, the mechanics, the packages and the command line, tests and build output left out). A
  * session folder whose process is gone, or that is older than a day, is removed; nothing outside the cache's own
  * folder is touched. The session folder goes when every part has said it is done.
+ *
+ * Every command of the parts runs in a child process (`cliProcess`, `standing-child.ts`), so that a long run does not
+ * hold the event loop of a Vitest worker (decision A112).
  */
+import { fork, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -21,7 +25,82 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
-import { cli, eventsOf, type Printed } from "./support.ts";
+import { eventsOf, type Printed } from "./events.ts";
+
+const CHILD = fileURLToPath(new URL("standing-child.ts", import.meta.url));
+const Answer = Type.Object(
+	{
+		id: Type.Number(),
+		code: Type.Optional(Type.Number()),
+		out: Type.Optional(Type.Array(Type.String())),
+		err: Type.Optional(Type.String()),
+		thrown: Type.Optional(Type.String()),
+	},
+	{ description: "The child's answer to one command (standing-child.ts): what it printed, or the error it threw" },
+);
+interface Pending {
+	readonly resolve: (printed: Printed) => void;
+	readonly reject: (error: Error) => void;
+}
+
+let child: ChildProcess | undefined;
+const pending = new Map<number, Pending>();
+let next = 0;
+
+/** Settles the command an answer of the child belongs to. */
+function settle(message: unknown): void {
+	const answer = Parse(Answer, message);
+	const waiting = pending.get(answer.id);
+	pending.delete(answer.id);
+	if (answer.thrown !== undefined) waiting?.reject(new Error(answer.thrown));
+	else {
+		const err = answer.err ?? "";
+		waiting?.resolve({ code: answer.code ?? -1, out: answer.out ?? [], err, issue: /SWT-[A-Z]\d{3}/.exec(err)?.[0] });
+	}
+}
+
+/**
+ * The child process of this worker, started on the first command; a child that died fails what it had. Its heap is
+ * held to 384 MB: the check's 6 GB hold every lane at once, and three children of a part each held up to about 380 MB
+ * of resident memory without the limit (J306); the Whispers run with every snapshot plays in it.
+ */
+function started(): ChildProcess {
+	if (child !== undefined) return child;
+	const forked = fork(CHILD, [], { execArgv: ["--conditions", "development", "--max-old-space-size=384"], stdio: ["ignore", "ignore", "inherit", "ipc"] });
+	forked.on("message", settle);
+	forked.on("exit", (code) => {
+		child = undefined;
+		for (const waiting of pending.values()) waiting.reject(new Error(`the child process of the command line ended with ${String(code)}`));
+		pending.clear();
+	});
+	child = forked;
+	return forked;
+}
+
+/**
+ * The command line in a child process of this worker, as `cli` of `support.ts` has it in process (a clock that stands
+ * still, no variable of the environment): the Vitest worker waits on the child and keeps answering its RPC calls
+ * (decision A112). One child serves every command of the worker, so the modules load once.
+ *
+ * @param cwd - The working directory of the commands.
+ * @returns A function that runs one command and resolves to what it printed.
+ */
+export function cliProcess(cwd: string): (...args: readonly string[]) => Promise<Printed> {
+	return (...args) =>
+		new Promise((resolve, reject) => {
+			const id = next++;
+			pending.set(id, { resolve, reject });
+			started().send({ id, cwd, args });
+		});
+}
+
+/** Ends the child process of this worker, if one runs. */
+export function stopCliProcess(): void {
+	// The stopped child's exit must not touch the next one, nor the commands sent to it.
+	child?.removeAllListeners("exit");
+	child?.kill();
+	child = undefined;
+}
 
 /** The folder of all caches of the standing parts; nothing outside it is written or removed. */
 const ROOT = join(tmpdir(), "swt-standing-cache");
@@ -108,7 +187,7 @@ export const folderOf = (printed: Printed): string => (printed.out.at(-1) ?? "")
 async function write(staging: string, file: string, seed: number, boundariesOf: (ticks: number) => readonly number[]): Promise<void> {
 	mkdirSync(staging, { recursive: true });
 	const every = Array.from({ length: CAP }, (_, tick) => tick).join(",");
-	const straight = await cli(staging)("run", file, "--fake", "--seed", String(seed), "--out", "straight", "--snapshot-at", every);
+	const straight = await cliProcess(staging)("run", file, "--fake", "--seed", String(seed), "--out", "straight", "--snapshot-at", every);
 	const folder = folderOf(straight);
 	const snapshots = join(staging, folder, "snapshots");
 	if (straight.code === 0 && existsSync(snapshots)) {

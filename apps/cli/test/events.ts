@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
+/**
+ * The log of a run folder and a resumed log without its marker, without the command line: the standing parts read
+ * logs in the Vitest worker and run the commands in a child process (decision A112), so the worker does not load the
+ * command line's modules. `support.ts` passes these on to the other tests.
+ */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { StoredEnvelopeSchema } from "@swarmtales/contracts";
+import { Type, type Static } from "typebox";
+import { Parse } from "typebox/value";
+
+const Events = Type.Array(StoredEnvelopeSchema, { description: "The lines of events.jsonl" });
+
+/** One line of `events.jsonl`. */
+export type StoredEnvelope = Static<typeof StoredEnvelopeSchema>;
+
+/** What one command printed. */
+export interface Printed {
+	readonly code: number;
+	readonly out: readonly string[];
+	readonly err: string;
+	/** The first `SWT-` code on the error output. */
+	readonly issue: string | undefined;
+}
+
+/** The events of a run folder, parsed. */
+export function eventsOf(directory: string): readonly StoredEnvelope[] {
+	const lines = readFileSync(join(directory, "events.jsonl"), "utf8").trimEnd().split("\n");
+	return Parse(
+		Events,
+		lines.map((line): unknown => JSON.parse(line)),
+	);
+}
+
+/**
+ * The log of a resumed run as the straight run has it: without the marker `run_resumed`, and with `seq`, `causedBy`
+ * and `basis` of the later events counted without it. No payload is
+ * changed: none holds a log position (decision A34).
+ */
+export function withoutMarker(events: readonly StoredEnvelope[]): readonly StoredEnvelope[] {
+	const marker = events.find((event) => event.type === "run_resumed")?.seq ?? Infinity;
+	const back = (seq: number): number => (seq >= marker ? seq - 1 : seq);
+	return events.flatMap((event) =>
+		event.seq === marker ? [] : [{ ...event, seq: back(event.seq), ...(event.causedBy === undefined ? {} : { causedBy: back(event.causedBy) }), ...(event.basis === undefined ? {} : { basis: back(event.basis) }) }],
+	);
+}

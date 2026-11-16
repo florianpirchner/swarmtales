@@ -4,14 +4,28 @@
  * every tick boundary writes the log of the straight run. The scripted runs get both checks on a match of one game
  * (the game file plays two), plain and with a fresh context per move, and the fake runs on the game file get both
  * checks too (A43: a resume from a snapshot file, whose keys are sorted, writes the straight log). The team variant, which the games list does not play, gets both checks here on a fake run of one game with the
- * lists, the threats and the coach, and the control arm without a brain gets the replay.
+ * lists, the threats and the coach, and the control arm without a brain gets the replay. *
+ * The fake driver hands control back to the event loop before each activation (decision A112): the runs never wait on
+ * a timer or a file, so without it this file held its Vitest worker's event loop for 24 s on three workers, against
+ * Vitest's 60 s RPC timeout. The log does not change: the driver's calls and their order are the same.
  */
 import { checkReplay, checkResumeEveryBoundary, fakeDriver, type StandingDrivers } from "@swarmtales/testkit";
+import { setImmediate as handBack } from "node:timers/promises";
 import { describe, expect, it } from "vitest";
 import { chessGame } from "../game.ts";
 import { player } from "./support.ts";
 
-const fake = (seed: number): StandingDrivers => (kernel) => ({ resident: fakeDriver(kernel, seed) });
+const fake =
+	(seed: number): StandingDrivers =>
+	(kernel) => {
+		const driver = fakeDriver(kernel, seed);
+		return {
+			resident: async (activation) => {
+				await handBack();
+				await driver(activation);
+			},
+		};
+	};
 const scripted = (): { resident: typeof player } => ({ resident: player });
 /** The scripted seats on one game and the fake driver on the game file, with the seeds of the games list. */
 const RUNS = [13, 29].flatMap((seed) => [

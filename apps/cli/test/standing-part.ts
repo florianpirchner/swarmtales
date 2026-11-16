@@ -28,15 +28,18 @@
  * (`claim`), so a part that starts late (Vitest runs fewer workers than parts) finds less to do. Together the parts
  * check every run once.
  *
+ * Every command runs in a child process (`cliProcess` of `standing-cache.ts`, decision A112): in process, one fake
+ * run of Whispers held a Vitest worker's event loop past Vitest's 60 s RPC timeout.
+ *
  * A game joins by its line in the list; the gate `scripts/gates/games-list.test.ts` keeps the list whole.
  */
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { CAP, claim, folderOf, partDone, releaseClaims, sharedRuns, type SharedRuns } from "./standing-cache.ts";
-import { cli, eventsOf, withoutMarker, type Printed, type StoredEnvelope } from "./support.ts";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { CAP, claim, cliProcess, folderOf, partDone, releaseClaims, sharedRuns, stopCliProcess, type SharedRuns } from "./standing-cache.ts";
+import { eventsOf, withoutMarker, type Printed, type StoredEnvelope } from "./events.ts";
 
 /** The number of test files the checks are dealt over. */
 export const PARTS = 3;
@@ -126,10 +129,13 @@ export function describeStandingPart(part: number): void {
 	let swt: Swt = () => Promise.reject(new Error("before all"));
 	beforeAll(() => {
 		cwd = mkdtempSync(join(tmpdir(), "swt-standing-"));
-		swt = cli(cwd);
+		swt = cliProcess(cwd);
 		releaseClaims(part);
 	});
+	// A fresh child for each run of the list: a child that served every game grew to about 380 MB (J306).
+	afterEach(stopCliProcess);
 	afterAll(() => {
+		stopCliProcess();
 		rmSync(cwd, { recursive: true, force: true });
 		partDone(part, PARTS);
 	});

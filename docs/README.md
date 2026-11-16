@@ -60,7 +60,7 @@ licence gate, the sign-off check, the build and the API reports. They run in thr
 lane one after the other (`scripts/lib/check-run.ts`, M4-71): the typecheck and lint (`scripts/lint.ts`, decision
 A110: three worker processes take the projects in the order of their references, type each as `tsc -b` does and
 lint its files from the same program), then the build (its declarations come from the `dist-types` of that pass) and
-the API reports (which read the build); the quick gates; the tests (two Vitest workers, the standing checks first).
+the API reports (which read the build); the quick gates; the tests (three Vitest workers, decision A112, the standing checks first).
 The output of a gate is printed when it ends. The first failure stops the check. It prints a summary
 table and fails when the whole takes more than 10 minutes, or when all gates running at once hold more than 6 GB; a
 gate that is still running when the time ends is stopped.
