@@ -87,7 +87,7 @@ Written by the gate issue of M5 (M5-57). The sections below are kept as they wer
 1. **Owed by the owner** (the build session cannot push tags, O3): the tag `v0-final` on `a73e6a9` (set in the local
    clone, not on the remote; the switch of `main` waits for it), `runtime-r4` (`b158a5b`), `runtime-r5` (`6d1a685`)
    and `runtime-r6` (`390448d`), set in the local clone and not on the remote, and `runtime-r7` at the merge of the
-   last of M5-88 and M5-89 (`d022725`), not set; the milestone tag of M5; **the switch of `main`** to the new
+   last of M5-88 and M5-89 (`d022725`), not set, and `runtime-r8` at the merge of M6-16 (`2e9d969`), not set; the milestone tags (`scripts/release/tags.ts` lists each with its commit; A141); **the switch of `main`** to the new
    platform (`rewrite/root` and `rewrite/develop` become `main` and `develop`, decision A5), which waits for
    `v0-final` on the remote and the milestone review. None of these is done by a build session.
 2. **The milestone review of M5:** done (`docs/M5-REVIEW.md`); its findings were built as M5-104 to M5-106 (A116),
