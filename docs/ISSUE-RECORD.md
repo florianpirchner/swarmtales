@@ -573,6 +573,30 @@ The cost of the three sample stubs in `pnpm lint` (section 9 of the specificatio
 0.2 s, `samples/team-game` 0.1 s, one file each, about 326 MB per worker; the whole pass 225.6 s, 84 projects. The
 cost of the filled samples is measured by M6-09 to M6-11.
 
+## The legacy runs staged by M6-18
+
+Staged by issue M6-18 with `node scripts/release/legacy-runs.ts` on the build session's clone, on 2026-11-16, from
+the old state `a73e6a9` (`v0-final`) onto the head of `origin/data/runs` (`26a8c47e`). The branch
+`data/legacy-staging` was written locally and not pushed; it is lost with the session's container (A25), so the
+owner stages again on his own clone (a step of `docs/RELEASE.md`, issue M6-21) and compares the digest. The script
+holds the digest below (`RECORDED_DIGEST`) and writes no branch when its own differs.
+
+| What | Value |
+|---|---|
+| Staged | `stories/<name>/runs/` and `examples/` of `v0-final` (the class "run data" of `links.ts`), at `legacy/stories/…` and `legacy/examples/…` |
+| Files | 8841 (8655 under `stories/*/runs/`, 186 under `examples/`) |
+| Bytes | 815,678,605 (815.7 MB); largest file 7,876,162 |
+| Manifest | `legacy/MANIFEST-v0-final.sha256`, one line `<sha256>  <path>` per file, sorted by path |
+| **Manifest digest** (sha256 of the manifest) | **`9d4b3780b51325c071335c7187dd9d60aad8ce6c3f430151e033ebad356a363f`** |
+| Trees on the branch | `legacy/stories` `17ce8f1e4619ff34921e52dc7a800af6465bf722`, `legacy/examples` `7cf682796d53518ed96be890f534d0014185bc88` (the tree of `v0-final:examples`) |
+| Scan report | `legacy/SCAN-v0-final.json`: `swt scan` clean over 8841 files, keys of the environment's providers held |
+| Time | 11.6 s, 194 MB of memory, the staged files written once into a temporary folder and removed |
+
+The commit id of the branch is not reproduced (it holds the date, the committer and the head of the data branch); the
+digest and the two tree ids are. The manifest was checked against the old state apart from the script: the same 8841
+paths as `git ls-tree -r v0-final` filtered to the run data, and the sha256 of every 37th file read with
+`git cat-file blob`.
+
 ## The budgets at the start of M5
 
 Measured by issue M5-00 with the counter of the budget gate (`scripts/lib/budget.ts`) at `c5daac3`, the head of
