@@ -16,8 +16,9 @@ export { runLoop, type HandCall, type HandLine, type HandSource, type LoopInput,
 export { folderTexts, played, playFake, resolveFile, runFacts, runFake, whyOf, type FakePlay, type ResolvedFile, type Resumed, type RunInput } from "./run.ts";
 export { RUN_RECORDS } from "./records.ts";
 export { resumeRefused, resumeRun, type ResumeRunInput } from "./resume.ts";
-export { ENV_NAMES, readEnv } from "./env.ts";
-export { badSet, liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, unknownWord, COMMANDS, FLAGS, helpOf, isCommand, type CommandName, type Flags, type LiveFlags } from "./flags.ts";
+export { ENV_NAMES, readEnv, setNames } from "./env.ts";
+export { doctor, PLATFORM_LINE, runDoctor, type DoctorCheck, type DoctorInput } from "./doctor.ts";
+export { badSet, liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, unknownWord, COMMANDS, FLAGS, helpOf, isCommand, usageOf, type CommandName, type Flags, type LiveFlags } from "./flags.ts";
 export { confirmatoryAlone, runLive, type LiveInput, type LiveResult } from "./live.ts";
 export { confirmatoryDirty, readSourceTree, type SourceTree } from "./tree.ts";
 export { LEAK_FILE, scanFolder } from "./leak-scan.ts";

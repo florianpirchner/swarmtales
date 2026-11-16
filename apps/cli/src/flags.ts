@@ -50,8 +50,8 @@ const LIVE = ["provider", "model", "thinking", "director-model", "budget", "ledg
 const ERROR = "an error before the work: the issues are printed";
 
 /**
- * The table of the commands, by the words before the one argument: the argument, what the command does, the flags
- * it reads and what its exit codes mean.
+ * The table of the commands, by the words before the one argument: the argument (empty for a command that takes
+ * none, `swt doctor`), what the command does, the flags it reads and what its exit codes mean.
  *
  * @public
  */
@@ -74,6 +74,7 @@ export const COMMANDS = {
 	scan: { argument: "<folder>", what: "look through every file of a folder for the key values of the environment", flags: ["json"], exits: { 0: "no file holds a held key value", 1: "a file does (`SWT-X030`), or the folder is none", 3: "nothing was scanned: no key variable is set" } },
 	"experiment run": { argument: "<spec file>", what: "play the runs of an experiment that are still missing", flags: ["out", "ledger", "plan"], exits: { 0: "the plan is complete; with `--plan`, the plan is printed", 1: ERROR, 4: "a run wrote a key value into its folder", 6: "stopped at the experiment's cap, or after three failed runs" } },
 	"analyse chess": { argument: "<run dir>", what: "score every half-move of a chess run with the reference engine", flags: ["depth"], exits: { 0: "`analysis.json` and `ANALYSIS.md` are written", 1: ERROR, 4: "a file of the folder holds a key value (`SWT-X030`)" } },
+	doctor: { argument: "", what: "check Node, the installed versions, the keys by name and the `SWT_` names, offline", flags: ["json"], exits: { 0: "no check failed (a `warn` is worth a look)", 1: `a check failed; or ${ERROR}` } },
 	"experiment analyse": { argument: "<experiment dir>", what: "analyse the runs of an experiment against its pass rule", flags: [], exits: { 0: "the pass rule is kept, or the spec has none", 1: ERROR, 3: "the pass rule is not kept", 4: "a file holds a key value", 7: "no verdict: too few runs" } },
 } as const satisfies Readonly<Record<string, CommandRow>>;
 
@@ -104,6 +105,19 @@ export function isCommand(words: string): words is CommandName {
 }
 
 /**
+ * The usage of one command: `swt`, its words and its argument, if it takes one.
+ *
+ * @param name - The command.
+ * @returns For example `swt run <game file>`, or `swt doctor`.
+ *
+ * @public
+ */
+export function usageOf(name: CommandName): string {
+	const { argument }: CommandRow = COMMANDS[name];
+	return argument === "" ? `swt ${name}` : `swt ${name} ${argument}`;
+}
+
+/**
  * The lines of `swt --help`: every command with its argument, or one command with its flags and exit codes.
  *
  * @param command - The command; all of them when left out.
@@ -112,17 +126,16 @@ export function isCommand(words: string): words is CommandName {
  * @public
  */
 export function helpOf(command?: CommandName): readonly string[] {
-	const usage = (name: CommandName): string => `swt ${name} ${COMMANDS[name].argument}`;
 	if (command === undefined) {
 		const names = Object.keys(COMMANDS).filter(isCommand);
-		return ["swt: the command line of Swarm Tales", "", "Commands:", ...names.map((name) => `  ${usage(name).padEnd(42)}${COMMANDS[name].what}`), "", "`swt <command> --help` prints the flags and the exit codes of a command; docs/reference/cli.md has the rest."];
+		return ["swt: the command line of Swarm Tales", "", "Commands:", ...names.map((name) => `  ${usageOf(name).padEnd(42)}${COMMANDS[name].what}`), "", "`swt <command> --help` prints the flags and the exit codes of a command; docs/reference/cli.md has the rest."];
 	}
 	const row: CommandRow = COMMANDS[command];
 	const flags = [...row.flags, "help" as const].map((name) => {
 		const flag = FLAGS[name];
 		return `  ${`--${name}${"value" in flag ? ` ${flag.value}` : ""}`.padEnd(24)}${flag.what}`;
 	});
-	return [`${usage(command)} [flags]`, `  ${row.what}`, "", "Flags:", ...flags, "", "Exit codes:", ...Object.entries(row.exits).map(([code, what]) => `  ${code}  ${what}`)];
+	return [`${usageOf(command)} [flags]`, `  ${row.what}`, "", "Flags:", ...flags, "", "Exit codes:", ...Object.entries(row.exits).map(([code, what]) => `  ${code}  ${what}`)];
 }
 
 const THINKING: readonly ThinkingLevel[] = ["off", "minimal", "low", "medium", "high"];

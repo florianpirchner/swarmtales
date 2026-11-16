@@ -119,7 +119,7 @@ describe("swt run --fake", () => {
 		expect(() => readFileSync(join(cwd, "foreign"))).toThrow();
 		for (const [name, row] of Object.entries(COMMANDS)) {
 			const [flag, spec] = Object.entries(FLAGS).find(([key]) => key !== "help" && !row.flags.some((own: string) => own === key)) ?? ["help", FLAGS.help];
-			const { code, err } = await swt(...name.split(" "), "x", `--${flag}`, ...(spec.type === "boolean" ? [] : ["1"]));
+			const { code, err } = await swt(...name.split(" "), ...(row.argument === "" ? [] : ["x"]), `--${flag}`, ...(spec.type === "boolean" ? [] : ["1"]));
 			expect([name, code, err.includes(`\`--${flag}\` is no flag of \`swt ${name}\``)]).toEqual([name, 1, true]);
 		}
 	});

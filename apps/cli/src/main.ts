@@ -3,6 +3,7 @@
 import { formatIssue, redactSecrets, redactValue, SwtError } from "@swarmtales/contracts";
 import type { MechanicDefinition } from "@swarmtales/sdk";
 import { analyseChess } from "./chess.ts";
+import { runDoctor } from "./doctor.ts";
 import { readEnv } from "./env.ts";
 import { badUsage } from "./errors.ts";
 import { experimentAnalyse, experimentRun } from "./experiment.ts";
@@ -33,6 +34,8 @@ export interface CliIo {
 	readonly installed?: Readonly<Record<string, MechanicDefinition>>;
 	/** The environment of a live run, as a plain record; the named variables of the process (`readEnv`) when absent. */
 	readonly env?: Readonly<Record<string, string | undefined>>;
+	/** The version of the Node that `swt doctor` checks, as `process.version` gives it; that of the process when absent. */
+	readonly node?: string;
 	/** The lines of standard input for `--hand -`; those of the process when absent. */
 	readonly stdin?: AsyncIterable<string>;
 }
@@ -54,18 +57,25 @@ const COMMANDS: Readonly<Record<CommandName, Command>> = {
 	"analyse chess": (directory, values, io) => analyseChess({ directory, ...(values.depth === undefined ? {} : { depth: values.depth }) }, io),
 	"experiment run": (spec, values, io) => experimentRun({ spec, out: values.out, ...(values.ledger === undefined ? {} : { ledger: values.ledger }), plan: values.plan === true, env: io.env ?? readEnv() }, io),
 	"experiment analyse": (directory, _values, io) => experimentAnalyse(directory, io),
+	doctor: (_none, values, io) => runDoctor(values.json === true, io),
 };
+
+// A command without an argument (`swt doctor`) is all the words; any other takes the last word as its argument.
+function wordsOf(positionals: readonly string[]): { readonly bare: boolean; readonly words: string; readonly argument: string | undefined } {
+	const alone = positionals.join(" ");
+	const bare = isCommand(alone) && TABLE[alone].argument === "";
+	return bare ? { bare, words: alone, argument: "" } : { bare, words: positionals.slice(0, -1).join(" "), argument: positionals.at(-1) };
+}
 
 async function command(args: readonly string[], io: CliIo): Promise<number> {
 	const { values, positionals } = readFlags(args);
-	const words = positionals.slice(0, -1).join(" ");
-	const argument = positionals.at(-1);
+	const { bare, words, argument } = wordsOf(positionals);
 	if (values.help === true || argument === undefined) {
 		// `swt run --help` and `swt run game.ts --help` are the help of `run`; anything else is the list of the commands.
 		for (const line of helpOf([positionals.join(" "), words].find(isCommand))) io.out(line);
 		return 0;
 	}
-	if (!isCommand(words)) throw new SwtError(badUsage({ problem: `\`swt ${positionals.join(" ")}\` is no command with its arguments` }));
+	if (!isCommand(words) || (!bare && TABLE[words].argument === "")) throw new SwtError(badUsage({ problem: `\`swt ${positionals.join(" ")}\` is no command with its arguments` }));
 	// P487: a flag of another command is refused before the work, not dropped; `--help` belongs to every command.
 	const own: readonly string[] = ["help", ...TABLE[words].flags];
 	const foreign = Object.keys(values).filter((flag) => !own.includes(flag));
@@ -89,7 +99,7 @@ async function command(args: readonly string[], io: CliIo): Promise<number> {
  * the folder does not verify, holds no chess game or the engine cannot measure, 4 a file holds a key value.
  * `swt experiment run`: 0 complete, 1 an `SwtError`, 4 a leak, 6 stopped at the experiment's cap or after three failed
  * runs. `swt experiment analyse`: 0 the pass rule is kept or there is none, 1 an `SwtError`, 3 not kept, 4 a leak,
- * 7 no verdict. An error before the run is printed in the five-line form, or with `--json` as `{ "issues": [...] }`.
+ * 7 no verdict. `swt doctor`: 0 no check failed, 1 a check failed or an `SwtError`. An error before the run is printed in the five-line form, or with `--json` as `{ "issues": [...] }`.
  * @throws Whatever is no `SwtError`: a failure of the file system, a fault in the platform.
  * @example
  * ```ts

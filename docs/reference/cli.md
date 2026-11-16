@@ -1,11 +1,12 @@
 # The command line `swt`
 
 `swt` plays a game into a run folder, resumes it, checks it, replays it, reports on it, analyses a chess run with the
-reference engine, and runs an experiment.
+reference engine, runs an experiment, and checks its own setup (`swt doctor`).
 `swt`, `swt --help` and `swt <command> --help` print what this page says about the commands, from the same table
 (`apps/cli/src/flags.ts`); a test holds the page and the table together.
 
-A command is its words, one argument, and flags in any place: `swt run games/hello/game.ts --fake --seed 7`. A
+A command is its words, one argument, and flags in any place: `swt run games/hello/game.ts --fake --seed 7`;
+`swt doctor` takes no argument, and one after it is refused. A
 relative path starts at the current directory. A command that cannot be read is `SWT-C003`; so is a flag that is
 not in the command's table below, a flag of another command included (`swt run --plan`, decision A111): it is
 refused before the work, never dropped. An error before the
@@ -198,6 +199,31 @@ Analyses the runs of an experiment against its pass rule. It has no flag of its 
 | 3 | the pass rule is not kept |
 | 4 | a file holds a key value |
 | 7 | no verdict: too few runs |
+
+### `swt doctor`
+
+Checks the setup offline and prints one line per check: `ok`, `warn` or `fail`, what was checked, what was found.
+It reads files and the environment, writes nothing, and names a key only by its variable, never by its value.
+`--json` prints one JSON line `{ "checks": [{ "check", "status", "detail" }] }`.
+
+| Check | `ok` | `warn` | `fail` |
+|---|---|---|---|
+| `node` in a clone (the folder whose `package.json` is `swarmtales-workspace`, upwards from the current directory) | the major of the Node that runs is that of the clone's `.node-version` | it is newer | it is older |
+| `node` in a project | the Node that runs meets the `engines.node` (`>=x.y.z`) of the installed `swarmtales` | the range cannot be read | it does not meet it |
+| `node`, neither found | | Node is not checked | |
+| `swt` | the name and version of the command line that runs | | |
+| `versions`, one per version line (platform, plugins; decision A123) | every installed `swarmtales` and `@swarmtales/*` package of the line, in the nearest `node_modules` and beside the real folder of `swarmtales`, has one version | the line is not in step, or no package is found | |
+| `key <provider>`, for `anthropic` and `openrouter` | a key is set, in the first of `SWT_ANTHROPIC_API_KEY`, `ARENA_ANTHROPIC_API_KEY` (or `SWT_OPENROUTER_API_KEY`, `OPENROUTER_API_KEY`) that is not empty; a second one that is set is named as not read | no key is set (a fake run needs none) | the value is too short to be a key (`SWT-X006`) |
+| `env` | which of `SWT_PROVIDER` and `SWT_MODEL` are set | an `SWT_` name that `swt` does not read, one line each | |
+
+| Flag | What |
+|---|---|
+| `--json` | print the checks as one JSON line |
+
+| Exit code | Meaning |
+|---|---|
+| 0 | no check failed (a `warn` is worth a look) |
+| 1 | a check failed; or an error before the work: the issues are printed |
 
 Every command takes `--help`.
 

@@ -23,3 +23,15 @@ export function readEnv(names: readonly string[] = ENV_NAMES): Readonly<Record<s
 		return value === undefined ? [] : [[name, value]];
 	}));
 }
+
+/**
+ * The names of the variables of the process that start with a prefix, without their values.
+ *
+ * @param prefix - The start of the names, for example `SWT_`.
+ * @returns The names that are set, in the order of the environment.
+ *
+ * @public
+ */
+export function setNames(prefix: string): readonly string[] {
+	return Object.keys(process.env).filter((name) => name.startsWith(prefix));
+}

@@ -11,6 +11,17 @@
 			"help": "boolean"
 		}
 	},
+	"doctor": {
+		"argument": "",
+		"exits": [
+			0,
+			1
+		],
+		"flags": {
+			"help": "boolean",
+			"json": "boolean"
+		}
+	},
 	"experiment analyse": {
 		"argument": "<experiment dir>",
 		"exits": [

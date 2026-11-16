@@ -146,4 +146,13 @@ describe("the canary: no key value in any artefact of a live run", () => {
 		expect([code, files, verified, reported]).toEqual([4, ["g/guess-number-001/notes.txt"], 0, 4]);
 		expect([/SWT-X030[^\n]*`notes\.txt`/.test(terminal), readFileSync(join(cwd, "g", "guess-number-001", LEAK_FILE), "utf8").endsWith("\nnotes.txt\n")]).toEqual([true, true]);
 	});
+
+	it("swt doctor names the variables of both canaries, in its lines and in --json, and holds neither value", async () => {
+		const terminal: string[] = [];
+		const io = { cwd, now: () => new Date(0), out: (line: string) => void terminal.push(line), err: (line: string) => void terminal.push(line), env: { ...env, SWT_MODEL: SHAPED, SWT_SECRET: PLAIN } };
+		expect([await main(["doctor"], io), await main(["doctor", "--json"], io)]).toEqual([0, 0]);
+		const printed = terminal.join("\n");
+		expect([holds(printed), printed.match(/a key is set in (SWT_ANTHROPIC_API_KEY|OPENROUTER_API_KEY)/g)?.length]).toEqual([false, 4]);
+		expect(printed).toContain("SWT_SECRET is set, and swt reads no variable of that name");
+	});
 });

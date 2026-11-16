@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { directorName } from "@swarmtales/sdk";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { COMMANDS, FLAGS, isCommand } from "../src/flags.ts";
+import { COMMANDS, FLAGS, isCommand, usageOf } from "../src/flags.ts";
 import { handEnded } from "../src/hand.ts";
 import { main } from "../src/main.ts";
 import { cli } from "./support.ts";
@@ -36,8 +36,8 @@ describe("swt --help", () => {
 	it("prints every command of the table and exits with 0, with and without the flag", async () => {
 		const swt = cli(cwd);
 		const bare = await swt();
-		expect([bare.code, bare.err, names.length]).toEqual([0, "", 9]);
-		for (const name of names) expect(bare.out.join("\n")).toContain(`swt ${name} ${COMMANDS[name].argument}`);
+		expect([bare.code, bare.err, names.length]).toEqual([0, "", 10]);
+		for (const name of names) expect(bare.out.join("\n")).toContain(usageOf(name));
 		expect([await swt("--help"), await swt("play", "x", "--help")]).toEqual([bare, bare]);
 		// No help without the flag: a command without its argument is still refused.
 		const refused = await swt("experiment", "run");
@@ -49,7 +49,7 @@ describe("swt --help", () => {
 		for (const name of names) {
 			const { code, out, err } = await swt(...name.split(" "), "--help");
 			const row = COMMANDS[name];
-			expect([code, err, out[0]]).toEqual([0, "", `swt ${name} ${row.argument} [flags]`]);
+			expect([code, err, out[0]]).toEqual([0, "", `${usageOf(name)} [flags]`]);
 			for (const flag of row.flags) expect(out.join("\n")).toMatch(new RegExp(`^  --${flag}[ <]`, "m"));
 			expect(out.slice(out.indexOf("Exit codes:") + 1).map((line) => Number(line.trim().split("  ")[0]))).toEqual(Object.keys(row.exits).map(Number));
 		}
@@ -62,7 +62,7 @@ describe("swt --help", () => {
 
 	it("has a reference page that names every command, every flag and every exit code of the table", () => {
 		for (const name of names) {
-			const section = PAGE.split(/^### /m).find((part) => part.startsWith(`\`swt ${name} ${COMMANDS[name].argument}\``)) ?? "";
+			const section = PAGE.split(/^### /m).find((part) => part.startsWith(`\`${usageOf(name)}\``)) ?? "";
 			for (const flag of COMMANDS[name].flags) expect(section, `${name} --${flag}`).toContain(`\`--${flag}`);
 			for (const code of Object.keys(COMMANDS[name].exits)) expect(section, `${name} exit ${code}`).toContain(`| ${code} |`);
 		}

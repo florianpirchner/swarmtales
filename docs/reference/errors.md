@@ -616,7 +616,7 @@ The file is of a type that holds no game, or its content is no game.
 
 The command line cannot be read: an unknown command or flag, a missing argument, a bad flag value.
 
-- **Why:** The commands are `swt run <game file>` (with `--fake`, or with `--budget <usd>` for a live run; `--hand <file>` and `--snapshot-at <ticks>` for the Human Hand and snapshots), `swt resume <run dir> --game <game file>` (with `--snapshot <file>`, `--ticks <n>`, `--out <dir>`, `--hand` and `--snapshot-at`), `swt log verify <run dir> [--previous <run dir>]`, `swt report <run dir> [--game <game file>]`, `swt replay <run dir> --game <game file>`, `swt scan <folder>`, `swt experiment run <spec file> [--out dir] [--ledger file]` and `swt experiment analyse <experiment dir>`; a seed is a whole number from 0 to 4294967295.
+- **Why:** The commands are `swt run <game file>` (with `--fake`, or with `--budget <usd>` for a live run; `--hand <file>` and `--snapshot-at <ticks>` for the Human Hand and snapshots), `swt resume <run dir> --game <game file>` (with `--snapshot <file>`, `--ticks <n>`, `--out <dir>`, `--hand` and `--snapshot-at`), `swt log verify <run dir> [--previous <run dir>]`, `swt report <run dir> [--game <game file>]`, `swt replay <run dir> --game <game file>`, `swt scan <folder>`, `swt experiment run <spec file> [--out dir] [--ledger file]`, `swt experiment analyse <experiment dir>` and `swt doctor [--json]`; a seed is a whole number from 0 to 4294967295.
 - **Fix:** Write the command in one of these forms; `swt --help` lists the commands, and `swt <command> --help` the flags and the exit codes of one.
 - **Named in:** `apps/cli`
 
@@ -818,7 +818,7 @@ The oracle file {what}.
 
 ### SWT-T002
 
-The oracle `{variant}` with the seed {seed} {oracle}.
+The oracle `{variant}` with the seed {seed} {file}.
 
 - **Why:** The oracle runner of M1 replays the calls of residents under the seeded order of `turns` in one run from start to end.
 - **Fix:** Compare this file once the game that needs it is ported; the oracle runner is extended in that issue.

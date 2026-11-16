@@ -110,9 +110,9 @@
 		},
 		{
 			"path": "scripts/api-freeze/surface/cli.json",
-			"sha256": "3246484914ce0f884c355d1e594d987ce23134dfab72e4386dc7a9ca411e476b",
-			"base": "565efaeb967692d962f43e53235a9b78e798737d",
-			"row": "F1"
+			"sha256": "b41646d525438fb8b549576dcc3050b492466c8799eab9ce06921c92f5bcb4ca",
+			"base": "35c46861f4fd333af548fce6cceb055675f4d891",
+			"row": "F3"
 		},
 		{
 			"path": "scripts/api-freeze/surface/envelope.json",
