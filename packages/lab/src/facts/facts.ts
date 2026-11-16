@@ -36,9 +36,29 @@ export interface RunFacts {
 	readonly replicate: number;
 	/** The arm of the experiment, when the run belongs to one. */
 	readonly arm?: string;
-	/** How the run ended: the reason of `run_ended`, its tick, and the limit when a limit ended it. */
+	/** Set when the run stopped at a signed head without `run_ended` (P488): its facts are up to the pause. */
+	readonly paused?: true;
+	/** How the run ended: the reason of `run_ended`, its tick, and the limit when a limit ended it; for a paused run the reason `paused` and the ticks the kernel started. */
 	readonly end: { readonly reason: string; readonly limit?: string; readonly tick: number };
-	/** The values by key: `<plugin id>.<metric id>` and the generic keys `run.*` and `models.*`. */
+	/** The values by key: `<plugin id>.<metric id>` and the generic keys `run.*` and `models.*`. For a resumed run read from its resume, those of the lines after its last `run_resumed`. */
+	readonly values: Readonly<Record<string, FactValue>>;
+	/** For a resumed run read from its resume (P493): the base's part, the lines before its last `run_resumed`. */
+	readonly base?: BaseFacts;
+}
+
+/**
+ * The base's part of a resumed run: what the lines before its last marker `run_resumed` count.
+ *
+ * @public
+ */
+export interface BaseFacts {
+	/** The id of the run the snapshot was taken from, as the marker names it. */
+	readonly run: string;
+	/** The finished ticks the run went on from. */
+	readonly tick: number;
+	/** The sha256 of the snapshot file. */
+	readonly snapshotHash: string;
+	/** The values of the base's part, by the keys of {@link RunFacts.values}. */
 	readonly values: Readonly<Record<string, FactValue>>;
 }
 

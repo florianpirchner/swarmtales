@@ -59,7 +59,8 @@ describe("the run report", () => {
 			- Game: \`toy\` (Toy game), params \`{"open":true}\`
 			- Seed 1, replicate 0, arm \`open\` of experiment \`toy\`
 			- Purpose: pilot; started at 2026-11-14T10:00:00.000Z
-			- Kernel: runtime revision 3, version 0.0.0, commit \`c0ffee\` with changes that are not committed; scheduler \`turns\`, revision 1
+			- Kernel: runtime revision 3, version 0.0.0, commit \`c0ffee\`; scheduler \`turns\`, revision 1
+			- Dirty tree: \`kernel.dirty: true\`, the source tree had changes that were not committed, so the commit does not hold the whole code of the run
 			- Manifest: \`aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\`
 			- Signed head: \`bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\`
 			- Human-influenced: 2 tool calls of \`human\`

@@ -40,6 +40,17 @@ export interface Analysis {
 export function analysisMarkdown(engine: ChessEngine, analyses: readonly GameAnalysis[], depth: number): string;
 
 // @public
+export const BASE_HEADING = "## The base's part (before the resume)";
+
+// @public
+export interface BaseFacts {
+    readonly run: string;
+    readonly snapshotHash: string;
+    readonly tick: number;
+    readonly values: Readonly<Record<string, FactValue>>;
+}
+
+// @public
 export const BOOTSTRAP_SEED = 20261114;
 
 // @public
@@ -445,7 +456,13 @@ export type PlayRun = (run: PlannedRun, capUsd: number, experiment: {
 export function readExperimentState(directory: string): ExperimentState | undefined;
 
 // @public
-export function readRun(directory: string, metrics: Readonly<Record<string, readonly MetricDefinition[]>>): RunFacts;
+export function readRun(directory: string, metrics: Readonly<Record<string, readonly MetricDefinition[]>>, options?: ReadRunOptions): RunFacts;
+
+// @public
+export interface ReadRunOptions {
+    readonly fromResume?: boolean;
+    readonly paused?: boolean;
+}
 
 // @public
 export function renderRunReport(facts: RunFacts, manifest: RunManifest, titles: Readonly<Record<string, {
@@ -465,6 +482,7 @@ export function runExperiment(spec: ExperimentSpec, play: PlayRun, options: Expe
 // @public
 export interface RunFacts {
     readonly arm?: string;
+    readonly base?: BaseFacts;
     readonly end: {
         readonly limit?: string;
         readonly reason: string;
@@ -473,6 +491,7 @@ export interface RunFacts {
     readonly game: string;
     readonly head: string;
     readonly manifestHash: string;
+    readonly paused?: true;
     readonly replicate: number;
     readonly run: string;
     readonly seed: number;

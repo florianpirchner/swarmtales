@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * `swt report`: the computed report of one finished run. The facts are read from the verified run folder with the
+ * `swt report`: the computed report of one run, finished or paused. The facts are read from the verified run folder with the
  * metric definitions of the game's mechanics; `REPORT.md` is a new file of the folder, so the folder is scanned
  * for a held key value after it is written.
  */
@@ -95,11 +95,16 @@ async function mechanicsOf(input: ReportInput, manifest: RunManifest, io: CliIo)
  * command line's own); a plugin of the run without a definition (neither in the table nor, with
  * `--game`, in the game) is named in a line "metrics absent: <id>" at the head of the facts table.
  *
+ * A paused run (its log ends at a signed head without `run_ended`) gets a report too, its facts marked "up to the
+ * pause" (P488). A resumed run is counted from its last `run_resumed`; the header names the base, and the base's
+ * part stands apart in a section of its own (P493). A run on a dirty tree has a header line that names
+ * `kernel.dirty: true` (P494).
+ *
  * @param input - The run folder and, for a game whose mechanics are not installed with the command line, its game file.
  * @param io - The current directory, the two outputs, and for a test the installed table and the environment.
  * @returns The exit code: 0 the report is written, 4 a file of the folder holds a key value (`SWT-X030`; the marker file `LEAK` is written).
  * @throws SwtError `SWT-E001` for a missing or unreadable manifest, `SWT-E006` for a run that does not verify or
- * is unfinished, and what `resolveFile` reports for `--game`. The command exits with 1 then.
+ * stopped at no signed head, and what `resolveFile` reports for `--game`. The command exits with 1 then.
  * @example
  * ```ts
  * process.exitCode = await report({ directory: "runs/quarry-001", game: "games/quarry/game.ts" }, io);
@@ -112,7 +117,7 @@ export async function report(input: ReportInput, io: CliIo): Promise<number> {
 	const broker = createKeyBroker(io.env ?? readEnv());
 	const manifest = parseLabFile(RunManifestSchema, jsonFile(join(directory, MANIFEST_FILE)), "run manifest", join(directory, MANIFEST_FILE));
 	const { mechanics, absent } = await mechanicsOf(input, manifest, io);
-	const facts = readRun(directory, metricTable(mechanics));
+	const facts = readRun(directory, metricTable(mechanics), { paused: true, fromResume: true });
 	const titles = Object.fromEntries(mechanics.flatMap((mechanic) => mechanic.head.metrics.map((metric) => [`${mechanic.id}.${metric.id}`, metric])));
 	writeFileSync(join(directory, REPORT_FILE), broker.redact(renderRunReport(facts, manifest, titles, { metricsAbsent: absent })));
 	const leak = scanFolder(directory, (text) => broker.leaks(text));

@@ -120,6 +120,11 @@ checks that the new log continues the old one. `--json` prints the verdict as on
 Writes the report of a run into its folder. `--game <game file>` gives the game whose mechanics name the metrics;
 without it the mechanics are the installed ones that the plugin ids of the run's manifest name. A mechanic of the
 run whose metrics cannot be computed so is named in a line `metrics absent: <id>` at the head of the facts table.
+A paused run (its log ends at a signed head without `run_ended`: paused by the Human Hand or `--pause-on`, or
+stopped after `--ticks`) gets a report too: its header says "Paused", and its facts are headed "up to the pause". A
+resumed run is counted from its last `run_resumed`: its header names the base (run, tick, snapshot), and the base's
+part (the lines before the marker) stands apart in the section "The base's part (before the resume)". A run whose
+manifest has `kernel.dirty: true` has a header line "Dirty tree" that names it (decision A127).
 
 | Exit code | Meaning |
 |---|---|
