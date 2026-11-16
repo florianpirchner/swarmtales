@@ -34,6 +34,8 @@
 	},
 	"devDependencies": {
 		"@swarmtales/engine": "workspace:*",
-		"@swarmtales/testkit": "workspace:*"
+		"@swarmtales/testkit": "workspace:*",
+		"@swarmtales/cli": "workspace:*",
+		"@swarmtales/kernel": "workspace:*"
 	}
 }

@@ -96,8 +96,10 @@ function channelsUse(story: WhispersData, dials: Dials) {
 function motivesUse(story: WhispersData, dials: Dials) {
 	if (!dials.coreMotives) return [];
 	const { coreMotive } = story.whisperer;
-	// The carried catalogue is literal data; the mechanic's own schema gives it its option types.
-	return [motives(Value.Parse(MotivesOptions, { ...story.coreMotives, whispererCoreMotive: coreMotive, ...(dials.whisperer ? { whisperer: {} } : {}), noteTools: NOTE_TOOLS }))];
+	// The carried catalogue is literal data; the mechanic's own schema gives it its option types. The personas are the
+	// story's, dealt by seat as the old `assignPersonas` did (A95).
+	const options = { ...story.coreMotives, whispererCoreMotive: coreMotive, ...(dials.whisperer ? { whisperer: {} } : {}), personas: story.personas, noteTools: NOTE_TOOLS };
+	return [motives(Value.Parse(MotivesOptions, options))];
 }
 
 function levelsUses(story: WhispersData, dials: Dials) {

@@ -64,7 +64,30 @@ const Figure = Type.Object(
 );
 
 /**
- * The options of the motives mechanic: the old `CoreMotivesSpec` plus the figures the run names, and the note tools.
+ * A persona of the game's catalogue (the old story's `personas`): who a resident is, beside its core motive.
+ *
+ * @public
+ */
+export const Persona = Type.Object(
+	{
+		name: Type.String({ description: "The persona's name, e.g. Archivist." }),
+		temperament: Type.String({ description: "How it feels and reacts." }),
+		values: Type.String({ description: "What it holds dear." }),
+		voice: Type.String({ description: "How it speaks." }),
+	},
+	{ description: "A persona of the catalogue." },
+);
+
+/**
+ * A persona as the catalogue gives it.
+ *
+ * @public
+ */
+export type Persona = Static<typeof Persona>;
+
+/**
+ * The options of the motives mechanic: the old `CoreMotivesSpec` plus the figures the run names, the personas and
+ * the note tools.
  *
  * @public
  */
@@ -100,6 +123,11 @@ export const MotivesOptions = Type.Object(
 				{ agent: Type.Optional(Type.String({ description: "The resident the game names as its whisperer (the whispers' `whisperer.agent`)." })) },
 				{ description: "The game's whisperer plays (the whispers' `whisperer`, in a run that is no control run): the resident it names, else the seeded pick of `pickWhisperer` of the whispers' `/rules`. Without it nobody plays `whispererCoreMotive`." },
 			),
+		),
+		personas: Type.Optional(
+			Type.Array(Persona, {
+				description: "The catalogue of personas (the old story's `personas`), dealt by seat from the run seed as the old `assignPersonas` did; without it nobody has a persona.",
+			}),
 		),
 		noteTools: Type.Array(Type.String({ description: "The bare name of a tool" }), {
 			default: ["notify", "boardNote"],

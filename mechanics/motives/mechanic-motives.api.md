@@ -47,6 +47,9 @@ export function checkMotive(call: StageCall, ctx: MotivesCtx): Refusal | undefin
 export function dealMotives(spec: Spec, ids: readonly string[], rng: Streams): ReadonlyMap<string, Motive>;
 
 // @public
+export function dealPersonas(catalogue: readonly Persona[], ids: readonly string[], rng: Streams): ReadonlyMap<string, Persona>;
+
+// @public
 export const Intensity: Type.TUnion<[Type.TLiteral<"aboveAll">, Type.TLiteral<"clearly">, Type.TLiteral<"atTimes">]>;
 
 // @public
@@ -133,6 +136,12 @@ perResident: Type.TObject<{
 max: Type.TInteger;
 min: Type.TInteger;
 }>;
+personas: Type.TOptional<Type.TArray<Type.TObject<{
+name: Type.TString;
+temperament: Type.TString;
+values: Type.TString;
+voice: Type.TString;
+}>>>;
 spreadPer: Type.TInteger;
 whisperer: Type.TOptional<Type.TObject<{
 agent: Type.TOptional<Type.TString>;
@@ -228,6 +237,12 @@ perResident: Type.TObject<{
 max: Type.TInteger;
 min: Type.TInteger;
 }>;
+personas: Type.TOptional<Type.TArray<Type.TObject<{
+name: Type.TString;
+temperament: Type.TString;
+values: Type.TString;
+voice: Type.TString;
+}>>>;
 spreadPer: Type.TInteger;
 whisperer: Type.TOptional<Type.TObject<{
 agent: Type.TOptional<Type.TString>;
@@ -366,6 +381,12 @@ export const MotivesOptions: Type.TObject<{
         max: Type.TInteger;
         min: Type.TInteger;
     }>;
+    personas: Type.TOptional<Type.TArray<Type.TObject<{
+        name: Type.TString;
+        temperament: Type.TString;
+        values: Type.TString;
+        voice: Type.TString;
+    }>>>;
     spreadPer: Type.TInteger;
     whisperer: Type.TOptional<Type.TObject<{
         agent: Type.TOptional<Type.TString>;
@@ -409,6 +430,7 @@ readonly summary: "The drive ids of the resident's core motive, the strongest fi
 // @public
 export interface MotivesState {
     readonly coreMotives: Map<string, Motive>;
+    readonly personas: ReadonlyMap<string, Persona>;
 }
 
 // @public
@@ -422,6 +444,17 @@ export const MotiveTrait: Type.TObject<{
 
 // @public
 export function namedCast(spec: Spec, n: number): readonly Figure[] | undefined;
+
+// @public
+export const Persona: Type.TObject<{
+    name: Type.TString;
+    temperament: Type.TString;
+    values: Type.TString;
+    voice: Type.TString;
+}>;
+
+// @public
+export type Persona = Static<typeof Persona>;
 
 // @public
 export function renderMotive(spec: Spec, coreMotive: Motive): string;

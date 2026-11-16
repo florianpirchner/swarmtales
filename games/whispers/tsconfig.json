@@ -78,6 +78,12 @@
 		},
 		{
 			"path": "../../packages/testkit"
+		},
+		{
+			"path": "../../packages/kernel"
+		},
+		{
+			"path": "../../apps/cli"
 		}
 	]
 }

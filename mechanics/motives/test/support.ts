@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * Shared by the motives tests: the catalogue of core motives of an oracle setup (as the old host composed it, old
- * `apps/cli/src/host/story.ts`: the story's `coreMotives`, its `whisperer.coreMotive`), and a game over the real
+ * `apps/cli/src/host/story.ts`: the story's `coreMotives`, its `whisperer.coreMotive`, its `personas`), and a game over the real
  * `ledger`, `channels` and, for Whispers, `whispers`, loaded before `motives` as in the files.
  */
 import { readFileSync } from "node:fs";
@@ -20,6 +20,7 @@ export const ORACLES = resolve(import.meta.dirname, "../../../oracles");
 const Story = Type.Object(
 	{
 		coreMotives: Type.Record(Type.String(), Type.Unknown()),
+		personas: Type.Array(Type.Unknown()),
 		whisperer: Type.Optional(Type.Object({ agent: Type.Optional(Type.String()), forgery: Type.Boolean(), duty: Type.Unknown(), coreMotive: Type.Optional(Type.Unknown()) })),
 	},
 	{ description: "The parts of the old story file the motives read" },
@@ -45,7 +46,7 @@ export function setupOf(game: string, file: string, cast?: readonly string[]): S
 	const agent = story.whisperer?.agent;
 	// The game's whisperer plays: `motives` picks it as `whispers` does (A86).
 	const plays = story.whisperer === undefined ? {} : { whisperer: agent === undefined ? {} : { agent } };
-	const options = Value.Parse(MotivesOptions, { noteTools: ["notify", "boardNote"], ...story.coreMotives, ...(own === undefined ? {} : { whispererCoreMotive: own }), ...plays, ...(cast === undefined ? {} : { cast: [...cast] }) });
+	const options = Value.Parse(MotivesOptions, { noteTools: ["notify", "boardNote"], ...story.coreMotives, personas: story.personas, ...(own === undefined ? {} : { whispererCoreMotive: own }), ...plays, ...(cast === undefined ? {} : { cast: [...cast] }) });
 	if (story.whisperer === undefined) return { motives: options };
 	const { forgery, duty } = story.whisperer;
 	const whisperer = Value.Parse(WhispererSpec, { ...(agent === undefined ? {} : { agent }), forgery, duty });

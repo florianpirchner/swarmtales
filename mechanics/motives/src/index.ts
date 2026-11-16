@@ -4,6 +4,8 @@
  * `mechanics/motives`. The deal is made when a fresh run is set up (`start`, decision A86), so that the system prompt
  * reads it before the run starts, and written as `motive_dealt` per resident in roster order when the run starts; the
  * whisperer, picked with `pickWhisperer` of the whispers' `/rules`, plays the character the game gives it.
+ * The personas of the game's catalogue are dealt by seat from the run seed, as the old `assignPersonas` did (A95), and
+ * read through the fact `personas` by the system prompt; no event is written for them.
  * Nobody in the game reads a core motive: the facts `coreMotives`, `prose` and `lines` are for the system prompt, the
  * gamemaker and the reports; `goals` reads the drives through the service `motives`. A Director's note that gives a
  * core motive away is refused by its `rule` handler on the note tools.
@@ -13,6 +15,7 @@
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/sdk";
 import { motiveLine, renderMotive } from "./deal.ts";
+import { Persona } from "./spec.ts";
 import { motivesHead, type MotivesCtx, type MotivesView } from "./head.ts";
 import { checkMotive, cuesOf } from "./note.ts";
 
@@ -21,7 +24,8 @@ export { aboveAllCap, castFor, motiveLine, dealMotives, lightCount, namedCast, r
 export { motivesHead, type MotivesState, type MotivesCtx, type MotivesView } from "./head.ts";
 export { checkMotive } from "./note.ts";
 export { characterLeaks, type CharacterFacts } from "./rules.ts";
-export { MOTIVE_LEVELS, MotiveRecord, MotivesOptions } from "./spec.ts";
+export { dealPersonas } from "./personas.ts";
+export { MOTIVE_LEVELS, MotiveRecord, MotivesOptions, Persona } from "./spec.ts";
 
 // Writes the deal of `start` when the run starts, one `motive_dealt` per resident in roster order.
 function deal(ctx: MotivesCtx): void {
@@ -52,6 +56,8 @@ const facts = {
 	},
 	prose: { output: Type.Record(Resident, Text, { description: "The core motive per resident, as the system prompt reads it" }), compute: (view: MotivesView) => Object.fromEntries([...view.state.coreMotives].map(([agent, coreMotive]) => [agent, renderMotive(view.options, coreMotive)])) },
 	lines: { output: Type.Record(Resident, Text, { description: "The core motive per resident, in a line" }), compute: (view: MotivesView) => Object.fromEntries([...view.state.coreMotives].map(([agent, coreMotive]) => [agent, motiveLine(coreMotive)])) },
+	// The persona block of the system prompt (`prompt.persona` of a game, A95).
+	personas: { output: Type.Record(Resident, Persona, { description: "The persona per resident, dealt by seat from the run seed" }), compute: (view: MotivesView) => Object.fromEntries(view.state.personas) },
 };
 
 /**

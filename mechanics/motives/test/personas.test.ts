@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
+/**
+ * The seeded personas (decision A95), carried from the old `test/agents/personas.test.ts` (kind `seeded`): the
+ * persona of each seat that the old `assignPersonas` gave the oracle setups (the seat's old `agent_profile`,
+ * `oracles/system-prompts.md`; a seat of the City plays its figure's profession instead, M5-45), the same deal from
+ * the same seed, the catalogue used again past its end, none without a catalogue, no log line, and the same personas
+ * after a resume.
+ */
+import { Type } from "typebox";
+import { Value } from "typebox/value";
+import { describe, expect, it } from "vitest";
+import { idleDriver, testKernel, type TestKernel } from "@swarmtales/testkit";
+import { Persona } from "../src/index.ts";
+import { gameOf, setupOf, type Setup } from "./support.ts";
+
+const Personas = Type.Record(Type.String(), Persona);
+const namesOf = (test: TestKernel): Readonly<Record<string, string>> => Object.fromEntries(Object.entries(Value.Parse(Personas, test.fact("motives.personas"))).map(([id, persona]) => [id, persona.name]));
+
+const WHISPERS = setupOf("whispers", "whispers");
+
+describe("the personas of the old `assignPersonas`", () => {
+	it.each([
+		["whispers", 7, "A01", "Archivist"],
+		["whispers", 7, "A06", "Merchant"],
+		["whispers", 11, "A01", "Skeptic"],
+	])("deals %s seed %i seat %s the %s, as the old run did", (game, seed, seat, name) => {
+		expect(namesOf(testKernel(gameOf(setupOf(game, game), { seed })))[seat]).toBe(name);
+	});
+
+	it("deals every resident a distinct persona of the catalogue, the same from the same seed, other ones from other seeds", () => {
+		const first = namesOf(testKernel(gameOf(WHISPERS)));
+		expect(Object.keys(first)).toEqual(["A01", "A02", "A03", "A04", "A05", "A06"]);
+		expect(new Set(Object.values(first)).size).toBe(6);
+		expect(namesOf(testKernel(gameOf(WHISPERS)))).toEqual(first);
+		const orders = new Set([1, 2, 3, 4, 5, 6, 7, 8].map((seed) => Object.values(namesOf(testKernel(gameOf(WHISPERS, { seed })))).join(",")));
+		expect(orders.size).toBeGreaterThan(1);
+	});
+
+	it("uses the catalogue again when there are more residents than personas", () => {
+		const names = Object.values(namesOf(testKernel(gameOf(WHISPERS, { residents: 8 }))));
+		const counts = new Map<string, number>();
+		for (const name of names) counts.set(name, (counts.get(name) ?? 0) + 1);
+		expect([names.length, [...counts.values()].sort()]).toEqual([8, [1, 1, 1, 1, 2, 2]]);
+	});
+
+	it("deals none without a catalogue, and writes no log line for the deal", () => {
+		const bare: Setup = { ...WHISPERS, motives: { ...WHISPERS.motives } };
+		delete bare.motives.personas;
+		const plain = testKernel(gameOf(bare));
+		expect(plain.fact("motives.personas")).toEqual({});
+		const dealt = testKernel(gameOf(WHISPERS));
+		expect(dealt.kernel.log.all().map((event) => event.type)).toEqual(plain.kernel.log.all().map((event) => event.type));
+	});
+
+	it("deals the same personas again when a run is resumed", async () => {
+		const test = testKernel(gameOf(WHISPERS));
+		await test.playTicks(idleDriver, 2);
+		const snapshot: unknown = JSON.parse(JSON.stringify(test.kernel.snapshot()));
+		const resumed = testKernel(gameOf(WHISPERS), { resume: { snapshot, log: test.kernel.log.all() } });
+		expect(resumed.fact("motives.personas")).toEqual(test.fact("motives.personas"));
+	});
+});

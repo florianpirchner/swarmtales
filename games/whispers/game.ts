@@ -9,7 +9,7 @@
 import { SwtError } from "@swarmtales/contracts";
 import { confessor, confessorOptions, defineGamemaker, DIRECTION_LEVELS, GAMEMAKER_EVENTS, gamemakerOptions, guard, guardOptions, interpretations, judge, judgeOptions, type DirectionLevel, type GamemakerFact } from "@swarmtales/city-directors";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { defineGame, defineGameFamily, paramOverride } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily, paramOverride, type Game } from "@swarmtales/sdk";
 import { Type, type Static } from "typebox";
 import { mechanicsOf, NOTE_TOOLS, type WhispersData } from "./src/compose.ts";
 import { whispersData } from "./src/story.ts";
@@ -131,8 +131,17 @@ export function whispersGame(params: WhispersParams) {
 		},
 		end: { ticks: params.minutes },
 		model: { id: `${story.model.provider}/${story.model.id}`, thinking: "low" },
-		prompt: { frame: story.coreMotives.frame, character: "motives.prose" },
+		prompt: promptOf(story, params),
 	});
+}
+
+// The City order of the old `baseSystemPrompt` (A89, A95): the frame and the core motive, the city (its names line only
+// with names), the persona `motives` deals, the whisperer's brief for the resident `whispers` picks. Without core
+// motives `motives` is not loaded, and the residents play without character and persona.
+function promptOf(story: WhispersData, params: WhispersParams): NonNullable<Game["prompt"]> {
+	const city: NonNullable<Game["prompt"]>["city"] = { name: story.city, survivors: story.run.survivors, tools: story.toolScope === "story" ? "story" : "all", ...(params.names ? { namesUntil: story.names.untilMinute } : {}) };
+	const brief = { text: story.whisperer.brief, reader: "whispers.whisperer" };
+	return params.coreMotives ? { frame: story.coreMotives.frame, character: "motives.prose", city, persona: "motives.personas", brief } : { city, brief };
 }
 
 /**
