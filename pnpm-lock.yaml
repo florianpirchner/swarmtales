@@ -2090,7 +2090,30 @@ importers:
 
   samples/shipped-director: {}
 
-  samples/team-game: {}
+  samples/team-game:
+    dependencies:
+      '@swarmtales/mechanic-consensus':
+        specifier: workspace:*
+        version: link:../../mechanics/consensus
+      '@swarmtales/mechanic-grid':
+        specifier: workspace:*
+        version: link:../../mechanics/grid
+      '@swarmtales/mechanic-team-channel':
+        specifier: workspace:*
+        version: link:../../mechanics/team-channel
+      swarmtales:
+        specifier: workspace:*
+        version: link:../../packages/swarmtales
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/cli':
+        specifier: workspace:*
+        version: link:../../apps/cli
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
 
 packages:
 

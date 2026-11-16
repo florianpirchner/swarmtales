@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
+# The game of game.ts in its data form, with the param games at its default of 1. The mechanics are named by id;
+# swt finds them in the packages that package.json lists.
+schema: 1
+id: team-game
+seed: 2
+residents: 4
+mechanics:
+  - use: grid
+    options: { teams: { X: [A01, A02], O: [A03, A04] }, games: 1, wakeTeam: true }
+  - use: consensus
+    options: { teams: { X: [A01, A02], O: [A03, A04] } }
+  - use: team-channel
+    options: { teams: { X: [A01, A02], O: [A03, A04] } }
+grants:
+  resident: { drop: [readTeam] }
+scheduler: { id: turns, options: { activation: onNews } }
+end: { ticks: 20 }
+win: { fact: grid.tally }
+model: anthropic/haiku
