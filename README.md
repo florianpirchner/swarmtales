@@ -170,6 +170,7 @@ times its expected cost (P479, the second price tier above 100,000 input tokens)
 | Run | Seed | Cost (USD) | End | Result |
 |---|---:|---:|---|---|
 | `whispers/smoke/whispers-001` | 11 | 0.9517 | tick limit (45) | Maren (A04) alone passes door 7 and wins with 110; three holdout tribunals, all dropped within the grace; the whisperer spread rumours, forged nothing; problems P479 to P485 |
+| `whispers/smoke/whispers-001-r7` | 11 | 0.2145 | tick limit (45) | runtime r7, variant rumours only (`receipts=false`), code commit `578e65df`; all six pass door 7 by minute 36, Mote (A02) wins with 120 on six of seven popularity votes; the whisperer invents rumours and holds one fragment back a minute; no tribunal; 2 of 19 guard answers unreadable (16 of 47 under r6); P486 |
 
 The folder verifies (`swt log verify`), replays equal (`swt replay --game`), and the leak scan (`swt scan`) found no
 held key value.
