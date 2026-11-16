@@ -24,7 +24,10 @@
 		"docs:errors": "node scripts/error-docs/main.ts",
 		"docs:games": "node --conditions=development scripts/game-docs/main.ts",
 		"check": "node scripts/check.ts",
-		"api:freeze": "node --conditions=development scripts/api-freeze/main.ts"
+		"api:freeze": "node --conditions=development scripts/api-freeze/main.ts",
+		"release:check": "node scripts/release/check.ts",
+		"release:version": "node scripts/release/version.ts",
+		"release:names": "node scripts/release/names.ts"
 	},
 	"devDependencies": {
 		"@eslint/js": "9.39.5",

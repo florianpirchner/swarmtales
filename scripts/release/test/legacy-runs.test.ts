@@ -54,7 +54,7 @@ beforeAll(() => {
 	git("config", "user.name", "Fixture");
 	git("config", "user.email", "fixture@example.com");
 	commitFiles(OLD, "the old state");
-	git("tag", "v0-fixture");
+	git("update-ref", "refs/tags/v0-fixture", "HEAD");
 	git("checkout", "-q", "--orphan", "data/runs");
 	git("rm", "-rqf", ".");
 	base = commitFiles({ "README.md": "# Run data\n", "legacy/README.md": "# Bridge runs\n" }, "run data");
