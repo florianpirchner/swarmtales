@@ -160,3 +160,16 @@ No run was excluded, no request failed. Every run folder verifies (`swt log veri
 --game`) and holds a `REPORT.md` written with `--game`; `swt scan` over the folders and the ledger: clean (391 files,
 keys of 2 providers held). `lanterns/lanterns-team-brain/experiment.before-repair.json` is the state file before the
 hand repair of three refused starts (P468).
+
+## M5 live run of Whispers (2026-11-16, issue M5-53)
+
+Code commit `bd0ee26a`, runtime revision 6, all actors `claude-haiku-5-5` via Anthropic (residents thinking low),
+pricing `pi-ai@1.4.0`, by `games/m5-ledger.jsonl` (M5 cap 12.00 USD). Run 2 of the plan is held back: run 1 cost 1.9
+times its expected cost (P479, the second price tier above 100,000 input tokens). The folder has its own `README.md`.
+
+| Run | Seed | Cost (USD) | End | Result |
+|---|---:|---:|---|---|
+| `whispers/smoke/whispers-001` | 11 | 0.9517 | tick limit (45) | Maren (A04) alone passes door 7 and wins with 110; three holdout tribunals, all dropped within the grace; the whisperer spread rumours, forged nothing; problems P479 to P485 |
+
+The folder verifies (`swt log verify`), replays equal (`swt replay --game`), and the leak scan (`swt scan`) found no
+held key value.
