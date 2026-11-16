@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The C codes of the commands: `SWT-C003`, `SWT-C010`, `SWT-C020`, `SWT-C024` and `SWT-C026`. `SWT-C001` and `SWT-C002` are beside the game
+ * The C codes of the commands: `SWT-C003`, `SWT-C010`, `SWT-C020`, `SWT-C024`, `SWT-C026` and `SWT-C034`.`SWT-C001` and `SWT-C002` are beside the game
  * file loader (`load-game.ts`), `SWT-C030` beside the installed table (`installed.ts`).
  */
 import type { SwtIssue } from "@swarmtales/contracts";
@@ -94,5 +94,26 @@ export function noSuchDirector(input: { readonly name: string; readonly known: r
 		summary: `\`--director-model ${input.name}=...\` names no Director of the game`,
 		why: "The flag replaces the model of one Director of this game for the run (decision A52); a name of no Director would replace nothing.",
 		fix: input.known.length === 0 ? "The game has no Director: leave the flag out." : `Name one of the game's Directors: ${input.known.join(", ")}.`,
+	};
+}
+
+/**
+ * `SWT-C034`: `swt resume --ticks <n>` with an `n` that is not above the finished ticks of the snapshot.
+ *
+ * @param input - The flag and the snapshot.
+ * @param input.ticks - The value of `--ticks`.
+ * @param input.tick - The finished ticks of the snapshot.
+ * @param input.file - The snapshot file.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function ticksBehind(input: { readonly ticks: number; readonly tick: number; readonly file: string }): SwtIssue {
+	return {
+		code: "SWT-C034",
+		summary: `\`--ticks ${String(input.ticks)}\` is not above the ${String(input.tick)} finished ticks of the snapshot, so the resume would play no tick`,
+		why: "`--ticks` counts the finished ticks of the whole run, those before the snapshot included (decision A111), so the loop stops at once when the snapshot is already there.",
+		fix: `Give \`--ticks\` the ticks of the snapshot plus the ticks to play, for example \`--ticks ${String(input.tick + 1)}\` for one more tick, or leave it out to play to the end.`,
+		where: { file: input.file },
 	};
 }

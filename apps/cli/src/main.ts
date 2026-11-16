@@ -6,7 +6,7 @@ import { analyseChess } from "./chess.ts";
 import { readEnv } from "./env.ts";
 import { badUsage } from "./errors.ts";
 import { experimentAnalyse, experimentRun } from "./experiment.ts";
-import { helpOf, isCommand, liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, type CommandName, type Flags } from "./flags.ts";
+import { COMMANDS as TABLE, helpOf, isCommand, liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, type CommandName, type Flags } from "./flags.ts";
 import { runLive } from "./live.ts";
 import { logVerify } from "./log-verify.ts";
 import { replayRun } from "./replay.ts";
@@ -65,9 +65,12 @@ async function command(args: readonly string[], io: CliIo): Promise<number> {
 		for (const line of helpOf([positionals.join(" "), words].find(isCommand))) io.out(line);
 		return 0;
 	}
-	const found = isCommand(words) ? COMMANDS[words] : undefined;
-	if (found === undefined) throw new SwtError(badUsage({ problem: `\`swt ${positionals.join(" ")}\` is no command with its arguments` }));
-	return found(argument, values, io);
+	if (!isCommand(words)) throw new SwtError(badUsage({ problem: `\`swt ${positionals.join(" ")}\` is no command with its arguments` }));
+	// P487: a flag of another command is refused before the work, not dropped; `--help` belongs to every command.
+	const own: readonly string[] = ["help", ...TABLE[words].flags];
+	const foreign = Object.keys(values).filter((flag) => !own.includes(flag));
+	if (foreign.length > 0) throw new SwtError(foreign.map((flag) => badUsage({ problem: `\`--${flag}\` is no flag of \`swt ${words}\`: its flags are listed by \`swt ${words} --help\`` })));
+	return COMMANDS[words](argument, values, io);
 }
 
 /**

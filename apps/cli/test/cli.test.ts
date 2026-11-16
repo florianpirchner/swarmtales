@@ -11,6 +11,7 @@ import { guessNumber, play } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { COMMANDS, FLAGS } from "../src/flags.ts";
 import { main, type CliIo } from "../src/main.ts";
 import game from "./fixtures/guess-number.ts";
 
@@ -109,6 +110,18 @@ describe("swt run --fake", () => {
 		expect(await codes("run", "no-such.ts", "--fake", "--out", "none")).toEqual([1, "SWT-C001"]);
 		expect(json((await swt("run", "no-such.ts", "--fake", "--json")).out[0])).toMatchObject({ issues: [{ code: "SWT-C001" }] });
 		expect(() => readFileSync(join(cwd, "none"))).toThrow();
+	});
+
+	// P487 (A111, M5-101): `swt run --plan` played the run live, because a flag of another command was read and dropped.
+	it("refuses a flag of another command before the run, and every command refuses a flag its row does not list", async () => {
+		const refused = await swt("run", fixture("guess-number.ts"), "--fake", "--plan", "--out", "foreign");
+		expect([refused.code, refused.err.split("\n")[0]]).toEqual([1, "error SWT-C003: `--plan` is no flag of `swt run`: its flags are listed by `swt run --help`"]);
+		expect(() => readFileSync(join(cwd, "foreign"))).toThrow();
+		for (const [name, row] of Object.entries(COMMANDS)) {
+			const [flag, spec] = Object.entries(FLAGS).find(([key]) => key !== "help" && !row.flags.some((own: string) => own === key)) ?? ["help", FLAGS.help];
+			const { code, err } = await swt(...name.split(" "), "x", `--${flag}`, ...(spec.type === "boolean" ? [] : ["1"]));
+			expect([name, code, err.includes(`\`--${flag}\` is no flag of \`swt ${name}\``)]).toEqual([name, 1, true]);
+		}
 	});
 });
 

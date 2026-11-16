@@ -110,6 +110,10 @@ describe("swt resume", () => {
 		expect(await codes("other/hello-game-001", "--game", HELLO)).toEqual([1, "SWT-X008"]);
 		expect(await codes("hello/hello-game-001")).toEqual([1, "SWT-C003"]);
 		expect(await codes("hello/hello-game-001", "--game", HELLO, "--ticks", "x")).toEqual([1, "SWT-C003"]);
+		// P490 (A111, M5-101): `--ticks` counts the finished ticks of the whole run, so one not above the snapshot's plays no tick.
+		expect(await codes("hello/hello-game-001", "--game", HELLO, "--ticks", "2")).toEqual([1, "SWT-C034"]);
+		expect(await codes("hello/hello-game-001", "--game", HELLO, "--ticks", "0")).toEqual([1, "SWT-C034"]);
+		expect((await swt("resume", "hello/hello-game-001", "--game", HELLO, "--ticks", "1", "--out", "none")).err).toContain("`--ticks 1` is not above the 2 finished ticks of the snapshot");
 		expect(await codes("hello/hello-game-001", "--game", HELLO, "--hand", "none.jsonl")).toEqual([1, "SWT-X008"]);
 		expect(await codes("hello/no-such-run", "--game", HELLO)).toEqual([1, "SWT-L001"]);
 		expect(existsSync(join(cwd, "none"))).toBe(false);

@@ -13,7 +13,7 @@ import { MANIFEST_FILE, nextRunFolder, readSnapshotFile, SNAPSHOTS_FOLDER, verif
 import type { ModelSource } from "@swarmtales/models";
 import type { ResolvedGame } from "@swarmtales/sdk";
 import { Check, Parse } from "typebox/value";
-import { badUsage } from "./errors.ts";
+import { badUsage, ticksBehind } from "./errors.ts";
 import type { LiveFlags } from "./flags.ts";
 import { handOf } from "./hand.ts";
 import { resumeLive } from "./live-resume.ts";
@@ -36,7 +36,7 @@ export interface ResumeRunInput extends Pick<RunInput, "out" | "json" | "hand" |
 	readonly game?: string;
 	/** `--snapshot`: the snapshot file; the one with the highest tick in `<run>/snapshots/` when absent. */
 	readonly snapshot?: string;
-	/** `--ticks`: the number of finished ticks the loop stops at; the ticks of the game when absent. */
+	/** `--ticks`: the number of finished ticks of the whole run the loop stops at, above the snapshot's (`SWT-C034`); the ticks of the game when absent. */
 	readonly ticks?: number;
 	/** The flags of a live run; a live resume needs `budget`. A fake resume reads none of them. */
 	readonly live?: LiveFlags;
@@ -147,13 +147,14 @@ export interface ResumeBase {
  * @throws SwtError The issues of a folder that does not verify; `SWT-X010` for a live run without `--budget` and a
  * fake run with it; `SWT-X008` for a folder without a snapshot, a live snapshot without sessions, and a hand the game
  * cannot take; `SWT-C003` without `--game`; `SWT-L008` for a snapshot that is none, or is of another run or another
- * game than the game file; `SWT-L007` and `SWT-R021` from the folder and the kernel; and what `resolveFile` throws.
+ * game than the game file; `SWT-C034` for a `--ticks` that is not above the snapshot's finished ticks; `SWT-L007` and `SWT-R021` from the folder and the kernel; and what `resolveFile` throws.
  * No run folder is written then.
  *
  * @public
  */
 export async function resumeRun(input: ResumeRunInput, io: CliIo): Promise<number> {
 	const base = await baseOf(input, io);
+	if (input.ticks !== undefined && input.ticks <= base.file.tick) throw new SwtError(ticksBehind({ ticks: input.ticks, tick: base.file.tick, file: base.path }));
 	const live = base.manifest.actors.some((actor) => actor.model !== undefined);
 	if (live !== (input.live?.budget !== undefined)) throw new SwtError(liveResumeBudget({ file: base.previous, live }));
 	if (live && base.file.sessions === undefined) throw new SwtError(resumeRefused({ problem: `the snapshot ${base.path} of the live run "${base.manifest.run.id}" holds no sessions`, file: base.previous }));

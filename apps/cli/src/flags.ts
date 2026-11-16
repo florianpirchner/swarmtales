@@ -40,7 +40,7 @@ export const FLAGS = {
 	"snapshot-at": text("<ticks>", "write a snapshot after these numbers of finished ticks, a comma list"),
 	"pause-on": text("<mechanic>.<event>", "pause after the tick in which this event is first written: a snapshot, exit 3"),
 	snapshot: text("<file>", "the snapshot to resume from; the latest of the run folder when left out"),
-	ticks: text("<n>", "stop after this many finished ticks"),
+	ticks: text("<n>", "stop after this many finished ticks of the whole run, more than the snapshot's"),
 	previous: text("<run dir>", "the run folder this one was resumed from: the continuity is checked too"),
 	depth: text("<plies>", "the search depth of the chess reference engine, 1 to 64; 10 when left out"),
 };
@@ -200,7 +200,8 @@ export function unknownWord(input: { readonly flag: string; readonly value: stri
  *
  * @param args - The arguments after the program name.
  * @returns The flags as written, and the words that are no flag.
- * @throws SwtError `SWT-C003` for a flag that no command has, or a flag without its value.
+ * @throws SwtError `SWT-C003` for a flag that no command has, or a flag without its value. A flag of another
+ * command is refused by `main`, from the command's row of `COMMANDS`.
  *
  * @public
  */

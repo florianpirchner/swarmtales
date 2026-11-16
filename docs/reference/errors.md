@@ -708,6 +708,14 @@ The fact that the game's `prompt.persona` or `prompt.brief.reader` names does no
 - **Fix:** For `prompt.persona` name a fact whose value is a record of resident id to persona (temperament, values, voice); for `prompt.brief.reader` one whose value is a resident id or null, such as `whispers.whisperer`.
 - **Named in:** `apps/cli`
 
+### SWT-C034
+
+`swt resume --ticks <n>` with an `n` that is not above the finished ticks of the snapshot.
+
+- **Why:** `--ticks` counts the finished ticks of the whole run, those before the snapshot included (decision A111), so the loop stops at once when the snapshot is already there.
+- **Fix:** Give `--ticks` the ticks of the snapshot plus the ticks to play, for example `--ticks {tick}` for one more tick, or leave it out to play to the end.
+- **Named in:** `apps/cli`
+
 ## E: Experiments and the lab
 
 ### SWT-E001

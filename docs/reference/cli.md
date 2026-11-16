@@ -6,7 +6,9 @@ reference engine, and runs an experiment.
 (`apps/cli/src/flags.ts`); a test holds the page and the table together.
 
 A command is its words, one argument, and flags in any place: `swt run games/hello/game.ts --fake --seed 7`. A
-relative path starts at the current directory. A command that cannot be read is `SWT-C003`. An error before the
+relative path starts at the current directory. A command that cannot be read is `SWT-C003`; so is a flag that is
+not in the command's table below, a flag of another command included (`swt run --plan`, decision A111): it is
+refused before the work, never dropped. An error before the
 work is printed as its issues (code, summary, why, fix) on the error output, or with `--json` as
 `{ "issues": [...] }` on the standard output, and the command exits with 1.
 
@@ -71,7 +73,7 @@ revision (A55).
 |---|---|
 | `--game <game file>` | the game file of the run; required |
 | `--snapshot <file>` | the snapshot to resume from; the latest of the run folder when left out |
-| `--ticks <n>` | stop after this many finished ticks |
+| `--ticks <n>` | stop after this many finished ticks of the whole run, the snapshot's included: `--ticks 14` from a snapshot after 8 ticks plays 6 more. A value not above the snapshot's ticks would play none and is `SWT-C034` |
 | `--out <dir>` | the folder that holds the new run folder; the one that holds the resumed run when left out |
 | `--json` | print the result as one JSON line |
 | `--hand <file>`, `--snapshot-at <ticks>`, `--pause-on <mechanic>.<event>` | as for `swt run`; the hand file is the one of the resumed run (see "The hand file"); an event in the old run's lines is no reason to pause |
