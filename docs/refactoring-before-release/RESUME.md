@@ -37,8 +37,8 @@ Written by the gate issue of M5 (M5-57). The sections below are kept as they wer
    last of M5-88 and M5-89 (`d022725`), not set; the milestone tag of M5; **the switch of `main`** to the new
    platform (`rewrite/root` and `rewrite/develop` become `main` and `develop`, decision A5), which waits for
    `v0-final` on the remote and the milestone review. None of these is done by a build session.
-2. **The milestone review of M5:** a challenger session that reads the specification, the errata and the result,
-   and attacks the gate; its findings become issues by a decision row; M5 is closed by it.
+2. **The milestone review of M5:** done (`docs/M5-REVIEW.md`); its findings were built as M5-104 to M5-106 (A116),
+   and M5 is closed by A117.
 3. **The record:** done by the integrator at the merge: row 379 holds `ab0d283` (tokens and agent time not
    recorded), and the runs indexes name the data commits (A115).
 4. **For after M5** (A104, A114): B1, the rumours variant without delivery receipts or its text adjusted (P486); B2,
