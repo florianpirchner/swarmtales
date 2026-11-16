@@ -4,7 +4,6 @@
 
 ```ts
 
-import { ChainCheckpoint } from '@swarmtales/chain';
 import { ChainGenesisV2Input } from '@swarmtales/chain';
 import { Envelope } from '@swarmtales/contracts';
 import { EventSink } from '@swarmtales/contracts';

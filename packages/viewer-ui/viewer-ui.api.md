@@ -6,7 +6,6 @@
 
 import { RunSource } from '@swarmtales/viewer-core';
 import { Static } from 'typebox';
-import { Type } from 'typebox';
 import { Vocabulary } from '@swarmtales/viewer-core';
 
 // Warning: (ae-forgotten-export) The symbol "GameInfoSchema" needs to be exported by the entry point index.d.ts

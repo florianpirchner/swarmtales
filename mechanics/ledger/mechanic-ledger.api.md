@@ -4,11 +4,9 @@
 
 ```ts
 
-import { CtxOf } from '@swarmtales/sdk';
+import { EventsDefinition } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
-import { MechanicHead } from '@swarmtales/sdk';
 import { ServiceDefinition } from '@swarmtales/contracts';
-import { ToolCtxOf } from '@swarmtales/sdk';
 import { Type } from 'typebox';
 
 // @public
@@ -31,6 +29,98 @@ to: Type.TString;
 txId: Type.TString;
 }>;
 }, "transferPoints">;
+
+// @public
+export const LedgerEvents: EventsDefinition<"ledger", {
+readonly ledger_entry: Type.TObject<{
+amount: Type.TNumber;
+credit: Type.TString;
+debit: Type.TString;
+reason: Type.TString;
+txId: Type.TString;
+}>;
+readonly transfer: Type.TObject<{
+amount: Type.TNumber;
+from: Type.TString;
+memo: Type.TString;
+to: Type.TString;
+txId: Type.TString;
+}>;
+}>;
+
+// @public
+export const LedgerService: ServiceDefinition<"ledger", {
+readonly balance: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TNumber;
+readonly summary: "An account's points; 0 for an account nobody opened.";
+};
+readonly balances: {
+readonly input: Type.TObject<{}>;
+readonly kind: "query";
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+readonly summary: "Every resident's points, for rankings and standings.";
+};
+readonly burn: {
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+};
+readonly has: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "query";
+readonly output: Type.TBoolean;
+readonly summary: "Whether the account is open.";
+};
+readonly mint: {
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
+};
+readonly move: {
+readonly input: Type.TObject<{
+amount: Type.TNumber;
+from: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+reason: Type.TString;
+to: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+txId: Type.TString;
+}>, Type.TObject<{
+code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+ok: Type.TLiteral<false>;
+}>]>;
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+};
+readonly open: {
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly kind: "command";
+readonly output: Type.TNull;
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
+};
+}>;
 
 // @public
 export const SYSTEM_ACCOUNT = "SYSTEM_MINT_BURN";

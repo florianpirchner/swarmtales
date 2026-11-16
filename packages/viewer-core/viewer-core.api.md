@@ -10,7 +10,6 @@ import { ChainVerdict } from '@swarmtales/chain';
 import { keyFingerprint } from '@swarmtales/chain';
 import { RunManifest } from '@swarmtales/contracts';
 import { Static } from 'typebox';
-import { Type } from 'typebox';
 
 // @public
 export interface Activation {

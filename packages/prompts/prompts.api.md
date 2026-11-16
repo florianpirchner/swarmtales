@@ -5,7 +5,6 @@
 ```ts
 
 import { PromptLookup } from '@swarmtales/contracts';
-import { SwtError } from '@swarmtales/contracts';
 
 // @public
 export function createPromptLookup(options?: PromptLookupOptions): LayeredPrompts;

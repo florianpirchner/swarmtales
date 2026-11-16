@@ -10,7 +10,6 @@ import { ActorSpec } from '@swarmtales/contracts';
 import { Api } from '@earendil-works/pi-ai';
 import { ApiKeyAuth } from '@earendil-works/pi-ai';
 import { AskModel } from '@swarmtales/contracts';
-import { DriverResult } from '@swarmtales/contracts';
 import { DriverTable } from '@swarmtales/contracts';
 import { FauxResponseStep } from '@earendil-works/pi-ai';
 import { GameData } from '@swarmtales/contracts';
@@ -18,8 +17,6 @@ import { JsonObject } from '@earendil-works/pi-ai';
 import { Kernel } from '@swarmtales/contracts';
 import { Model } from '@earendil-works/pi-ai';
 import { ModelChoice } from '@swarmtales/contracts';
-import { Models } from '@earendil-works/pi-ai';
-import { MutableModels } from '@earendil-works/pi-ai';
 import { PromptLookup } from '@swarmtales/contracts';
 import { Provider } from '@earendil-works/pi-ai';
 import { RecordSource } from '@swarmtales/contracts';
@@ -27,10 +24,7 @@ import { Redact } from '@swarmtales/contracts';
 import { RunLimit } from '@swarmtales/contracts';
 import { Static } from 'typebox';
 import { StreamFn } from '@earendil-works/pi-agent-core';
-import { SwtError } from '@swarmtales/contracts';
 import { SwtIssue } from '@swarmtales/contracts';
-import { ToolOutcome } from '@swarmtales/contracts';
-import { ToolSpec } from '@swarmtales/contracts';
 import { Type } from 'typebox';
 
 // @public

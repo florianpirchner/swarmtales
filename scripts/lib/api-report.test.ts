@@ -94,6 +94,16 @@ describe("API report normal form", () => {
 		expect(normalizeReport(text.join("\n"))).toBe(["// @public", "export function outer(inner: Inner): Inner;", ""].join("\n"));
 	});
 
+	it("drops the imports that only an internal declaration used and keeps every import a remaining line names", () => {
+		const imports = ["import { CtxOf } from '@swarmtales/sdk';", "import { Head as H } from '@swarmtales/sdk';", "import { Static } from 'typebox';", "import { Type } from 'typebox';", "import { $q } from 'q';", "import { Noted } from 'n';", "import { Gone } from 'g';"];
+		const internal = ["// @internal", "export type Ctx = CtxOf<H, Gone>;", ""];
+		const kept = ["// @public", "export const s: Type.TObject<{}> & $q;", "", "// Warning: the symbol \"Noted\" is not exported", "// @public", "export type T = Static<TypeX> | GoneAway;", ""];
+		const text = ["```ts", "", ...imports, "", ...internal, ...kept].join("\n");
+		const expected = ["```ts", "", "import { Static } from 'typebox';", "import { Type } from 'typebox';", "import { $q } from 'q';", "import { Noted } from 'n';", "", ...kept].join("\n");
+		expect(normalizeReport(text)).toBe(expected);
+		expect(normalizeReport(["import { A } from 'a';", "import 'side-effect';", "", "export const b: A;"].join("\n"))).toBe(["import { A } from 'a';", "import 'side-effect';", "", "export const b: A;"].join("\n"));
+	});
+
 	it("changes a committed report only by the order of union members and object type members", () => {
 		const reports = ["packages", "mechanics", "games", "samples", "apps"].flatMap((group) =>
 			readdirSync(join(REPO_ROOT, group))

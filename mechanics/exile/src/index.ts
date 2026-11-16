@@ -17,6 +17,7 @@ import { exileHead, type ExileState } from "./head.ts";
 import { payRansom, samplePayRansom } from "./ransom.ts";
 import { lastWill, sampleLastWill } from "./will.ts";
 
+export { BanishResult, clearsAway, EXILE_SUSPENSION, Exiled, ExileEvents, ExilePurseService, ExileService, GateView, KEEPING_STRIKE, Standing, ToGate } from "./contract.ts";
 export { exileHead, type ExileCtx, type ExileState, type ExileToolCtx, type GateState } from "./head.ts";
 export type { BequestEntry } from "./will.ts";
 

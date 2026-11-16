@@ -18,6 +18,7 @@ import { balanceOf, book, memoCarriesDigits, SYSTEM_ACCOUNT, type LedgerEntry } 
 import { ledgerHead, type LedgerCtx, type LedgerToolCtx } from "./head.ts";
 
 export { book, LedgerError, memoCarriesDigits, restored, SYSTEM_ACCOUNT, type BookOptions, type LedgerEntry, type LedgerErrorCode, type LedgerState } from "./book.ts";
+export { LedgerEvents, LedgerService } from "./contract.ts";
 export { ledgerHead, type LedgerCtx, type LedgerToolCtx } from "./head.ts";
 
 const SAMPLE_RATE = 0.125;

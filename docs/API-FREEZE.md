@@ -139,7 +139,11 @@ of the model driver, and schemas that frozen schemas are built from (frozen thro
   `TOOL_CHOICES`, `ToolChoice`, `toolChoiceDefaults`, `toolsNotice`, `ToolsNotice`, `unknownModel`,
   `unknownProvider`, `withRequestDefaults`
 
-Since M5-94 (erratum J282), an `@internal` export leaves its package's report, so it is not frozen.
+Since M5-94 (erratum J282), an `@internal` export leaves its package's report, so it is not frozen. Since M5-96
+(decision A106), an import line of a report that no remaining line names leaves with it: the imports that only the
+removed `@internal` declarations used (`scripts/lib/api-report.ts`; a name in a comment or a string counts as used).
+It took stale imports out of the reports of `exile`, `ledger`, `models`, `prompts`, `runlog`, `sdk`, `viewer-core`
+and `viewer-ui`.
 
 ### The listing again (issue M5-51)
 
@@ -177,10 +181,15 @@ codes a resident and a game see), stays; every other one is tagged `@internal` a
 | `ledger` | `SYSTEM_ACCOUNT` | stays | the account of every mint and burn, the `debit` or `credit` of the events `transfer` that a game reads; also in `/contract` |
 | `ledger` | `ledgerHead`, `LedgerCtx`, `LedgerToolCtx`, `LedgerState`, `LedgerEntry`, `LedgerError`, `LedgerErrorCode`, `BookOptions`, `book`, `memoCarriesDigits`, `restored` | `@internal` | the head, its context types and the book behind the service `ledger`: an author books through the service, never through `book` |
 
-So 18 of the 25 leave the reports (17 tagged, one re-export taken out) and seven stay. The `/contract` sub-path of a
-mechanic has no report of its own: the report reads the main entry, so `EXILE_SUSPENSION`, `BanishResult`, `GateView`
-and `ToGate`, like the services and events of `exile` and `ledger` that the main entry does not re-export, are in no
-frozen file (erratum J294).
+So 18 of the 25 leave the reports (17 tagged, one re-export taken out) and seven stay.
+
+The `/contract` sub-path of a mechanic has no report of its own: the report reads the main entry (erratum J294). One
+rule holds for every base mechanic (decision A106, issue M5-96): its main entry re-exports its whole `/contract`, so
+the contract stands in its frozen report. `channels`, `consensus`, `decisions` and `team-channel` did so already;
+since M5-96 `exile` re-exports `BanishResult`, `clearsAway`, `EXILE_SUSPENSION`, `Exiled`, `ExileEvents`,
+`ExilePurseService`, `ExileService`, `GateView`, `KEEPING_STRIKE`, `Standing` and `ToGate`, and `ledger`
+`LedgerEvents` and `LedgerService` beside `SYSTEM_ACCOUNT`. These are additions under the undated F1. The listing
+above counts the exports of the main entry and of `/contract` together, so its numbers stay.
 
 ## Not in the frozen surface
 

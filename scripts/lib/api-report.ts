@@ -7,7 +7,8 @@
  * fields of a Typebox `Static` type) flip the same way (decision A90, issue M5-75), so the member lines of every object
  * type literal are sorted too, each member with its nested block and its leading comment lines. A declaration marked
  * `// @internal` leaves the report (decision A104, issue M5-94), with its leading comment lines and the blank line
- * after it, so that the report holds the public API only. Everything else stays byte for byte.
+ * after it, so that the report holds the public API only; an import that no remaining line names leaves with it
+ * (decision A106, issue M5-96). Everything else stays byte for byte.
  */
 
 /** One string literal in double or single quotes, with escapes. */
@@ -230,9 +231,36 @@ function dropInternal(lines: readonly string[]): string[] {
 	return out;
 }
 
+/** An import line with named bindings, as api-extractor writes it: `import { A } from 'x';` (also `A as B`, a list). */
+const NAMED_IMPORT = /^import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+(?:'[^']*'|"[^"]*");?\s*$/;
+/** An import line with one binding: `import * as A from 'x';` or `import A from 'x';`. */
+const SINGLE_IMPORT = /^import\s+(?:type\s+)?(?:\*\s+as\s+)?([\w$]+)\s+from\s+(?:'[^']*'|"[^"]*");?\s*$/;
+
+/** The local names an import line binds, or `undefined` when the line is no import. */
+function importedNames(line: string): string[] | undefined {
+	const named = NAMED_IMPORT.exec(line);
+	if (named !== null) {
+		const specifiers = (named[1] ?? "").split(",").map((specifier) => specifier.trim());
+		return specifiers.filter((specifier) => specifier !== "").map((specifier) => specifier.split(/\s+as\s+/).at(-1) ?? specifier);
+	}
+	const single = SINGLE_IMPORT.exec(line);
+	return single === null ? undefined : [single[1] ?? ""];
+}
+
+/**
+ * Drops every import line none of whose names stands as a whole word in a line that is no import: once the internal
+ * declarations are gone, the imports that only they used. A name in a comment or a string counts as used, so an
+ * import that may be needed always stays.
+ */
+function dropUnusedImports(lines: readonly string[]): string[] {
+	const rest = lines.filter((line) => importedNames(line) === undefined).join("\n");
+	const used = (name: string): boolean => new RegExp(`(?<![\\w$])${name.replace(/\$/g, "\\$")}(?![\\w$])`).test(rest);
+	return lines.filter((line) => importedNames(line)?.some(used) ?? true);
+}
+
 /**
  * Brings an API report into its normal form: line ends become `\n`, every declaration marked `// @internal` is
- * dropped with its leading comment lines, the members of every run of adjacent string literals in a union are sorted
+ * dropped with its leading comment lines, so is every import line whose names no other line uses, the members of every run of adjacent string literals in a union are sorted
  * by code unit, and so are the member lines of every object type literal (not those of an interface, class,
  * namespace or enum), each member with its nested block and its leading comment lines. All other text is left as it
  * is.
@@ -245,7 +273,7 @@ function dropInternal(lines: readonly string[]): string[] {
  * ```
  */
 export function normalizeReport(report: string): string {
-	return sortBlocks(dropInternal(report.replace(/\r\n/g, "\n").replace(RUN, sortRun).split("\n"))).join("\n");
+	return sortBlocks(dropUnusedImports(dropInternal(report.replace(/\r\n/g, "\n").replace(RUN, sortRun).split("\n")))).join("\n");
 }
 
 /**
