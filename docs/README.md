@@ -53,14 +53,16 @@ at the tag `v0-final`; their words are the old ones (see the retired words in th
 
 ## How the checks work
 
-`pnpm check` runs these gates: typecheck and lint in one pass (size limits, TSDoc, 4 GB heap per process), tests
-(unit tests plus the gates under `scripts/gates/`: budgets, kernel word list, English only, README length, name lint,
+`pnpm check` runs these gates: typecheck and lint in one pass (size limits, TSDoc, 4 GB heap per process), tests (unit
+tests plus the gates under `scripts/gates/`: budgets, kernel word list, English only, README length, name lint,
 exception format, workspace shape, the mechanic READMEs, `exile` names no other mechanic), the layer check, the
 licence gate, the sign-off check, the build and the API reports. They run in three lanes side by side, the gates of a
 lane one after the other (`scripts/lib/check-run.ts`, M4-71): the typecheck and lint (`scripts/lint.ts`, decision
-A110: three worker processes take the projects in the order of their references, type each as `tsc -b` does and
-lint its files from the same program), then the build (its declarations come from the `dist-types` of that pass) and
-the API reports (which read the build); the quick gates; the tests (three Vitest workers, decision A112, the standing checks first).
-The output of a gate is printed when it ends. The first failure stops the check. It prints a summary
-table and fails when the whole takes more than 10 minutes, or when all gates running at once hold more than 6 GB; a
-gate that is still running when the time ends is stopped.
+A110: three worker processes take the projects in the order of their references, type each as `tsc -b` does and lint
+its files from the same program), then the build (its declarations come from the `dist-types` of that pass) and the
+API reports (which read the build, so they run in any order of the packages, M5-103); the quick gates; the tests (two
+Vitest workers, the standing checks first; a worker keeps its modules from one file to the next, M5-103, so no test
+may depend on a fresh module, which `pnpm test --sequence.shuffle.files --sequence.seed=<n>` shows in another order of
+the files). The output of a gate is printed when it ends. The first failure stops the check. It prints a summary table
+and fails when the whole takes more than 10 minutes, or when all gates running at once hold more than 6 GB; a gate
+that is still running when the time ends is stopped.

@@ -17,17 +17,19 @@ export interface Gate {
 /**
  * The gates. Three lanes keep the four cores of a hosted runner busy inside 6 GB: the typecheck and lint in one pass
  * (`scripts/lint.ts`: each project typed as `tsc -b` types it and linted from the same program, decision A110), then
- * the build (which reuses the declarations of that pass) and the API reports (which read the build) in one; the quick
- * gates in the second; the tests in the third, on three Vitest workers (decision A112: on two they took the whole
- * budget; the command-line standing parts run their commands in child processes, so a long run no longer holds a
- * worker past Vitest's RPC timeout). The first failure stops the check.
+ * the build (which reuses the declarations of that pass) and the API reports (which read the build, and so run in any
+ * order of the packages: `pnpm -r --no-sort api`, M5-103) in one; the quick gates in the second; the tests in the
+ * third, on two Vitest workers (decision A112 had three while every file loaded the workspace again; M5-103: a worker
+ * keeps its modules from one file to the next, so two workers end with lane 0 and leave the 6 GB to lint's workers;
+ * the command-line standing parts run their commands in child processes, so a long run does not hold a worker past
+ * Vitest's RPC timeout; `vitest.config.ts`). The first failure stops the check.
  */
 export const GATES: readonly Gate[] = [
 	{ name: "typecheck and lint (tsc -b per project, limits, TSDoc, 4 GB heap)", command: ["pnpm", "lint"], lane: 0 },
 	{ name: "layer check", command: ["pnpm", "check:layers"], lane: 1 },
 	{ name: "licence gate", command: ["pnpm", "check:licences"], lane: 1 },
 	{ name: "sign-off check", command: ["pnpm", "check:signoff"], lane: 1 },
-	{ name: "tests (budgets, words, English, README, names, exceptions, workspace shape)", command: ["pnpm", "test", "--maxWorkers=3"], lane: 2 },
+	{ name: "tests (budgets, words, English, README, names, exceptions, workspace shape)", command: ["pnpm", "test", "--maxWorkers=2"], lane: 2 },
 	{ name: "build", command: ["pnpm", "build"], lane: 0 },
 	{ name: "API reports", command: ["pnpm", "api"], lane: 0 },
 ];

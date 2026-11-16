@@ -17,6 +17,8 @@ describe("pnpm check", () => {
 		expect(scripts).toContain('"lint":"node scripts/lint.ts"');
 		expect(readText("scripts/lint.ts")).toContain('fork(import.meta.filename, ["--worker"], { execArgv: ["--max-old-space-size=4096"');
 		expect(scripts).toContain('"check":"node scripts/check.ts"');
+		// The API reports read the build only, so they need no order of the packages (M5-103).
+		expect(scripts).toContain('"api":"pnpm -r --no-sort api"');
 	});
 
 	it("runs every gate once, and the build and the API reports after the typecheck in the same lane", () => {
@@ -27,8 +29,8 @@ describe("pnpm check", () => {
 		expect(lanes([{ name: "b", command: [], lane: 2 }, { name: "a", command: [], lane: 0 }, { name: "c", command: [], lane: 2 }]).map((gates) => gates.map((gate) => gate.name))).toEqual([["a"], ["b", "c"]]);
 	});
 
-	it("runs the tests on three Vitest workers (decision A112)", () => {
-		expect(GATES.filter((gate) => gate.command[1] === "test").map((gate) => gate.command)).toEqual([["pnpm", "test", "--maxWorkers=3"]]);
+	it("runs the tests on two Vitest workers (M5-103, after decision A112)", () => {
+		expect(GATES.filter((gate) => gate.command[1] === "test").map((gate) => gate.command)).toEqual([["pnpm", "test", "--maxWorkers=2"]]);
 	});
 
 	it("sums the memory of one process group", () => {

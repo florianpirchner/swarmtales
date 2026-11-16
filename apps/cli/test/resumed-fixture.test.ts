@@ -13,7 +13,6 @@ import { fileURLToPath } from "node:url";
 import { nameOf } from "@swarmtales/contracts";
 import type * as Testkit from "@swarmtales/testkit";
 import { afterAll, expect, it, vi } from "vitest";
-import { cli } from "./support.ts";
 
 const story = vi.hoisted(() => {
 	const call = (tool: string, params: object): { readonly tool: string; readonly params: object } => ({ tool, params });
@@ -35,6 +34,12 @@ vi.mock("@swarmtales/testkit", async (original) => {
 	return { ...testkit, fakeDriver: () => testkit.scriptedDriver((activation) => story.script[activation.tick]?.[nameOf(activation.actor)] ?? []) };
 });
 
+// Vitest runs the files of a worker without isolation (`vitest.config.ts`), so the command line may already be loaded
+// with the real testkit: it is loaded afresh here, under the mock, and dropped again after the file, so that no later
+// file of the worker gets the mocked driver.
+vi.resetModules();
+const { cli } = await import("./support.ts");
+
 const CITY = fileURLToPath(new URL("../../../games/city-slice/game.ts", import.meta.url));
 const FIXTURE = fileURLToPath(new URL("../../../packages/viewer-core/test/fixtures/resumed-run", import.meta.url));
 const HAND = [
@@ -48,6 +53,7 @@ const logOf = (folder: string): string => readFileSync(join(folder, "events.json
 
 const cwd = mkdtempSync(join(tmpdir(), "swt-fixture-"));
 afterAll(() => {
+	vi.resetModules();
 	rmSync(cwd, { recursive: true, force: true });
 });
 
