@@ -3,7 +3,7 @@
 Recorded live runs (decision A15). Layout: `<game>/<experiment id>/<run>/`, with `experiment.json`, `results.json`,
 `values.csv` and the series `README.md` beside the runs; `smoke/` for single runs; `legacy/` for runs of the old
 platform. The index is on `develop`: `games/<game>/RUNS.md`; the write-up of the M2 gate is `docs/M2-GATE.md`.
-Everything here is under Apache 2.0, like the repository.
+Everything here is under the Sustainable Use License 1.0 with Additional Terms (`LICENSE`), like the repository (decision A65).
 
 ## M2 gate (2026-11-14)
 
