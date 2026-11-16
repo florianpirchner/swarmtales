@@ -11,8 +11,13 @@ State (issue M5-45): the story data, the compose step and the family are built a
 `cityofkeys-act1-s7.json` replays at level 3 after its registered changes (`oracles/cityofkeys/README.md`, "The
 game against the files"). Issue M5-46 adds `cityofkeys-act1-s11.json` at level 3, the resumed Act I file (equal to
 the straight one by A34, and resumed from every boundary on this platform) and `cityofkeys-burn-s7.json` at level 3,
-played by the reduced City of its setup (`cityGameOf`, `test/burn.ts`). One defect outside the game is open: the persona of the system text is the seeded deal of `motives`
-(`motives.personas`), where the old City gave each seat the persona of its figure's profession.
+played by the reduced City of its setup (`cityGameOf`, `test/burn.ts`). Issue M5-47 checks Act II: the two files
+of the second act (`cityofkeys-act2-s7.json`, `cityofkeys-act2-seal-s7.json`) start from an old snapshot that cannot
+be loaded here (A56), so the game is brought into the snapshot's situation (every resident past door 7 at minute 15,
+the snapshot's balances, the act from minute 16) and driven by the files' calls; the act's events are then compared
+by projection, source by source, with the minute of each (`test/act2.ts`, `test/act2.test.ts`). The registered changes
+are listed in the head of `test/act2.test.ts`. Doors 8 to 10 played to their end and the feast of STEWARD are a
+scripted run (`test/wall.test.ts`, the old `cityofkeys-wall.test.ts`).
 
 ## Files
 
@@ -25,6 +30,8 @@ played by the reduced City of its setup (`cityGameOf`, `test/burn.ts`). One defe
 | `test/oracle.test.ts`, `test/support.ts` | `cityofkeys-act1-s7`, `cityofkeys-act1-s11` and `cityofkeys-burn-s7` at level 3, with the registered changes against the files |
 | `test/resumed.test.ts` | `cityofkeys-act1-s7-resumed`: the file against the straight one, and the game resumed from every boundary under the file's calls |
 | `test/burn.ts` | the reduced City of the burn file (the old `fragmentCity`), pinned to `setup/cityofkeys-burn.story.json` by `carried.test.ts` |
+| `test/act2.ts`, `test/act2.test.ts` | the Act II files by projection: the story of the files (the old `halfCity`, pinned to `setup/cityofkeys-act2.story.json`), the snapshot's situation, the files' calls with their message numbers mapped; the shipped City's tribunals from the same situation; resumes inside the act |
+| `test/wall.test.ts` | doors 8 to 10 to their end and the feast of STEWARD, from the old `cityofkeys-wall.test.ts` |
 
 ## Params
 

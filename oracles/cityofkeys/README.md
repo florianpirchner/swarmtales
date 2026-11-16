@@ -160,3 +160,12 @@ within one source; no payload is changed but the numbers below.
 | The goals of the act change | `goal_dealt` and each goal's notice right after `act_started`, before the solved level's events | after `level_up`, `level_entered` and `submission` of the solved level; a resident's next turn shows its notices in that log order too (J255) | `goals` listens to `act_started`, and `progression` writes the solved level in one go |
 | The order after an exile (burn file, M5-46) | `factor_burned` before the ledger entry that burns the exiled resident's points | after it | the M3 row above: the ledger listens to `exiled` as a base mechanic, `puzzles` after it |
 | The look after the last round (burn file, M5-46) | the gamemaker's look after round 31, before minute 31 | none | the look runs in the start slot of the next tick (J126), and `arena` ends the run in the start of minute 31, before that slot |
+
+### Act II (`cityofkeys-act2-s7.json`, `cityofkeys-act2-seal-s7.json`)
+
+The game's test `games/city/test/act2.test.ts` (issue M5-47, decision A56) rebuilds the situation of the old
+snapshot and compares the act by projection: every source's events with their minutes, the calls and the end at
+level 1. The registered differences are in the head of that test and in errata J263 to J266: the gamemaker's look
+runs in the start slot of the next tick (J126), a will's unknown piece is refused at stage `rule` (J27), a tick that
+exiles two residents contracts the levels without both, and the order between two sources after an exile is not
+compared. The trial of the City is not shifted (A94 measured, J265).

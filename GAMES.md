@@ -319,7 +319,11 @@ statements.
   `classifier`, `names`, `coreMotives`, `gmDirection`).
 - Proof: the Act I files of seeds 7 and 11 match at level 3 after the registered changes of their README; the resumed Act I file is the seed-7 file
   with its marker, and the game driven by its calls resumes from every boundary to the straight log; the burn file,
-  a reduced City with two tribunals and two burned fragments, matches at level 3. The Act II files are not compared yet.
+  a reduced City with two tribunals and two burned fragments, matches at level 3. The two Act II files (three
+  tribunals with factions, a ransom, a last will, the black seal won and broken) start from an old snapshot and are
+  compared by projection: brought into the snapshot's situation and driven by the files' calls, the game writes the
+  act's events at the files' minutes and answers every call as they do. A scripted run climbs doors 8 to 10 to the end,
+  with the feast of STEWARD.
   The story data is byte-identical to the old story file, and every prompt body to its old file. Fake runs replay
   equal and resume equal from every boundary.
 - Links: [folder](games/city/), [README](games/city/README.md), [oracle files](oracles/cityofkeys/).
