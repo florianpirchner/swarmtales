@@ -191,6 +191,7 @@ export interface OracleMismatch {
 // @public
 export interface OracleOptions extends Pick<PlayOptions, "installed" | "prompts" | "records" | "schedulers"> {
     readonly dials?: (effective: unknown) => Readonly<Record<string, unknown>>;
+    readonly renamed?: Readonly<Record<string, string>>;
 }
 
 // @public

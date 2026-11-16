@@ -104,9 +104,9 @@
 		},
 		{
 			"path": "packages/testkit/testkit.api.md",
-			"sha256": "f62067d098f6d7107a72dd286d21bab9801a842196e7d899a6fd7c4cc7619c3e",
-			"base": "565efaeb967692d962f43e53235a9b78e798737d",
-			"row": "F1"
+			"sha256": "6b972a6095e366d230bb8f5ccbe3e4fa011b52ad427d417e831dbadea245e2ae",
+			"base": "0c12a32ac9b94c14abc4dc57bd74d4bddf0ff8ce",
+			"row": "F6"
 		},
 		{
 			"path": "scripts/api-freeze/surface/cli.json",

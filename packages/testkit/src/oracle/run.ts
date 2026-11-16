@@ -12,6 +12,7 @@ import { scriptedDriver, type Plan, type PlannedCall } from "../drivers.ts";
 import { play, type Played, type PlayOptions } from "../play.ts";
 import type { Oracle, OracleEntry } from "./format.ts";
 import { oracleError } from "./read.ts";
+import { renamedOracle } from "./renamed.ts";
 import { timelineOf } from "./timeline.ts";
 
 /**
@@ -257,6 +258,13 @@ export interface OracleOptions extends Pick<PlayOptions, "installed" | "prompts"
 	 * defaults when absent.
 	 */
 	readonly dials?: (effective: unknown) => Readonly<Record<string, unknown>>;
+	/**
+	 * The ids this platform renamed, from the id the file holds to the id here (`13-m6-spec.md` 4.3, decision A122):
+	 * the mechanic ids and the game id. The file is compared as if it held the new ids in its event sources and input
+	 * sources, the event types and facts `<id>.<...>`, the strings of event payloads, `setup.mechanics[]` and the fact
+	 * of its end; its texts are compared as they are.
+	 */
+	readonly renamed?: Readonly<Record<string, string>>;
 }
 
 // The params of a composed story's dials, as an option of `play` and of game resolution.
@@ -275,7 +283,8 @@ function paramsOf(oracle: Oracle, dials: OracleOptions["dials"]): { readonly par
  *
  * @param oracle - The oracle, as `readOracle` gave it.
  * @param game - The game, in its builder form or its data form.
- * @param options - The installed mechanics of a game in its data form, the prompt lookup, the record sources and the dials.
+ * @param options - The installed mechanics of a game in its data form, the prompt lookup, the record sources, the dials
+ * and the renamed ids.
  * @returns The played run: the kernel, the end, and every event of the new log.
  * @throws SwtError `SWT-T002` for an oracle the runner does not play (as {@link runOracle}). Also what `play` throws.
  * @example
@@ -286,12 +295,13 @@ function paramsOf(oracle: Oracle, dials: OracleOptions["dials"]): { readonly par
  * @public
  */
 export async function playOracle(oracle: Oracle, game: Game | GameData, options: OracleOptions = {}): Promise<Played> {
-	const reason = unsupported(oracle);
-	if (reason !== undefined) throw oracleError("SWT-T002", `the oracle \`${oracle.variant}\` with the seed ${String(oracle.seed)} ${reason}`, "Compare this file once the game that needs it is ported; the oracle runner is extended in that issue.");
+	const { dials, renamed, ...rest } = options;
+	const file = renamedOracle(oracle, renamed);
+	const reason = unsupported(file);
+	if (reason !== undefined) throw oracleError("SWT-T002", `the oracle \`${file.variant}\` with the seed ${String(file.seed)} ${reason}`, "Compare this file once the game that needs it is ported; the oracle runner is extended in that issue.");
 	// A cut file is played to the end of the tick of its cut.
-	const ticks = oracle.truncated === undefined ? oracle.setup.minutes : oracle.truncated.afterMinute + 1;
-	const { dials, ...rest } = options;
-	return play(game, { ...rest, ...paramsOf(oracle, dials), seed: oracle.seed, ticks, drivers: driversOf(oracle) });
+	const ticks = file.truncated === undefined ? file.setup.minutes : file.truncated.afterMinute + 1;
+	return play(game, { ...rest, ...paramsOf(file, dials), seed: file.seed, ticks, drivers: driversOf(file) });
 }
 
 /**
@@ -316,7 +326,8 @@ export async function playOracle(oracle: Oracle, game: Game | GameData, options:
  * @param oracle - The oracle, as `readOracle` gave it.
  * @param game - The game, in its builder form or its data form.
  * @param level - 1 rules, 2 also texts, 3 also scheduling; 3 when absent.
- * @param options - The installed mechanics of a game in its data form, the prompt lookup, the record sources and the dials.
+ * @param options - The installed mechanics of a game in its data form, the prompt lookup, the record sources, the dials
+ * and the renamed ids.
  * @returns The differences: every field of the setup that differs, the first difference of each kind in the
  * timeline with the lowest level at which it shows, and the end. An empty list is a match.
  * @throws SwtError `SWT-T002` for an oracle the runner does not play: a `resume` entry, a call of an actor that is
@@ -332,16 +343,17 @@ export async function playOracle(oracle: Oracle, game: Game | GameData, options:
 export async function runOracle(oracle: Oracle, game: Game | GameData, level: OracleLevel = 3, options: OracleOptions = {}): Promise<readonly OracleMismatch[]> {
 	const prompts = options.prompts ?? createPromptLookup();
 	const played = await playOracle(oracle, game, { ...options, prompts });
+	const file = renamedOracle(oracle, options.renamed);
 	const { installed, records } = options;
-	const resolved = resolveGame({ game, schedulers: options.schedulers ?? { turns }, prompts, seed: oracle.seed, ...(installed === undefined ? {} : { installed }), ...(records === undefined ? {} : { records }), ...paramsOf(oracle, options.dials) });
+	const resolved = resolveGame({ game, schedulers: options.schedulers ?? { turns }, prompts, seed: file.seed, ...(installed === undefined ? {} : { installed }), ...(records === undefined ? {} : { records }), ...paramsOf(file, options.dials) });
 	// What the run wrote after the last entry of a cut file is not compared, nor is the end; a line the file has and this platform does not write is not counted.
-	const cut = oracle.truncated;
+	const cut = file.truncated;
 	const timeline = timelineOf(played.events);
 	const end = endOf(played.end);
-	const stated = statedSetup(oracle, definitionsOf(game, installed));
+	const stated = statedSetup(file, definitionsOf(game, installed));
 	return [
-		...setupMismatches(stated, resolvedSetup(resolved, stated, composed(oracle))),
-		...timelineMismatches(oracle.timeline, cut === undefined ? timeline : timeline.slice(0, oracle.timeline.filter((entry) => !unwritten(entry)).length), level),
-		...(cut !== undefined || Value.Equal(oracle.end, end) ? [] : [{ level: 1, at: "end", index: -1, expected: oracle.end, actual: end } as const]),
+		...setupMismatches(stated, resolvedSetup(resolved, stated, composed(file))),
+		...timelineMismatches(file.timeline, cut === undefined ? timeline : timeline.slice(0, file.timeline.filter((entry) => !unwritten(entry)).length), level),
+		...(cut !== undefined || Value.Equal(file.end, end) ? [] : [{ level: 1, at: "end", index: -1, expected: file.end, actual: end } as const]),
 	];
 }
