@@ -12,7 +12,39 @@ checks the kind against the diff from the file's `base` (section 5.2 of the spec
 
 | Row | Date | Paths | Kind | Decision | What |
 |---|---|---|---|---|---|
-| F1 | (the merge of M5-57) | every file of the frozen list | freeze | A60 | the surface as M5-50 left it, with the merges up to M5-51 |
+| F1 | (the merge of M5-57) | every file of the frozen list | freeze | A60 | the surface as M5-50 left it, with the merges up to M5-57 |
+
+A row names its paths in backticks; only a freeze row may say "every file of the frozen list". Its decision is one row
+`A<n>` of section 9 of `DECISIONS.md`; a break's decision row says "the owner's go".
+
+## The frozen list and its gate (issue M5-51)
+
+`scripts/api-freeze/frozen.json` holds one row per frozen file: its path, the sha256 of its text, `base` and `row`.
+The files are the API reports of the ten frozen packages and of the base mechanics with `mechanics/contracts`, and
+seven text forms under `scripts/api-freeze/surface/` for what has no report of its own: the JSON schemas of the log
+envelope, the run manifest, the kernel's snapshot and the saved sessions (the two parts of the snapshot file) and the
+oracle format; the command line (`cli.json`: each command's argument, flags with their kind and exit codes, without
+the help texts); and the list of the error codes (`error-codes.json`, without why and fix).
+`scripts/api-freeze/surface.ts` names them.
+
+- `pnpm api:freeze` checks that the text forms are what the code says and runs the gate.
+- `pnpm api:freeze --write` writes the text forms, then records every frozen file whose text changed under the
+  newest row of the table above that names it: the new hash, that row, and as `base` the last commit that holds the
+  text recorded before. It refuses a file that no row names.
+- The gate is `scripts/gates/api-freeze.test.ts`, part of the tests of `pnpm check`. It fails on a missing file or an
+  empty list, a text that is not the recorded one, a row that is missing, does not name the path or names no decision
+  row of section 9, an addition that removes or changes a line against the text at `base` (only added lines are an
+  addition; "docs only" may change comment and `description` lines only), and a break whose decision row does not
+  say "the owner's go". The base must be a commit that `HEAD` reaches, so it is a commit of `develop`, never one of a
+  branch that a squash merge leaves behind.
+
+The freeze row F1 admits the text it finds. While its date cell holds no date, `pnpm api:freeze --write` records
+every merge again under F1 (its base is then the newest commit that holds the text, else `HEAD`): after a merge that
+changes a frozen file before the freeze, the integrator runs `pnpm api:freeze --write` and commits `frozen.json` and
+the text forms with the merge. At the merge of M5-57, the integrator writes the date into F1 and runs
+`pnpm api:freeze --write` once more on the merged head, so that each base is a commit that holds its text. From that
+date on, the gate requires the base of a freeze row to hold the text and to be committed on that day or before,
+`--write` refuses to record a change under F1, and every change needs a new row.
 
 ## The surface before the freeze (issue M5-50)
 
@@ -106,11 +138,30 @@ of the model driver, and schemas that frozen schemas are built from (frozen thro
   `TOOL_CHOICES`, `ToolChoice`, `toolChoiceDefaults`, `toolsNotice`, `ToolsNotice`, `unknownModel`,
   `unknownProvider`, `withRequestDefaults`
 
-An `@internal` export is still printed in its package's report, marked `// @internal` with the notice
-`ae-internal-missing-underscore` (erratum J280): the reports are written in api-extractor's "complete" variant. Until
-J280 is settled, a change of such a block reads as a change of the report.
+Since M5-94 (erratum J282), an `@internal` export leaves its package's report, so it is not frozen.
 
-A merge after M5-50 can add an export; issue M5-51 runs the listing again (section 11 of the specification).
+### The listing again (issue M5-51)
+
+The listing is `scripts/api-freeze/list-users.ts` (erratum J284): `node scripts/api-freeze/list-users.ts [--json]`
+from the repository root. M5-51 ran it again on `aaac02b4` (M5-94 merged): the ten packages give the counts of the
+table above unchanged; `sampleBoundaries` of `testkit` still waits for its user from M5-92.
+
+M5-51 widened it to the base mechanics and `mechanics/contracts` (erratum J283), whose reports are frozen too. An
+export of a mechanic has a user when a file outside the mechanic imports it from the mechanic or its `/contract`:
+
+| Mechanic | Exports | Without a user outside the mechanic |
+|---|---|---|
+| `channels` | 4 | none |
+| `consensus` | 4 | `ConsensusSourceService` |
+| `decisions` | 5 | `AmendDecision`, `DECISION_REFUSALS` |
+| `exile` | 18 | `BanishResult`, `BequestEntry`, `EXILE_SUSPENSION`, `ExileCtx`, `exileHead`, `ExileState`, `ExileToolCtx`, `GateState`, `GateView`, `ToGate` |
+| `human-hand` | 1 | none |
+| `ledger` | 15 | `book`, `BookOptions`, `LedgerCtx`, `LedgerEntry`, `LedgerError`, `LedgerErrorCode`, `ledgerHead`, `LedgerState`, `LedgerToolCtx`, `memoCarriesDigits`, `restored`, `SYSTEM_ACCOUNT` |
+| `team-channel` | 2 | none |
+| `contracts` | 8 | none |
+
+These 25 exports are frozen as they stand: tagging them `@internal` changes the sources of four mechanics, which the
+paths of M5-51 do not hold (erratum J290).
 
 ## Not in the frozen surface
 

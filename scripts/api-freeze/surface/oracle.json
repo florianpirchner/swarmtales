@@ -1,0 +1,522 @@
+{
+	"additionalProperties": false,
+	"properties": {
+		"counts": {
+			"additionalProperties": false,
+			"properties": {
+				"entries": {
+					"patternProperties": {
+						"^.*$": {
+							"type": "integer"
+						}
+					},
+					"type": "object"
+				},
+				"events": {
+					"patternProperties": {
+						"^.*$": {
+							"type": "integer"
+						}
+					},
+					"type": "object"
+				}
+			},
+			"required": [
+				"entries",
+				"events"
+			],
+			"type": "object"
+		},
+		"end": {
+			"additionalProperties": false,
+			"properties": {
+				"limit": {
+					"type": "string"
+				},
+				"minute": {
+					"minimum": 0,
+					"type": "integer"
+				},
+				"reason": {
+					"anyOf": [
+						{
+							"const": "referee",
+							"type": "string"
+						},
+						{
+							"const": "minutes",
+							"type": "string"
+						}
+					]
+				}
+			},
+			"required": [
+				"reason",
+				"minute"
+			],
+			"type": "object"
+		},
+		"format": {
+			"const": "swarmtales.oracle",
+			"type": "string"
+		},
+		"game": {
+			"type": "string"
+		},
+		"runtimeRevision": {
+			"type": "integer"
+		},
+		"seed": {
+			"type": "number"
+		},
+		"setup": {
+			"additionalProperties": false,
+			"properties": {
+				"definition": {
+					"additionalProperties": false,
+					"properties": {
+						"effective": {},
+						"file": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"file",
+						"effective"
+					],
+					"type": "object"
+				},
+				"limits": {},
+				"locked": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"mechanics": {
+					"items": {
+						"additionalProperties": false,
+						"properties": {
+							"id": {
+								"type": "string"
+							},
+							"options": {}
+						},
+						"required": [
+							"id",
+							"options"
+						],
+						"type": "object"
+					},
+					"type": "array"
+				},
+				"minutes": {
+					"minimum": 0,
+					"type": "integer"
+				},
+				"residents": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"residentTools": {
+					"items": {
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"seed": {
+					"type": "number"
+				},
+				"story": {
+					"type": "string"
+				},
+				"turns": {
+					"additionalProperties": false,
+					"properties": {
+						"activation": {
+							"anyOf": [
+								{
+									"const": "always",
+									"type": "string"
+								},
+								{
+									"const": "onNews",
+									"type": "string"
+								}
+							]
+						},
+						"blockSize": {
+							"minimum": 1,
+							"type": "integer"
+						},
+						"order": {
+							"anyOf": [
+								{
+									"const": "seeded",
+									"type": "string"
+								},
+								{
+									"const": "custom",
+									"type": "string"
+								}
+							]
+						},
+						"passes": {
+							"minimum": 1,
+							"type": "integer"
+						}
+					},
+					"required": [
+						"passes",
+						"blockSize",
+						"activation",
+						"order"
+					],
+					"type": "object"
+				}
+			},
+			"required": [
+				"story",
+				"seed",
+				"minutes",
+				"residents",
+				"mechanics",
+				"residentTools",
+				"locked",
+				"turns"
+			],
+			"type": "object"
+		},
+		"source": {
+			"additionalProperties": false,
+			"properties": {
+				"fidelity": {
+					"additionalProperties": false,
+					"properties": {
+						"calls": {
+							"minimum": 0,
+							"type": "integer"
+						},
+						"callsWithEqualResult": {
+							"minimum": 0,
+							"type": "integer"
+						},
+						"turns": {
+							"minimum": 0,
+							"type": "integer"
+						},
+						"turnsLeft": {
+							"minimum": 0,
+							"type": "integer"
+						},
+						"turnsWithEqualInputs": {
+							"minimum": 0,
+							"type": "integer"
+						}
+					},
+					"required": [
+						"turns",
+						"turnsWithEqualInputs",
+						"calls",
+						"callsWithEqualResult",
+						"turnsLeft"
+					],
+					"type": "object"
+				},
+				"from": {
+					"type": "string"
+				},
+				"kind": {
+					"anyOf": [
+						{
+							"const": "live-replay",
+							"type": "string"
+						},
+						{
+							"const": "scripted",
+							"type": "string"
+						}
+					]
+				},
+				"note": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"kind",
+				"from"
+			],
+			"type": "object"
+		},
+		"timeline": {
+			"items": {
+				"anyOf": [
+					{
+						"additionalProperties": false,
+						"properties": {
+							"k": {
+								"const": "minute",
+								"type": "string"
+							},
+							"minute": {
+								"minimum": 0,
+								"type": "integer"
+							}
+						},
+						"required": [
+							"k",
+							"minute"
+						],
+						"type": "object"
+					},
+					{
+						"additionalProperties": false,
+						"properties": {
+							"block": {
+								"minimum": 1,
+								"type": "integer"
+							},
+							"inputs": {
+								"items": {
+									"additionalProperties": false,
+									"properties": {
+										"kind": {
+											"type": "string"
+										},
+										"source": {
+											"type": "string"
+										},
+										"text": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"source",
+										"text"
+									],
+									"type": "object"
+								},
+								"type": "array"
+							},
+							"k": {
+								"const": "turn",
+								"type": "string"
+							},
+							"pass": {
+								"minimum": 1,
+								"type": "integer"
+							},
+							"resident": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"k",
+							"resident",
+							"pass",
+							"block",
+							"inputs"
+						],
+						"type": "object"
+					},
+					{
+						"additionalProperties": false,
+						"properties": {
+							"block": {
+								"minimum": 1,
+								"type": "integer"
+							},
+							"k": {
+								"const": "skip",
+								"type": "string"
+							},
+							"pass": {
+								"minimum": 1,
+								"type": "integer"
+							},
+							"resident": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"k",
+							"resident",
+							"pass",
+							"block"
+						],
+						"type": "object"
+					},
+					{
+						"additionalProperties": false,
+						"properties": {
+							"actor": {
+								"pattern": "^(resident:[A-Za-z0-9_-]+|overseer:[A-Za-z0-9_-]+|gamemaker|script|human|host)$",
+								"type": "string"
+							},
+							"code": {
+								"pattern": "^[A-Z][A-Z0-9_]*$",
+								"type": "string"
+							},
+							"detail": {
+								"type": "string"
+							},
+							"endsTurn": {
+								"type": "boolean"
+							},
+							"k": {
+								"const": "call",
+								"type": "string"
+							},
+							"ok": {
+								"type": "boolean"
+							},
+							"params": {},
+							"reply": {
+								"type": "string"
+							},
+							"stage": {
+								"anyOf": [
+									{
+										"const": "lock",
+										"type": "string"
+									},
+									{
+										"const": "parse",
+										"type": "string"
+									},
+									{
+										"const": "limit",
+										"type": "string"
+									},
+									{
+										"const": "afford",
+										"type": "string"
+									},
+									{
+										"const": "rule",
+										"type": "string"
+									},
+									{
+										"const": "guard",
+										"type": "string"
+									},
+									{
+										"const": "consult",
+										"type": "string"
+									},
+									{
+										"const": "execute",
+										"type": "string"
+									}
+								]
+							},
+							"tool": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"k",
+							"actor",
+							"tool",
+							"params",
+							"ok"
+						],
+						"type": "object"
+					},
+					{
+						"additionalProperties": false,
+						"properties": {
+							"actor": {
+								"pattern": "^(resident:[A-Za-z0-9_-]+|overseer:[A-Za-z0-9_-]+|gamemaker|script|human|host)$",
+								"type": "string"
+							},
+							"audience": {
+								"items": {
+									"type": "string"
+								},
+								"type": "array"
+							},
+							"k": {
+								"const": "event",
+								"type": "string"
+							},
+							"payload": {},
+							"source": {
+								"type": "string"
+							},
+							"type": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"k",
+							"source",
+							"type",
+							"actor",
+							"payload"
+						],
+						"type": "object"
+					},
+					{
+						"additionalProperties": false,
+						"properties": {
+							"k": {
+								"const": "resume",
+								"type": "string"
+							},
+							"minute": {
+								"minimum": 0,
+								"type": "integer"
+							}
+						},
+						"required": [
+							"k",
+							"minute"
+						],
+						"type": "object"
+					}
+				]
+			},
+			"type": "array"
+		},
+		"truncated": {
+			"additionalProperties": false,
+			"properties": {
+				"afterMinute": {
+					"minimum": 0,
+					"type": "integer"
+				},
+				"reason": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"afterMinute",
+				"reason"
+			],
+			"type": "object"
+		},
+		"variant": {
+			"type": "string"
+		},
+		"version": {
+			"const": 1,
+			"type": "number"
+		}
+	},
+	"required": [
+		"format",
+		"version",
+		"game",
+		"variant",
+		"seed",
+		"runtimeRevision",
+		"source",
+		"setup",
+		"counts",
+		"timeline"
+	],
+	"type": "object"
+}

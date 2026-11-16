@@ -1,0 +1,151 @@
+{
+	"analyse chess": {
+		"argument": "<run dir>",
+		"exits": [
+			0,
+			1,
+			4
+		],
+		"flags": {
+			"depth": "string",
+			"help": "boolean"
+		}
+	},
+	"experiment analyse": {
+		"argument": "<experiment dir>",
+		"exits": [
+			0,
+			1,
+			3,
+			4,
+			7
+		],
+		"flags": {
+			"help": "boolean"
+		}
+	},
+	"experiment run": {
+		"argument": "<spec file>",
+		"exits": [
+			0,
+			1,
+			4,
+			6
+		],
+		"flags": {
+			"help": "boolean",
+			"ledger": "string",
+			"out": "string",
+			"plan": "boolean"
+		}
+	},
+	"log verify": {
+		"argument": "<run dir>",
+		"exits": [
+			0,
+			1,
+			3
+		],
+		"flags": {
+			"help": "boolean",
+			"json": "boolean",
+			"previous": "string"
+		}
+	},
+	"replay": {
+		"argument": "<run dir>",
+		"exits": [
+			0,
+			1
+		],
+		"flags": {
+			"game": "string",
+			"help": "boolean",
+			"json": "boolean",
+			"previous": "string"
+		}
+	},
+	"report": {
+		"argument": "<run dir>",
+		"exits": [
+			0,
+			1,
+			4
+		],
+		"flags": {
+			"game": "string",
+			"help": "boolean"
+		}
+	},
+	"resume": {
+		"argument": "<run dir>",
+		"exits": [
+			0,
+			1,
+			2,
+			3,
+			4,
+			5
+		],
+		"flags": {
+			"budget": "string",
+			"director-model": "string, repeated",
+			"game": "string",
+			"hand": "string",
+			"help": "boolean",
+			"json": "boolean",
+			"ledger": "string",
+			"model": "string",
+			"out": "string",
+			"pause-on": "string",
+			"provider": "string",
+			"purpose": "string",
+			"snapshot": "string",
+			"snapshot-at": "string",
+			"thinking": "string",
+			"ticks": "string"
+		}
+	},
+	"run": {
+		"argument": "<game file>",
+		"exits": [
+			0,
+			1,
+			2,
+			3,
+			4,
+			5
+		],
+		"flags": {
+			"budget": "string",
+			"director-model": "string, repeated",
+			"fake": "boolean",
+			"hand": "string",
+			"help": "boolean",
+			"json": "boolean",
+			"ledger": "string",
+			"model": "string",
+			"out": "string",
+			"pause-on": "string",
+			"provider": "string",
+			"purpose": "string",
+			"replicate": "string",
+			"seed": "string",
+			"set": "string, repeated",
+			"snapshot-at": "string",
+			"thinking": "string"
+		}
+	},
+	"scan": {
+		"argument": "<folder>",
+		"exits": [
+			0,
+			1,
+			3
+		],
+		"flags": {
+			"help": "boolean",
+			"json": "boolean"
+		}
+	}
+}

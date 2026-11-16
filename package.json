@@ -23,11 +23,16 @@
 		"docs:mechanics": "node --conditions=development scripts/mechanic-docs.ts",
 		"docs:errors": "node scripts/error-docs/main.ts",
 		"docs:games": "node --conditions=development scripts/game-docs/main.ts",
-		"check": "node scripts/check.ts"
+		"check": "node scripts/check.ts",
+		"api:freeze": "node --conditions=development scripts/api-freeze/main.ts"
 	},
 	"devDependencies": {
 		"@eslint/js": "9.39.5",
 		"@microsoft/api-extractor": "7.60.1",
+		"@swarmtales/cli": "workspace:*",
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/models": "workspace:*",
+		"@swarmtales/testkit": "workspace:*",
 		"@types/node": "26.6.6",
 		"eslint": "9.39.5",
 		"eslint-plugin-jsdoc": "65.4.5",

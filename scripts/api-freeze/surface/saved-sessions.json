@@ -1,0 +1,56 @@
+{
+	"description": "The saved session of every model actor of the run",
+	"patternProperties": {
+		"^.*$": {
+			"additionalProperties": false,
+			"description": "The conversation of one actor with its model, without the system text the game gives again and without a key",
+			"properties": {
+				"declared": {
+					"description": "Every tool declared to the model when the session was saved, in the order declared",
+					"items": {
+						"description": "A shown tool name",
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"format": {
+					"const": 1,
+					"description": "The version of the saved session format",
+					"type": "number"
+				},
+				"initial": {
+					"description": "The tools of the leading system message, in its order: the tools open when the session started",
+					"items": {
+						"description": "A shown tool name",
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"messages": {
+					"description": "The conversation after the leading system message, in order",
+					"items": {
+						"description": "One message as JSON text, with the key order the session held",
+						"type": "string"
+					},
+					"type": "array"
+				},
+				"notice": {
+					"description": "The open tools the last tools notice named; left out: no notice since the start or the last context reset",
+					"items": {
+						"description": "A shown tool name",
+						"type": "string"
+					},
+					"type": "array"
+				}
+			},
+			"required": [
+				"format",
+				"initial",
+				"declared",
+				"messages"
+			],
+			"type": "object"
+		}
+	},
+	"type": "object"
+}

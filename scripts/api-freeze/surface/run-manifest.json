@@ -1,0 +1,458 @@
+{
+	"additionalProperties": false,
+	"description": "Everything that defines a run, fixed before its first event",
+	"properties": {
+		"actors": {
+			"description": "The actors of the run",
+			"items": {
+				"additionalProperties": false,
+				"description": "One actor of the run",
+				"properties": {
+					"driver": {
+						"description": "The id of the driver that answers for the actor, for example `fake/sample` or `scripted`",
+						"type": "string"
+					},
+					"grant": {
+						"description": "The name of the grant the actor's tools come from",
+						"type": "string"
+					},
+					"id": {
+						"description": "The actor id",
+						"type": "string"
+					},
+					"kind": {
+						"description": "The kind of the actor, the part of its id before the colon",
+						"type": "string"
+					},
+					"model": {
+						"additionalProperties": false,
+						"description": "The model behind the actor; absent for a fake or scripted driver",
+						"properties": {
+							"params": {
+								"additionalProperties": false,
+								"description": "The sampling parameters; every field is a value or `provider-default`, never absent",
+								"properties": {
+									"maxOutputTokens": {
+										"anyOf": [
+											{
+												"description": "The value that was sent to the provider",
+												"type": "number"
+											},
+											{
+												"const": "provider-default",
+												"type": "string"
+											}
+										],
+										"description": "The limit of output tokens of one request"
+									},
+									"temperature": {
+										"anyOf": [
+											{
+												"description": "The value that was sent to the provider",
+												"type": "number"
+											},
+											{
+												"const": "provider-default",
+												"type": "string"
+											}
+										],
+										"description": "The sampling temperature"
+									},
+									"thinking": {
+										"description": "The thinking setting of the model, as the driver names it",
+										"type": "string"
+									},
+									"topP": {
+										"anyOf": [
+											{
+												"description": "The value that was sent to the provider",
+												"type": "number"
+											},
+											{
+												"const": "provider-default",
+												"type": "string"
+											}
+										],
+										"description": "The nucleus sampling limit"
+									}
+								},
+								"required": [
+									"temperature",
+									"topP",
+									"maxOutputTokens",
+									"thinking"
+								],
+								"type": "object"
+							},
+							"pricing": {
+								"description": "The price table the cost of the run is computed with, as `<library>@<version>`",
+								"type": "string"
+							},
+							"provider": {
+								"description": "The provider the requests go to",
+								"type": "string"
+							},
+							"requestedId": {
+								"description": "The model id as the command gave it, an alias included",
+								"type": "string"
+							},
+							"resolvedId": {
+								"description": "The model id after the alias was resolved",
+								"type": "string"
+							}
+						},
+						"required": [
+							"provider",
+							"requestedId",
+							"resolvedId",
+							"params",
+							"pricing"
+						],
+						"type": "object"
+					},
+					"textHashes": {
+						"description": "The hashes of the texts the actor is shown, by part: `briefing`, `tools` (the tool list as shown) and, for a model actor, `system` (the whole system prompt as sent) and `toolSpecs` (name, description and parameter schema of every granted tool, in grant order)",
+						"patternProperties": {
+							"^.*$": {
+								"description": "The sha256 of one text",
+								"pattern": "^[0-9a-f]{64}$",
+								"type": "string"
+							}
+						},
+						"type": "object"
+					}
+				},
+				"required": [
+					"id",
+					"kind",
+					"grant",
+					"driver",
+					"textHashes"
+				],
+				"type": "object"
+			},
+			"type": "array"
+		},
+		"experiment": {
+			"additionalProperties": false,
+			"description": "Set when the run is part of an experiment",
+			"properties": {
+				"arm": {
+					"description": "The arm of the experiment the run belongs to",
+					"type": "string"
+				},
+				"id": {
+					"description": "The id of the experiment",
+					"type": "string"
+				},
+				"specHash": {
+					"description": "The sha256 of the experiment's specification",
+					"pattern": "^[0-9a-f]{64}$",
+					"type": "string"
+				}
+			},
+			"required": [
+				"id",
+				"specHash",
+				"arm"
+			],
+			"type": "object"
+		},
+		"format": {
+			"const": "swarmtales-run",
+			"description": "The name of the manifest format",
+			"type": "string"
+		},
+		"game": {
+			"additionalProperties": false,
+			"description": "The game that is played",
+			"properties": {
+				"hash": {
+					"description": "The sha256 of the canonical JSON of the resolved game definition (`game.json`)",
+					"pattern": "^[0-9a-f]{64}$",
+					"type": "string"
+				},
+				"id": {
+					"description": "The id of the game",
+					"type": "string"
+				},
+				"params": {
+					"description": "The parameters the game was started with, by name",
+					"patternProperties": {
+						"^.*$": {
+							"description": "The value of one parameter; it must be a JSON value, which the manifest builder guarantees"
+						}
+					},
+					"type": "object"
+				},
+				"title": {
+					"description": "The title of the game, for a reader",
+					"type": "string"
+				}
+			},
+			"required": [
+				"id",
+				"hash",
+				"params"
+			],
+			"type": "object"
+		},
+		"human": {
+			"const": true,
+			"description": "Set when the game has the actor `human`: a person may intervene in the run. Absent otherwise, never `false`",
+			"type": "boolean"
+		},
+		"kernel": {
+			"additionalProperties": false,
+			"description": "The kernel that ran the game",
+			"properties": {
+				"commit": {
+					"description": "The commit of the platform's source tree",
+					"type": "string"
+				},
+				"dirty": {
+					"description": "Whether the source tree had changes that are not committed",
+					"type": "boolean"
+				},
+				"node": {
+					"description": "The version of Node.js that ran the kernel",
+					"type": "string"
+				},
+				"revision": {
+					"description": "The runtime revision of the kernel; it rises when the way a run plays changes",
+					"minimum": 3,
+					"type": "integer"
+				},
+				"version": {
+					"description": "The package version of the kernel",
+					"type": "string"
+				}
+			},
+			"required": [
+				"revision",
+				"version",
+				"node"
+			],
+			"type": "object"
+		},
+		"limits": {
+			"additionalProperties": false,
+			"description": "The limits the run stops at",
+			"properties": {
+				"budgetUsd": {
+					"description": "The money the run may spend, in US dollars",
+					"minimum": 0,
+					"type": "number"
+				},
+				"maxCallsPerTick": {
+					"description": "The most tool calls one actor may make in one tick",
+					"minimum": 1,
+					"type": "integer"
+				},
+				"maxTicks": {
+					"description": "The tick after which the run ends at the latest",
+					"minimum": 1,
+					"type": "integer"
+				}
+			},
+			"required": [
+				"maxTicks"
+			],
+			"type": "object"
+		},
+		"log": {
+			"additionalProperties": false,
+			"description": "The format of the event log the run writes",
+			"properties": {
+				"format": {
+					"description": "The name of the log format",
+					"type": "string"
+				},
+				"version": {
+					"description": "The version of the log format",
+					"minimum": 1,
+					"type": "integer"
+				}
+			},
+			"required": [
+				"format",
+				"version"
+			],
+			"type": "object"
+		},
+		"naming": {
+			"const": 1,
+			"description": "The version of the naming rules for ids and event types",
+			"type": "number"
+		},
+		"plugins": {
+			"description": "The plugins of the run, in load order",
+			"items": {
+				"additionalProperties": false,
+				"description": "One plugin of the run",
+				"properties": {
+					"id": {
+						"description": "The id of the plugin inside the game",
+						"type": "string"
+					},
+					"optionsHash": {
+						"description": "The sha256 of the canonical JSON of the plugin's options",
+						"pattern": "^[0-9a-f]{64}$",
+						"type": "string"
+					},
+					"package": {
+						"description": "The name of the package the plugin comes from",
+						"type": "string"
+					},
+					"version": {
+						"description": "The version of that package",
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"package",
+					"version",
+					"optionsHash"
+				],
+				"type": "object"
+			},
+			"type": "array"
+		},
+		"replicate": {
+			"description": "The index of the repetition: same seed, other sampling",
+			"minimum": 0,
+			"type": "integer"
+		},
+		"resumedFrom": {
+			"additionalProperties": false,
+			"description": "Set when the run resumes from a snapshot",
+			"properties": {
+				"snapshotHash": {
+					"description": "The sha256 of the snapshot the run started from",
+					"pattern": "^[0-9a-f]{64}$",
+					"type": "string"
+				}
+			},
+			"required": [
+				"snapshotHash"
+			],
+			"type": "object"
+		},
+		"run": {
+			"additionalProperties": false,
+			"description": "The identity of the run",
+			"properties": {
+				"id": {
+					"description": "The id of the run, also the name of its folder",
+					"type": "string"
+				},
+				"purpose": {
+					"anyOf": [
+						{
+							"const": "smoke",
+							"type": "string"
+						},
+						{
+							"const": "pilot",
+							"type": "string"
+						},
+						{
+							"const": "exploratory",
+							"type": "string"
+						},
+						{
+							"const": "confirmatory",
+							"type": "string"
+						}
+					],
+					"description": "What the run is for; it decides how strict the runner is and whether results may be pooled"
+				},
+				"startedAt": {
+					"description": "The wall-clock time the run started at, as an ISO 8601 string",
+					"type": "string"
+				}
+			},
+			"required": [
+				"id",
+				"startedAt",
+				"purpose"
+			],
+			"type": "object"
+		},
+		"scheduler": {
+			"additionalProperties": false,
+			"description": "The scheduler that decided who acts when",
+			"properties": {
+				"determinism": {
+					"description": "What the scheduler promises about repeating a run with the same seed",
+					"type": "string"
+				},
+				"id": {
+					"description": "The id of the scheduler; an open id, not a closed list",
+					"type": "string"
+				},
+				"options": {
+					"description": "The options the scheduler was given; they must be a JSON value, which the manifest builder guarantees, so that `optionsHash` is defined"
+				},
+				"optionsHash": {
+					"description": "The sha256 of the canonical JSON of the scheduler's options",
+					"pattern": "^[0-9a-f]{64}$",
+					"type": "string"
+				},
+				"revision": {
+					"description": "The revision of the scheduler; it rises when its order of activations changes",
+					"minimum": 1,
+					"type": "integer"
+				}
+			},
+			"required": [
+				"id",
+				"revision",
+				"determinism",
+				"options",
+				"optionsHash"
+			],
+			"type": "object"
+		},
+		"seed": {
+			"description": "The seed of the world, a 32-bit number: deals, order and lots follow from it",
+			"maximum": 4294967295,
+			"minimum": 0,
+			"type": "integer"
+		},
+		"texts": {
+			"description": "The hash of every plugin text and kernel reply, by key",
+			"patternProperties": {
+				"^.*$": {
+					"description": "The sha256 of one text",
+					"pattern": "^[0-9a-f]{64}$",
+					"type": "string"
+				}
+			},
+			"type": "object"
+		},
+		"version": {
+			"const": 1,
+			"description": "The version of the manifest format",
+			"type": "number"
+		}
+	},
+	"required": [
+		"format",
+		"version",
+		"run",
+		"game",
+		"kernel",
+		"scheduler",
+		"plugins",
+		"actors",
+		"texts",
+		"seed",
+		"replicate",
+		"limits",
+		"naming",
+		"log"
+	],
+	"type": "object"
+}

@@ -1,0 +1,63 @@
+{
+	"additionalProperties": false,
+	"description": "One event of the log",
+	"properties": {
+		"actor": {
+			"description": "Who caused the chain this event belongs to",
+			"pattern": "^([a-z][a-z0-9-]*:[A-Za-z0-9_.-]+|human|script|kernel)$",
+			"type": "string"
+		},
+		"audience": {
+			"description": "The grant names that may read the event; absent: everyone",
+			"items": {
+				"description": "A grant name",
+				"type": "string"
+			},
+			"type": "array"
+		},
+		"basis": {
+			"description": "The highest seq the actor had seen when it decided; on `activation_opened` and `tool_called` only",
+			"minimum": 0,
+			"type": "integer"
+		},
+		"causedBy": {
+			"description": "The seq this event is a consequence of; always smaller than `seq`",
+			"minimum": 1,
+			"type": "integer"
+		},
+		"payload": {
+			"description": "The event's data, as its declared schema describes it"
+		},
+		"seq": {
+			"description": "The commit order: from 1, no gaps",
+			"minimum": 1,
+			"type": "integer"
+		},
+		"source": {
+			"description": "`kernel`, `driver`, or the canonical plugin name `<package>/<id>`",
+			"type": "string"
+		},
+		"tick": {
+			"description": "Logical time, from 0",
+			"minimum": 0,
+			"type": "integer"
+		},
+		"tool": {
+			"description": "The canonical tool name of the call this event was written in",
+			"type": "string"
+		},
+		"type": {
+			"description": "The event type: bare, unique within its source",
+			"type": "string"
+		}
+	},
+	"required": [
+		"seq",
+		"tick",
+		"source",
+		"type",
+		"actor",
+		"payload"
+	],
+	"type": "object"
+}

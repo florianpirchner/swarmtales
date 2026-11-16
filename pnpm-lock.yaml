@@ -14,6 +14,18 @@ importers:
       '@microsoft/api-extractor':
         specifier: 7.60.1
         version: 7.60.1(@types/node@26.6.6)
+      '@swarmtales/cli':
+        specifier: workspace:*
+        version: link:apps/cli
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:packages/contracts
+      '@swarmtales/models':
+        specifier: workspace:*
+        version: link:packages/models
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:packages/testkit
       '@types/node':
         specifier: 26.6.6
         version: 26.6.6
