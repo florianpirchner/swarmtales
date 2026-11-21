@@ -241,6 +241,10 @@ Each line is a lesson that cost us a run. The log entries behind it are in brack
     manifest has `kernel.dirty: true`, and the reviewer reads the manifest before the row is written; a report of a
     resumed run counts from its resume with the base's part apart, and a paused run has a report too, its facts up
     to the pause. [P488, P493, P494]
+66. **A test makes what it reads, and releases what it holds.** Under Vitest's `isolate: false` a test file's
+    module-level data stays in the worker after the file ends: a test plays or copies the run it reads (no reliance
+    on an earlier test), and a file that holds played runs releases them in `afterAll`, so any order of the tests
+    fits in a worker's heap. [M6-15, A152]
 
 ## Notes from outside research
 

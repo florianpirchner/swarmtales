@@ -23,15 +23,17 @@ mkdirSync(join(root, "m"), { recursive: true });
 writeFileSync(join(root, "m", "hello.md"), "---\nid: m/hello\nvariables: name\n---\nhello {{name}}\n");
 writeFileSync(join(root, "m", "moved.md"), "---\nid: m/other\nvariables:\n---\nx\n");
 writeFileSync(join(root, "m", "broken.md"), "no frontmatter\n");
-const lookup = createPromptLookup({ mechanics: { m: root }, library: join(root, "none") });
+// A lookup keeps the files it has read and checks their variables only on the first read, so every case gets its own
+// lookup and does not depend on what an earlier case read (M6-15).
+const fresh = () => createPromptLookup({ mechanics: { m: root }, library: join(root, "none") });
 
 const CASES: readonly (readonly [string, () => unknown])[] = [
-	["SWT-P010", () => lookup.render("m", "m/none", {}, [])],
-	["SWT-P011", () => lookup.render("m", "m/broken", {}, [])],
+	["SWT-P010", () => fresh().render("m", "m/none", {}, [])],
+	["SWT-P011", () => fresh().render("m", "m/broken", {}, [])],
 	["SWT-P011", () => parsePromptFile("---\nid: a\nvariables: x, x\n---\n", "a.md")],
-	["SWT-P012", () => lookup.render("m", "m/moved", {}, [])],
-	["SWT-P013", () => lookup.render("m", "m/hello", { name: "A01" }, [])],
-	["SWT-P014", () => lookup.render("m", "m/hello", {}, ["name"])],
+	["SWT-P012", () => fresh().render("m", "m/moved", {}, [])],
+	["SWT-P013", () => fresh().render("m", "m/hello", { name: "A01" }, [])],
+	["SWT-P014", () => fresh().render("m", "m/hello", {}, ["name"])],
 	["SWT-P014", () => renderBody({ id: "a", variables: [], body: "{{x}}" }, {})],
 ];
 
@@ -48,7 +50,7 @@ describe("the errors of the prompt loader", () => {
 	});
 
 	it("names the file as the place of a fault in a file", () => {
-		const error = thrown(() => lookup.render("m", "m/moved", {}, []));
+		const error = thrown(() => fresh().render("m", "m/moved", {}, []));
 		expect(error instanceof SwtError ? error.issues[0]?.where : undefined).toEqual({ file: join(root, "m", "moved.md") });
 	});
 });

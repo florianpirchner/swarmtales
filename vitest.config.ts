@@ -3,6 +3,9 @@
 import { BaseSequencer, type TestSpecification } from "vitest/node";
 import { defineConfig } from "vitest/config";
 
+/** `--sequence.shuffle.tests` on the command line: the tests inside each file are shuffled, the files are not. */
+const TESTS_ONLY = process.argv.some((arg) => arg === "--sequence.shuffle.tests" || arg.startsWith("--sequence.shuffle.tests="));
+
 /** The standing checks play a game again and again: the longest test files. */
 const STANDING = /\/test\/standing(-[a-z]+)?\.test\.ts$/;
 
@@ -30,21 +33,24 @@ function shuffled(files: readonly TestSpecification[], seed: number): TestSpecif
  * Starts the standing checks first, so that no long file starts last. Vitest runs the longest files first only when
  * it has their durations from an earlier run; a fresh clone has none and runs the files in the order of the glob
  * (M4-71). Within each of the two sets the order is Vitest's own. With `--sequence.seed` (and
- * `--sequence.shuffle.files`, or `--sequence.shuffle`, which shuffles the tests inside each file as well) every file
- * comes in an order drawn from the seed: that shows that no file depends on what another file left in its worker
- * (`isolate: false` below). Vitest hands a custom sequencer neither the files flag nor a seed of its own, so a given
- * seed is what asks for the shuffle here.
+ * `--sequence.shuffle.files`, or `--sequence.shuffle`, which shuffles the tests inside each file as well) the files of
+ * each set come in an order drawn from the seed: that shows that no file depends on what another file left in its
+ * worker (`isolate: false` below). The standing checks still start first, so that no long file starts last. Vitest
+ * hands a custom sequencer neither the files flag nor a seed of its own, so a given seed is what asks for the shuffle
+ * here, and the command line is read for the one flag that keeps the files in their order: `--sequence.shuffle.tests`
+ * shuffles only the tests inside each file. `pnpm check` runs that with a seed of the head commit (M6-15): the files
+ * keep the order whose time and memory the check measured, while a shuffle of the files can give one worker more
+ * than its heap of 384 MB (seed 892574724 at `04fed25c`, a live heap of 378 MB after a full collection).
  */
 class StandingFirst extends BaseSequencer {
 	override async sort(files: TestSpecification[]): Promise<TestSpecification[]> {
 		const { shuffle, seed } = this.ctx.config.sequence;
-		if (shuffle || Number.isFinite(seed)) {
-			const drawn = Number.isFinite(seed) ? seed : Date.now();
-			console.log(`test files shuffled with --sequence.seed=${String(drawn)}`);
-			return shuffled(files, drawn);
-		}
-		const sorted = await super.sort(files);
-		return [...sorted.filter((file) => STANDING.test(file.moduleId)), ...sorted.filter((file) => !STANDING.test(file.moduleId))];
+		const given = Number.isFinite(seed) && !TESTS_ONLY ? seed : undefined;
+		const drawn = given ?? (shuffle && !TESTS_ONLY ? Date.now() : undefined);
+		if (drawn !== undefined) console.log(`test files shuffled with --sequence.seed=${String(drawn)}`);
+		const sorted = drawn === undefined ? await super.sort(files) : files;
+		const [standing, rest] = [sorted.filter((file) => STANDING.test(file.moduleId)), sorted.filter((file) => !STANDING.test(file.moduleId))];
+		return drawn === undefined ? [...standing, ...rest] : [...shuffled(standing, drawn), ...shuffled(rest, drawn)];
 	}
 }
 

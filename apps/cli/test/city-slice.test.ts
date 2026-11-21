@@ -43,6 +43,9 @@ beforeAll(() => {
 });
 afterAll(() => {
 	rmSync(cwd, { recursive: true, force: true });
+	// A worker keeps this module after the file (`isolate: false`): the logs held for the tests are let go.
+	runs.clear();
+	pairs.clear();
 });
 
 interface Pair {
@@ -53,8 +56,27 @@ interface Pair {
 	readonly folders: readonly [straight: string, resumed: string];
 }
 
+// A run that more than one test reads is played once, by the first test that asks for it, so that every test holds in
+// any order (M6-15).
+const runs = new Map<string, Promise<Printed>>();
+const pairs = new Map<string, Promise<Pair>>();
+
+/** Plays the slice with a seed into `out`, once. */
+function plain(out: string, seed: number): Promise<Printed> {
+	const known = runs.get(out) ?? swt("run", CITY, "--fake", "--seed", String(seed), "--out", out);
+	runs.set(out, known);
+	return known;
+}
+
+/** The pair of `out`, played once. */
+function pair(out: string, seed: number, hand: keyof typeof HANDS): Promise<Pair> {
+	const known = pairs.get(out) ?? playPair(out, seed, hand);
+	pairs.set(out, known);
+	return known;
+}
+
 /** Plays the slice with a hand file, resumes it from its snapshot `t7.json` with the same file, and reads both logs. */
-async function pair(out: string, seed: number, hand: keyof typeof HANDS): Promise<Pair> {
+async function playPair(out: string, seed: number, hand: keyof typeof HANDS): Promise<Pair> {
 	const flags = hand === "amended" ? [] : ["--snapshot-at", "7"];
 	const first = await swt("run", CITY, "--fake", "--seed", String(seed), "--out", out, "--hand", `${hand}.jsonl`, ...flags);
 	const folders = [`${out}/city-slice-001`, `${out}/city-slice-002`] as const;
@@ -91,7 +113,7 @@ const VERDICTS = [
 describe("the city slice through the command line", () => {
 	it.each(VERDICTS)("a plain fake run, seed $seed: no SWT-C010, the residents talk, pay and vote, $exiled is banished, its points and its piece burn", async ({ seed, exiled, tally, burned }) => {
 		const out = `plain-${String(seed)}`;
-		const run = await swt("run", CITY, "--fake", "--seed", String(seed), "--out", out);
+		const run = await plain(out, seed);
 		expect([run.code, run.err, run.out[1]]).toEqual([0, "", `city-slice seed ${String(seed)}: ended after 12 ticks (tick limit)`]);
 		const events = eventsOf(join(cwd, out, "city-slice-001"));
 		for (const type of ["transfer", "board_post", "dm_sent", "dm_delivered"]) expect(events.filter((event) => event.type === type).length, type).toBeGreaterThan(2);
@@ -113,7 +135,7 @@ describe("the city slice through the command line", () => {
 	});
 
 	it("a plain fake run, seed 4: the session ends in a tie, so no verdict is proposed and nobody is banished", async () => {
-		const run = await swt("run", CITY, "--fake", "--seed", "4", "--out", "tie");
+		const run = await plain("tie", 4);
 		expect([run.code, run.err]).toEqual([0, ""]);
 		const events = eventsOf(join(cwd, "tie/city-slice-001"));
 		expect(told(events, "session_closed", "decision_proposed", "asked", "exiled", "verdict")).toEqual([[6, "session_closed", { tally: { A01: 1, A02: 2, A03: 1, A06: 2 } }]]);
@@ -129,6 +151,7 @@ describe("the city slice through the command line", () => {
 		// The snapshot of `--snapshot-at 7` lies after the two calls of the human: the resumed run drops both lines of the hand file, and the residents go on calling.
 		expect(after.filter((event) => event.actor === "human")).toEqual([]);
 		expect(after.filter((event) => event.type === "tool_called").length).toBeGreaterThan(10);
+		await plain(`plain-${String(seed)}`, seed);
 		await proven(run, `plain-${String(seed)}/city-slice-001`);
 	});
 
@@ -142,6 +165,7 @@ describe("the city slice through the command line", () => {
 		const plain = withoutMarker(run.resumed);
 		const differing = plain.flatMap((event, index) => (JSON.stringify(event) === JSON.stringify(run.straight[index]) ? [] : [event.type]));
 		expect(differing).toEqual([]);
+		await pair("seed-7", 7, "straight");
 		await proven(run, "seed-7/city-slice-001");
 	});
 
@@ -164,6 +188,7 @@ describe("the city slice through the command line", () => {
 	it("done-when 2 from run folders: replay writes the straight and the resumed log again from the game file and events.jsonl", async () => {
 		const { game } = await loadGame(CITY, cwd);
 		if (isGameFamily(game)) throw new RangeError("the city slice is one game, not a family");
+		for (const played of [() => plain("plain-7", 7), () => plain("tie", 4), () => pair("seed-7", 7, "straight"), () => pair("seed-11", 11, "straight"), () => pair("amended", 7, "amended")]) await played();
 		for (const folder of ["seed-7/city-slice-001", "seed-11/city-slice-002", "amended/city-slice-002", "plain-7/city-slice-001", "tie/city-slice-001"]) {
 			const log = eventsOf(join(cwd, folder));
 			const again = await replay({ game, log, records: [DIRECTOR_RECORDS, RUN_RECORDS] });

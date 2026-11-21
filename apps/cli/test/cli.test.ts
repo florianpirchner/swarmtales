@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /** `swt run --fake` and `swt log verify` end to end: a game file to a run folder that verifies, and the exit codes. */
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,9 +23,12 @@ const Result = Type.Object(
 );
 
 let cwd = "";
-beforeAll(() => {
+let first: Awaited<ReturnType<typeof swt>> = { code: -1, out: [], err: "before all" };
+// The run `runs/guess-number-001` that several tests read is played here, so that every test holds in any order (M6-15).
+beforeAll(async () => {
 	cwd = mkdtempSync(join(tmpdir(), "swt-cli-"));
-});
+	first = await swt("run", fixture("guess-number.ts"), "--fake");
+}, 60_000);
 afterAll(() => {
 	rmSync(cwd, { recursive: true, force: true });
 });
@@ -48,7 +51,7 @@ const json = (text: string | undefined): unknown => JSON.parse(text ?? "null");
 
 describe("swt run --fake", () => {
 	it("plays a module game into a run folder that verifies, and prints the result lines", async () => {
-		const { code, out, err } = await swt("run", fixture("guess-number.ts"), "--fake");
+		const { code, out, err } = first;
 		const head = /head ([0-9a-f]{64})$/.exec(out[2] ?? "")?.[1];
 		expect([code, err]).toEqual([0, ""]);
 		expect(out).toEqual(["fake models: no result", "guess-number seed 4: ended after 5 ticks (limit guess-number.solved: A01 found the secret)", `log verified: 83 lines, head ${head ?? "?"}`, "run: runs/guess-number-001"]);
@@ -128,9 +131,14 @@ describe("swt run --fake", () => {
 // M2-20: since M2-15 the two ported games default-export a game family, and `definitionsOf` of the family threw a TypeError.
 describe("swt run --fake of a game family", () => {
 	const quarry = fileURLToPath(new URL("../../../games/quarry/game.ts", import.meta.url));
+	// The run with the defaults is the base of the overrides below, so it is played before either test (M6-15).
+	let defaults: Awaited<ReturnType<typeof swt>> = { code: -1, out: [], err: "before all" };
+	beforeAll(async () => {
+		defaults = await swt("run", quarry, "--fake", "--json");
+	}, 60_000);
 
 	it("plays quarry to the end of its match with the defaults of the family, and the log verifies", async () => {
-		const { code, out, err } = await swt("run", quarry, "--fake", "--json");
+		const { code, out, err } = defaults;
 		const result = Parse(Result, json(out[0]));
 		expect([code, err]).toEqual([0, ""]);
 		expect(result).toMatchObject({ seed: 29, end: { reason: "limit", limit: "quarry.match" }, run: "runs/quarry-001", log: { ok: true } });
@@ -169,7 +177,7 @@ describe("a module that exports no game", () => {
 
 describe("swt log verify", () => {
 	it("exits 3 on a log that holds but has no end", async () => {
-		const manifest = Parse(RunManifestSchema, json(file("data/guess-number-001", "manifest.json")));
+		const manifest = Parse(RunManifestSchema, json(file("runs/guess-number-001", "manifest.json")));
 		const folder = openRunFolder(join(cwd, "cut"), manifest, { now: () => new Date(0) });
 		await play(game, { sinks: [folder.sink], ticks: 1 });
 		folder.close();
@@ -177,12 +185,14 @@ describe("swt log verify", () => {
 	});
 
 	it("exits 1 on a tampered line and names the line; exits 1 on a folder that is no run", async () => {
-		const events = join(cwd, "runs/guess-number-001/events.jsonl");
+		// A copy is tampered, so that the run the other tests read stays whole (M6-15).
+		cpSync(join(cwd, "runs/guess-number-001"), join(cwd, "tampered/guess-number-001"), { recursive: true });
+		const events = join(cwd, "tampered/guess-number-001/events.jsonl");
 		writeFileSync(events, readFileSync(events, "utf8").replace('"value":', '"value":1'));
-		const { code, out, err } = await swt("log", "verify", "runs/guess-number-001");
+		const { code, out, err } = await swt("log", "verify", "tampered/guess-number-001");
 		expect([code, out]).toEqual([1, []]);
 		expect(err).toMatch(/^error SWT-L001: .*\n {2}at .*events\.jsonl:\d+/);
-		const asJson = await swt("log", "verify", "runs/guess-number-001", "--json");
+		const asJson = await swt("log", "verify", "tampered/guess-number-001", "--json");
 		expect([asJson.code, json(asJson.out[0])]).toMatchObject([1, { ok: false, issues: [{ code: "SWT-L001" }] }]);
 		expect((await swt("log", "verify", "nowhere")).code).toBe(1);
 	});

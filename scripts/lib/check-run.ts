@@ -34,6 +34,34 @@ export const GATES: readonly Gate[] = [
 	{ name: "API reports", command: ["pnpm", "api"], lane: 0 },
 ];
 
+/**
+ * The seed of the order of the tests in a check (M6-15, B3): the first eight hex digits of the head commit as a
+ * number, so that one commit always gives one order and a failure under it is reproduced by
+ * `pnpm test --sequence.shuffle --sequence.seed=<seed>`.
+ *
+ * @param head - The id of the head commit, as `git rev-parse HEAD` prints it.
+ * @returns The seed, a whole number from 0 to 2^32 - 1.
+ * @throws RangeError when `head` does not start with eight hex digits.
+ */
+export function testSeed(head: string): number {
+	const digits = /^[0-9a-f]{8}/i.exec(head.trim())?.[0];
+	if (digits === undefined) throw new RangeError(`check: "${head.trim()}" is no commit id, so the tests have no seed`);
+	return Number.parseInt(digits, 16);
+}
+
+/**
+ * The gates with the order of the tests drawn from a seed: the tests' gate runs with `--sequence.shuffle.tests` (the
+ * tests inside each file in an order from the seed; the files keep the order whose time and memory the check measured,
+ * `vitest.config.ts`), so that no test depends on the order of the tests before it (M6-15, B3).
+ *
+ * @param gates - The gates.
+ * @param seed - The seed, from {@link testSeed}.
+ * @returns The same gates, the tests' gate with the two flags appended.
+ */
+export function seeded(gates: readonly Gate[], seed: number): readonly Gate[] {
+	return gates.map((gate) => (gate.command[1] === "test" ? { ...gate, command: [...gate.command, "--sequence.shuffle.tests", `--sequence.seed=${String(seed)}`] } : gate));
+}
+
 /** The budget of the whole check. */
 export const CHECK_BUDGET = { seconds: 600, memoryMb: 6144 } as const;
 
@@ -57,13 +85,15 @@ export interface GateResult {
 }
 
 /**
- * What the whole check did: the gates that ended, the time from the start to the end of the last gate, and the
- * peak of the memory of all gates that ran at the same time. `peakMb` is `undefined` where memory cannot be measured.
+ * What the whole check did: the gates that ended, the time from the start to the end of the last gate, the
+ * peak of the memory of all gates that ran at the same time, and the seed of the order of the tests. `peakMb` is
+ * `undefined` where memory cannot be measured.
  */
 export interface CheckRun {
 	readonly results: readonly GateResult[];
 	readonly seconds: number;
 	readonly peakMb: number | undefined;
+	readonly seed: number;
 }
 
 /**
@@ -103,7 +133,7 @@ export function failures(run: CheckRun): readonly string[] {
  * Renders the summary of a check, in a form that a pull request can quote.
  *
  * @param run - What the check did.
- * @returns A table of the gates with time and peak memory, then the totals and the verdict.
+ * @returns A table of the gates with time and peak memory, then the totals with the seed of the tests, and the verdict.
  */
 export function summary(run: CheckRun): string {
 	const memory = (value: number | undefined): string => (value === undefined ? "not measured" : `${value.toFixed(0)} MB`);
@@ -113,7 +143,7 @@ export function summary(run: CheckRun): string {
 		"|---|---|---|---|",
 		...run.results.map((result) => `| ${result.name} | ${result.ok ? "pass" : "FAIL"} | ${result.seconds.toFixed(1)} s | ${memory(result.peakMb)} |`),
 		"",
-		`Total: ${run.seconds.toFixed(1)} s of ${CHECK_BUDGET.seconds} s, lanes side by side; peak memory ${memory(run.peakMb)} of ${CHECK_BUDGET.memoryMb} MB, of all gates at once.`,
+		`Total: ${run.seconds.toFixed(1)} s of ${CHECK_BUDGET.seconds} s, lanes side by side; peak memory ${memory(run.peakMb)} of ${CHECK_BUDGET.memoryMb} MB, of all gates at once; tests in the order of --sequence.seed=${String(run.seed)}.`,
 		failed.length === 0 ? "pnpm check: green" : `pnpm check: FAILED\n${failed.map((line) => `- ${line}`).join("\n")}`,
 	].join("\n");
 }

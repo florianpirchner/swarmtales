@@ -21,10 +21,16 @@ const OK = /^ok, \d+ lines, head [0-9a-f]{64}/;
 
 let cwd = "";
 let swt: (...args: readonly string[]) => Promise<Printed> = () => Promise.reject(new Error("before all"));
-beforeAll(() => {
+/** The lines of the Human Hand of the run `hand/hand-001`. */
+const HAND = [{ at: 1, tool: "pause" }, { at: 1, command: "snapshot" }, { at: 1, tool: "resume" }, { at: 3, tool: "pause" }, { at: 3, tool: "resume" }];
+// The runs that more than one test reads are played here, so that every test holds in any order (M6-15).
+beforeAll(async () => {
 	cwd = mkdtempSync(join(tmpdir(), "swt-resume-"));
 	swt = cli(cwd);
-});
+	expect((await swt("run", HELLO, "--fake", "--out", "hello", "--snapshot-at", "2")).code).toBe(0);
+	expect((await swt("run", HELLO, "--fake", "--out", "other", "--seed", "2")).code).toBe(0);
+	expect((await swt("run", GAME, "--fake", "--out", "hand", "--hand", hand("play.jsonl", HAND), "--snapshot-at", "3")).code).toBe(0);
+}, 120_000);
 afterAll(() => {
 	rmSync(cwd, { recursive: true, force: true });
 });
@@ -39,7 +45,6 @@ const manifest = (run: string): ReturnType<typeof Parse<typeof RunManifestSchema
 
 describe("swt resume", () => {
 	it("resumes the Hello Game after tick 2: the log without the marker is the straight log, and continuity verifies", async () => {
-		expect((await swt("run", HELLO, "--fake", "--out", "hello", "--snapshot-at", "2")).code).toBe(0);
 		const resumed = await swt("resume", "hello/hello-game-001", "--game", HELLO);
 		expect([resumed.code, resumed.out.at(-1)]).toEqual([0, "run: hello/hello-game-002"]);
 		const straight = events("hello/hello-game-001");
@@ -57,7 +62,6 @@ describe("swt resume", () => {
 		expect(await swt("log", "verify", "hello/hello-game-002")).toMatchObject({ code: 0, out: [expect.stringMatching(new RegExp(`${OK.source}, continuity not checked$`))] });
 		expect(await swt("log", "verify", "hello/hello-game-001")).toMatchObject({ code: 0, out: [expect.stringMatching(new RegExp(`${OK.source}$`))] });
 		// Another run of the same game is not the run that was resumed.
-		expect((await swt("run", HELLO, "--fake", "--out", "other", "--seed", "2")).code).toBe(0);
 		expect(await swt("log", "verify", "hello/hello-game-002", "--previous", "other/hello-game-001")).toMatchObject({ code: 1, issue: "SWT-L007" });
 	});
 
@@ -72,9 +76,7 @@ describe("swt resume", () => {
 	});
 
 	it("gives a resumed run the hand file of the straight run and applies only the lines after the snapshot", async () => {
-		const lines = [{ at: 1, tool: "pause" }, { at: 1, command: "snapshot" }, { at: 1, tool: "resume" }, { at: 3, tool: "pause" }, { at: 3, tool: "resume" }];
-		const file = hand("play.jsonl", lines);
-		expect((await swt("run", GAME, "--fake", "--out", "hand", "--hand", file, "--snapshot-at", "3")).code).toBe(0);
+		const file = "play.jsonl";
 		const straight = events("hand/hand-001");
 		// From the `snapshot` line (the run is paused in it), and from `--snapshot-at 3` (both lines of tick 3 are in its prefix).
 		for (const [snapshot, calls] of [["t1.json", 3], ["t3.json", 0]] as const) {
@@ -87,7 +89,7 @@ describe("swt resume", () => {
 			expect(existsSync(join(cwd, snapshot, "hand-001/snapshots"))).toBe(false);
 		}
 		// A run that stopped paused (exit 3) goes on with a hand that resumes it.
-		expect((await swt("run", GAME, "--fake", "--out", "paused", "--hand", hand("pause.jsonl", lines.slice(0, 1)))).code).toBe(3);
+		expect((await swt("run", GAME, "--fake", "--out", "paused", "--hand", hand("pause.jsonl", HAND.slice(0, 1)))).code).toBe(3);
 		expect((await swt("resume", "paused/hand-001", "--game", GAME)).issue).toBe("SWT-X009");
 		expect((await swt("resume", "paused/hand-001", "--game", GAME, "--hand", file)).code).toBe(0);
 		expect(withoutMarker(events("paused/hand-003"))).toEqual(straight);

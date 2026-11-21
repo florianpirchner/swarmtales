@@ -88,8 +88,10 @@ describe("swt doctor in a clone of the repository", () => {
 		expect(lines(check(cwd, "v20.19.0"), "node")[0]).toMatch(/^fail /);
 		expect(lines(check(cwd, "v24.1.0"), "node")[0]).toMatch(/^warn /);
 		// A `.node-version` of the user's own project is not the clone's: it is not read.
-		writeFileSync(join(root, "empty", ".node-version"), "20\n");
-		expect(lines(check(join(root, "empty"), "v22.23.4"), "node")[0]).toMatch(/^warn Node v22\.23\.4, not checked/);
+		// A folder of its own, not the one of the test above, so that the order does not matter (M6-15).
+		mkdirSync(join(root, "own"), { recursive: true });
+		writeFileSync(join(root, "own", ".node-version"), "20\n");
+		expect(lines(check(join(root, "own"), "v22.23.4"), "node")[0]).toMatch(/^warn Node v22\.23\.4, not checked/);
 	});
 
 	it("reads the repository it runs in", () => {

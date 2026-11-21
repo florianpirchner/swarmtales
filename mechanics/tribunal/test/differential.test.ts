@@ -49,9 +49,6 @@ function halfTribunal(extra: Partial<TribunalSpec> = {}, draft = true): Tribunal
 
 const SIX = [10, 20, 30, 40, 50, 60];
 
-/** What the scenarios reached, for the coverage test at the end. */
-const reached = { codes: new Set<string>(), events: new Set<string>() };
-
 // The old recording of the scenario: the test's name and the scenario's place among the test's runs.
 function oldOf(name: string, run = 1) {
 	const old = OLD[`${SUITE} > ${name} #${String(run)}`]?.value;
@@ -85,18 +82,23 @@ function listenersAfter(lines: readonly string[]): readonly string[] {
 	return out;
 }
 
-// The refusal codes, events and reasons to cancel the old run reached.
-function reach(old: ReturnType<typeof oldOf>): void {
+// The refusal codes, events and reasons to cancel that the old runs of the scenarios reached, read from every recording
+// of the suite and not gathered by the tests as they run, so that the coverage test holds in any order (M6-15).
+function reachedByRecordings(): { readonly codes: ReadonlySet<string>; readonly events: ReadonlySet<string> } {
+	const reached = { codes: new Set<string>(), events: new Set<string>() };
 	const first = (pattern: RegExp, line: string, none: string): string => pattern.exec(line)?.[1] ?? none;
-	for (const line of old.outcomes) reached.codes.add(first(/→ ([A-Z_]+):/, line, "reply"));
-	for (const line of old.events) reached.events.add(first(/"type":"(\w+)"/, line, ""));
-	for (const line of old.events.filter((event) => event.includes("tribunal_cancelled"))) reached.events.add(first(/"reason":"([^"]+)"/, line, ""));
-	if (old.acts.length > 0) reached.events.add("act ended");
+	const recordings = Object.entries(OLD).filter(([key]) => key.startsWith(`${SUITE} > `));
+	for (const [, { value: old }] of recordings) {
+		for (const line of old.outcomes) reached.codes.add(first(/→ ([A-Z_]+):/, line, "reply"));
+		for (const line of old.events) reached.events.add(first(/"type":"(\w+)"/, line, ""));
+		for (const line of old.events.filter((event) => event.includes("tribunal_cancelled"))) reached.events.add(first(/"reason":"([^"]+)"/, line, ""));
+		if (old.acts.length > 0) reached.events.add("act ended");
+	}
+	return reached;
 }
 
 async function expectSame(name: string, scenario: Scenario, run = 1): Promise<void> {
 	const old = oldOf(name, run);
-	reach(old);
 	const now = await runNew(scenario, T4A_EVENTS);
 	expect(now.events).toEqual(old.events);
 	expect(now.effects).toEqual(listenersAfter(old.effects));
@@ -331,6 +333,7 @@ describe(SUITE, () => {
 	});
 
 	it("reached every refusal the pipeline lets through, every event and every reason to cancel", () => {
+		const reached = reachedByRecordings();
 		expect([...reached.codes].sort()).toEqual(
 			[
 				"FACTION_FULL",

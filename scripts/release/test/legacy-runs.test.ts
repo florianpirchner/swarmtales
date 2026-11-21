@@ -92,6 +92,8 @@ describe("the staging of the old runs", () => {
 	});
 
 	it("writes no branch on a held key value, a scan of nothing, or a digest that differs from the record", () => {
+		// Each test stages what it needs, so that it holds in any order (M6-15).
+		expect(stageLegacyRuns({ root, source: "v0-fixture", scan: clean }).problems).toEqual([]);
 		const before = git("rev-parse", STAGING_BRANCH);
 		expect(stageLegacyRuns({ root, source: "v0-fixture", scan: () => ({ clean: false, files: 3 }) }).problems).toEqual(["`swt scan` found a held key value in the old runs; nothing was staged"]);
 		expect(stageLegacyRuns({ root, source: "v0-fixture", scan: () => ({ clean: null, files: 0 }) }).problems).toEqual([
@@ -107,6 +109,7 @@ describe("the staging of the old runs", () => {
 		expect(stageLegacyRuns({ root, source: "v0-none", scan: clean }).problems).toEqual(["the clone does not hold the old state v0-none"]);
 		expect(stageLegacyRuns({ root, source: "v0-fixture", base: "data/none", scan: clean }).problems).toEqual(["the clone holds no branch data/none"]);
 		expect(stageLegacyRuns({ root, source: "data/runs", scan: clean }).problems).toEqual(["the old state holds no `stories/<name>/runs/` and no `examples/`; nothing was staged"]);
+		expect(stageLegacyRuns({ root, source: "v0-fixture", scan: clean }).problems).toEqual([]);
 		expect(stageLegacyRuns({ root, source: "v0-fixture", base: STAGING_BRANCH, scan: clean }).problems).toEqual([`${STAGING_BRANCH} already holds a path of the staging under legacy/`]);
 	});
 });

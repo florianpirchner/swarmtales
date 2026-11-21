@@ -8,11 +8,12 @@
  * Memory is the resident memory of the process groups of all running gates together, sampled four times a second
  * through `ps`. A machine without `ps` cannot enforce the memory budget, so the check fails there (Windows is the one
  * exception: the budget is enforced by the workflow's runner). The gates that still run when the time budget ends are
- * stopped, so a hanging gate fails the check and does not hold it up; the first failed gate stops the others.
+ * stopped, so a hanging gate fails the check and does not hold it up; the first failed gate stops the others. The
+ * tests run in an order drawn from a seed of the head commit, which the summary names (M6-15).
  */
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { REPO_ROOT } from "./lib/files.ts";
-import { CHECK_BUDGET, GATES, groupMemoryMb, lanes, summary, failures, type Gate, type GateResult } from "./lib/check-run.ts";
+import { CHECK_BUDGET, GATES, groupMemoryMb, lanes, seeded, summary, failures, testSeed, type Gate, type GateResult } from "./lib/check-run.ts";
 
 const running = new Map<ChildProcess, { peakMb: number | undefined }>();
 let peakMb: number | undefined;
@@ -93,6 +94,10 @@ try {
 } catch {
 	// No `ps`: see below.
 }
+// The order of the tests comes from the head commit (M6-15, B3); the summary names the seed.
+const seed = testSeed(execFileSync("git", ["rev-parse", "HEAD"], { cwd: REPO_ROOT, encoding: "utf8" }));
+const gates = seeded(GATES, seed);
+console.log(`check: the tests run in the order of --sequence.seed=${String(seed)}, from the head commit`);
 const results: GateResult[] = [];
 const started = performance.now();
 const timer = setInterval(sampleMemory, 250);
@@ -103,11 +108,11 @@ const budget = setTimeout(() => {
 	stopAll();
 }, (CHECK_BUDGET.seconds + 1) * 1000);
 process.once("SIGINT", stopAll);
-if (measurable) await Promise.all(lanes(GATES).map((gates) => lane(gates, results)));
+if (measurable) await Promise.all(lanes(gates).map((list) => lane(list, results)));
 clearInterval(timer);
 clearTimeout(budget);
 if (!measurable) console.error("check: `ps` is missing, so the memory budget cannot be enforced; install procps");
 const order = (result: GateResult): number => GATES.findIndex((gate) => gate.name === result.name);
-const checked = { results: results.sort((left, right) => order(left) - order(right)), seconds: (performance.now() - started) / 1000, peakMb };
+const checked = { results: results.sort((left, right) => order(left) - order(right)), seconds: (performance.now() - started) / 1000, peakMb, seed };
 console.log(`\n${summary(checked)}`);
 process.exitCode = failures(checked).length === 0 ? 0 : 1;

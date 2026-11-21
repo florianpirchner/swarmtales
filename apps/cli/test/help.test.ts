@@ -3,7 +3,7 @@
  * `swt --help` from the table in `flags.ts`, the reference page beside it, a refused line of the Human Hand, a
  * `--snapshot-at` that writes nothing, and the fix texts of `SWT-X009` and `SWT-D002`.
  */
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,7 +56,10 @@ describe("swt --help", () => {
 		const run = await swt("run", "--help");
 		expect(run.out).toContain("  --snapshot-at <ticks>   write a snapshot after these numbers of finished ticks, a comma list");
 		expect(run.out).toContain("  3  the run is paused (the Human Hand has ended, `SWT-X009`, or `--pause-on`); a snapshot is written");
-		expect([await swt("run", GAME, "--help"), existsSync(join(cwd, "runs"))]).toEqual([run, false]);
+		// In a folder of its own, where no other test writes `runs` (M6-15): `--help` with a game file plays nothing.
+		const alone = join(cwd, "help-alone");
+		mkdirSync(alone, { recursive: true });
+		expect([await cli(alone)("run", GAME, "--help"), existsSync(join(alone, "runs"))]).toEqual([run, false]);
 		expect((await swt("scan", "--help")).out.at(-1)).toBe("  3  nothing was scanned: no key variable is set");
 	});
 

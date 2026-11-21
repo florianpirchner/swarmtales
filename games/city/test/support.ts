@@ -46,7 +46,9 @@ const Effective = Type.Object(
  * @param story - The story data of its setup: the shipped City, or the reduced City of the burn file.
  * @returns The game.
  */
-export const gameOf = (oracle: Oracle, story: CityData = CITY) => cityGameOf(story, Value.Parse(CityParams, Value.Default(CityParams, Value.Parse(Effective, oracle.setup.definition?.effective))));
+// `Value.Default` fills the defaults into the value it is given, so it gets a copy: the oracle a test read stays as
+// it was for the tests after it, in any order (M6-15).
+export const gameOf = (oracle: Oracle, story: CityData = CITY) => cityGameOf(story, Value.Parse(CityParams, Value.Default(CityParams, Value.Clone(Value.Parse(Effective, oracle.setup.definition?.effective)))));
 
 type Is = (entry: OracleEntry | undefined) => boolean;
 

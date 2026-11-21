@@ -73,7 +73,9 @@ describe("swt run with the run loop", () => {
 
 	it("gives a Director its driver: in a fake run it acts on its fallback, in a live run it asks the model of the run under the cost meter", async () => {
 		const herald = (run: string): readonly unknown[] => events(run).flatMap((event) => (event.actor === "director:herald" && /^(asked|answered|noted|request|response)$/.test(event.type) ? [[event.source.split("/").at(-1), event.type, event.payload]] : []));
-		expect(herald("paused/hand-001").slice(0, 3)).toMatchObject([["director", "asked", {}], ["director", "answered", { ok: false, fallback: true, reason: "error" }], ["humanHand", "noted", { line: "silence" }]]);
+		// A fake run of its own, so that this test does not read the folder of the test above (M6-15).
+		expect((await swt(["run", GAME, "--fake", "--out", "fallback", "--hand", hand("pause.jsonl", [{ at: 1, tool: "pause" }])])).code).toBe(3);
+		expect(herald("fallback/hand-001").slice(0, 3)).toMatchObject([["director", "asked", {}], ["director", "answered", { ok: false, fallback: true, reason: "error" }], ["humanHand", "noted", { line: "silence" }]]);
 		const source = scriptedSource({ "resident:A01": [say(), say(), say(), say()], "resident:A02": [act({ name: "guess", args: { value: 5 } }), say()], "director:herald": [say('{"line":"a guess"}')] });
 		const io: CliIo = { cwd, now: () => new Date("2026-11-14T12:00:00.000Z"), out: () => undefined, err: () => undefined };
 		const env = { ARENA_ANTHROPIC_API_KEY: `sk-${"k".repeat(37)}` };

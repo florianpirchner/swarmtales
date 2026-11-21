@@ -163,19 +163,21 @@ describe("swt experiment", () => {
 
 describe("swt report", () => {
 	it("writes REPORT.md with the computed facts, exits 1 on a folder that is no run and 4 when the folder holds a key value", async () => {
-		expect(await swt("report", "series/guess-number-001")).toEqual([0, "report: series/guess-number-001/REPORT.md", undefined]);
-		const text = lines("series/guess-number-001/REPORT.md");
+		// A series of its own, so that the report does not depend on the series of the test above (M6-15).
+		expect((await run("reported", { ...SPEC, budget: { ...SPEC.budget, totalUsd: 1 } })).code).toBe(0);
+		expect(await swt("report", "reported/guess-number-001")).toEqual([0, "report: reported/guess-number-001/REPORT.md", undefined]);
+		const text = lines("reported/guess-number-001/REPORT.md");
 		expect(text).toEqual(expect.arrayContaining(["# Run guess-number-001", expect.stringMatching(/^\| `run\.ticks` \| Ticks \| {2}\| \d+ \|$/), "| `models.costUsd` | Cost | USD | 0.003 |", LOOPHOLE_HEADING]));
 		expect(text.filter((line) => line.startsWith("metrics absent:") || line.startsWith("- Human-influenced"))).toEqual([]);
-		expect((await swt("report", "series/guess-number-002", "--game", fileURLToPath(import.meta.url)))[0]).toBe(0);
+		expect((await swt("report", "reported/guess-number-002", "--game", fileURLToPath(import.meta.url)))[0]).toBe(0);
 		// P444: without `--game`, a mechanic of the manifest that is not installed is named at the head of the facts table; the SDK's `roster` is no mechanic.
 		const { io } = terminal();
-		expect(await report({ directory: "series/guess-number-003" }, { ...io, installed: {} })).toBe(0);
-		const bare = lines("series/guess-number-003/REPORT.md");
+		expect(await report({ directory: "reported/guess-number-003" }, { ...io, installed: {} })).toBe(0);
+		const bare = lines("reported/guess-number-003/REPORT.md");
 		expect([bare.filter((line) => line.startsWith("metrics absent:")), bare[bare.indexOf("## Facts") + 2], bare.some((line) => line.startsWith("| `guess-number."))]).toEqual([["metrics absent: guess-number"], "metrics absent: guess-number", false]);
-		expect(await swt("report", "series")).toEqual([1, "", "SWT-E001"]);
-		writeFileSync(join(cwd, "series/guess-number-002/notes.txt"), `Authorization: ${KEY}`);
-		expect(await swt("report", "series/guess-number-002")).toEqual([4, "report: series/guess-number-002/REPORT.md", "SWT-X030"]);
-		expect(await swt("experiment", "analyse", "series")).toMatchObject([4, expect.any(String), "SWT-X030"]);
+		expect(await swt("report", "reported")).toEqual([1, "", "SWT-E001"]);
+		writeFileSync(join(cwd, "reported/guess-number-002/notes.txt"), `Authorization: ${KEY}`);
+		expect(await swt("report", "reported/guess-number-002")).toEqual([4, "report: reported/guess-number-002/REPORT.md", "SWT-X030"]);
+		expect(await swt("experiment", "analyse", "reported")).toMatchObject([4, expect.any(String), "SWT-X030"]);
 	});
 });

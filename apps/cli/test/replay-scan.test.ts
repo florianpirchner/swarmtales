@@ -129,7 +129,8 @@ describe("swt scan", () => {
 	});
 
 	it("scans nothing without a held key (exit 3) and refuses what is no folder", async () => {
-		const none = await scan({}, "data");
+		// The folder of the run played before all tests, not the one the test above writes (M6-15).
+		const none = await scan({}, "runs");
 		expect(none).toMatchObject({ code: 3, out: [] });
 		expect(none.err).toMatch(/^not scanned: none of the key variables is set/);
 		expect(await scan({ ARENA_ANTHROPIC_API_KEY: KEY }, "nowhere")).toMatchObject({ code: 1, issue: "SWT-C003" });

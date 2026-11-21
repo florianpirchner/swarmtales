@@ -4,7 +4,7 @@
  * with the pinned engine, the depth and every half-move of the log; a bad depth, a run of another game and a folder
  * that does not verify are refused.
  */
-import { appendFileSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { appendFileSync, cpSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,7 +44,9 @@ describe("swt analyse chess", () => {
 	}, 120_000);
 
 	it("gives the same files on a second analysis at the same depth", async () => {
+		// Each test makes what it reads (M6-15): the first analysis here, not the one of the test above.
 		const run = join(cwd, "runs/chess-001");
+		expect((await swt("analyse", "chess", "runs/chess-001", "--depth", "2")).code).toBe(0);
 		const first = readFileSync(join(run, "analysis.json"), "utf8");
 		expect((await swt("analyse", "chess", "runs/chess-001", "--depth", "2")).code).toBe(0);
 		expect(readFileSync(join(run, "analysis.json"), "utf8")).toBe(first);
@@ -59,7 +61,9 @@ describe("swt analyse chess", () => {
 
 	it("refuses a run of another game and a folder whose log does not verify with SWT-E006", async () => {
 		expect(await swt("analyse", "chess", "other/quarry-001")).toMatchObject({ code: 1, issue: "SWT-E006" });
-		appendFileSync(join(cwd, "runs/chess-001", EVENTS_FILE), "{}\n");
-		expect(await swt("analyse", "chess", "runs/chess-001", "--depth", "1")).toMatchObject({ code: 1, issue: "SWT-E006" });
+		// A copy is tampered, so that the run the other tests read stays whole in any order (M6-15).
+		cpSync(join(cwd, "runs/chess-001"), join(cwd, "tampered/chess-001"), { recursive: true });
+		appendFileSync(join(cwd, "tampered/chess-001", EVENTS_FILE), "{}\n");
+		expect(await swt("analyse", "chess", "tampered/chess-001", "--depth", "1")).toMatchObject({ code: 1, issue: "SWT-E006" });
 	});
 });

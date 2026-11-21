@@ -111,6 +111,8 @@ describe("loadPlugins: what it gives", () => {
 		expect([...loaded.tools.keys()]).toEqual(["pkg/a/look", "pkg/b/look"]);
 		expect(loaded.byShownName.get("see")?.map((entry) => entry.owner)).toEqual(["a", "b"]);
 		expect(loaded.limits.map((limit) => limit.id)).toEqual(["a.won"]);
+		// The tests of this suite share `order`: each one empties it before it records (M6-15).
+		order.length = 0;
 		for (const lock of loaded.stages("lock")) lock(CALL);
 		expect(order).toEqual(["a lock", "b lock"]);
 		expect(loaded.stages("rule")).toHaveLength(0);

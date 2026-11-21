@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { describe, expect, it } from "vitest";
 import { readText } from "./files.ts";
-import { CHECK_BUDGET, failures, GATES, groupMemoryMb, lanes, summary, type CheckRun, type GateResult } from "./check-run.ts";
+import { CHECK_BUDGET, failures, GATES, groupMemoryMb, lanes, seeded, summary, testSeed, type CheckRun, type GateResult } from "./check-run.ts";
 
 const passed = (peakMb = 100, seconds = 1): readonly GateResult[] => GATES.map((gate) => ({ name: gate.name, ok: true, seconds, peakMb }));
-const run = (results: readonly GateResult[], seconds = 1, peakMb: number | undefined = 100): CheckRun => ({ results, seconds, peakMb });
+const run = (results: readonly GateResult[], seconds = 1, peakMb: number | undefined = 100): CheckRun => ({ results, seconds, peakMb, seed: 1 });
 
 describe("pnpm check", () => {
 	it("has the decided budget: ten minutes and 6 GB", () => {
@@ -33,6 +33,15 @@ describe("pnpm check", () => {
 		expect(GATES.filter((gate) => gate.command[1] === "test").map((gate) => gate.command)).toEqual([["pnpm", "test", "--maxWorkers=2"]]);
 	});
 
+	it("shuffles the tests by a seed of the head commit and names the seed in the summary (M6-15, B3)", () => {
+		expect([testSeed("6b4954b2c0ffee"), testSeed("00000000\n"), testSeed("FFFFFFFF")]).toEqual([0x6b4954b2, 0, 4_294_967_295]);
+		for (const bad of ["", "6b4954b", "HEAD", "zz4954b2"]) expect(() => testSeed(bad), bad).toThrow(RangeError);
+		const gates = seeded(GATES, 42);
+		expect(gates.filter((gate) => gate.command[1] === "test").map((gate) => gate.command)).toEqual([["pnpm", "test", "--maxWorkers=2", "--sequence.shuffle.tests", "--sequence.seed=42"]]);
+		expect(gates.filter((gate) => gate.command[1] !== "test")).toEqual(GATES.filter((gate) => gate.command[1] !== "test"));
+		expect(summary({ ...run(passed()), seed: 42 }).split("\n").at(-2)).toMatch(/; tests in the order of --sequence\.seed=42\.$/);
+	});
+
 	it("sums the memory of one process group", () => {
 		const ps = "  100  2048\n  100 1024\n  200 4096\n\n";
 		expect(groupMemoryMb(ps, 100)).toBe(3);
@@ -42,7 +51,7 @@ describe("pnpm check", () => {
 	it("is green when every gate passes inside the budget", () => {
 		expect(failures(run(passed()))).toEqual([]);
 		expect(summary(run(passed()))).toContain("pnpm check: green");
-		expect(summary({ results: passed(), seconds: 1, peakMb: undefined })).toContain("peak memory not measured");
+		expect(summary({ results: passed(), seconds: 1, peakMb: undefined, seed: 1 })).toContain("peak memory not measured");
 	});
 
 	it("fails on a failed gate, a gate that did not run, and a crossed budget of the whole", () => {
