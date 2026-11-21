@@ -210,3 +210,16 @@ residents `claude-haiku-5-5` via Anthropic (thinking medium, output cap 16000), 
 
 The folder verifies (`swt log verify`), replays equal (`swt replay --game`), and the leak scan (`swt scan`) found no
 held key value.
+
+## M6 live check of B2 in Whispers (2026-11-21, issue M6-26)
+
+Run 4 of `docs/RERUN-PLAN-M6.md`: code commit `8714c7d3`, runtime revision 8, `kernel.dirty: false`, Node 22.23.4,
+every actor `claude-haiku-5-5` via Anthropic (residents thinking low, gamemaker by `--director-model`), pricing
+`pi-ai@1.4.0`, by `games/m6-ledger.jsonl` (M6 cap 2.34 USD). The folder has its own `README.md`.
+
+| Run | Seed | Cost (USD) | End | Result |
+|---|---:|---:|---|---|
+| `whispers/smoke/whispers-001-r8` | 11 | 0.2264 | tick limit (45) | B2 holds: 24 of 24 guard reviews answered by the tool `verdict`, none unreadable (r6 16 of 47, r7 2 of 19). The city stalled at door 1: three residents passed by minute 2, the other three held all six pieces from minute 3 and never submitted (P499); the gamemaker demanded fragments already sent (P500); Ember (A04) wins with 50 on four popularity votes; no loophole |
+
+The folder verifies (`swt log verify`), replays equal (`swt replay --game`), and the leak scan (`swt scan`) found no
+held key value.
