@@ -1,3 +1,5 @@
 {"capUsd":2.34}
 {"run":"exploratory/tictactoe-001","id":"02734af6-6a48-42bb-ae56-898c5aa030d7","reservedUsd":0.3,"at":"2026-11-16T20:48:29.389Z"}
 {"run":"exploratory/tictactoe-001","id":"02734af6-6a48-42bb-ae56-898c5aa030d7","costUsd":0.07852168999999995,"at":"2026-11-16T20:59:47.825Z"}
+{"run":"smoke/whispers-001","id":"406f26e6-08e5-4d1a-aab8-518ae3351556","reservedUsd":1,"at":"2026-11-21T15:40:23.535Z"}
+{"run":"smoke/whispers-001","id":"406f26e6-08e5-4d1a-aab8-518ae3351556","costUsd":0.22642235999999985,"at":"2026-11-21T15:53:24.727Z"}
