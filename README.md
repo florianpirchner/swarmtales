@@ -223,3 +223,20 @@ every actor `claude-haiku-5-5` via Anthropic (residents thinking low, gamemaker 
 
 The folder verifies (`swt log verify`), replays equal (`swt replay --game`), and the leak scan (`swt scan`) found no
 held key value.
+
+## M6 release smoke from the packed install (2026-11-21, issue M6-25)
+
+Runs 2 and 3 of `docs/RERUN-PLAN-M6.md`, played in a project outside the work tree that installed the packed release
+candidate of code commit `5e49fb93` (`swarmtales` 1.0.0 and `@swarmtales/mechanic-grid` 0.1.0 from their tarballs,
+through the installed `swt`, built `dist`), runtime revision 8, Node 22.23.4, `claude-haiku-5-5` via Anthropic
+(thinking medium), pricing `pi-ai@1.4.0`, by `games/m6-ledger.jsonl` (M6 cap 2.34 USD). The manifest has no
+`kernel.commit` or `kernel.dirty`: the installed CLI is in no git checkout (P502). `hello/release/README.md` holds
+both runs.
+
+| Run | Seed | Cost (USD) | End | Result |
+|---|---:|---:|---|---|
+| `hello/release/doctor-online.json` | | 0.0000021 | | `swt doctor --online --provider anthropic`: nine `ok`; the estimate before the request; Haiku answered (16 input, 1 output token) |
+| `hello/release/hello-game-001` | 1 | 0.0019 | tick limit (12) | 8 of 9 moves, the same as the M2 and M4 smokes; tally 0, 0, 0 (P445); problems P502 and P503 new; no loophole |
+
+The folder verifies (`swt log verify`), replays equal (`swt replay --game`), both with the installed `swt`, and the
+leak scan (`swt scan`) found no held key value.
