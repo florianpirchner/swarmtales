@@ -9,10 +9,12 @@ Seventeen games run on the new platform today, fifteen of them ports of the game
 
 <!-- /generated:status -->
 
-Each game is played in its tests by a scripted or sampled player in place of a model. The first live runs on this
-platform are those of the gate of milestone M2 ([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding
-or a recorded moment yet:** a finding appears on a card only when it is reproduced on this platform, with n,
-standard error and a link.
+Each game is played in its tests by a scripted or sampled player in place of a model, offline. Every game here has
+at least one recorded live run on this platform, listed in the runs index beside it (`games/<name>/RUNS.md`); the
+last to get one was tic-tac-toe teams (`games/tictactoe`), its baseline of 1.0 ([runs](games/tictactoe/RUNS.md)).
+The four effects reproduced so far are on the [`README.md`](README.md) and in [`docs/FINDINGS.md`](docs/FINDINGS.md).
+**No card carries a finding or a recorded moment yet:** a finding appears on a card only when it is reproduced on
+this platform, with n, standard error and a link.
 
 A new game adds a card here, never a line to the [`README.md`](README.md), and its facts to
 [`scripts/game-docs/catalogue.ts`](scripts/game-docs/catalogue.ts); `pnpm docs:games` writes the generated blocks.
@@ -74,7 +76,7 @@ report; residents never see it.
   control arm), a brain for one team only, one resident per side, one side alone against a team, a fixed captain.
 - Proof: the nine oracle files match at level 3; the briefings are byte-identical to the old platform.
 - Links: [folder](games/tictactoe/), [README](games/tictactoe/README.md),
-  [oracle files](oracles/tictactoe/).
+  [oracle files](oracles/tictactoe/), [runs](games/tictactoe/RUNS.md).
 
 ## Quarry
 

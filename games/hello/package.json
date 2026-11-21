@@ -10,7 +10,7 @@
 		"layer": "L6"
 	},
 	"dependencies": {
-		"@swarmtales/sdk": "workspace:*",
+		"swarmtales": "workspace:*",
 		"@swarmtales/mechanic-grid": "workspace:*"
 	},
 	"devDependencies": {

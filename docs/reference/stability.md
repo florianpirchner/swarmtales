@@ -1,10 +1,30 @@
 # Stability of the API
 
 From the merge of the gate of milestone M5 (issue M5-57) until 1.0 is tagged, the public surface of Swarm Tales is
-frozen (decision A60). After 1.0, semantic versioning takes over. This page says what is frozen, what may still be
-added, and how a break is asked for. The record of every change is [`../API-FREEZE.md`](../API-FREEZE.md).
+frozen (decision A60). From 1.0, semantic versions take over, on two version lines. This page says what the two lines
+promise, what is frozen until 1.0, what may still be added, and how a break is asked for. The record of every change
+is [`../API-FREEZE.md`](../API-FREEZE.md).
 
-## What is frozen
+## From 1.0: semantic versions on two lines
+
+Every published package belongs to one of two version lines (decision A123); the list is
+`scripts/release/packages.json`, and `pnpm release:version <platform> <plugins>` writes both lines at once.
+
+| Line | Packages | At 1.0 | What a version promises |
+|---|---|---|---|
+| platform | `swarmtales` (with the command `swt`), `@swarmtales/cli`, `contracts`, `kernel`, `sdk`, `engine`, `chain`, `prompts`, `runlog`, `testkit`, `models`, `lab`, the base mechanics and `@swarmtales/mechanic-contracts` | `1.0.0` | semantic versions: a patch fixes, a minor adds (the additions of this page), only a major breaks. All packages of the line move in step, so one version names the whole platform |
+| plugins | every other mechanic under `mechanics/` (the game mechanics) and `@swarmtales/city-directors` | `0.1.0` | a `0.x` line: a minor may break, a patch fixes. Its version stays below the platform's; all its packages move in step |
+
+What the platform line's versions hold is the surface of the next section: the API reports, the formats, the command
+line and the error codes. `@swarmtales/lab` is on the platform line because the command line needs it, but it
+carries no promise of its own (it is a tool of this repository, below). The games, the samples and the viewer are not
+published.
+
+A project installs `swarmtales` alone for the builder and `swt` (not `@swarmtales/cli` beside it, which declares the
+same command) and adds the mechanic packages its games load. `swt doctor` says whether the installed packages of each
+line are in step.
+
+## What is frozen until 1.0
 
 | Surface | Frozen as |
 |---|---|
@@ -20,8 +40,8 @@ The frozen list is `scripts/api-freeze/frozen.json`; a gate of `pnpm check` hold
 ## What is not frozen
 
 - `@swarmtales/lab`, `viewer-core` and `viewer-ui`: tools of this repository; no author codes against them.
-- The game mechanics, `marks` and `names` among them: original games are renamed at M6, and the contract of a game
-  mechanic has its game as its only user.
+- The game mechanics, `marks` and `names` among them (the plugins line above): original games were renamed at M6
+  (`grid`, `quarry`, `lanterns` and the others), and the contract of a game mechanic has its game as its only user.
 - An export tagged `@internal`: it is no API, even where a package exports it, and it may change or go. Code outside
   its package does not import it.
 - The wording of help texts, and the texts of why and fix of an error.
@@ -32,8 +52,10 @@ The frozen list is `scripts/api-freeze/frozen.json`; a gate of `pnpm check` hold
 
 A change that only adds lines to a frozen report or schema is an addition: a new export, a new optional field of a
 format, a new hook point, a new option that has no effect when it is left out. It comes by an issue of kind
-`interface-change` that names its decision row in `DECISIONS.md`. A fix of a TSDoc text changes the report too; it is
-an addition "docs only" under decision A60.
+`interface-change` that names its decision row in `DECISIONS.md`. An API report holds the declarations and their
+release tags, not the TSDoc text, so a fix of a TSDoc text leaves the report as it is and the gate sees nothing; it is
+recorded as a row "addition: docs only" all the same, and the challenger, not the gate, checks it. A changed comment
+or `description` line of a frozen report or schema is such an addition too.
 
 The gate, not the builder, decides what a change is: it compares the text now with the text at the row's `base`
 commit. A removed or changed line is a break; only added lines are an addition.

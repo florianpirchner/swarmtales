@@ -11,5 +11,5 @@ equal, plays the game with the fake driver and runs `swt run --fake` on it.
 node --conditions development apps/cli/src/bin.ts run games/hello/game.ts --fake
 ```
 
-The command prints one warning `SWT-C010` on its error output: `viewBoard` of `grid` has no `sample`, so the
-fake driver never calls it and moves without looking. The run still plays.
+The game takes its builder `defineGame` from `swarmtales`, the one package a game needs, and its mechanic from the
+mechanic's own package. The command prints the end of the run and its result, and nothing on its error output.

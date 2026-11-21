@@ -15,7 +15,7 @@ Sample 1, the Hello Game, is tic-tac-toe between two residents
 
 ```ts
 import { gridGame } from "@swarmtales/mechanic-grid";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame } from "swarmtales";
 
 export default defineGame({
 	id: "hello-game",
@@ -28,11 +28,11 @@ export default defineGame({
 });
 ```
 
-`defineGame` takes the whole game as data. `residents` names the players; `mechanics` lists the rules, here one,
-`grid`, which holds the board, gives the residents the tools to look at it and to move, and says who is on move. The
-scheduler `turns` with the activation `toAct` wakes only the resident the mechanic names, so every activation is one
-move. `end` is a tick limit, `win` the fact whose value is the result line, and `model` the model every resident
-plays on.
+`defineGame` comes from `swarmtales`, the one package a game needs, and takes the whole game as data. `residents`
+names the players; `mechanics` lists the rules, here one, `grid`, which holds the board, gives the residents the
+tools to look at it and to move, and says who is on move. The scheduler `turns` with the activation `toAct` wakes
+only the resident the mechanic names, so every activation is one move. `end` is a tick limit, `win` the fact whose
+value is the result line, and `model` the model every resident plays on.
 
 From the root of the repository, the fake model plays it: seeded legal calls, no model, no key, no cost
 ([`games/hello/README.md`](../../games/hello/README.md)):
@@ -48,7 +48,7 @@ result.
 
 Sample 2 makes it team tic-tac-toe: four residents in two teams, each team talks in its own channel, and the captain
 of the turn may play only the cell the team voted for. Three shipped mechanics make it, each from its own package,
-and the builder comes from `swarmtales`, the one package a game needs
+and the builder comes from `swarmtales`, as in sample 1
 ([`samples/team-game/game.ts`](../../samples/team-game/game.ts)):
 
 ```ts

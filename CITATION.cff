@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use Swarm Tales or a run recorded with it, please cite it as below; cite a line of a run's log by its #seq."
+type: software
+title: "Swarm Tales"
+abstract: "A laboratory for AI agents: games and societies on one engine, every word and every private thought on record. A run has a seeded world and a signed, hash-chained log, so it can be cited line by line."
+authors:
+  - family-names: Pirchner
+    given-names: Florian
+version: "1.0.0"
+repository-code: "https://github.com/florianpirchner/swarmtales"
+keywords:
+  - language model agents
+  - multi-agent simulation
+  - games
+  - reproducibility

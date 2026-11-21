@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 import { gridGame } from "@swarmtales/mechanic-grid";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame } from "swarmtales";
 
 export default defineGame({
 	id: "hello-game",

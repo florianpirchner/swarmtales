@@ -14,7 +14,7 @@
 	],
 	"references": [
 		{
-			"path": "../../packages/sdk"
+			"path": "../../packages/swarmtales"
 		},
 		{
 			"path": "../../mechanics/grid"

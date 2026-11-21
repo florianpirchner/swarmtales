@@ -420,9 +420,9 @@ importers:
       '@swarmtales/mechanic-grid':
         specifier: workspace:*
         version: link:../../mechanics/grid
-      '@swarmtales/sdk':
+      swarmtales:
         specifier: workspace:*
-        version: link:../../packages/sdk
+        version: link:../../packages/swarmtales
     devDependencies:
       '@swarmtales/testkit':
         specifier: workspace:*

@@ -7,7 +7,6 @@ export const CARRIED_DOCS = [
 	"docs/refactoring-before-release/",
 	"docs/LESSONS-LEARNED.md",
 	"docs/FINDINGS.md",
-	"docs/RELATED-WORK.md",
 	"docs/RUNTIME-REVISIONS.md",
 	"docs/ideas/",
 	"docs/history/",
