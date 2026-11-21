@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
+/**
+ * The Director `herald`, a published plugin as JavaScript ships it: woken when the beacon is lit, it says one line
+ * through the tool `note` of `beacon`. Under the fake model it acts on its fallback.
+ */
+import { defineDirector } from "@swarmtales/sdk";
+import { Type } from "typebox";
+
+const Answer = Type.Object({ line: Type.String({ minLength: 1, description: "One line." }) }, { additionalProperties: false, description: "The herald's answer" });
+
+/** The herald. */
+export const herald = defineDirector(
+	{ id: "herald", summary: "Says one line when the beacon is lit.", on: [{ event: "beacon.lit" }], output: Answer, limits: { maxCalls: 2 } },
+	{
+		system: () => 'You are the herald. Answer with JSON: { "line": string }.',
+		input: (ctx) => `Tick ${String(ctx.tick)}: the beacon is lit.`,
+		act: async (answer, ctx) => {
+			await ctx.call("note", { line: answer.line });
+		},
+		fallback: () => ({ line: "The beacon is lit." }),
+	},
+);

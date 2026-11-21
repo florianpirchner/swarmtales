@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
+# The game of game.ts in its data form: it names the installed mechanic and Director by id (A121).
+schema: 1
+id: outside-beacon-data
+seed: 2
+residents: 2
+mechanics:
+  - use: beacon
+directors:
+  - use: herald
+grants: { resident: [light], herald: [note] }
+scheduler: { id: turns, options: { afterBlocks: [director] } }
+end:
+  ticks: 3

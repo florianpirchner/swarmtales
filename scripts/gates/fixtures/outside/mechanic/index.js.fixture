@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
+/**
+ * The mechanic `beacon`, a published plugin as JavaScript ships it (Node strips no types under `node_modules`): each
+ * resident lights the beacon once; the tool `note` is for the Director `herald`. Under the option `plant` the hook of
+ * a new tick calls the service `hidden`, which the head does not declare: the run-time check refuses it (A37).
+ */
+import { defineHead, defineMechanic, defineService, reply } from "@swarmtales/sdk";
+import { Type } from "typebox";
+
+const query = { kind: "query", summary: "A count.", input: Type.Object({}), output: Type.Integer() };
+const hidden = defineService({ name: "hidden", summary: "A service the head of beacon does not declare.", methods: { count: query } });
+const Lit = Type.Object({ by: Type.String({ description: "Who lit it." }) }, { additionalProperties: false, description: "The beacon was lit." });
+const Noted = Type.Object({ line: Type.String({ description: "The line." }) }, { additionalProperties: false, description: "The herald said a line." });
+
+const head = defineHead({
+	id: "beacon",
+	package: "@outside/mechanic-beacon",
+	summary: "Each resident lights the beacon once.",
+	options: Type.Object({ plant: Type.Boolean({ default: false, description: "Call the undeclared service `hidden` at every tick." }) }, { description: "The options of beacon." }),
+	state: Type.Object({ lit: Type.Array(Type.String(), { description: "Who lit it, in order." }) }, { additionalProperties: false, description: "The state of beacon." }),
+	start: () => ({ lit: [] }),
+	events: { lit: Lit, noted: Noted },
+	tools: {
+		light: { description: "Light the beacon. You light it once.", params: Type.Object({}, { description: "No arguments." }), for: ["resident"] },
+		note: { description: "Say one line.", params: Type.Object({ line: Type.String({ description: "The line." }) }, { description: "The arguments of note." }), for: ["herald"] },
+	},
+});
+
+/** The mechanic `beacon`. */
+export const beacon = defineMechanic(head, {
+	tools: {
+		light: {
+			sample: (ctx) => (ctx.state.lit.includes(ctx.resident) ? undefined : {}),
+			run: (_params, ctx) => {
+				ctx.state.lit.push(ctx.resident);
+				ctx.emit("lit", { by: ctx.resident });
+				return reply("The beacon burns.", { endsTurn: true });
+			},
+		},
+		note: {
+			run: ({ line }, ctx) => {
+				ctx.emit("noted", { line });
+				return reply("Noted.");
+			},
+		},
+	},
+	hooks: {
+		tickStarted: (ctx) => {
+			if (ctx.options.plant) ctx.call(hidden, "count", {});
+		},
+	},
+});

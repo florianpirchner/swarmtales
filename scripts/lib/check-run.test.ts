@@ -19,13 +19,16 @@ describe("pnpm check", () => {
 		expect(scripts).toContain('"check":"node scripts/check.ts"');
 		// The API reports read the build only, so they need no order of the packages (M5-103).
 		expect(scripts).toContain('"api":"pnpm -r --no-sort api"');
+		// The packed-install gate runs alone, after the build; the tests' glob leaves it out (13-m6-spec.md 2.2).
+		expect(scripts).toContain('"check:pack":"vitest --run scripts/gates/packed-install.test.ts"');
+		expect(readText("vitest.config.ts")).toContain('const PACKED_INSTALL = "scripts/gates/packed-install.test.ts";');
 	});
 
-	it("runs every gate once, and the build and the API reports after the typecheck in the same lane", () => {
+	it("runs every gate once, and the build, the packed install and the API reports after the typecheck in the same lane", () => {
 		const byLane = lanes(GATES);
 		expect(byLane.flat().map((gate) => gate.name).sort()).toEqual(GATES.map((gate) => gate.name).sort());
 		const types = byLane.find((gates) => gates.some((gate) => gate.name === "build")) ?? [];
-		expect(types.map((gate) => gate.command.join(" "))).toEqual(["pnpm lint", "pnpm build", "pnpm api"]);
+		expect(types.map((gate) => gate.command.join(" "))).toEqual(["pnpm lint", "pnpm build", "pnpm check:pack", "pnpm api"]);
 		expect(lanes([{ name: "b", command: [], lane: 2 }, { name: "a", command: [], lane: 0 }, { name: "c", command: [], lane: 2 }]).map((gates) => gates.map((gate) => gate.name))).toEqual([["a"], ["b", "c"]]);
 	});
 

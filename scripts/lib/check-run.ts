@@ -22,7 +22,8 @@ export interface Gate {
  * third, on two Vitest workers (decision A112 had three while every file loaded the workspace again; M5-103: a worker
  * keeps its modules from one file to the next, so two workers end with lane 0 and leave the 6 GB to lint's workers;
  * the command-line standing parts run their commands in child processes, so a long run does not hold a worker past
- * Vitest's RPC timeout; `vitest.config.ts`). The first failure stops the check.
+ * Vitest's RPC timeout; `vitest.config.ts`). The packed-install gate packs what the build wrote, so it follows the build
+ * in lane 0 (`13-m6-spec.md` 2.2, M6-08). The first failure stops the check.
  */
 export const GATES: readonly Gate[] = [
 	{ name: "typecheck and lint (tsc -b per project, limits, TSDoc, 4 GB heap)", command: ["pnpm", "lint"], lane: 0 },
@@ -31,6 +32,8 @@ export const GATES: readonly Gate[] = [
 	{ name: "sign-off check", command: ["pnpm", "check:signoff"], lane: 1 },
 	{ name: "tests (budgets, words, English, README, names, exceptions, workspace shape)", command: ["pnpm", "test", "--maxWorkers=2"], lane: 2 },
 	{ name: "build", command: ["pnpm", "build"], lane: 0 },
+	// The packed-install gate packs the build, so it runs after it in its lane; `pnpm test` does not collect it (M6-08).
+	{ name: "packed install (pack, offline install, plays outside the repository)", command: ["pnpm", "check:pack"], lane: 0 },
 	{ name: "API reports", command: ["pnpm", "api"], lane: 0 },
 ];
 

@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: LicenseRef-SUL-1.0
+// A game file of a project outside the repository: it imports an installed mechanic and an installed Director.
+import { herald } from "@outside/director-herald";
+import { beacon } from "@outside/mechanic-beacon";
+import { defineGame } from "@swarmtales/sdk";
+
+export default defineGame({
+	id: "outside-beacon",
+	seed: 2,
+	residents: 2,
+	mechanics: [beacon()],
+	directors: [{ use: herald }],
+	grants: { resident: ["light"], herald: ["note"] },
+	scheduler: { id: "turns", options: { afterBlocks: ["director"] } },
+	end: { ticks: 3 },
+	model: "anthropic/haiku",
+});

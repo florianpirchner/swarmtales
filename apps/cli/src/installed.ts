@@ -5,7 +5,7 @@
  * game file) and of the command line's own, which names the exports of a package that are mechanic definitions
  * (`mechanics`) and Director definitions (`directors`). Nobody writes the table by hand (decision A121).
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { SwtError, type SwtIssue } from "@swarmtales/contracts";
@@ -266,4 +266,45 @@ function nearestPackage(directory: string): string | undefined {
 export function packageFilesFor(directory: string, own: string): readonly string[] {
 	const nearest = nearestPackage(directory);
 	return nearest === undefined || nearest === own ? [own] : [nearest, own];
+}
+
+/**
+ * The prompt folders of the installed packages, as `mechanicPromptFolders` of the prompts package lists those of a
+ * clone: a dependency that ships a `prompts/` folder serves every owner it holds a folder `prompts/<owner>/` for. An
+ * installed tree has no `mechanics/` folder above the prompts package, so without this list the lookup finds no
+ * prompt file of an installed mechanic (errata K36). A package file that cannot be read lends no folder.
+ *
+ * @param packageFiles - The absolute paths of the `package.json` files whose dependencies are read, the project's first.
+ * @returns Owner id to the folder that holds its prompt files; the first package that serves an owner wins.
+ *
+ * @public
+ */
+export function installedPromptFolders(packageFiles: readonly string[]): Readonly<Record<string, string>> {
+	const folders: Record<string, string> = {};
+	for (const file of new Set(packageFiles)) {
+		for (const prompts of dependencyPromptFolders(file)) {
+			for (const entry of readdirSync(prompts, { withFileTypes: true })) if (entry.isDirectory()) folders[entry.name] ??= prompts;
+		}
+	}
+	return folders;
+}
+
+/**
+ * The `prompts/` folders of the dependencies of one `package.json` that ship one.
+ *
+ * @param file - The `package.json`.
+ * @returns The folders, in the order of the dependencies; none when the file cannot be read.
+ */
+function dependencyPromptFolders(file: string): readonly string[] {
+	let names: readonly string[] = [];
+	try {
+		names = Object.keys(manifest(file).dependencies ?? {});
+	} catch {
+		// A broken package file is reported where the installed table reads it, not here.
+	}
+	return names.flatMap((name) => {
+		const found = manifestOf(name, dirname(file));
+		const prompts = found === undefined ? "" : join(dirname(found), "prompts");
+		return prompts !== "" && existsSync(prompts) ? [prompts] : [];
+	});
 }

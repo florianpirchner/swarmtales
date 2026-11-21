@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
+# The planted call: beacon's hook calls a service its head does not declare, which the run refuses (A37, SWT-M026).
+schema: 1
+id: outside-planted
+seed: 2
+residents: 2
+mechanics:
+  - use: beacon
+    options: { plant: true }
+grants: { resident: [light] }
+end:
+  ticks: 3

@@ -6,6 +6,13 @@ import { defineConfig } from "vitest/config";
 /** `--sequence.shuffle.tests` on the command line: the tests inside each file are shuffled, the files are not. */
 const TESTS_ONLY = process.argv.some((arg) => arg === "--sequence.shuffle.tests" || arg.startsWith("--sequence.shuffle.tests="));
 
+/**
+ * The packed-install gate (M6-08) packs what the build wrote, so the tests' lane, which does not wait for the build,
+ * leaves it out; `pnpm check:pack` names it on the command line and runs it alone after the build (`13-m6-spec.md` 2.2).
+ */
+const PACKED_INSTALL = "scripts/gates/packed-install.test.ts";
+const PACKED_ALONE = process.argv.some((arg) => arg.endsWith(PACKED_INSTALL));
+
 /** The standing checks play a game again and again: the longest test files. */
 const STANDING = /\/test\/standing(-[a-z]+)?\.test\.ts$/;
 
@@ -59,7 +66,7 @@ export default defineConfig({
 	ssr: { resolve: { conditions: ["development"] } },
 	test: {
 		include: ["{packages,mechanics,games,samples,apps}/*/{src,test}/**/*.test.ts", "scripts/**/*.test.ts"],
-		exclude: ["**/node_modules/**", "**/dist/**"],
+		exclude: ["**/node_modules/**", "**/dist/**", ...(PACKED_ALONE ? [] : [PACKED_INSTALL])],
 		testTimeout: 30_000,
 		maxWorkers: "50%",
 		// A worker keeps its modules from one file to the next (M5-103): most of the collect time was every file

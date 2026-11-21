@@ -17,6 +17,7 @@
 		"check:licences": "node scripts/check-licences.ts --check",
 		"licences:write": "node scripts/check-licences.ts --write",
 		"check:signoff": "node scripts/check-signoff.ts",
+		"check:pack": "vitest --run scripts/gates/packed-install.test.ts",
 		"build": "pnpm -r build",
 		"api": "pnpm -r --no-sort api",
 		"api:update": "pnpm -r --no-sort api:update",

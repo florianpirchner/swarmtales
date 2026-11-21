@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { formatIssue, SwtError, type ActorDriver, type DriverTable, type EventSink, type Kernel, type PromptLookup, type RecordSource, type ResumeInput, type RunEnd, type SwtIssue } from "@swarmtales/contracts";
 import { createDirectorDrivers, createReviewPort, DIRECTOR_RECORDS, REVIEW_RECORDS, turns, type ManifestRun } from "@swarmtales/engine";
 import { createKernel, RUNTIME_REVISION } from "@swarmtales/kernel";
-import { createPromptLookup } from "@swarmtales/prompts";
+import { createPromptLookup, mechanicPromptFolders } from "@swarmtales/prompts";
 import { briefingKey, nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunFolderOptions, type RunVerdict } from "@swarmtales/runlog";
 import { scriptedAsker } from "@swarmtales/models";
 import { definitionsOf, isGameFamily, resolveGame, RESIDENT_KIND, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
@@ -20,7 +20,7 @@ import { loopOf, pauseEvent, runManifest, type LoopOptions } from "./assembly.ts
 import { toolWithoutSample } from "./errors.ts";
 import type { PauseOn } from "./flags.ts";
 import { handEnded, handOf } from "./hand.ts";
-import { installedPackages, packageFilesFor, type InstalledPackages } from "./installed.ts";
+import { installedPackages, installedPromptFolders, packageFilesFor, type InstalledPackages } from "./installed.ts";
 import { loadGame } from "./load-game.ts";
 import { runLoop, type HandSource, type LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
@@ -96,7 +96,9 @@ export async function resolveFile(input: Pick<RunInput, "file" | "seed" | "param
 	const table = loaded.type === "module" ? undefined : await tableOf(loaded.file, io);
 	const installed = table?.mechanics;
 	const folder = join(dirname(loaded.file), "prompts");
-	const texts = createPromptLookup(existsSync(folder) ? { game: folder } : {});
+	// The prompt folders of the installed mechanics, under those of a clone's `mechanics/` (errata K36, M6-08).
+	const mechanics = { ...installedPromptFolders(packageFilesFor(dirname(loaded.file), PACKAGE_FILE)), ...mechanicPromptFolders() };
+	const texts = createPromptLookup({ mechanics, ...(existsSync(folder) ? { game: folder } : {}) });
 	const game = resolveGame({
 		game: loaded.game,
 		schedulers: { turns },
