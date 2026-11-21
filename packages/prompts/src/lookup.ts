@@ -79,14 +79,13 @@ export function createPromptLookup(options: PromptLookupOptions = {}): LayeredPr
 	const load = (owner: string, id: string, declared: readonly string[]): PromptFile => {
 		const path = pathOf(owner, id);
 		if (path === undefined) throw noFile(owner, id);
-		const cached = cache.get(path);
-		if (cached !== undefined) return cached;
-		const file = parsePromptFile(readFileSync(path, "utf8"), path);
+		const file = cache.get(path) ?? parsePromptFile(readFileSync(path, "utf8"), path);
 		if (file.id !== id) throw wrongId(path, file.id, id);
+		cache.set(path, file);
+		// Every owner's declaration is checked, not only the first reader's: the cache saves the read, not the check.
 		if (file.variables.length !== declared.length || !declared.every((name) => file.variables.includes(name))) {
 			throw variablesDiffer(path, file.variables, owner, declared);
 		}
-		cache.set(path, file);
 		return file;
 	};
 	return {

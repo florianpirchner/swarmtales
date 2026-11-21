@@ -40,4 +40,22 @@ describe("the layered prompt lookup", () => {
 		expect(() => lookup.render("m", "m/hello", { name: "A01" }, ["name", "extra"])).toThrow(/declares variables/);
 		expect(() => lookup.render("other", "m/only", {}, [])).toThrow(PromptError);
 	});
+
+	it("checks the declared variables of every owner, also after another owner read the file (M6-33)", () => {
+		const shared = folder({ "s/greet": "hi {{name}}" });
+		const lookup = createPromptLookup({ library: shared });
+		expect(lookup.render("first", "s/greet", { name: "A01" }, ["name"])).toBe("hi A01");
+		expect(() => lookup.render("second", "s/greet", { name: "A02", extra: "x" }, ["name", "extra"])).toThrow(/SWT-P013/);
+		expect(() => lookup.render("third", "s/greet", {}, [])).toThrow(/SWT-P013/);
+		expect(lookup.render("first", "s/greet", { name: "A03" }, ["name"])).toBe("hi A03");
+	});
+
+	it("reads a file once, whatever owners ask for it (M6-33)", () => {
+		const shared = folder({ "s/once": "once {{name}}" });
+		const lookup = createPromptLookup({ library: shared });
+		expect(lookup.render("first", "s/once", { name: "A01" }, ["name"])).toBe("once A01");
+		writeFileSync(join(shared, "s", "once.md"), "---\nid: s/once\nvariables: name\n---\nchanged {{name}}\n");
+		expect(() => lookup.render("second", "s/once", {}, [])).toThrow(/SWT-P013/);
+		expect(lookup.render("third", "s/once", { name: "A02" }, ["name"])).toBe("once A02");
+	});
 });
