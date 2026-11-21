@@ -7,13 +7,13 @@ import { countFor, minimalRaise, type Bid, type Rules } from "../src/rules.ts";
 
 export const WILD: Rules = { faces: 6, wildOnes: true };
 
-/** The table of the old game file: the decision tools locked, six passes a tick, 14 calls a tick, in roster order. */
-export function diceGame(options: Parameters<typeof liarsDice>[0] = {}, seats = 4): Game {
+/** The table of the old game file: the decision tools locked, six passes a tick, 14 calls a tick, in roster order (`roster`, A01 to A0n when left out). */
+export function diceGame(options: Parameters<typeof liarsDice>[0] = {}, seats = 4, roster?: readonly string[]): Game {
 	const { games = 3, dice = 4 } = options;
 	return defineGame({
 		id: "liars-dice-test",
 		seed: 53,
-		residents: Array.from({ length: seats }, (_, index) => `A${String(index + 1).padStart(2, "0")}`),
+		residents: [...(roster ?? Array.from({ length: seats }, (_, index) => `A${String(index + 1).padStart(2, "0")}`))],
 		mechanics: [liarsDice({ placePoints: Array.from({ length: seats }, (_, index) => seats - 1 - index), deadline: 2, ...options })],
 		locked: ["bid", "liar"],
 		scheduler: { id: "turns", options: { passes: 6, activation: "onNews", order: "roster" } },

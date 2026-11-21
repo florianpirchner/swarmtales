@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { defineGame, defineHead, defineMechanic, reply, type Game } from "@swarmtales/sdk";
-import { checkOptionsDocumented, checkPackage, fakeDriver, testKernel, type TestKernel } from "@swarmtales/testkit";
+import { checkOptionsDocumented, checkPackage, checkReplay, checkResumeEveryBoundary, fakeDriver, scriptedDriver, testKernel, type TestKernel } from "@swarmtales/testkit";
 import { CardTableService, deckOf, parseCard, renderHand, sortHand } from "../src/contract.ts";
 import { cardTable } from "../src/index.ts";
 
@@ -167,6 +167,18 @@ describe("the slice", () => {
 		for (const test of [first, resumed]) expect(await probe(test, { op: "deal", cards: 3 })).toBe(2);
 		expect(await probe(resumed, { op: "stock" })).toEqual(await probe(first, { op: "stock" }));
 		expect(await handOf(resumed, "A02")).toEqual(await handOf(first, "A02"));
+	});
+});
+
+describe("a resume through a snapshot file", () => {
+	// Seats out of key order: a snapshot file sorts the keys of `hands`, so a table that read its seats from them would
+	// deal the next deal to A01 first, not to A03, and name the seats in another order (M6-32).
+	const game = defineGame({ id: "card-table-resume", seed: 3, residents: ["A01", "A02", "A03"], mechanics: [cardTable({ suits: SUITS, seats: ["A03", "A01", "A02"] }), dealer()], end: { ticks: 4 } });
+	const plan = scriptedDriver(({ actor, tick }) => (actor !== "resident:A01" ? [] : tick === 1 ? [{ tool: "probe", params: { op: "deal", cards: 2 } }] : [{ tool: "probe", params: { op: "seats" } }, { tool: "probe", params: { op: "deal", cards: 3 } }]));
+
+	it("seats and deals in the table order of `seats`: the resumed run is the straight run, and it replays", async () => {
+		expect(await checkResumeEveryBoundary(game, () => ({ resident: plan }), { prompts })).toEqual([]);
+		expect(await checkReplay(game, () => ({ resident: plan }), { prompts })).toEqual([]);
 	});
 });
 

@@ -10,6 +10,20 @@ import { Bid, DiceSlice, Scored, SeatStats, type DiceState } from "./model.ts";
 const Say = Type.Optional(Type.String({ maxLength: 160, description: "Optional table talk: a short remark every seat reads (true or not)." }));
 const Reason = Type.Optional(Type.String({ maxLength: 400, description: "A short reason, for the record (never shown to the other players)." }));
 
+// A record keyed by seat in table order; a key that is no seat keeps its place behind the seats.
+function bySeat<T>(record: Readonly<Record<string, T>>, seats: readonly string[]): Record<string, T> {
+	const rank = (key: string): number => (seats.includes(key) ? seats.indexOf(key) : seats.length);
+	return Object.fromEntries(Object.entries(record).sort(([left], [right]) => rank(left) - rank(right)));
+}
+
+// A snapshot file sorts the keys of every object; the records keyed by seat, also those of the public record, come
+// back in table order, the order the texts ("dice per seat", "Dice: ...") and the events read them in (M6-32).
+function inTableOrder(state: DiceState): DiceState {
+	const { seats } = state;
+	const log = state.log.map((entry) => (entry.kind === "round" ? { ...entry, counts: bySeat(entry.counts, seats) } : entry.kind === "liar" ? { ...entry, dice: bySeat(entry.dice, seats) } : entry));
+	return { ...state, counts: bySeat(state.counts, seats), dice: bySeat(state.dice, seats), log, scores: bySeat(state.scores, seats), gameScores: bySeat(state.gameScores, seats) };
+}
+
 const options = Type.Object({
 	games: Type.Integer({ minimum: 1, maximum: 20, default: 3, description: "Games in the match; a strategy brain is rewritten between games, and every game starts from a fresh context." }),
 	dice: Type.Integer({ minimum: 1, maximum: 10, default: 4, description: "Dice every seat starts a game with." }),
@@ -88,7 +102,7 @@ export const liarsDiceHead = defineHead({
 			due: false,
 		};
 	},
-	snapshot: { save: (state: DiceState) => structuredClone(state), load: (data): DiceState => structuredClone(data) },
+	snapshot: { save: (state: DiceState) => structuredClone(state), load: (data): DiceState => inTableOrder(structuredClone(data)) },
 	events,
 	metrics: liarsDiceMetrics(events),
 	// Every roll and every reason (a bluff's motive) is for the human and the reporter only.

@@ -56,7 +56,8 @@ export const cardTableHead = defineHead({
 		if (new Set(seats).size !== seats.length) throw new RangeError("card-table: a resident may hold one seat only");
 		return { hands: Object.fromEntries(seats.map((seat) => [seat, []])), stock: [...deckOf(setup.options.suits)], deals: 0 };
 	},
-	snapshot: { save: (state: TableState) => copyState(state), load: (data): TableState => copyState(data) },
+	// A snapshot file sorts the keys of `hands`; the seats come back in table order, the order the deal and `seats` read (M6-32).
+	snapshot: { save: (state: TableState) => copyState(state), load: (data, setup): TableState => copyState({ ...data, hands: Object.fromEntries((setup.options.seats ?? setup.residents).map((seat) => [seat, data.hands[seat] ?? []])) }) },
 	events: CardTableEvents.events,
 	audiences: { cards_dealt: ["human"] },
 	provides: [CardTableService],
