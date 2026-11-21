@@ -3,3 +3,7 @@
 {"run":"exploratory/tictactoe-001","id":"02734af6-6a48-42bb-ae56-898c5aa030d7","costUsd":0.07852168999999995,"at":"2026-11-16T20:59:47.825Z"}
 {"run":"smoke/whispers-001","id":"406f26e6-08e5-4d1a-aab8-518ae3351556","reservedUsd":1,"at":"2026-11-21T15:40:23.535Z"}
 {"run":"smoke/whispers-001","id":"406f26e6-08e5-4d1a-aab8-518ae3351556","costUsd":0.22642235999999985,"at":"2026-11-21T15:53:24.727Z"}
+{"run":"doctor/online","id":"b11a4268-c53e-4450-820b-9299c703dcee","reservedUsd":0.01,"at":"2026-11-21T17:21:19.626Z"}
+{"run":"doctor/online","id":"b11a4268-c53e-4450-820b-9299c703dcee","costUsd":0.0000021000000000000002,"at":"2026-11-21T17:21:20.157Z"}
+{"run":"smoke/hello-game-001","id":"c69cd767-556d-4230-9850-991e3b1bfb1d","reservedUsd":0.03,"at":"2026-11-21T17:21:33.905Z"}
+{"run":"smoke/hello-game-001","id":"c69cd767-556d-4230-9850-991e3b1bfb1d","costUsd":0.0019016299999999996,"at":"2026-11-21T17:21:53.742Z"}
