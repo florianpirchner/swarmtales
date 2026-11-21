@@ -32,7 +32,7 @@ import { RUN_RECORDS } from "./records.ts";
 import { residentPrompts } from "./resident-prompts.ts";
 import { folderTexts, played, resolveFile, runFacts, whyOf, type RunInput } from "./run.ts";
 import { handLine, type HandCount } from "./watch.ts";
-import { confirmatoryDirty, readSourceTree, type SourceTree } from "./tree.ts";
+import { confirmatoryDirty, readSourceTree, treeFacts, treeRefused, type SourceTree } from "./tree.ts";
 
 const Pinned = Type.Object(
 	{ dependencies: Type.Object({ "@earendil-works/pi-ai": Type.String({ description: "The exact version of the provider library" }) }, { description: "The dependencies of the models package" }) },
@@ -221,7 +221,7 @@ async function prepared(input: LiveInput, io: CliIo, broker: KeyBroker): Promise
 	const meter = createCostMeter(input.budget ?? 0);
 	if (input.purpose === "confirmatory" && input.experiment === undefined) throw new SwtError(confirmatoryAlone());
 	const tree = input.tree ?? readSourceTree();
-	if (input.purpose === "confirmatory" && tree.dirty !== false) throw new SwtError(confirmatoryDirty(tree));
+	if (input.purpose === "confirmatory" && treeRefused(tree)) throw new SwtError(confirmatoryDirty(tree));
 	const { game, texts } = await resolveFile(input, io, [RESIDENT_RECORDS, DIRECTOR_RECORDS, DIRECTOR_MODEL_RECORDS, REVIEW_RECORDS, ...(input.resumed === undefined ? [] : [RUN_RECORDS])]);
 	const models = settingsOf(input, game, broker);
 	// A Director asks its model; its cost counts on the meter of the run, under its own `maxCostUsd`.
@@ -257,7 +257,7 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 	const systemPrompts = residentPrompts(game, run.texts, kernel);
 	const facts = {
 		...runFacts(directory, io.now),
-		...run.tree,
+		...treeFacts(run.tree),
 		purpose: input.purpose,
 		replicate: input.replicate,
 		budgetUsd: meter.capUsd,
@@ -357,8 +357,8 @@ function thrownRun(error: unknown, leak: readonly SwtIssue[], json: boolean, io:
  * issues, anything else as its redacted message. With `ledger`, the run's cap is reserved in the spend ledger before
  * the run folder is opened and replaced by the run's cost after it; a run that throws after its start, and a run
  * with an answer whose cost could not be counted (it ends at the limit `models.budget`, code 5), keep their
- * reservation. A `confirmatory` run is refused (`SWT-C023`) outside an experiment and on a source tree that git
- * does not report as clean; the tree's commit and state go into the manifest of every run. A leak (`SWT-X030`, code 4) writes the marker file `LEAK` into the folder, also when the run threw.
+ * reservation. A `confirmatory` run is refused (`SWT-C023`) outside an experiment and, in a clone, on a source tree that git
+ * does not report as clean; the tree's commit and state go into the manifest of every run in a clone (an installed command line asks no git). A leak (`SWT-X030`, code 4) writes the marker file `LEAK` into the folder, also when the run threw.
  *
  * @param input - The game file, the flags of a live run, the environment record, and for a test the model source.
  * @param io - The current directory, the clock and the two outputs.

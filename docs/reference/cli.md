@@ -52,6 +52,15 @@ folder.
 | `--purpose <word>` | smoke (the default), pilot, exploratory or confirmatory |
 | `--replicate <n>` | the index of the repetition; 0 when left out |
 
+The manifest names the source of a run. Each plugin is recorded under the version of its package, read from the
+`package.json` of the project (the nearest one above the game file) and of the command line, and from the installed
+packages they list; a package found in neither is recorded at `0.0.0`. In a clone of the repository (a
+`package.json` named `swarmtales-workspace` above the command line's folder, with no `node_modules` between) a live
+run records the clone's `kernel.commit` and `kernel.dirty` from git, and `--purpose confirmatory` is refused
+(`SWT-C023`) unless the tree is clean. An installed `swt` asks git nothing, also inside a project that is a git
+repository: its manifest has neither field, the versions name the release that played, and a confirmatory run
+plays (lesson P502).
+
 | Exit code | Meaning |
 |---|---|
 | 0 | the run finished |

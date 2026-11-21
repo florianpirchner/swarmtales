@@ -160,11 +160,15 @@ describe("review A: a confirmatory run needs a clean tree (SWT-C023)", () => {
 	it("reads the commit and the state of a tree from git: no checkout, a clean one, one with a file git does not know", () => {
 		const tree = mkdtempSync(join(tmpdir(), "swt-tree-"));
 		try {
+			// Git is asked only in a clone of the platform (lesson P502); outside one the tree is that of an installed package.
+			expect(readSourceTree(tree)).toEqual({ installed: true });
+			writeFileSync(join(tree, "package.json"), JSON.stringify({ name: "swarmtales-workspace" }));
 			expect(readSourceTree(tree)).toEqual({});
 			const git = (...args: readonly string[]): void => void execFileSync("git", ["-C", tree, "-c", "user.name=t", "-c", "user.email=t@example.test", "-c", "commit.gpgsign=false", ...args], { stdio: "ignore" });
 			git("init", "--quiet");
 			// A checkout without a commit has no state either.
 			expect(readSourceTree(tree)).toEqual({});
+			git("add", "package.json");
 			git("commit", "--quiet", "--allow-empty", "--no-verify", "-m", "first");
 			const clean = readSourceTree(tree);
 			expect([clean.dirty, /^[0-9a-f]{40,64}$/.test(clean.commit ?? "")]).toEqual([false, true]);

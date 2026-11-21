@@ -6,14 +6,18 @@
  * plain JavaScript into a folder outside the work tree, writes a project there with a lockfile taken from the
  * workspace's (`fixtures/outside/lockfile.ts`), installs it with `--frozen-lockfile --offline`, and plays through
  * the installed `swt` bin, without `--conditions development`: the Hello Game, samples 5 and 6, a game file and a
- * YAML game that use the installed mechanic and Director, and the planted undeclared call (A37). It checks every
+ * YAML game that use the installed mechanic and Director, and the planted undeclared call (A37); in the project made a
+ * git repository, the installed `swt` asks git nothing and records each plugin under its package's version (issue
+ * M6-34, lessons P502 and P503). It checks every
  * packed tarball of the release (6.2). It needs the build, so `pnpm test` does not collect it (`vitest.config.ts`);
  * `pnpm check:pack` runs it in lane 0 after the build (`scripts/lib/check-run.ts`).
  */
 import { spawnSync } from "node:child_process";
-import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
+import { pathToFileURL } from "node:url";
 import { Type } from "typebox";
 import { Value } from "typebox/value";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -201,6 +205,17 @@ describe("the packed install, outside the repository", () => {
 	it("refuses the planted call of a service the head does not declare", () => {
 		const done = swt("run", "outside/planted.yaml", "--fake");
 		expect(plantedProblems({ code: done.code, err: done.err, last: lastEvent(at("project", "runs", "outside-planted-001")) }), done.err).toEqual([]);
+	});
+
+	it("asks no git about the project, also when it is a git repository, and records each plugin's version (P502, P503)", () => {
+		const commit = ["-c", "user.name=t", "-c", "user.email=t@example.test", "-c", "commit.gpgsign=false", "commit", "--quiet", "--no-verify", "-m", "the user's commit"];
+		for (const args of [["init", "--quiet"], ["add", "package.json"], commit]) must("git", args, at("project"));
+		const cli = createRequire(realpathSync(at("project", "node_modules", "swarmtales", "package.json"))).resolve("@swarmtales/cli");
+		const tree = must(process.execPath, ["--input-type=module", "-e", "const { readSourceTree } = await import(process.argv[1]); console.log(JSON.stringify(readSourceTree()));", pathToFileURL(cli).href], at("project"));
+		expect(JSON.parse(tree)).toEqual({ installed: true });
+		const plugins: unknown = Reflect.get(Object(JSON.parse(readFileSync(at("project", "runs", "hello-game-001", "manifest.json"), "utf8"))), "plugins");
+		const version = (name: string): string | undefined => packed.find((entry) => entry.name === name)?.version;
+		expect(plugins).toMatchObject([{ id: "grid", version: version("@swarmtales/mechanic-grid") }, { id: "roster", version: version("@swarmtales/sdk") }]);
 	});
 
 	it("checks every packed tarball of the release by 6.2", () => {

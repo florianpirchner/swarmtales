@@ -25,6 +25,7 @@ import { loadGame } from "./load-game.ts";
 import { runLoop, type HandSource, type LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
 import { handLine, watched, type HandCount } from "./watch.ts";
+import { packageVersions } from "./versions.ts";
 
 const FAKE = "fake/sample";
 const PACKAGE_FILE = fileURLToPath(new URL("../package.json", import.meta.url));
@@ -96,13 +97,16 @@ export async function resolveFile(input: Pick<RunInput, "file" | "seed" | "param
 	const table = loaded.type === "module" ? undefined : await tableOf(loaded.file, io);
 	const installed = table?.mechanics;
 	const folder = join(dirname(loaded.file), "prompts");
+	const packageFiles = packageFilesFor(dirname(loaded.file), PACKAGE_FILE);
 	// The prompt folders of the installed mechanics, under those of a clone's `mechanics/` (errata K36, M6-08).
-	const mechanics = { ...installedPromptFolders(packageFilesFor(dirname(loaded.file), PACKAGE_FILE)), ...mechanicPromptFolders() };
+	const mechanics = { ...installedPromptFolders(packageFiles), ...mechanicPromptFolders() };
 	const texts = createPromptLookup({ mechanics, ...(existsSync(folder) ? { game: folder } : {}) });
 	const game = resolveGame({
 		game: loaded.game,
 		schedulers: { turns },
 		prompts: texts,
+		// The version of each package the files are and list, for the plugins of the manifest (lesson P503).
+		versions: packageVersions(packageFiles),
 		...(input.params === undefined ? {} : { params: input.params }),
 		...(records.length === 0 ? {} : { records }),
 		...(table === undefined ? {} : { installed: table.mechanics, directors: table.directors }),
