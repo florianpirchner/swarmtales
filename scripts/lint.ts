@@ -25,8 +25,14 @@ import ts from "typescript";
 
 /** The repository root. */
 const ROOT = resolve(import.meta.dirname, "..");
-/** Worker processes side by side, unless `--parallel <n>` says otherwise. */
-const PARALLEL = 3;
+/**
+ * Worker processes side by side, unless `--parallel <n>` says otherwise. Two, not three (M6-35, decision A156): a
+ * worker keeps the resident memory of its largest program (1.2 to 1.7 GB, of which about 600 MB is live after a full
+ * collection), so three held about 4.5 GB beside the tests' 1.3 GB, at the 6 GB of the check; two hold about 3.3 GB,
+ * for about 23 s more alone (178 s against 201 s, cold) and less than that in the check, where the tests share the
+ * four cores.
+ */
+export const PARALLEL = 2;
 
 /** One TypeScript project of the solution. */
 export interface Project {

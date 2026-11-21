@@ -7,7 +7,7 @@ import { join } from "node:path";
 import type { ESLint } from "eslint";
 import tseslint from "typescript-eslint";
 import { afterAll, describe, expect, it } from "vitest";
-import { lintFiles, ownFiles, readProjects, runPool, typecheck } from "./lint.ts";
+import { lintFiles, ownFiles, PARALLEL, readProjects, runPool, typecheck } from "./lint.ts";
 
 const folder = mkdtempSync(join(tmpdir(), "swt-lint-"));
 afterAll(() => {
@@ -65,6 +65,12 @@ describe("pnpm lint: the typecheck and lint in one pass", () => {
 		const linted = await lintFiles(isolated(config), [join(folder, "top", "src", "index.ts")]);
 		expect(linted).toMatchObject({ errors: 1, files: 1 });
 		expect(linted.output).toContain("no-floating-promises");
+	});
+});
+
+describe("pnpm lint: the pool", () => {
+	it("runs two workers by default, so that lint and the tests stay inside the check's 6 GB (M6-35)", () => {
+		expect(PARALLEL).toBe(2);
 	});
 });
 

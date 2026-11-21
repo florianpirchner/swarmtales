@@ -16,7 +16,7 @@ export interface Gate {
 
 /**
  * The gates. Three lanes keep the four cores of a hosted runner busy inside 6 GB: the typecheck and lint in one pass
- * (`scripts/lint.ts`: each project typed as `tsc -b` types it and linted from the same program, decision A110), then
+ * (`scripts/lint.ts`: each project typed as `tsc -b` types it and linted from the same program, decision A110, on two workers so that they and the tests stay well inside the 6 GB, M6-35), then
  * the build (which reuses the declarations of that pass) and the API reports (which read the build, and so run in any
  * order of the packages: `pnpm -r --no-sort api`, M5-103) in one; the quick gates in the second; the tests in the
  * third, on two Vitest workers (decision A112 had three while every file loaded the workspace again; M5-103: a worker
