@@ -2,7 +2,7 @@
 /**
  * The Hello Game (sample 1): it plays to the end with the fake driver, one activation per move; `swt run --fake`
  * writes a run folder whose log verifies, without a warning; and the README shows the game
- * file itself and a line the command prints.
+ * file itself, the root script `pnpm swt` it runs, and a line the command prints.
  */
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -88,7 +88,10 @@ describe("sample 1 in the README", () => {
 	});
 
 	it("the README names the command and shows the lines it prints", () => {
-		expect(readme).toContain("apps/cli/src/bin.ts run games/hello/game.ts --fake");
+		expect(readme).toContain("pnpm swt run games/hello/game.ts --fake");
+		// `pnpm swt` is the program this file runs as `swt(...)`.
+		const manifest: unknown = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+		expect(manifest).toMatchObject({ scripts: { swt: "node --conditions development apps/cli/src/bin.ts" } });
 		expect(readme).toContain("hello-game seed 1: ended after 6 ticks (limit grid.match: the match is over)");
 		expect(readme).toContain('result grid.tally: {"X":1,"O":0,"draw":0}');
 	});

@@ -6,7 +6,7 @@ optional and transitive ones included), `third_party/manifest.json` and the acti
 [`docs/LICENCE-POLICY.md`](docs/LICENCE-POLICY.md). Every package here is a development tool or a library of this
 repository. `A -> B` means: declared as A, used under B.
 
-477 entries.
+479 entries.
 
 | Package | Version | Licence | Source |
 |---|---|---|---|
@@ -240,7 +240,9 @@ repository. `A -> B` means: declared as A, used under B.
 | acorn | 8.19.0 | MIT | https://github.com/acornjs/acorn |
 | acorn-jsx | 5.3.2 | MIT | https://github.com/acornjs/acorn-jsx |
 | action actions/checkout | 3d3c42e5aac5ba805825da76410c181273ba90b1 | MIT | https://github.com/actions/checkout |
+| action actions/deploy-pages | d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e | MIT | https://github.com/actions/deploy-pages |
 | action actions/setup-node | 949feb2413d6458794dcd2491c4babbbce0c15c1 | MIT | https://github.com/actions/setup-node |
+| action actions/upload-pages-artifact | 56afc609e74202658d3ffba0e8f6dda462b719fa | MIT | https://github.com/actions/upload-pages-artifact |
 | action pnpm/action-setup | 73e46992e05b19abd31f2f3c20e0e7370d762115 | MIT | https://github.com/pnpm/action-setup |
 | agent-base | 7.1.4 | MIT | https://github.com/TooTallNate/proxy-agents#readme |
 | agent-base | 9.0.0 | MIT | https://github.com/TooTallNate/proxy-agents#readme |

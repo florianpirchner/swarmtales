@@ -16,8 +16,9 @@ is ticked. Runs packed next to the page (`runs/index.json`) open at start. A run
 A build may carry `public/viewer-data.json` with the view descriptors of the mechanics and the game descriptions
 for the Games tab; without the file the page has neither and still works.
 
-The code is carried from the old platform. Not carried yet: the script that writes `viewer-data.json`, the script
-that packs runs next to the page, the Pages workflow and the check of its artifact.
+The code is carried from the old platform. Not carried yet: the script that writes `viewer-data.json`. The public
+page (`.github/workflows/pages.yml`, issue M6-36) is this build plus the runs of `scripts/pages/runs.ts`, packed and
+checked by `pnpm pages:pack <data-runs-folder>`: it refuses any other file, source maps, local paths and keys.
 
 ## Third-party dependencies
 

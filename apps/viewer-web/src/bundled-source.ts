@@ -2,8 +2,8 @@
 /**
  * A RunSource over runs packed next to the page: `runs/index.json` names the packs (`{ title, packs: { "<pack>.json":
  * [paths] } }`), and each pack is one JSON object of path to text, fetched once on the first read of one of its files.
- * One file per run keeps a private copy of the viewer to a handful of files. The script of the old platform that
- * wrote the packs is not carried yet; a public build of the page never has them.
+ * One file per run keeps the page to a handful of files. `pnpm pages:pack` (`scripts/pages/`) writes the packs of the
+ * public page, only for the runs listed there.
  */
 import { joinPath, memorySource, type RunSource } from "@swarmtales/viewer-core";
 import { Type } from "typebox";

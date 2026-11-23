@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: LicenseRef-SUL-1.0
+# Publishes the run viewer (apps/viewer-web) to GitHub Pages with the runs of scripts/pages/runs.ts, read from the
+# branch data/runs. The page is public while the repository is private, so `pnpm pages:pack` refuses every file that
+# is not the app or a listed run, source maps, local paths and keys, before the upload. Runs on a push to `main` and by
+# hand (issue M6-36). Actions are pinned by commit; the licence gate checks that (scripts/licences/allowlist.ts).
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out the run data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: data/runs
+          path: run-data
+          persist-credentials: false
+      - name: Set up pnpm (version from package.json)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - name: Set up Node (version from .node-version)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build the viewer, pack the listed runs, check the artifact
+        run: |
+          pnpm --filter @swarmtales/viewer-web build
+          pnpm pages:pack run-data
+      - name: Upload the artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: apps/viewer-web/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        name: Deploy
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

@@ -37,4 +37,6 @@ export const ALLOWED_ACTIONS: ReadonlyMap<string, string> = new Map([
 	["actions/checkout", "MIT"],
 	["actions/setup-node", "MIT"],
 	["pnpm/action-setup", "MIT"],
+	["actions/upload-pages-artifact", "MIT"],
+	["actions/deploy-pages", "MIT"],
 ]);
