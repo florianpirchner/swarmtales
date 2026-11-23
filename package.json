@@ -10,6 +10,7 @@
 		"node": ">=22.19"
 	},
 	"scripts": {
+		"swt": "node --conditions development apps/cli/src/bin.ts",
 		"typecheck": "tsc -b",
 		"lint": "node scripts/lint.ts",
 		"test": "vitest --run",
@@ -28,7 +29,8 @@
 		"api:freeze": "node --conditions=development scripts/api-freeze/main.ts",
 		"release:check": "node scripts/release/check.ts",
 		"release:version": "node scripts/release/version.ts",
-		"release:names": "node scripts/release/names.ts"
+		"release:names": "node scripts/release/names.ts",
+		"pages:pack": "node scripts/pages/main.ts"
 	},
 	"devDependencies": {
 		"@eslint/js": "9.39.5",
