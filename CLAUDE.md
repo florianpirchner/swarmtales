@@ -116,8 +116,9 @@ Machines enforce them; a limit is never met by moving code next door.
 - **A gate never passes on nothing.** A check that reads files fails when it finds none where some must be; a
   new gate comes with a test that shows it failing.
 - **Check budget:** `pnpm check` takes at most 10 minutes and 6 GB; lint runs in a 4 GB heap.
-- **README:** the README is the landing page: at most 120 lines, its code block is an include of sample 1,
-  findings only when reproduced on this platform. A new game adds a card to `GAMES.md`, never a line to the README.
+- **README:** the README is the landing page, with no line limit (it is no code, A158); its code block is an include of sample 1,
+  findings only when reproduced on this platform. A new game adds a card to `GAMES.md` and a row to the README's games
+  table; a new mechanic or Director gets its place in the README's tables too.
 
 ## Conventions
 

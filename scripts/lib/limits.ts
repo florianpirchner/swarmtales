@@ -20,6 +20,4 @@ export const LIMITS = {
 	 * more room than code.
 	 */
 	testFunctionMax: 100,
-	/** The raw lines of the root `README.md` (section 4). */
-	readmeMax: 120,
 } as const;

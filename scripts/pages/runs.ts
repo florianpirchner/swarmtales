@@ -23,6 +23,7 @@ export const PAGES_TITLE = "Swarm Tales: recorded runs";
 export const PAGES_RUNS: readonly PagesRun[] = [
 	{ name: "econ-lab-007", path: "econ-lab/econ-lab-brain/econ-lab-007" },
 	{ name: "hello-game-001", path: "hello/release/hello-game-001" },
+	{ name: "whispers-001", path: "whispers/smoke/whispers-001" },
 ];
 
 /** The files of a run folder the viewer reads: the log, its chain and key, the manifest, the game, the texts, the reports. */

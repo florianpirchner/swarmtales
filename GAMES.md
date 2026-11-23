@@ -16,7 +16,7 @@ The four effects reproduced so far are on the [`README.md`](README.md) and in [`
 **No card carries a finding or a recorded moment yet:** a finding appears on a card only when it is reproduced on
 this platform, with n, standard error and a link.
 
-A new game adds a card here, never a line to the [`README.md`](README.md), and its facts to
+A new game adds a card here, a row to the games table of the [`README.md`](README.md), and its facts to
 [`scripts/game-docs/catalogue.ts`](scripts/game-docs/catalogue.ts); `pnpm docs:games` writes the generated blocks.
 
 ## Overview
