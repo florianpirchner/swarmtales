@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The rules of the public viewer page's artifact (`apps/viewer-web/dist` after `pnpm pages:build`): the page goes
- * public while the repository is private, so it may hold the app and the runs of {@link PAGES_RUNS}, nothing else.
- * Refused anywhere: source map links, local paths, anything that looks like a key.
+ * The rules of the public viewer page's artifact (`apps/viewer-web/dist` after `pnpm pages:pack`): the app and the
+ * run packs of `runs.ts`, nothing else. Refused anywhere: source map links, local paths, anything that looks like a key.
  */
-import { PAGES_RUNS } from "./runs.ts";
 
 /** One file of the artifact. */
 export interface ArtifactFile {
@@ -14,8 +12,7 @@ export interface ArtifactFile {
 	readonly text: string;
 }
 
-const RUN_PACKS = new Set(PAGES_RUNS.map((run) => `runs/${run.name}.json`));
-const ALLOWED: readonly RegExp[] = [/^index\.html$/, /^assets\/[\w.-]+\.(js|css)$/, /^runs\/index\.json$/];
+const ALLOWED: readonly RegExp[] = [/^index\.html$/, /^assets\/[\w.-]+\.(js|css)$/, /^runs\/[\w.-]+\.json$/];
 
 /** Patterns that must not appear in any file. */
 const FORBIDDEN: readonly (readonly [string, RegExp])[] = [
@@ -30,10 +27,10 @@ const FORBIDDEN: readonly (readonly [string, RegExp])[] = [
  * Whether a path may be part of the artifact.
  *
  * @param path - The path in the artifact.
- * @returns True for the app's files and the listed run packs.
+ * @returns True for the app's files and the run packs.
  */
 export function allowedPath(path: string): boolean {
-	return RUN_PACKS.has(path) || ALLOWED.some((pattern) => pattern.test(path));
+	return ALLOWED.some((pattern) => pattern.test(path));
 }
 
 /**

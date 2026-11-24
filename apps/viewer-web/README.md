@@ -17,8 +17,10 @@ A build may carry `public/viewer-data.json` with the view descriptors of the mec
 for the Games tab; without the file the page has neither and still works.
 
 The code is carried from the old platform. Not carried yet: the script that writes `viewer-data.json`. The public
-page (`.github/workflows/pages.yml`, issue M6-36) is this build plus the runs of `scripts/pages/runs.ts`, packed and
-checked by `pnpm pages:pack <data-runs-folder>`: it refuses any other file, source maps, local paths and keys.
+page (`.github/workflows/pages.yml`) is this build plus every run of the branch `data/runs`, packed by
+`pnpm pages:pack <data-runs-folder>` (`scripts/pages/`): the header files of all runs in one pack for the run list,
+the rest of each run in its own pack, fetched when the run is opened. It needs no token; the pack check refuses any
+other file, source maps, local paths and keys.
 
 ## Third-party dependencies
 
