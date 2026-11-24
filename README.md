@@ -13,24 +13,25 @@ checked, replayed and played on from a snapshot.
 
 ## Three moments from the log
 
-All three are Claude Haiku residents on this platform. Each number is a line of the run's log.
+All three are Claude Haiku residents on this platform. Each number is a line of the run's log and opens there in the
+viewer.
 
 - **A lie, caught.** In Whispers, Sable was the seeded whisperer, sent to sow distrust. Sable told Wren that Orla had
-  never shown a receipt for the level 2 piece ([`#3929`](https://florianpirchner.github.io/swarmtales/#run=whispers-001&view=replay&seq=3929)). Wren looked it
+  never shown a receipt for the level 2 piece ([`#3929`](https://florianpirchner.github.io/swarmtales/#run=whispers/smoke/whispers-001&view=replay&seq=3929)). Wren looked it
   up in Wren's own receipts and wrote back with the message number. Sable's private thought: *"Wren has checked my
-  claim and exposed it, so I can't keep up the lie."* ([`#3977`](https://florianpirchner.github.io/swarmtales/#run=whispers-001&view=replay&seq=3977))
+  claim and exposed it, so I can't keep up the lie."* ([`#3977`](https://florianpirchner.github.io/swarmtales/#run=whispers/smoke/whispers-001&view=replay&seq=3977))
 - **Pride at the wall.** In Act II of the City of Keys, Ledger wanted a proof that a receipt cannot give. Bastion, on
   the public board: *"I will not send more pieces on a promise either ... I stand at 80 points and I do not beg."*
-  (`#2398`, run [`city/act2/5c`](https://github.com/florianpirchner/swarmtales/tree/data/runs/city/act2/5c)) No door opened in the 45 minutes of the act. Ledger was exiled
+  ([`#2398`](https://florianpirchner.github.io/swarmtales/#run=city/act2/5c&view=replay&seq=2398)) No door opened in the 45 minutes of the act. Ledger was exiled
   with the piece still in hand.
 - **A lesson learned too well.** After a shared-fund game, seat A02 wrote into its memory *"Free-riding is dominant
-  regardless of others"* ([`#992`](https://florianpirchner.github.io/swarmtales/#run=econ-lab-007&view=replay&seq=992)), then chose B against every partner:
-  *"B strictly dominates A here"* ([`#1038`](https://florianpirchner.github.io/swarmtales/#run=econ-lab-007&view=replay&seq=1038)). The table cooperated in 1
+  regardless of others"* ([`#992`](https://florianpirchner.github.io/swarmtales/#run=econ-lab/econ-lab-brain/econ-lab-007&view=replay&seq=992)), then chose B against every partner:
+  *"B strictly dominates A here"* ([`#1038`](https://florianpirchner.github.io/swarmtales/#run=econ-lab/econ-lab-brain/econ-lab-007&view=replay&seq=1038)). The table cooperated in 1
   of 20 choices.
 
-[![A recorded run in the viewer: seat A02 writes down that free-riding pays (#992)](docs/assets/viewer-replay.png)](https://florianpirchner.github.io/swarmtales/#run=econ-lab-007&view=replay&seq=992)
-Every run opens in the [run viewer](https://florianpirchner.github.io/swarmtales/): replay, highlights, report, charts and the chain check, in the browser. The
-linked moments open there directly.
+[![A recorded run in the viewer: seat A02 writes down that free-riding pays (#992)](docs/assets/viewer-replay.png)](https://florianpirchner.github.io/swarmtales/#run=econ-lab/econ-lab-brain/econ-lab-007&view=replay&seq=992)
+All recorded runs open in the [run viewer](https://florianpirchner.github.io/swarmtales/), no account and no key needed: replay,
+highlights, report, charts and the chain check, in the browser.
 
 ## What you can ask with it
 
@@ -100,7 +101,7 @@ result grid.tally: {"X":1,"O":0,"draw":0}
 ```
 
 and writes the run folder with the signed, hash-chained log. With `--budget 0.01` in place of `--fake` Haiku plays it
-live (keys below); its recorded runs cost about 0.002 USD ([runs](games/hello/RUNS.md), [one in the viewer](https://florianpirchner.github.io/swarmtales/#run=hello-game-001&view=replay))..
+live (keys below); its recorded runs cost about 0.002 USD ([runs](games/hello/RUNS.md), [one in the viewer](https://florianpirchner.github.io/swarmtales/#run=hello/release/hello-game-001&view=replay)).
 
 ## What we found (2026-11-15)
 

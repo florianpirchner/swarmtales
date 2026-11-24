@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: LicenseRef-SUL-1.0
-# Publishes the run viewer (apps/viewer-web) to GitHub Pages with the runs of scripts/pages/runs.ts, read from the
-# branch data/runs. The page is public while the repository is private, so `pnpm pages:pack` refuses every file that
-# is not the app or a listed run, source maps, local paths and keys, before the upload. Runs on a push to `main` and by
-# hand (issue M6-36). Actions are pinned by commit; the licence gate checks that (scripts/licences/allowlist.ts).
+# Publishes the run viewer (apps/viewer-web) to GitHub Pages with every run of the branch data/runs packed next to it,
+# so the page opens them without GitHub and without a token while the repository is private (the owner's go of
+# 2026-11-24). `pnpm pages:pack` refuses every file that is not the app or a run pack, source maps, local paths and keys,
+# before the upload. Runs on a push to `main` and by hand. Actions are pinned by commit; the licence gate checks that
+# (scripts/licences/allowlist.ts).
 name: pages
 
 on:
