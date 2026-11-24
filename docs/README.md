@@ -48,7 +48,7 @@ rules of the repository, the plan and the records of the rewrite, and the docume
 - The gates and reviews of the milestones: [`M2-GATE.md`](M2-GATE.md) (the gate of M2 with the findings of its
   review), [`M4-GATE.md`](M4-GATE.md) (the gate of M4) and [`M4-REVIEW.md`](M4-REVIEW.md) (the challenger's review of
   M4 and how M4-72 closed it), [`M5-GATE.md`](M5-GATE.md) and [`M5-REVIEW.md`](M5-REVIEW.md) (the gate of M5 and its
-  review).
+  review), [`M6-GATE.md`](M6-GATE.md) (the gate of M6: its live runs, the baseline of each game, the save list).
 - The rerun plans, each committed before the first run of its series: [`RERUN-PLAN.md`](RERUN-PLAN.md) (M2),
   [`RERUN-PLAN-M4.md`](RERUN-PLAN-M4.md), [`RERUN-PLAN-M5.md`](RERUN-PLAN-M5.md), [`RERUN-PLAN-M6.md`](RERUN-PLAN-M6.md).
 - [`RELATED-WORK.md`](RELATED-WORK.md): how Swarm Tales differs from Generative Agents, Concordia and Sotopia,

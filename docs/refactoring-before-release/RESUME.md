@@ -1,6 +1,60 @@
 # Resume note of the rewrite (kept by the integrator)
 
-## M6 started, 2026-11-16 (read this part first)
+## State at the end of M6, 2026-11-24 (read this part first)
+
+Written by the gate issue of M6 (M6-30). The sections below are kept as they were; where they differ, this one holds.
+
+- **M6 is built.** 36 issues are merged on `rewrite/develop` up to `c138860` (M6-29), and the gate M6-30 is the 37th:
+  M6-00 to M6-26 and M6-31 of the plan (A118, A136), the conditional M6-29 after the owner's switch, and M6-32 to
+  M6-38 beside the plan (A151, A152, A154, A156, A157, A158, A159). The conditional M6-27 (P495 and a replacement
+  base) and M6-28 (the links after O8) were not opened: their triggers do not hold (no go for a new City base, and the
+  City's game hash stays `9418a743…`; O8 is not done). Decisions run to A159 (`DECISIONS.md` section 9); the specification is `13-m6-spec.md`, its errata `13-m6-spec-errata.md` (K1 to
+  K55 and the four rows of the gate). The cut list of 13.2 was never applied (39 ids with the two unopened ones).
+- **What M6 added:** samples 2 to 4 (`samples/team-game`, `samples/roles`, `samples/shipped-director`) and the game
+  tutorial `docs/tutorials/game.md`; the run-time check of service calls (`SWT-M026`); the installed table of a
+  project and data games with Directors; the rename of original games (`grid`, `tictactoe`, `morris`, `quarry`,
+  `lanterns`, `harbor-lights`, `ember-tricks`, `blind-bid`, `econ-lab`); `swt doctor` and `--online`; the published
+  list (55 packages: 20 on the platform line at 1.0.0, the plugins at 0.1.0), the CLI's build and the umbrella's `swt`;
+  the packed-install gate (`pnpm check:pack`); the release, data, legacy-runs, links and switch scripts with
+  `docs/RELEASE.md`; `docs/history/`; the docs of 1.0 and `CITATION.cff`; B2 (the guard answers by its tool, runtime
+  revision 8), B3 (tests shuffled by a seed of the head) and the reports of P488, P493, P494; after the owner's go of
+  2026-11-23, the public viewer page and the README for researchers, which has no line limit any more (A157, A158).
+- **The gate:** the ten done-whens are met, each with its test or its record, and the nine lines of the 1.0 list are
+  held (`docs/ISSUE-RECORD.md`, "The gate of M6", "The 1.0 list", "The softer check of M6"; the live runs, the
+  baselines of 1.0 line 3 and the save list in `docs/M6-GATE.md`). The kernel has 1473 code lines (none added),
+  kernel + sdk + engine 4069 of 4100. The API freeze took additions only (F2 to F9, without F4). The gate test is
+  `scripts/gates/m6-gate.test.ts` (the baselines of line 3; every command of `docs/RELEASE.md` exists).
+- **Live:** `games/m6-ledger.jsonl` holds 0.3068 USD of the cap of 2.34 (4 runs: the tic-tac-toe baseline 0.0785, Whispers
+  under r8 0.2264, `swt doctor --online` 0.0000021, the release smoke 0.0019; the reserve untouched). The rewrite has
+  spent 10.0053 of 50 USD on this platform. Every folder of M6 is on `data/runs` up to `f02a7a75`.
+- **The check:** the cold full check on the gate's head is green: 432.4 s of 600 s, peak 4622 MB of 6144 MB (the record, "The gate of M6").
+
+**Open points, in this order:**
+
+1. **The owner's hand** (none done by an agent; `docs/RELEASE.md` holds the commands). **Done by the owner on
+   2026-11-24:** the switch of `main` (`main` at `4604a127`, `develop` at `432a1abd`, `legacy` and `v0-final` at
+   `a73e6a92`, `main` the default branch) and the tags `runtime-r3` to `runtime-r8` and `milestone-m1` to
+   `milestone-m5` on the remote. **Open:** O4 (the owner took the required checks out of `develop`'s ruleset on
+   2026-11-24, so `develop` and `rewrite/develop` move together; Actions has run nothing since 2026-11-14, A160); the "Branches" and
+   "Check" bullets of `CLAUDE.md`, stale after the switch (a text is proposed in `docs/M6-GATE.md`; the owner edits
+   `CLAUDE.md`); O8 (the data repository; its dry run passes); O2 and O12 (the npm scope and names, the publish); the
+   lawyer's and the owner's look at `LICENSE` and the package `NOTICE` (A65, A147); the provider's usage page against
+   the ledgers of M5 (2.2980) and M6 (0.3068); the optional run tags `runs/m5-5a` and `runs/m5-5c` (their commits were
+   handed over as a bundle, A159; `f0de5e95` of three baselines is in the same case); `milestone-m6` once this gate
+   merges and the review closes M6; the bundle of `v0-final` before O6. The owner's tag `m5` at `ab0d283d` stands
+   beside `milestone-m5` at `4604a127`.
+2. **The owner's go** (recorded proposals only; a coordinator's go is not the owner's): P445 (the Hello Game at 20
+   ticks), P497, P499, P500, P496, B1 (P486), P484, P485, P491, P492, LH21, P465, two more Act I bases with P495, and
+   the rest of `13-m6-spec.md` 11.2.
+3. **Two findings of the gate that need a decision row** (errata of the gate): the mutation harness and its gate for
+   kernel and sdk (E7, REWRITE 3.10's carry list) were never carried, and the editor budget of A9 was never measured;
+   `10-m3-spec.md` section 17 left both for M6, which did not name them. And the 89 links into `d13350b5` have no
+   class in the link gate (A140 (b)). The save list of REWRITE 4.1 cannot be ticked, and O6 cannot follow, before both.
+4. **The milestone review of M6**, then the record: row 434 of `docs/ISSUE-RECORD.md` waits for the gate's squash
+   commit, its merge time and its lines, as row 379 did; the rows 380 to 433 say "not recorded" for tokens.
+5. **After O8:** M6-28 opens by its trigger; M6-27 with the owner's go for the next base.
+
+## M6 started, 2026-11-16
 
 Written by the scaffold of M6 (M6-00). The specification is `13-m6-spec.md` (31 issues, A118; 32 with M6-31, the Node
 line, A136), challenged twice; its decisions are A118 to A139 (A135 to A139 are the rows PD1 to PD5 its independent
