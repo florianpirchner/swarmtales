@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LicenseRef-SUL-1.0
 # The licence gate as its own job on every pull request and on every push to the long-lived branches (DECISIONS.md,
-# A69; docs/LICENCE-POLICY.md, "In CI"). It judges every package of the lockfile, vendored and binary files, actions,
+# A69; docs/LICENCE-POLICY.md, "In CI"): `main`, `develop`, and `rewrite/develop`, which the build session pushes to
+# while the ruleset of `develop` refuses a direct push, until the owner settles O4. It judges every package of the lockfile, vendored and binary files, actions,
 # headers and manifests, and fails on anything outside the allowlist. The check needs no network beyond the install:
 # packages of other platforms are judged by their rows in THIRD-PARTY-LICENSES.md. The owner makes the job
 # "licence gate" a required status check of `main` and `develop`.

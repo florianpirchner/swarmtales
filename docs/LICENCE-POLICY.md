@@ -70,16 +70,19 @@ judged package by package.
 ## In CI
 
 The workflow `.github/workflows/licences.yml` runs the gate as its own job, `Licence gate`, on every pull request
-(to any branch) and on every push to `main`, `develop` and, until the switch of decision A5, `rewrite/develop`
-(decision A69). It installs with `pnpm install --frozen-lockfile` and runs `pnpm check:licences`, which exits
+(to any branch) and on every push to `main`, `develop` and `rewrite/develop` (decision A69). Since the switch of
+2026-11-24 (decision A5, O3) `main` holds the last reviewed milestone and `develop` the line of work; the ruleset of
+`develop` refuses a direct push, so the build session still pushes to `rewrite/develop`, and its trigger stays until
+the owner settles O4 (`docs/RELEASE.md`, step 4). It installs with `pnpm install --frozen-lockfile` and runs `pnpm check:licences`, which exits
 non-zero on any offence above; it needs no network beyond the install, because the packages of other platforms are
 judged by their rows in `THIRD-PARTY-LICENSES.md`. The job takes a few minutes, so a pull request learns of a refused
 licence long before the full check of `check.yml` (which runs the gate too) is done.
 
 The job blocks a merge only once it is a required status check. **The owner sets this by hand**: on GitHub,
-Settings, Branches, the protection rule of `main` and of `develop` (and of `rewrite/develop` until the switch),
-"Require status checks to pass before merging", with the checks `Licence gate` and `check` (exact names). A build session
-cannot set branch protection.
+Settings, the protection rule or ruleset of `main` and of `develop`, "Require status checks to pass", with the checks
+`Licence gate` and `check` (exact names). A build session cannot set branch protection. Since 2026-11-24 the ruleset
+of `develop` requires both checks and refuses a direct push, while GitHub Actions has started no run since
+2026-11-14, so neither check has reported on `develop` yet (O4, `docs/RELEASE.md`, step 4).
 
 ## Exceptions
 

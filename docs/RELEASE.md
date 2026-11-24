@@ -13,8 +13,8 @@ clone of the repository with `pnpm install --frozen-lockfile` done and the Node 
 
 | | |
 |---|---|
-| Commands | `pnpm release:version 1.0.0 0.1.0` (the platform line and the plugins' line, A123; it also sets `version` and `date-released` of `CITATION.cff`, A139), commit it on `rewrite/develop` (`develop` after the switch) as the release candidate, then `pnpm check` and `pnpm release:check 1.0.0` |
-| Check | `pnpm release:check 1.0.0` ends with `release:check: green on rewrite/develop`: it built the workspace, packed all listed packages, found every tarball complete (13-m6-spec 6.2: `dist/LICENSE`, `dist/NOTICE`, `README.md`, exact dependency versions, a `.js` and a `.d.ts` of every export, no test, `.env` or `.npmrc` file, nothing outside `files`, no inlined package, no local path, a third-party file with its licence), `swt scan` clean over the unpacked tarballs, both version lines in step, `THIRD-PARTY-LICENSES.md` fresh, the tree clean and the head on the line of work. It then prints the publish commands of step 7 |
+| Commands | `pnpm release:version 1.0.0 0.1.0` (the platform line and the plugins' line, A123; it also sets `version` and `date-released` of `CITATION.cff`, A139), commit it on the line of work (`develop`; `rewrite/develop` while the ruleset of `develop` refuses a direct push, step 4) as the release candidate, then `pnpm check` and `pnpm release:check 1.0.0` |
+| Check | `pnpm release:check 1.0.0` ends with `release:check: green on <branch>`, the line of work (`develop` once the clone holds a local branch of that name, else `rewrite/develop`; `--branch` names it): it built the workspace, packed all listed packages, found every tarball complete (13-m6-spec 6.2: `dist/LICENSE`, `dist/NOTICE`, `README.md`, exact dependency versions, a `.js` and a `.d.ts` of every export, no test, `.env` or `.npmrc` file, nothing outside `files`, no inlined package, no local path, a third-party file with its licence), `swt scan` clean over the unpacked tarballs, both version lines in step, `THIRD-PARTY-LICENSES.md` fresh, the tree clean and the head on the line of work. It then prints the publish commands of step 7 |
 | Undo | a new commit with other versions; nothing left the clone |
 
 ## 1. O2: the names
@@ -33,14 +33,15 @@ clone of the repository with `pnpm install --frozen-lockfile` done and the Node 
 | Check | the owner records the outcome as a decision row; a changed text is an issue, and `pnpm release:check` runs again after it |
 | Undo | none needed: nothing is published yet |
 
-## 3. O3: the tags and the switch of `main`
+## 3. O3: the tags and the switch of `main` (done 2026-11-24)
 
 | | |
 |---|---|
+| Done | by the owner on 2026-11-24 (A159): `main` at `4604a127` (the close of M5), `develop` at `432a1abd`, `legacy` and `v0-final` at `a73e6a9`, `main` the default branch, force pushes switched off; the tags `runtime-r3` to `runtime-r8` and `milestone-m1` to `milestone-m5` are on the remote. `switch-main.ts --verify` named only the two optional run tags, whose commits were never pushed (handed to the owner as a bundle, A159). Left: `milestone-m6` and `v1.0.0` at their commits; deleting `rewrite/root` and `rewrite/develop` after O4 |
 | Before | the bundle of the old state, kept outside GitHub: `git bundle create swarmtales-v0-final.bundle v0-final`, then `git bundle verify swarmtales-v0-final.bundle` |
 | Commands | `node scripts/release/switch-main.ts`: it reads the remote and the open pull requests against `main` (read-only), checks (`legacy` and `v0-final` at `a73e6a9`, the target descends from `rewrite/root` and records `pnpm check: green`) and prints, in order: the push of `v0-final` first (while that tag is missing it prints nothing else), the owed tags (`runtime-r3` to `runtime-r8`, `milestone-m1` to `milestone-m6`, the optional `runs/m5-5a` and `runs/m5-5c`), the retarget of each open pull request to `legacy`, the force push of `main` with its lease on `a73e6a9`, `develop` from `rewrite/develop`, and the default branch. The owner runs the printed lines one by one |
 | Check | `node scripts/release/switch-main.ts --verify`: `main` at the target, `develop` at `rewrite/develop`, `legacy` and `v0-final` unchanged |
-| Undo | while `legacy` exists, the undo line that `switch-main.ts` prints (the old `main` pushed back with `--force-with-lease`, DECISIONS 8.5); a pushed tag is removed by the owner on GitHub. After the switch, issue M6-29 moves the workflows' triggers to `develop` |
+| Undo | while `legacy` exists, the undo line that `switch-main.ts` prints (the old `main` pushed back with `--force-with-lease`, DECISIONS 8.5); a pushed tag is removed by the owner on GitHub. After the switch, issue M6-29 named `develop` beside `rewrite/develop` in the workflows' comments and the docs; the trigger of `rewrite/develop` stays until O4 |
 
 ## 4. O4: Actions and branch protection (with O3)
 
@@ -49,6 +50,7 @@ clone of the repository with `pnpm install --frozen-lockfile` done and the Node 
 | Commands | `gh api -X PUT repos/florianpirchner/swarmtales/actions/permissions -F enabled=true`; then for each of `main`, `develop` and `legacy`: `gh api -X PUT repos/florianpirchner/swarmtales/branches/<branch>/protection --input protection.json`, with `protection.json` = `{"required_status_checks":{"strict":true,"contexts":["check","Licence gate"]},"enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null,"allow_force_pushes":false,"allow_deletions":false}`. Add `Packed install` to the contexts if A120's way out (its own CI job) was taken |
 | Check | `gh api repos/florianpirchner/swarmtales/branches/main/protection --jq .required_status_checks.contexts` prints `check` and `Licence gate`; the next push to `develop` shows both checks green |
 | Undo | `gh api -X DELETE repos/florianpirchner/swarmtales/branches/<branch>/protection`; Actions off with `-F enabled=false` |
+| Status | open. Since 2026-11-24 a ruleset of `develop` requires `check` and `Licence gate` and refuses a direct push, while GitHub Actions has started no run since 2026-11-14 (Actions is not switched on, or not for these workflows): nothing can reach `develop` but by the owner's hand, so the build session pushes to `rewrite/develop`, which `check.yml` and `licences.yml` still trigger on. Settling O4 means switching Actions on and choosing one of the two ways of the note below; then `develop` follows `rewrite/develop` and the owner deletes `rewrite/develop` and `rewrite/root` |
 | Note | required checks refuse a direct push of a commit whose checks have not run; the integrator's squash commits onto `develop` (A2, A3) then go through a pull request, or the owner grants a bypass. That choice is the owner's |
 
 ## 5. O8: the data repository and the old runs

@@ -63,8 +63,8 @@ Generative Agents aims at believable behaviour, Concordia is a general library, 
 Swarm Tales is the one whose product is the record. What the others do better is in
 [Related work](docs/RELATED-WORK.md).
 
-> **Status: 1.0 is being prepared; nothing is published yet,** so a clone is the way in ([what is left](docs/RELEASE.md)). The old
-> platform and its runs are on the branch `legacy` (tag [`v0-final`](https://github.com/florianpirchner/swarmtales/tree/v0-final)), under its old licence, until after 1.0.
+> **Status: 1.0 is being prepared; nothing is published yet,** so a clone of `develop` is the way in ([what is left](docs/RELEASE.md)); `main` holds the last reviewed
+> milestone and moves at the next one. The old platform and its runs are on the branch `legacy` (tag [`v0-final`](https://github.com/florianpirchner/swarmtales/tree/v0-final)), under its old licence, until after 1.0.
 
 ## Hello Game
 
@@ -88,7 +88,7 @@ export default defineGame({
 No key, no cost: `--fake` plays it offline. In a clone, play it and check the record of the run:
 
 ```bash
-git clone https://github.com/florianpirchner/swarmtales.git && cd swarmtales && pnpm install
+git clone --branch develop https://github.com/florianpirchner/swarmtales.git && cd swarmtales && pnpm install
 pnpm swt run games/hello/game.ts --fake
 pnpm swt log verify runs/hello-game-001
 ```

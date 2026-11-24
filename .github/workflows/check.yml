@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: LicenseRef-SUL-1.0
-# The full check on every pull request and on every push to `main`, `develop` and, until the switch (A5),
-# `rewrite/develop` (DECISIONS.md, D3, A69). Budget: `pnpm check` itself fails above 10 minutes or 6 GB. Actions are
-# pinned by commit; the licence gate checks that (scripts/licences/allowlist.ts). The licence gate also runs on its
-# own, fast, in licences.yml.
+# The full check on every pull request and on every push to `main`, `develop` and `rewrite/develop` (DECISIONS.md,
+# D3, A69). Since the switch of 2026-11-24 (O3, A5) `main` holds the last reviewed milestone and `develop` the line of
+# work; the ruleset of `develop` refuses a direct push, so the build session still pushes to `rewrite/develop` until
+# the owner settles O4 (docs/RELEASE.md, step 4), and its trigger stays until then. Budget: `pnpm check` itself fails
+# above 10 minutes or 6 GB. Actions are pinned by commit; the licence gate checks that (scripts/licences/allowlist.ts).
+# The licence gate also runs on its own, fast, in licences.yml.
 name: check
 
 on:
