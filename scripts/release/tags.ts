@@ -98,11 +98,27 @@ export function runtimeTags(root: string): { readonly tags: readonly OwedTag[]; 
  *
  * @param root - The clone.
  * @param legacy - The commit of `v0-final`.
- * @returns The tags and the problems of {@link runtimeTags}, with one more for every commit the clone does not hold.
+ * @returns The tags and the problems of {@link runtimeTags}, with one more for every commit the clone does not hold; an
+ *   optional tag whose commit the clone does not hold is left out.
  */
 export function owedTags(root: string, legacy: string = LEGACY_COMMIT): { readonly tags: readonly OwedTag[]; readonly problems: readonly string[] } {
 	const runtime = runtimeTags(root);
 	const tags = [{ name: "v0-final", commit: legacy, source: "DECISIONS.md 8.3" }, ...runtime.tags, ...MILESTONE_CLOSES, ...RUN_TAGS];
-	const missing = tags.filter((tag) => commitOf(root, tag.commit) === undefined).map((tag) => `${tag.name}: the clone holds no commit ${tag.commit} (${tag.source})`);
-	return { tags, problems: [...runtime.problems, ...missing] };
+	const held = heldTags(root, tags);
+	return { tags: held.tags, problems: [...runtime.problems, ...held.problems] };
+}
+
+/**
+ * The tags a clone can set: an optional tag whose commit the clone does not hold is left out, not a problem (the run
+ * commits of finding 7 were never pushed, so only the clone that made them can tag them, decision A159); every other
+ * tag whose commit is missing is a problem.
+ *
+ * @param root - The clone.
+ * @param tags - The tags owed.
+ * @returns The tags kept, and one problem for every owed tag whose commit the clone does not hold.
+ */
+export function heldTags(root: string, tags: readonly OwedTag[]): { readonly tags: readonly OwedTag[]; readonly problems: readonly string[] } {
+	const kept = tags.filter((tag) => tag.optional !== true || commitOf(root, tag.commit) !== undefined);
+	const problems = kept.filter((tag) => commitOf(root, tag.commit) === undefined).map((tag) => `${tag.name}: the clone holds no commit ${tag.commit} (${tag.source})`);
+	return { tags: kept, problems };
 }

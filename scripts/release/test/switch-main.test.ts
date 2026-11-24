@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { REPO_ROOT } from "../../lib/files.ts";
 import { checkSwitch, type OpenPull, parsePulls, type SwitchOptions, verifySwitch } from "../switch-main.ts";
-import { owedTags, runtimeTags } from "../tags.ts";
+import { heldTags, owedTags, runtimeTags } from "../tags.ts";
 
 let folder = "";
 let work = "";
@@ -172,7 +172,15 @@ describe("the owed tags of this repository (7.4)", () => {
 		expect(runtime.tags.map((tag) => `${tag.name} ${tag.commit.slice(0, 7)}`)).toEqual(["runtime-r3 9d3ba51", "runtime-r4 b158a5b", "runtime-r5 6d1a685", "runtime-r6 390448d", "runtime-r7 d022725", "runtime-r8 2e9d969"]);
 		const owed = owedTags(REPO_ROOT);
 		expect(owed.problems).toEqual([]);
-		expect(owed.tags.map((tag) => tag.name)).toEqual(["v0-final", "runtime-r3", "runtime-r4", "runtime-r5", "runtime-r6", "runtime-r7", "runtime-r8", "milestone-m1", "milestone-m2", "milestone-m3", "milestone-m4", "milestone-m5", "runs/m5-5a", "runs/m5-5c"]);
+		expect(owed.tags.filter((tag) => tag.optional !== true).map((tag) => tag.name)).toEqual(["v0-final", "runtime-r3", "runtime-r4", "runtime-r5", "runtime-r6", "runtime-r7", "runtime-r8", "milestone-m1", "milestone-m2", "milestone-m3", "milestone-m4", "milestone-m5"]);
+	});
+
+	it("leaves out an optional tag whose commit the clone does not hold, and still names a missing owed one (A159)", () => {
+		const optional = { name: "runs/absent", commit: "0000000000000000000000000000000000000001", source: "test", optional: true };
+		const owed = { name: "runtime-r99", commit: "0000000000000000000000000000000000000002", source: "test" };
+		const held = heldTags(REPO_ROOT, [optional, owed]);
+		expect(held.tags.map((tag) => tag.name)).toEqual(["runtime-r99"]);
+		expect(held.problems).toEqual([expect.stringContaining("runtime-r99: the clone holds no commit")]);
 	});
 
 	it("prints runtime-r3 at 9d3ba515 for the owner when the remote lacks it", () => {
